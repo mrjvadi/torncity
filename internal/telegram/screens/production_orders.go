@@ -2,7 +2,6 @@ package screens
 
 import (
 	"strconv"
-	"time"
 
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
@@ -11,40 +10,6 @@ import (
 // Production orders — what the company can make, the plan of one order with
 // what it consumes and how long it runs (or every input it is short of), the
 // orders running and done — and the reverse-engineering lab.
-
-// ProduceTarget is something the company can make: a final design of its
-// own, or a component it makes.
-type ProduceTarget struct {
-	Good Good
-	// Batch is how many units one batch of a component yields; zero for a
-	// design, which makes one unit per unit ordered.
-	Batch int64
-}
-
-// ProductionLine is one production order.
-type ProductionLine struct {
-	No     int64
-	Good   Good
-	Output int64
-	// Done orders have their quality; running ones their end.
-	Done     bool
-	Quality  int
-	FinishAt time.Time
-	Left     time.Duration
-}
-
-// OrdersView is a company's production floor.
-type OrdersView struct {
-	Ref     CompanyRef
-	Targets []ProduceTarget
-	// Locked are the components one step away, each with the way in.
-	Locked  []LockedTarget
-	Orders  []ProductionLine
-	Max     int
-	Running int
-	// Crew is how many work an order: the owner and the employees.
-	Crew int
-}
 
 // Orders renders the production floor.
 func Orders(c Context, v OrdersView) *presenter.Response {
@@ -75,7 +40,7 @@ func Orders(c Context, v OrdersView) *presenter.Response {
 	var buttons []presenter.Button
 	for _, t := range v.Targets {
 		if btn, ok := keyboards.Button(c.T("production.button.produce", map[string]any{"good": c.GoodName(t.Good)}),
-			AddrProduce, v.Ref.Code, t.Good.target()); ok {
+			AddrProduce, v.Ref.Code, t.Good.TargetArg()); ok {
 			buttons = append(buttons, btn)
 		}
 	}
@@ -97,58 +62,13 @@ func Orders(c Context, v OrdersView) *presenter.Response {
 	return c.respond(paragraphs(head, orders, targets, locked), kb.Build())
 }
 
-// RecipeLine is one input of an order: what one unit (or batch) takes, what
-// the whole order takes, and what the warehouse holds.
-type RecipeLine struct {
-	Component Named
-	Per       int64
-	Need      int64
-	Have      int64
-}
-
-// ProducePresets are the order sizes the plan screen offers a button for.
-var ProducePresets = []int64{1, 5, 10}
-
-// ProduceView is the plan of an order of one target.
-type ProduceView struct {
-	Ref CompanyRef
-	// Addr is the command a size or confirm button calls; empty means
-	// AddrProduce. An upgrade-kit order (AddrProduceKit) reuses this same
-	// screen — a kit's plan reads exactly like an order's, because it is
-	// one: the design's own recipe, refitted onto an existing unit instead
-	// of sold as a new one.
-	Addr   string
-	Target ProduceTarget
-	// Qty is the order size planned; zero before one is chosen.
-	Qty    int64
-	Output int64
-	Recipe []RecipeLine
-	// Duration is the order's wait on the wall clock, FinishAt its end.
-	Duration time.Duration
-	FinishAt time.Time
-	Crew     int
-	// MaxQty is the most the warehouse can make now.
-	MaxQty int64
-	// Short is the order's shortages, when it cannot be placed.
-	Short []Shortage
-	// StockUp is what buying every short input from the city's suppliers
-	// costs, when they sell them all: one tap buys them
-	// (docs/adr/0021, section 14). Zero when they do not.
-	StockUp int64
-	// Bought is what the inputs just bought cost, after a one-tap
-	// purchase.
-	Bought int64
-	// Placed is set once the order is running.
-	Placed *ProductionLine
-}
-
 // Produce renders the plan of an order.
 func Produce(c Context, v ProduceView) *presenter.Response {
 	good := c.GoodName(v.Target.Good)
-	target := v.Target.Good.target()
-	addr := v.Addr
-	if addr == "" {
-		addr = AddrProduce
+	target := v.Target.Good.TargetArg()
+	addr := AddrProduce
+	if v.Kit {
+		addr = AddrProduceKit
 	}
 	if p := v.Placed; p != nil {
 		text := paragraphs(c.T("production.placed", map[string]any{"no": FormatNumber(c, p.No), "good": good,
@@ -186,7 +106,7 @@ func Produce(c Context, v ProduceView) *presenter.Response {
 			if sh.Source == "" {
 				continue
 			}
-			lines = append(lines, c.T("production.short_source."+sh.sourceKey(), map[string]any{
+			lines = append(lines, c.T("production.short_source."+sh.SourceKey(), map[string]any{
 				"component": c.ComponentName(sh.Component), "qty": FormatNumber(c, sh.Need-sh.Have)}))
 		}
 		plan = body(lines...)
@@ -237,42 +157,6 @@ func contains64(list []int64, v int64) bool {
 // ---------------------------------------------------------------------------
 // Reverse engineering.
 
-// SampleLine is a piece in the warehouse another company designed.
-type SampleLine struct {
-	Serial string
-	Good   Good
-	// Maker is the company whose design it is.
-	Maker   string
-	Quality int
-	// ChanceBPS is the company's chance of recovering a design from it.
-	ChanceBPS int64
-}
-
-// ReverseLine is one reverse engineering.
-type ReverseLine struct {
-	No       int64
-	Good     Good
-	Status   string
-	FinishAt time.Time
-	Left     time.Duration
-	// Result is the copy's name when it succeeded.
-	Result   string
-	ResultNo int64
-}
-
-// ReverseLabView is a company's reverse-engineering lab.
-type ReverseLabView struct {
-	Ref     CompanyRef
-	Samples []SampleLine
-	Jobs    []ReverseLine
-	// Confirm is the sample about to be taken apart.
-	Confirm *SampleLine
-	Skill   string
-	Level   int
-	Time    time.Duration
-	Notice  string
-}
-
 // ReverseLab renders the reverse-engineering lab.
 func ReverseLab(c Context, v ReverseLabView) *presenter.Response {
 	kb := keyboards.New()
@@ -316,7 +200,12 @@ func ReverseLab(c Context, v ReverseLabView) *presenter.Response {
 	}
 	kb.Grid(2, buttons...)
 	c.productionNav(kb, []string{AddrWarehouse, v.Ref.Code}, AddrReverseLab, v.Ref.Code)
-	return c.respond(paragraphs(v.Notice, head, sampleBlock, jobBlock, c.T("production.relab_hint", nil)), kb.Build())
+	started := ""
+	if v.Started != nil {
+		started = c.T("production.reverse_started", map[string]any{"good": c.GoodName(v.Started.Good),
+			"time": FormatClock(c, v.Started.FinishAt), "duration": FormatDuration(c, v.Started.Left)})
+	}
+	return c.respond(paragraphs(started, head, sampleBlock, jobBlock, c.T("production.relab_hint", nil)), kb.Build())
 }
 
 // shortageButton is the one way forward from a short order: buy it all from

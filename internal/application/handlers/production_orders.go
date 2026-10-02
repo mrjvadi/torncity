@@ -6,6 +6,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/companies"
+
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/company"
@@ -15,8 +18,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/shared/money"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // Production orders: N units of one of the company's final designs, or N
@@ -34,7 +35,7 @@ const productionReference = "production_orders"
 
 // orderTarget is what an order makes, as the rules take it.
 type orderTarget struct {
-	good      screens.Good
+	good      presentation.Good
 	kind      string
 	design    *application.Design
 	archetype item.Archetype
@@ -65,15 +66,15 @@ func (h *ProductionHandler) kitTarget(ctx context.Context, tx application.Tx, sn
 func (h *ProductionHandler) targetOf(ctx context.Context, tx application.Tx, snap *content.Snapshot, f *floor, raw string, forKit bool) (orderTarget, error) {
 	raw = strings.TrimSpace(raw)
 	c := f.c
-	back := []string{screens.AddrOrders, c.Code}
-	if no, ok := strings.CutPrefix(raw, screens.DesignTargetPrefix); ok {
+	back := []string{companies.AddrOrders, c.Code}
+	if no, ok := strings.CutPrefix(raw, presentation.DesignTargetPrefix); ok {
 		n, ok := number(no)
 		if !ok {
-			return orderTarget{}, refuseProduction(screens.ProductionRefusedNotFound, c, snap).back(back...)
+			return orderTarget{}, refuseProduction(companies.ProductionRefusedNotFound, c, snap).back(back...)
 		}
 		d, err := tx.Production().Design(ctx, n, false)
 		if isSentinel(err, application.ErrDesignNotFound) || (err == nil && (d.CompanyID != c.ID || d.Status != application.DesignFinal)) {
-			return orderTarget{}, refuseProduction(screens.ProductionRefusedNotFound, c, snap).back(back...)
+			return orderTarget{}, refuseProduction(companies.ProductionRefusedNotFound, c, snap).back(back...)
 		}
 		if err != nil {
 			return orderTarget{}, err
@@ -83,7 +84,7 @@ func (h *ProductionHandler) targetOf(ctx context.Context, tx application.Tx, sna
 			return orderTarget{}, internalf("a design of an archetype the content does not have: " + d.Archetype)
 		}
 		if !f.def.Makes(a.Code) {
-			return orderTarget{}, refuseProduction(screens.ProductionRefusedWrongType, c, snap).back(back...)
+			return orderTarget{}, refuseProduction(companies.ProductionRefusedWrongType, c, snap).back(back...)
 		}
 		// Arms are made under a defence licence in force
 		// (docs/adr/0022, section 2.14): a company whose licence lapsed
@@ -96,7 +97,7 @@ func (h *ProductionHandler) targetOf(ctx context.Context, tx application.Tx, sna
 					return orderTarget{}, err
 				}
 				if buyer.Sector != lic.Sector {
-					return orderTarget{}, refuseProduction(screens.ProductionRefusedNotCleared, c, snap).back(back...)
+					return orderTarget{}, refuseProduction(companies.ProductionRefusedNotCleared, c, snap).back(back...)
 				}
 			}
 		}
@@ -110,15 +111,15 @@ func (h *ProductionHandler) targetOf(ctx context.Context, tx application.Tx, sna
 	if forKit {
 		// A kit is built for a specific version of the company's own
 		// product line; a component has no version to retrofit anything to.
-		return orderTarget{}, refuseProduction(screens.ProductionRefusedWrongType, c, snap).back(back...)
+		return orderTarget{}, refuseProduction(companies.ProductionRefusedWrongType, c, snap).back(back...)
 	}
 	a, plan, def, ok := snap.ComponentRecipe(raw)
 	if !ok || !hasCode(def.By, c.TypeCode) {
-		return orderTarget{}, refuseProduction(screens.ProductionRefusedWrongType, c, snap).back(back...)
+		return orderTarget{}, refuseProduction(companies.ProductionRefusedWrongType, c, snap).back(back...)
 	}
 	comp, _ := snap.ComponentDef(raw)
 	if err := item.CanManufacture(comp.Component(), f.access); err != nil {
-		r := refuseProduction(screens.ProductionRefusedTechLocked, c, snap).back(back...)
+		r := refuseProduction(companies.ProductionRefusedTechLocked, c, snap).back(back...)
 		for _, t := range comp.RequiresTechnology {
 			if !f.access.Allows(t) {
 				td, _ := snap.Technology(t)
@@ -127,28 +128,28 @@ func (h *ProductionHandler) targetOf(ctx context.Context, tx application.Tx, sna
 		}
 		return orderTarget{}, r
 	}
-	return orderTarget{good: screens.Good{Component: true, Item: named(comp.Code, comp.Name)}, kind: application.OrderKindComponent,
+	return orderTarget{good: presentation.Good{Component: true, Item: named(comp.Code, comp.Name)}, kind: application.OrderKindComponent,
 		archetype: a, plan: plan, output: raw, batch: def.Batch, skill: def.Skill}, nil
 }
 
 // targets lists what a company can order: its final designs, then the
 // components its kind makes and it may make.
-func (h *ProductionHandler) targets(ctx context.Context, tx application.Tx, snap *content.Snapshot, f *floor) ([]screens.ProduceTarget, error) {
-	var out []screens.ProduceTarget
+func (h *ProductionHandler) targets(ctx context.Context, tx application.Tx, snap *content.Snapshot, f *floor) ([]companies.ProduceTarget, error) {
+	var out []companies.ProduceTarget
 	designs, err := tx.Production().Designs(ctx, f.c.ID)
 	if err != nil {
 		return nil, err
 	}
 	for _, d := range designs {
 		if d.Status == application.DesignFinal && f.def.Makes(d.Archetype) {
-			out = append(out, screens.ProduceTarget{Good: designGood(snap, d)})
+			out = append(out, companies.ProduceTarget{Good: designGood(snap, d)})
 		}
 	}
 	for _, comp := range snap.MadeBy(f.c.TypeCode) {
 		if item.CanManufacture(comp.Component(), f.access) != nil {
 			continue
 		}
-		out = append(out, screens.ProduceTarget{Good: screens.Good{Component: true, Item: named(comp.Code, comp.Name)},
+		out = append(out, companies.ProduceTarget{Good: presentation.Good{Component: true, Item: named(comp.Code, comp.Name)},
 			Batch: comp.Production.Batch})
 	}
 	return out, nil
@@ -170,13 +171,13 @@ func warehouseStock(ctx context.Context, tx application.Tx, companyID string) (p
 
 // Orders handles company.orders: the production floor — what it can make,
 // its orders running and done.
-func (h *ProductionHandler) Orders(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presenter.Response, error) {
+func (h *ProductionHandler) Orders(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.OrdersView
+	var view companies.OrdersView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -193,7 +194,7 @@ func (h *ProductionHandler) Orders(ctx context.Context, meta envelope.Metadata, 
 		if err := h.withCitizens(ctx, tx, f); err != nil {
 			return err
 		}
-		view = screens.OrdersView{Ref: companyRef(snap, *c), Max: h.rules.MaxRunningOrders, Crew: f.crew()}
+		view = companies.OrdersView{Ref: companyRef(snap, *c), Max: h.rules.MaxRunningOrders, Crew: f.crew()}
 		if view.Targets, err = h.targets(ctx, tx, snap, f); err != nil {
 			return err
 		}
@@ -224,22 +225,22 @@ func (h *ProductionHandler) Orders(ctx context.Context, meta envelope.Metadata, 
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.Orders(h.screen(meta, lang), view), nil
+	return companies.Orders(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // orderLine is an order for a screen.
 func (h *ProductionHandler) orderLine(ctx context.Context, tx application.Tx, snap *content.Snapshot, o application.ProductionOrder,
 	now time.Time,
-) (screens.ProductionLine, error) {
+) (companies.ProductionLine, error) {
 	good := goodOf(snap, o.Output)
 	if o.DesignID != "" {
 		d, err := tx.Production().DesignByID(ctx, o.DesignID)
 		if err != nil {
-			return screens.ProductionLine{}, err
+			return companies.ProductionLine{}, err
 		}
 		good = designGood(snap, *d)
 	}
-	return screens.ProductionLine{No: o.No, Good: good, Output: o.OutputQty, Done: o.Status == application.OrderDone,
+	return companies.ProductionLine{No: o.No, Good: good, Output: o.OutputQty, Done: o.Status == application.OrderDone,
 		Quality: o.Quality, FinishAt: o.FinishAt, Left: countdownTo(o.FinishAt, now)}, nil
 }
 
@@ -292,9 +293,9 @@ func (h *ProductionHandler) planOrder(ctx context.Context, tx application.Tx, sn
 		out.short = short
 		return out, nil
 	case stderrors.Is(err, production.ErrInvalidQuantity):
-		return out, refuseProduction(screens.ProductionRefusedAmount, f.c, snap).back(screens.AddrProduce, f.c.Code, t.good.TargetArg())
+		return out, refuseProduction(companies.ProductionRefusedAmount, f.c, snap).back(companies.AddrProduce, f.c.Code, t.good.TargetArg())
 	case stderrors.Is(err, production.ErrTooLong):
-		return out, refuseProduction(screens.ProductionRefusedTooLong, f.c, snap).back(screens.AddrProduce, f.c.Code, t.good.TargetArg())
+		return out, refuseProduction(companies.ProductionRefusedTooLong, f.c, snap).back(companies.AddrProduce, f.c.Code, t.good.TargetArg())
 	case err != nil:
 		return out, errors.Internal(err)
 	}
@@ -314,19 +315,19 @@ func (p plan) maxOrder() int64 {
 }
 
 // produceView renders a plan.
-func (h *ProductionHandler) produceView(snap *content.Snapshot, c *application.Company, p plan, qty int64, now time.Time) screens.ProduceView {
-	v := screens.ProduceView{Ref: companyRef(snap, *c), Target: screens.ProduceTarget{Good: p.target.good, Batch: p.target.batch},
+func (h *ProductionHandler) produceView(snap *content.Snapshot, c *application.Company, p plan, qty int64, now time.Time) companies.ProduceView {
+	v := companies.ProduceView{Ref: companyRef(snap, *c), Target: companies.ProduceTarget{Good: p.target.good, Batch: p.target.batch},
 		Qty: qty, Crew: p.crew, MaxQty: p.maxOrder()}
 	for _, in := range p.per {
 		comp, _ := snap.ComponentDef(in.Component)
 		need := in.Quantity * max(qty, 0)
-		v.Recipe = append(v.Recipe, screens.RecipeLine{Component: named(comp.Code, comp.Name), Per: in.Quantity, Need: need,
+		v.Recipe = append(v.Recipe, companies.RecipeLine{Component: named(comp.Code, comp.Name), Per: in.Quantity, Need: need,
 			Have: p.stock[in.Component]})
 	}
 	if p.short != nil {
 		for _, s := range p.short.Shortages {
 			comp, _ := snap.ComponentDef(s.Component)
-			v.Short = append(v.Short, screens.Shortage{Component: named(comp.Code, comp.Name), Need: s.Need, Have: s.Have})
+			v.Short = append(v.Short, companies.Shortage{Component: named(comp.Code, comp.Name), Need: s.Need, Have: s.Have})
 		}
 	}
 	if qty > 0 && p.short == nil {
@@ -339,7 +340,7 @@ func (h *ProductionHandler) produceView(snap *content.Snapshot, c *application.C
 
 // Produce handles company.produce: the plan of an order — its inputs, what
 // the warehouse holds, its time for the crew — and, confirmed, placing it.
-func (h *ProductionHandler) Produce(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presenter.Response, error) {
+func (h *ProductionHandler) Produce(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -352,7 +353,7 @@ func (h *ProductionHandler) Produce(ctx context.Context, meta envelope.Metadata,
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.ProduceView
+	var view companies.ProduceView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -373,7 +374,7 @@ func (h *ProductionHandler) Produce(ctx context.Context, meta envelope.Metadata,
 			return err
 		}
 		if qty < 0 {
-			return refuseProduction(screens.ProductionRefusedAmount, c, snap).back(screens.AddrProduce, c.Code, req.Target)
+			return refuseProduction(companies.ProductionRefusedAmount, c, snap).back(companies.AddrProduce, c.Code, req.Target)
 		}
 		f, err := readFloor(ctx, tx, snap, c)
 		if err != nil {
@@ -410,7 +411,7 @@ func (h *ProductionHandler) Produce(ctx context.Context, meta envelope.Metadata,
 				return err
 			}
 			if place && pl.short != nil {
-				r := refuseProduction(screens.ProductionRefusedShortage, c, snap).back(screens.AddrProduce, c.Code, t.good.TargetArg())
+				r := refuseProduction(companies.ProductionRefusedShortage, c, snap).back(companies.AddrProduce, c.Code, t.good.TargetArg())
 				r.view.Shortages = view.Short
 				return r
 			}
@@ -421,7 +422,7 @@ func (h *ProductionHandler) Produce(ctx context.Context, meta envelope.Metadata,
 			return err
 		}
 		if running >= h.rules.MaxRunningOrders {
-			r := refuseProduction(screens.ProductionRefusedMaxOrders, c, snap).back(screens.AddrOrders, c.Code)
+			r := refuseProduction(companies.ProductionRefusedMaxOrders, c, snap).back(companies.AddrOrders, c.Code)
 			r.view.Max = h.rules.MaxRunningOrders
 			return r
 		}
@@ -467,21 +468,21 @@ func (h *ProductionHandler) Produce(ctx context.Context, meta envelope.Metadata,
 			}
 		}
 		view = h.produceView(snap, c, pl, qty, now)
-		view.Placed = &screens.ProductionLine{No: o.No, Good: t.good, Output: o.OutputQty, FinishAt: finish,
+		view.Placed = &companies.ProductionLine{No: o.No, Good: t.good, Output: o.OutputQty, FinishAt: finish,
 			Left: countdownTo(finish, now)}
 		return nil
 	})
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.Produce(h.screen(meta, lang), view), nil
+	return companies.Produce(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // Produced handles company.produced from the SCHEDULER: an order finishing.
 // Exactly once: the order row, locked, must still be running under the
 // action that finishes it. Its output enters the company's warehouse at the
 // quality rolled for it, each piece with the order as its provenance.
-func (h *ProductionHandler) Produced(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presenter.Response, error) {
+func (h *ProductionHandler) Produced(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presentation.Response, error) {
 	in, err := productionPayload(meta, req)
 	if err != nil {
 		return nil, err
@@ -591,7 +592,7 @@ func (h *ProductionHandler) Produced(ctx context.Context, meta envelope.Metadata
 // its time for the crew, exactly like Produce — and, confirmed, placing it as
 // kind OrderKindUpgradeKit with TargetDesignID set, so a retrofit later
 // knows which version a kit's output upgrades a unit to.
-func (h *ProductionHandler) ProduceKit(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presenter.Response, error) {
+func (h *ProductionHandler) ProduceKit(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -604,7 +605,7 @@ func (h *ProductionHandler) ProduceKit(ctx context.Context, meta envelope.Metada
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.ProduceView
+	var view companies.ProduceView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -625,7 +626,7 @@ func (h *ProductionHandler) ProduceKit(ctx context.Context, meta envelope.Metada
 			return err
 		}
 		if qty < 0 {
-			return refuseProduction(screens.ProductionRefusedAmount, c, snap).back(screens.AddrProduceKit, c.Code, req.Target)
+			return refuseProduction(companies.ProductionRefusedAmount, c, snap).back(companies.AddrProduceKit, c.Code, req.Target)
 		}
 		f, err := readFloor(ctx, tx, snap, c)
 		if err != nil {
@@ -655,12 +656,12 @@ func (h *ProductionHandler) ProduceKit(ctx context.Context, meta envelope.Metada
 		now := h.now()
 		if !place || pl.short != nil {
 			view = h.produceView(snap, c, pl, qty, now)
-			view.Addr = screens.AddrProduceKit
+			view.Kit = true
 			if err := h.sourceShortages(ctx, tx, snap, f, &view, now); err != nil {
 				return err
 			}
 			if place && pl.short != nil {
-				r := refuseProduction(screens.ProductionRefusedShortage, c, snap).back(screens.AddrProduceKit, c.Code, t.good.TargetArg())
+				r := refuseProduction(companies.ProductionRefusedShortage, c, snap).back(companies.AddrProduceKit, c.Code, t.good.TargetArg())
 				r.view.Shortages = view.Short
 				return r
 			}
@@ -671,7 +672,7 @@ func (h *ProductionHandler) ProduceKit(ctx context.Context, meta envelope.Metada
 			return err
 		}
 		if running >= h.rules.MaxRunningOrders {
-			r := refuseProduction(screens.ProductionRefusedMaxOrders, c, snap).back(screens.AddrOrders, c.Code)
+			r := refuseProduction(companies.ProductionRefusedMaxOrders, c, snap).back(companies.AddrOrders, c.Code)
 			r.view.Max = h.rules.MaxRunningOrders
 			return r
 		}
@@ -713,15 +714,15 @@ func (h *ProductionHandler) ProduceKit(ctx context.Context, meta envelope.Metada
 			}
 		}
 		view = h.produceView(snap, c, pl, qty, now)
-		view.Addr = screens.AddrProduceKit
-		view.Placed = &screens.ProductionLine{No: o.No, Good: t.good, Output: o.OutputQty, FinishAt: finish,
+		view.Kit = true
+		view.Placed = &companies.ProductionLine{No: o.No, Good: t.good, Output: o.OutputQty, FinishAt: finish,
 			Left: countdownTo(finish, now)}
 		return nil
 	})
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.Produce(h.screen(meta, lang), view), nil
+	return companies.Produce(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // KitProduced handles company.kit_produced from the SCHEDULER: an
@@ -729,7 +730,7 @@ func (h *ProductionHandler) ProduceKit(ctx context.Context, meta envelope.Metada
 // pieces carry the TARGET design (they are spare units of it, built to be
 // cannibalized by a retrofit — see Retrofitted) rather than being offered
 // for sale.
-func (h *ProductionHandler) KitProduced(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presenter.Response, error) {
+func (h *ProductionHandler) KitProduced(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presentation.Response, error) {
 	in, err := productionPayload(meta, req)
 	if err != nil {
 		return nil, err
@@ -816,7 +817,7 @@ func (h *ProductionHandler) quickQty(most int64) int64 {
 // when the suppliers sell every one of them now, what buying them all costs:
 // the one-tap purchase the screen offers.
 func (h *ProductionHandler) sourceShortages(ctx context.Context, tx application.Tx, snap *content.Snapshot, f *floor,
-	v *screens.ProduceView, now time.Time,
+	v *companies.ProduceView, now time.Time,
 ) error {
 	if len(v.Short) == 0 {
 		return nil
@@ -835,7 +836,7 @@ func (h *ProductionHandler) sourceShortages(ctx context.Context, tx application.
 				return err
 			}
 			if stock >= lack {
-				v.Short[i].Source = screens.ShortFromSupplier
+				v.Short[i].Source = companies.ShortFromSupplier
 				total += lack * sh.Price
 				continue
 			}
@@ -843,10 +844,10 @@ func (h *ProductionHandler) sourceShortages(ctx context.Context, tx application.
 		all = false
 		if comp, ok := snap.ComponentDef(s.Component.Code); ok && comp.Production != nil && hasCode(comp.Production.By, f.c.TypeCode) &&
 			item.CanManufacture(comp.Component(), f.access) == nil {
-			v.Short[i].Source = screens.ShortMadeHere
+			v.Short[i].Source = companies.ShortMadeHere
 			continue
 		}
-		v.Short[i].Source = screens.ShortFromCompanies
+		v.Short[i].Source = companies.ShortFromCompanies
 	}
 	if all {
 		v.StockUp = total
@@ -857,7 +858,7 @@ func (h *ProductionHandler) sourceShortages(ctx context.Context, tx application.
 // StockUp handles company.stockup: in one tap, every input an order of qty
 // is short of, bought from the city's suppliers — all of them in one
 // transaction, or none — and the order's plan shown ready to place.
-func (h *ProductionHandler) StockUp(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presenter.Response, error) {
+func (h *ProductionHandler) StockUp(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -868,7 +869,7 @@ func (h *ProductionHandler) StockUp(ctx context.Context, meta envelope.Metadata,
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.ProduceView
+	var view companies.ProduceView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -904,11 +905,11 @@ func (h *ProductionHandler) StockUp(ctx context.Context, meta envelope.Metadata,
 			if err != nil {
 				return err
 			}
-			back := []string{screens.AddrProduce, c.Code, t.good.TargetArg()}
+			back := []string{companies.AddrProduce, c.Code, t.good.TargetArg()}
 			for _, s := range pl.short.Shortages {
 				sp, sh, ok := supplierOf(snap, city.Code, s.Component)
 				if !ok {
-					return refuseProduction(screens.ProductionRefusedNotFound, c, snap).back(back...)
+					return refuseProduction(companies.ProductionRefusedNotFound, c, snap).back(back...)
 				}
 				paid, err := h.supplyOnce(ctx, tx, snap, f, p, city, sp, sh, s.Need-s.Have, now, back...)
 				if err != nil {
@@ -929,5 +930,5 @@ func (h *ProductionHandler) StockUp(ctx context.Context, meta envelope.Metadata,
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.Produce(h.screen(meta, lang), view), nil
+	return companies.Produce(presentation.Ctx{Lang: lang}, view), nil
 }

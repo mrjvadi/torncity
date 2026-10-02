@@ -3,13 +3,13 @@ package notification
 import (
 	"context"
 	"encoding/json"
+	mview "github.com/mrjvadi/torncity/internal/presentation/military"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/presentation"
 	"github.com/mrjvadi/torncity/internal/presentation/notices"
 	apperrors "github.com/mrjvadi/torncity/internal/shared/errors"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
@@ -89,11 +89,11 @@ func renderMoveArrived(_ context.Context, _ Deps, env *envelope.Envelope) (*Draf
 	if err != nil || ev.PlayerID == "" {
 		return nil, err
 	}
-	view := screens.MilitaryNoticeView{Country: country(ev.CountryCode, ev.CountryName),
+	view := mview.MilitaryNoticeView{Country: country(ev.CountryCode, ev.CountryName),
 		Good: screens.Good{Item: screens.Named{Code: ev.Item, Name: ev.Item}, Design: ev.Design, DesignNo: ev.DesignNo},
 		Qty:  ev.Qty, CityCode: ev.CityCode, City: ev.CityName, Branch: screens.Named{Code: ev.Branch, Name: ev.BranchName}}
-	return &Draft{PlayerID: ev.PlayerID, Screen: func(c screens.Context) *presenter.Response {
-		return screens.MoveArrivedNotice(c, view)
+	return &Draft{PlayerID: ev.PlayerID, Notice: func(c presentation.Ctx) *presentation.Response {
+		return mview.MoveArrivedNotice(c, view)
 	}}, nil
 }
 
@@ -187,8 +187,8 @@ func decodeLicence(env *envelope.Envelope, name string) (licenceEvent, error) {
 	return ev, nil
 }
 
-func (ev licenceEvent) company() screens.CompanyRef {
-	return screens.CompanyRef{Code: ev.CompanyCode, Name: ev.CompanyName, Type: screens.Named{Code: ev.Type, Name: ev.Type}}
+func (ev licenceEvent) company() presentation.CompanyRef {
+	return presentation.CompanyRef{Code: ev.CompanyCode, Name: ev.CompanyName, Type: presentation.Named{Code: ev.Type, Name: ev.Type}}
 }
 
 // renderLicence: the defence minister hears an application waits
@@ -204,10 +204,10 @@ func renderLicence(event string) Renderer {
 		if event == "licence_applied" {
 			kind = "applied"
 		}
-		view := screens.LicenceNoticeView{Kind: kind, Company: ev.company(), Country: country(ev.CountryCode, ev.CountryName),
+		view := mview.LicenceNoticeView{Kind: kind, Company: ev.company(), Country: country(ev.CountryCode, ev.CountryName),
 			EffectiveAt: ev.EffectiveAt}
-		return &Draft{PlayerID: ev.PlayerID, Screen: func(c screens.Context) *presenter.Response {
-			return screens.LicenceNotice(c, view)
+		return &Draft{PlayerID: ev.PlayerID, Notice: func(c presentation.Ctx) *presentation.Response {
+			return mview.LicenceNotice(c, view)
 		}}, nil
 	}
 }

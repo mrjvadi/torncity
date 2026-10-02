@@ -4,25 +4,26 @@ import (
 	"context"
 	"strings"
 
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/companies"
+
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/recruit"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // A company's specialists: the list, and what the owner or the manager does
 // to one — renew a completed contract, match the market, part ways.
 
 // Specialists handles company.npcs.
-func (h *RecruitHandler) Specialists(ctx context.Context, meta envelope.Metadata, req RecruitRequest) (*presenter.Response, error) {
+func (h *RecruitHandler) Specialists(ctx context.Context, meta envelope.Metadata, req RecruitRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.SpecialistsView
+	var view companies.SpecialistsView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -42,13 +43,13 @@ func (h *RecruitHandler) Specialists(ctx context.Context, meta envelope.Metadata
 	if err != nil {
 		return h.finish(meta, lang, err)
 	}
-	return screens.Specialists(h.screen(meta, lang), view), nil
+	return companies.Specialists(presentation.Ctx{Lang: lang}, view), nil
 }
 
 func (h *RecruitHandler) specialistsView(ctx context.Context, tx application.Tx, snap *content.Snapshot,
 	def content.RecruitmentDef, c application.Company,
-) (screens.SpecialistsView, error) {
-	v := screens.SpecialistsView{Ref: companyRef(snap, c), Max: h.rules.MaxStaff}
+) (companies.SpecialistsView, error) {
+	v := companies.SpecialistsView{Ref: companyRef(snap, c), Max: h.rules.MaxStaff}
 	staff, err := tx.Recruitment().Staff(ctx, c.ID)
 	if err != nil {
 		return v, err
@@ -67,9 +68,9 @@ func (h *RecruitHandler) specialistsView(ctx context.Context, tx application.Tx,
 // specialistLine is a specialist as the list shows them: where their pay
 // stands against today's market.
 func specialistLine(ctx context.Context, tx application.Tx, m jobMarket, c application.Company, s application.NPCStaff,
-) (screens.SpecialistLine, error) {
+) (companies.SpecialistLine, error) {
 	home, _ := m.snap.CityByID(s.HomeCityID)
-	l := screens.SpecialistLine{No: s.No, NameSeed: s.NameSeed, Skill: s.Skill, Level: s.Level,
+	l := companies.SpecialistLine{No: s.No, NameSeed: s.NameSeed, Skill: s.Skill, Level: s.Level,
 		Home: named(home.Code, home.Name), Salary: s.Salary, Housing: s.Housing, Served: s.Served, Term: s.TermPeriods,
 		Expiring: s.Expiring, Shares: s.Shares}
 	expected, err := expectedNow(ctx, tx, m, c, s)
@@ -100,7 +101,7 @@ func expectedNow(ctx context.Context, tx application.Tx, m jobMarket, c applicat
 
 // Specialist handles company.npc: renew, match the market, or — confirmed —
 // part ways with one specialist.
-func (h *RecruitHandler) Specialist(ctx context.Context, meta envelope.Metadata, req RecruitRequest) (*presenter.Response, error) {
+func (h *RecruitHandler) Specialist(ctx context.Context, meta envelope.Metadata, req RecruitRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -110,13 +111,13 @@ func (h *RecruitHandler) Specialist(ctx context.Context, meta envelope.Metadata,
 	}
 	act := strings.TrimSpace(req.Act)
 	switch act {
-	case screens.SpecialistRenew, screens.SpecialistRaise, screens.SpecialistDismiss:
+	case companies.SpecialistRenew, companies.SpecialistRaise, companies.SpecialistDismiss:
 	default:
 		return nil, invalidRecruit("no such act on a specialist")
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.SpecialistsView
+	var view companies.SpecialistsView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -128,7 +129,7 @@ func (h *RecruitHandler) Specialist(ctx context.Context, meta envelope.Metadata,
 		}
 		s, err := tx.Recruitment().Specialist(ctx, no)
 		if isSentinel(err, application.ErrSpecialistNotFound) {
-			return refuseRecruit(screens.RecruitRefusedNotFound, nil, snap)
+			return refuseRecruit(companies.RecruitRefusedNotFound, nil, snap)
 		}
 		if err != nil {
 			return err
@@ -141,14 +142,14 @@ func (h *RecruitHandler) Specialist(ctx context.Context, meta envelope.Metadata,
 		if s, err = tx.Recruitment().Specialist(ctx, no); err != nil {
 			return err
 		}
-		back := []string{screens.AddrSpecialists, c.Code}
+		back := []string{companies.AddrSpecialists, c.Code}
 		if s.Status != application.StaffActive {
-			r := refuseRecruit(screens.RecruitRefusedGone, c, snap)
-			r.view.Back, r.view.NameSeed = back, s.NameSeed
+			r := refuseRecruit(companies.RecruitRefusedGone, c, snap)
+			r.view.Back, r.view.NameSeed = backRef(back...), s.NameSeed
 			return r
 		}
 		m := h.market(snap, def)
-		if act == screens.SpecialistDismiss && !req.confirmed() {
+		if act == companies.SpecialistDismiss && !req.confirmed() {
 			if view, err = h.specialistsView(ctx, tx, snap, def, *c); err != nil {
 				return err
 			}
@@ -165,7 +166,7 @@ func (h *RecruitHandler) Specialist(ctx context.Context, meta envelope.Metadata,
 			if notice, err = h.act(ctx, tx, m, *c, s, act); err != nil {
 				if kind, ok := err.(recruitNotNow); ok {
 					r := refuseRecruit(string(kind), c, snap)
-					r.view.Back = back
+					r.view.Back = backRef(back...)
 					return r
 				}
 				return err
@@ -180,7 +181,7 @@ func (h *RecruitHandler) Specialist(ctx context.Context, meta envelope.Metadata,
 	if err != nil {
 		return h.finish(meta, lang, err)
 	}
-	return screens.Specialists(h.screen(meta, lang), view), nil
+	return companies.Specialists(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // recruitNotNow is an act the specialist's standing does not allow.
@@ -194,12 +195,12 @@ func (h *RecruitHandler) act(ctx context.Context, tx application.Tx, m jobMarket
 ) (string, error) {
 	now := m.now
 	switch act {
-	case screens.SpecialistDismiss:
+	case companies.SpecialistDismiss:
 		s.Status, s.LeaveReason, s.LeftAt, s.UpdatedAt = application.StaffLeft, recruit.LeaveDismissed, &now, now
 		return "dismissed", tx.Recruitment().SaveStaff(ctx, *s)
-	case screens.SpecialistRenew:
+	case companies.SpecialistRenew:
 		if !s.Expiring {
-			return "", recruitNotNow(screens.RecruitRefusedNotNow)
+			return "", recruitNotNow(companies.RecruitRefusedNotNow)
 		}
 		expected, err := expectedNow(ctx, tx, m, c, *s)
 		if err != nil {
@@ -216,7 +217,7 @@ func (h *RecruitHandler) act(ctx context.Context, tx application.Tx, m jobMarket
 	}
 	due := recruit.MarketDue(s.AcceptedBPS, expected)
 	if due <= s.Due() {
-		return "", recruitNotNow(screens.RecruitRefusedNotNow)
+		return "", recruitNotNow(companies.RecruitRefusedNotNow)
 	}
 	s.Salary, s.UnderpaidRun, s.UpdatedAt = due-s.Housing, 0, now
 	return "raised", tx.Recruitment().SaveStaff(ctx, *s)

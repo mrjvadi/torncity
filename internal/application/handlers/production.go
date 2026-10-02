@@ -4,13 +4,16 @@ import (
 	"context"
 	"encoding/binary"
 	stderrors "errors"
-	"github.com/mrjvadi/torncity/internal/presentation"
-	"github.com/mrjvadi/torncity/internal/presentation/economy"
 	"hash/fnv"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/companies"
+	"github.com/mrjvadi/torncity/internal/presentation/economy"
+	"github.com/mrjvadi/torncity/internal/presentation/society"
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
@@ -26,8 +29,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/shared/idempotency"
 	"github.com/mrjvadi/torncity/internal/shared/money"
 	"github.com/mrjvadi/torncity/internal/shared/playercode"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // ProductionRules is the tuning of the production economy (config company,
@@ -142,7 +143,7 @@ type ProductionRequest struct {
 func (r ProductionRequest) code() string { return playercode.Normalize(r.Company) }
 
 func (r ProductionRequest) confirmed() bool {
-	return strings.TrimSpace(r.Confirm) == screens.ProductionConfirm
+	return strings.TrimSpace(r.Confirm) == companies.ProductionConfirm
 }
 
 // number reads a public number argument.
@@ -157,19 +158,17 @@ func quantityArg(raw string) (int64, bool) {
 	return number(strings.NewReplacer(",", "", " ", "").Replace(raw))
 }
 
-func (h *ProductionHandler) screen(meta envelope.Metadata, lang string) screens.Context {
-	return screens.Context{Msgs: h.msgs, Lang: lang, MessageID: editableMessageID(meta), Shared: meta.InGroup()}
-}
-
 // productionRefusal carries a refused production command out of a unit of
 // work.
-type productionRefusal struct{ view screens.ProductionRefusalView }
+type productionRefusal struct {
+	view companies.ProductionRefusalView
+}
 
 func (r *productionRefusal) Error() string { return "handlers: production refused: " + r.view.Kind }
 
 // refuseProduction is a refusal about c (nil when none is known).
 func refuseProduction(kind string, c *application.Company, snap *content.Snapshot) *productionRefusal {
-	r := &productionRefusal{view: screens.ProductionRefusalView{Kind: kind}}
+	r := &productionRefusal{view: companies.ProductionRefusalView{Kind: kind}}
 	if c != nil {
 		r.view.Ref = companyRef(snap, *c)
 	}
@@ -178,28 +177,28 @@ func refuseProduction(kind string, c *application.Company, snap *content.Snapsho
 
 // back sets where the refusal's back button leads.
 func (r *productionRefusal) back(addr ...string) *productionRefusal {
-	r.view.Back = addr
+	r.view.Back = presentation.RefOfAddress(strings.Join(addr, ":"))
 	return r
 }
 
 // finish turns a refusal into its screen.
-func (h *ProductionHandler) finish(meta envelope.Metadata, lang string, err error) (*presenter.Response, error) {
+func (h *ProductionHandler) finish(meta envelope.Metadata, lang string, err error) (*presentation.Response, error) {
 	if err == nil {
 		return nil, nil
 	}
-	c := h.screen(meta, lang)
+	c := presentation.Ctx{Lang: lang}
 	var r *productionRefusal
 	if stderrors.As(err, &r) {
-		return screens.ProductionRefusal(c, r.view), nil
+		return companies.ProductionRefusal(c, r.view), nil
 	}
 	if v, ok := asCompanyRefusal(err); ok {
-		return screens.CompanyRefusal(c, v), nil
+		return companies.CompanyRefusal(c, v), nil
 	}
 	if v, ok := asDeclined(err, economy.PaymentDeclinedView{}); ok {
-		return economy.PaymentDeclined(presentation.Ctx{Lang: c.Lang}, v), nil
+		return economy.PaymentDeclined(c, v), nil
 	}
 	if v, ok := asBlocked(err); ok {
-		return screens.SanctionBlocked(c, v), nil
+		return society.SanctionBlocked(c, v), nil
 	}
 	return nil, err
 }
@@ -225,11 +224,11 @@ func (h *ProductionHandler) managed(ctx context.Context, tx application.Tx, snap
 	code string, right company.Right,
 ) (*application.Company, error) {
 	if !playercode.Valid(code) {
-		return nil, refuseCompany(screens.CompanyRefusedNotFound, nil, snap)
+		return nil, refuseCompany(companies.CompanyRefusedNotFound, nil, snap)
 	}
 	c, err := tx.Companies().ByCode(ctx, code)
 	if isSentinel(err, application.ErrCompanyNotFound) {
-		return nil, refuseCompany(screens.CompanyRefusedNotFound, nil, snap)
+		return nil, refuseCompany(companies.CompanyRefusedNotFound, nil, snap)
 	}
 	if err != nil {
 		return nil, err
@@ -240,11 +239,11 @@ func (h *ProductionHandler) managed(ctx context.Context, tx application.Tx, snap
 	role := company.RoleOf(p.ID, c.OwnerID, c.ManagerID)
 	switch {
 	case role == company.RoleNone:
-		return nil, refuseCompany(screens.CompanyRefusedNotAllowed, c, snap)
+		return nil, refuseCompany(companies.CompanyRefusedNotAllowed, c, snap)
 	case !c.Active():
-		return nil, refuseCompany(screens.CompanyRefusedDissolved, c, snap)
+		return nil, refuseCompany(companies.CompanyRefusedDissolved, c, snap)
 	case role.Check(right) != nil:
-		return nil, refuseCompany(screens.CompanyRefusedNotAllowed, c, snap)
+		return nil, refuseCompany(companies.CompanyRefusedNotAllowed, c, snap)
 	}
 	return c, nil
 }
@@ -396,7 +395,7 @@ func (h *ProductionHandler) spend(ctx context.Context, tx application.Tx, snap *
 		return "", err
 	}
 	if b.Available().Minor() < amount.Minor() {
-		r := refuseProduction(screens.ProductionRefusedFunds, f.c, snap)
+		r := refuseProduction(companies.ProductionRefusedFunds, f.c, snap)
 		r.view.Need, r.view.HaveMoney = amount.Minor(), b.Available().Minor()
 		return "", r
 	}
@@ -419,16 +418,16 @@ func rollFrom(seed string, index int) int {
 // The warehouse.
 
 // goodOf names a warehouse code for a screen: a component or a good.
-func goodOf(snap *content.Snapshot, code string) screens.Good {
+func goodOf(snap *content.Snapshot, code string) presentation.Good {
 	if c, ok := snap.ComponentDef(code); ok {
-		return screens.Good{Component: true, Item: named(c.Code, c.Name)}
+		return presentation.Good{Component: true, Item: named(c.Code, c.Name)}
 	}
-	return screens.Good{Item: itemNamed(snap, code)}
+	return presentation.Good{Item: itemNamed(snap, code)}
 }
 
 // designGood names a good of a design.
-func designGood(snap *content.Snapshot, d application.Design) screens.Good {
-	return screens.Good{Item: itemNamed(snap, d.Item), Design: designName(d), DesignNo: d.No}
+func designGood(snap *content.Snapshot, d application.Design) presentation.Good {
+	return presentation.Good{Item: itemNamed(snap, d.Item), Design: designName(d), DesignNo: d.No}
 }
 
 // designName is the name a design goes by.
@@ -436,17 +435,17 @@ func designName(d application.Design) string { return d.Name }
 
 // Warehouse handles company.warehouse: a company's goods, the hub of its
 // floor.
-func (h *ProductionHandler) Warehouse(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presenter.Response, error) {
-	return h.warehouseWith(ctx, meta, req, "")
+func (h *ProductionHandler) Warehouse(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presentation.Response, error) {
+	return h.warehouse(ctx, meta, req)
 }
 
-func (h *ProductionHandler) warehouseWith(ctx context.Context, meta envelope.Metadata, req ProductionRequest, notice string) (*presenter.Response, error) {
+func (h *ProductionHandler) warehouse(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.WarehouseView
+	var view companies.WarehouseView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -456,7 +455,7 @@ func (h *ProductionHandler) warehouseWith(ctx context.Context, meta envelope.Met
 		if err != nil {
 			return err
 		}
-		view = screens.WarehouseView{Ref: companyRef(snap, *c),
+		view = companies.WarehouseView{Ref: companyRef(snap, *c),
 			CanResearch: company.RoleOf(p.ID, c.OwnerID, c.ManagerID).Can(company.RightResearch)}
 		if view.Lines, err = h.stock(ctx, tx, snap, *c); err != nil {
 			return err
@@ -480,14 +479,12 @@ func (h *ProductionHandler) warehouseWith(ctx context.Context, meta envelope.Met
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	c := h.screen(meta, lang)
-	view.Notice = notice
-	return screens.Warehouse(c, view), nil
+	return companies.Warehouse(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // stock reads a company's warehouse as lines: counted units by code, pieces
 // grouped by good and design.
-func (h *ProductionHandler) stock(ctx context.Context, tx application.Tx, snap *content.Snapshot, c application.Company) ([]screens.WarehouseLine, error) {
+func (h *ProductionHandler) stock(ctx context.Context, tx application.Tx, snap *content.Snapshot, c application.Company) ([]companies.WarehouseLine, error) {
 	org := application.CompanyOrg(c.ID)
 	stacks, pieces, err := tx.Items().OrgHoldings(ctx, org, application.HoldWarehouse)
 	if err != nil {
@@ -501,17 +498,17 @@ func (h *ProductionHandler) stock(ctx context.Context, tx application.Tx, snap *
 	for _, s := range listedStacks {
 		listed[s.Item] += s.Qty
 	}
-	var out []screens.WarehouseLine
+	var out []companies.WarehouseLine
 	for _, s := range stacks {
 		g := goodOf(snap, s.Item)
-		out = append(out, screens.WarehouseLine{Good: g, Qty: s.Qty, Listed: listed[s.Item], Sellable: h.sellable(snap, s.Item)})
+		out = append(out, companies.WarehouseLine{Good: g, Qty: s.Qty, Listed: listed[s.Item], Sellable: h.sellable(snap, s.Item)})
 		delete(listed, s.Item)
 	}
 	for code, q := range listed {
-		out = append(out, screens.WarehouseLine{Good: goodOf(snap, code), Listed: q})
+		out = append(out, companies.WarehouseLine{Good: goodOf(snap, code), Listed: q})
 	}
 	type group struct {
-		line    screens.WarehouseLine
+		line    companies.WarehouseLine
 		quality int
 	}
 	groups := map[string]*group{}
@@ -522,7 +519,7 @@ func (h *ProductionHandler) stock(ctx context.Context, tx application.Tx, snap *
 		k := key(p)
 		g, ok := groups[k]
 		if !ok {
-			good := screens.Good{Item: itemNamed(snap, p.Item)}
+			good := presentation.Good{Item: itemNamed(snap, p.Item)}
 			if p.DesignID != "" {
 				d, seen := designs[p.DesignID]
 				if !seen {
@@ -534,7 +531,7 @@ func (h *ProductionHandler) stock(ctx context.Context, tx application.Tx, snap *
 				}
 				good = designGood(snap, *d)
 			}
-			g = &group{line: screens.WarehouseLine{Good: good, Sellable: h.sellable(snap, p.Item)}}
+			g = &group{line: companies.WarehouseLine{Good: good, Sellable: h.sellable(snap, p.Item)}}
 			groups[k] = g
 			order = append(order, k)
 		}
@@ -592,8 +589,8 @@ func supplierShop(code string) string { return "supplier:" + code }
 // offers reads the suppliers of a company's city with their stock now.
 func (h *ProductionHandler) offers(ctx context.Context, tx application.Tx, snap *content.Snapshot, city *application.City,
 	now time.Time,
-) ([]screens.SupplyOffer, error) {
-	var out []screens.SupplyOffer
+) ([]companies.SupplyOffer, error) {
+	var out []companies.SupplyOffer
 	for _, sp := range snap.CitySuppliers(city.Code) {
 		for _, sh := range sp.Shelves {
 			stock, _, err := h.shelf(ctx, tx, city.ID, sp, sh, now)
@@ -601,7 +598,7 @@ func (h *ProductionHandler) offers(ctx context.Context, tx application.Tx, snap 
 				return nil, err
 			}
 			comp, _ := snap.ComponentDef(sh.Component)
-			out = append(out, screens.SupplyOffer{Supplier: named(sp.Code, sp.Name), Component: named(comp.Code, comp.Name),
+			out = append(out, companies.SupplyOffer{Supplier: named(sp.Code, sp.Name), Component: named(comp.Code, comp.Name),
 				Price: sh.Price, Stock: stock})
 		}
 	}
@@ -624,19 +621,19 @@ func (h *ProductionHandler) shelf(ctx context.Context, tx application.Tx, cityID
 
 // Suppliers handles company.suppliers: what the NPC suppliers of the
 // company's city sell it.
-func (h *ProductionHandler) Suppliers(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presenter.Response, error) {
+func (h *ProductionHandler) Suppliers(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presentation.Response, error) {
 	return h.suppliersWith(ctx, meta, req, nil)
 }
 
 func (h *ProductionHandler) suppliersWith(ctx context.Context, meta envelope.Metadata, req ProductionRequest,
-	bought *screens.SupplyNotice,
-) (*presenter.Response, error) {
+	bought *companies.SupplyNotice,
+) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.SuppliersView
+	var view companies.SuppliersView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -650,7 +647,7 @@ func (h *ProductionHandler) suppliersWith(ctx context.Context, meta envelope.Met
 		if err != nil {
 			return err
 		}
-		view = screens.SuppliersView{Ref: companyRef(snap, *c), CityCode: city.Code, City: city.Name, Bought: bought}
+		view = companies.SuppliersView{Ref: companyRef(snap, *c), CityCode: city.Code, City: city.Name, Bought: bought}
 		b, _, err := companyBooks(ctx, tx, *c)
 		if err != nil {
 			return err
@@ -662,14 +659,14 @@ func (h *ProductionHandler) suppliersWith(ctx context.Context, meta envelope.Met
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.Suppliers(h.screen(meta, lang), view), nil
+	return companies.Suppliers(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // Supply handles company.supply: buying a basic input from an NPC supplier
 // into the company's warehouse. The money leaves the economy
 // (supplier_purchase); the goods enter it (supplied), never more than the
 // supplier holds in the city.
-func (h *ProductionHandler) Supply(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presenter.Response, error) {
+func (h *ProductionHandler) Supply(ctx context.Context, meta envelope.Metadata, req ProductionRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -680,7 +677,7 @@ func (h *ProductionHandler) Supply(ctx context.Context, meta envelope.Metadata, 
 	snap := h.content.Current()
 	lang := meta.Language
 	var (
-		bought   *screens.SupplyNotice
+		bought   *companies.SupplyNotice
 		replayed bool
 	)
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -704,18 +701,18 @@ func (h *ProductionHandler) Supply(ctx context.Context, meta envelope.Metadata, 
 		code := strings.TrimSpace(req.Component)
 		sp, sh, found := supplierOf(snap, city.Code, code)
 		if !found {
-			return refuseProduction(screens.ProductionRefusedNotFound, c, snap).back(screens.AddrSuppliers, c.Code)
+			return refuseProduction(companies.ProductionRefusedNotFound, c, snap).back(companies.AddrSuppliers, c.Code)
 		}
 		f, err := readFloor(ctx, tx, snap, c)
 		if err != nil {
 			return err
 		}
-		total, err := h.supplyOnce(ctx, tx, snap, f, p, city, sp, sh, qty, h.now(), screens.AddrSuppliers, c.Code)
+		total, err := h.supplyOnce(ctx, tx, snap, f, p, city, sp, sh, qty, h.now(), companies.AddrSuppliers, c.Code)
 		if err != nil {
 			return err
 		}
 		comp, _ := snap.ComponentDef(code)
-		bought = &screens.SupplyNotice{Component: named(comp.Code, comp.Name), Qty: qty, Total: total.Minor()}
+		bought = &companies.SupplyNotice{Component: named(comp.Code, comp.Name), Qty: qty, Total: total.Minor()}
 		return nil
 	})
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
@@ -748,14 +745,14 @@ func (h *ProductionHandler) supplyOnce(ctx context.Context, tx application.Tx, s
 ) (money.Amount, error) {
 	c := f.c
 	if qty > h.rules.Limits.Max.Minor()/max(sh.Price, 1) {
-		return money.Amount{}, refuseProduction(screens.ProductionRefusedAmount, c, snap).back(back...)
+		return money.Amount{}, refuseProduction(companies.ProductionRefusedAmount, c, snap).back(back...)
 	}
 	stock, row, err := h.shelf(ctx, tx, city.ID, sp, sh, now)
 	if err != nil {
 		return money.Amount{}, err
 	}
 	if stock < qty {
-		r := refuseProduction(screens.ProductionRefusedSupplierEmpty, c, snap).back(back...)
+		r := refuseProduction(companies.ProductionRefusedSupplierEmpty, c, snap).back(back...)
 		r.view.Max = int(stock)
 		return money.Amount{}, r
 	}

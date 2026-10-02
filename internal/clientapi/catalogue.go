@@ -1,6 +1,7 @@
 package clientapi
 
 import (
+	"github.com/mrjvadi/torncity/internal/application"
 	"sort"
 	"strconv"
 	"strings"
@@ -77,7 +78,13 @@ func (w *World) Catalogue(since string) ContentCatalogue {
 		}
 		return m
 	}
+	seen := map[string]bool{}
 	add := func(table string, e CatalogueEntry, model bool) {
+		// a code is listed once in a table, whichever area names it first
+		if seen[table+"\x00"+e.Code] {
+			return
+		}
+		seen[table+"\x00"+e.Code] = true
 		e.Asset.Icon = table + ":" + e.Code
 		if model {
 			e.Asset.Model = table + ":" + e.Code
@@ -85,7 +92,7 @@ func (w *World) Catalogue(since string) ContentCatalogue {
 		out.Entries[table] = append(out.Entries[table], e)
 	}
 	out.Entries = map[string][]CatalogueEntry{}
-	out.Availability = snap.AvailabilityTags("faction", "government_action", "office", "treaty_type")
+	out.Availability = snap.AvailabilityTags("faction", "government_action", "office", "treaty_type", "company_type")
 
 	for _, city := range snap.Cities() {
 		add("city", CatalogueEntry{Code: city.Code, Name: names(func(c screens.Context) string { return c.CityName(city.Code, city.Name) })}, false)
@@ -119,6 +126,36 @@ func (w *World) Catalogue(since string) ContentCatalogue {
 	for _, sk := range snap.Skills() {
 		add("skill", CatalogueEntry{Code: sk.Code, Category: sk.Category, Name: names(func(c screens.Context) string { return c.SkillName(sk.Code) })}, false)
 	}
+	// Production: the suppliers, the slots a design is made of and the
+	// attributes it computes, and the lists a specialist's name is drawn from
+	// (the view carries a seed; the client picks first[seed % n] and
+	// last[(seed / n) % m] from the lists, separated by "|").
+	for _, sp := range snap.Suppliers() {
+		add("supplier", CatalogueEntry{Code: sp.Code,
+			Name: names(func(c screens.Context) string { return c.SupplierName(screens.Named{Code: sp.Code, Name: sp.Name}) })}, false)
+	}
+	slots, attrs := map[string]bool{}, map[string]bool{}
+	for _, a := range snap.Archetypes() {
+		for _, sl := range a.Slots {
+			slots[sl.Name] = true
+		}
+		for _, at := range a.Attributes {
+			attrs[at.Name] = true
+		}
+	}
+	for _, code := range sortedKeys(slots) {
+		code := code
+		add("design_slot", CatalogueEntry{Code: code, Name: names(func(c screens.Context) string { return c.SlotName(code) })}, false)
+	}
+	for _, code := range sortedKeys(attrs) {
+		code := code
+		add("attribute", CatalogueEntry{Code: code, Name: names(func(c screens.Context) string { return c.AttributeName(code) })}, false)
+	}
+	for _, part := range []string{"first", "last"} {
+		part := part
+		add("specialist_name", CatalogueEntry{Code: part,
+			Name: names(func(c screens.Context) string { return c.T("recruit.names."+part, nil) })}, false)
+	}
 	for _, tc := range snap.Technologies() {
 		add("technology", CatalogueEntry{Code: tc.Code, Name: names(func(c screens.Context) string { return c.TechName(screens.Named{Code: tc.Code, Name: tc.Name}) })}, false)
 	}
@@ -126,12 +163,62 @@ func (w *World) Catalogue(since string) ContentCatalogue {
 		add("military_unit", CatalogueEntry{Code: fc.Code, Category: fc.Branch,
 			Name: names(func(c screens.Context) string { return c.ForceClassName(screens.Named{Code: fc.Code, Name: fc.Name}) })}, true)
 	}
+	// The armed forces and the war (the military area's screens): the branches,
+	// the bands a strength is told in, the grounds of a war, the kinds of
+	// operation, their objectives, the damage bands, the proposals and the
+	// odds an estimate is given in, and the attributes of a design. A client
+	// words them by code from here.
+	for _, b := range snap.Branches() {
+		add("branch", CatalogueEntry{Code: b.Code,
+			Name: names(func(c screens.Context) string { return c.BranchName(screens.Named{Code: b.Code, Name: b.Name}) })}, false)
+	}
+	for _, b := range snap.StrengthBands() {
+		add("force_band", CatalogueEntry{Code: b.Code, Name: names(func(c screens.Context) string { return c.BandName(b.Code) })}, false)
+	}
+	if def, ok := snap.War(); ok {
+		for _, g := range def.Grounds {
+			add("war_ground", CatalogueEntry{Code: g, Name: names(func(c screens.Context) string { return c.WarGroundName(g) })}, false)
+		}
+		for _, op := range def.Operations {
+			add("war_operation", CatalogueEntry{Code: op.Code, Name: names(func(c screens.Context) string { return c.OperationName(op.Code) })}, false)
+		}
+		for _, d := range def.DamageBands {
+			add("war_damage", CatalogueEntry{Code: d.Code, Name: names(func(c screens.Context) string { return c.DamageBandName(d.Code) })}, false)
+		}
+	}
+	for _, code := range []string{application.ObjectiveCity, application.ObjectiveDefences, application.ObjectiveTake} {
+		add("war_objective", CatalogueEntry{Code: code, Name: names(func(c screens.Context) string { return c.ObjectiveName(code) })}, false)
+	}
+	for _, code := range []string{"ceasefire", "peace"} {
+		add("war_proposal", CatalogueEntry{Code: code, Name: names(func(c screens.Context) string { return c.WarProposalName(code) })}, false)
+	}
+	for _, code := range []string{"likely", "even", "unlikely"} {
+		add("war_chance", CatalogueEntry{Code: code, Name: names(func(c screens.Context) string { return c.WarChanceName(code) })}, false)
+	}
+	if sec, ok := w.Msgs.(interface {
+		Section(lang, prefix string) map[string]string
+		Default() string
+	}); ok {
+		var attrs []string
+		for code := range sec.Section(sec.Default(), "attribute") {
+			if !strings.Contains(code, ".") {
+				attrs = append(attrs, code)
+			}
+		}
+		sort.Strings(attrs)
+		for _, code := range attrs {
+			code := code
+			add("attribute", CatalogueEntry{Code: code, Name: names(func(c screens.Context) string { return c.AttributeName(code) })}, false)
+		}
+	}
 	// Knowledge of a settlement, and the names of life: ranks, sleeping spots
 	// and stages of age. A client words these by code from here, so a name
 	// never has to be written into a client.
 	for _, k := range snap.SettlementKnowledgeDefs() {
 		add("settlement_knowledge", CatalogueEntry{Code: k.Code,
-			Name: names(func(c screens.Context) string { return c.SettlementKnowledgeName(screens.Named{Code: k.Code, Name: k.Name}) })}, false)
+			Name: names(func(c screens.Context) string {
+				return c.SettlementKnowledgeName(screens.Named{Code: k.Code, Name: k.Name})
+			})}, false)
 	}
 	if life, ok := snap.Life(); ok {
 		for _, r := range life.Ranks.Ladder {
@@ -159,7 +246,9 @@ func (w *World) Catalogue(since string) ContentCatalogue {
 	}
 	for _, j := range snap.JurisdictionDefs() {
 		add("jurisdiction", CatalogueEntry{Code: j.Code, Kind: j.Level,
-			Name: names(func(c screens.Context) string { return c.PlaceName(screens.GovPlace{Kind: j.Level, Code: j.Code, Name: j.Name}) })}, false)
+			Name: names(func(c screens.Context) string {
+				return c.PlaceName(screens.GovPlace{Kind: j.Level, Code: j.Code, Name: j.Name})
+			})}, false)
 	}
 	if b, ok := snap.Budget(); ok {
 		for _, l := range b.Lines {
@@ -248,11 +337,33 @@ func (w *World) Catalogue(since string) ContentCatalogue {
 				Name: names(func(c screens.Context) string { return c.TierTitle(cr.Code, tier.Rank, tier.Title) })}, false)
 		}
 	}
+	// The roles a settlement building has (what an availability condition
+	// names: "a craft building of tier 3").
+	roles := map[string]bool{}
+	for _, sb := range snap.SettlementBuildingDefs() {
+		if sb.Role != "" {
+			roles[sb.Role] = true
+		}
+	}
+	for _, role := range sortedKeys(roles) {
+		role := role
+		add("building_role", CatalogueEntry{Code: role, Name: names(func(c screens.Context) string { return c.T("building_role."+role, nil) })}, false)
+	}
 	for _, sb := range snap.SettlementBuildingDefs() {
 		add("settlement_building", CatalogueEntry{Code: sb.Code, Category: sb.Role, Footprint: []int{sb.Footprint[0], sb.Footprint[1]}, CapExempt: sb.CapExempt,
 			Name: names(func(c screens.Context) string {
 				return c.SettlementBuildingName(screens.Named{Code: sb.Code, Name: sb.Name})
 			})}, true)
 	}
+	return out
+}
+
+// sortedKeys lists the keys of a set, in order.
+func sortedKeys(m map[string]bool) []string {
+	out := make([]string, 0, len(m))
+	for k := range m {
+		out = append(out, k)
+	}
+	sort.Strings(out)
 	return out
 }

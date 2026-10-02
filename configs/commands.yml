@@ -499,3 +499,5 @@ input:
   life.bio: {field: text, text: true}
   save.deposit: {field: amount}
   save.withdraw: {field: amount}
+  military.station: {field: qty, args: [country, target, city]}
+  military.buy: {field: qty, args: [country, no]}

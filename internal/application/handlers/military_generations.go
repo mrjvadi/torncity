@@ -3,6 +3,8 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	mview "github.com/mrjvadi/torncity/internal/presentation/military"
 	"strings"
 
 	"github.com/mrjvadi/torncity/internal/application"
@@ -10,8 +12,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/domain/item"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/money"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // Product generations, the military stage's own two steps
@@ -32,7 +32,7 @@ import (
 func (h *MilitaryHandler) purchaseKit(ctx context.Context, tx application.Tx, snap *content.Snapshot, meta envelope.Metadata,
 	p *application.Player, seat application.Office, country *application.Jurisdiction, no, qty int64,
 ) (string, error) {
-	back := []string{screens.AddrProcure, country.Code}
+	back := []string{mview.AddrProcure, country.Code}
 	l, err := tx.Production().Listing(ctx, no, false)
 	if err != nil {
 		return "", err
@@ -51,10 +51,10 @@ func (h *MilitaryHandler) purchaseKit(ctx context.Context, tx application.Tx, sn
 		return "", err
 	}
 	if l.Status != application.ListingOpen || !seller.Active() {
-		return "", refuseMilitary(screens.MilitaryRefusedNotFound, country).back(back...)
+		return "", refuseMilitary(mview.MilitaryRefusedNotFound, country).back(back...)
 	}
 	if qty < 1 || qty > l.Left() {
-		r := refuseMilitary(screens.MilitaryRefusedStock, country).back(back...)
+		r := refuseMilitary(mview.MilitaryRefusedStock, country).back(back...)
 		r.view.Max = l.Left()
 		return "", r
 	}
@@ -64,11 +64,11 @@ func (h *MilitaryHandler) purchaseKit(ctx context.Context, tx application.Tx, sn
 	if kitListed, err := kitOriginListing(ctx, tx, l); err != nil {
 		return "", err
 	} else if !kitListed {
-		return "", refuseMilitary(screens.MilitaryRefusedNotArms, country).back(back...)
+		return "", refuseMilitary(mview.MilitaryRefusedNotArms, country).back(back...)
 	}
 	def, _ := snap.ItemDef(l.Item)
 	if err := checkExportForState(def); err != nil {
-		return "", refuseMilitary(screens.MilitaryRefusedNotArms, country).back(back...)
+		return "", refuseMilitary(mview.MilitaryRefusedNotArms, country).back(back...)
 	}
 	now := h.now()
 	total := money.FromMinor(qty * l.UnitPrice)
@@ -77,7 +77,7 @@ func (h *MilitaryHandler) purchaseKit(ctx context.Context, tx application.Tx, sn
 		return "", err
 	}
 	if fund.Balance.Minor() < total.Minor() {
-		r := refuseMilitary(screens.MilitaryRefusedFunds, country).back(back...)
+		r := refuseMilitary(mview.MilitaryRefusedFunds, country).back(back...)
 		r.view.Need, r.view.Have = total.Minor(), fund.Balance.Minor()
 		return "", r
 	}
@@ -89,7 +89,7 @@ func (h *MilitaryHandler) purchaseKit(ctx context.Context, tx application.Tx, sn
 		total, now)
 	if err != nil {
 		if isSentinel(err, application.ErrInsufficientFunds) {
-			r := refuseMilitary(screens.MilitaryRefusedFunds, country).back(back...)
+			r := refuseMilitary(mview.MilitaryRefusedFunds, country).back(back...)
 			r.view.Need, r.view.Have = total.Minor(), fund.Balance.Minor()
 			return "", r
 		}
@@ -172,7 +172,7 @@ func checkExportForState(def content.ItemDef) error {
 // kits from a licensed contractor's listing, delivered to the state's
 // warehouse — everything arms procurement already does (office, funds,
 // export control, payment), minus becoming a stationed asset.
-func (h *MilitaryHandler) ProcureKit(ctx context.Context, meta envelope.Metadata, req MilitaryRequest) (*presenter.Response, error) {
+func (h *MilitaryHandler) ProcureKit(ctx context.Context, meta envelope.Metadata, req MilitaryRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -206,7 +206,7 @@ func (h *MilitaryHandler) ProcureKit(ctx context.Context, meta envelope.Metadata
 			return err
 		}
 		if !ok || !qok {
-			return refuseMilitary(screens.MilitaryRefusedNotFound, country).back(screens.AddrProcure, country.Code)
+			return refuseMilitary(mview.MilitaryRefusedNotFound, country).back(mview.AddrProcure, country.Code)
 		}
 		if !confirm {
 			return nil
@@ -220,21 +220,21 @@ func (h *MilitaryHandler) ProcureKit(ctx context.Context, meta envelope.Metadata
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.KitPurchase(h.screen(meta, lang), screens.KitPurchaseView{Bought: bought, Seller: seller, Country: req.Country}), nil
+	return mview.KitPurchase(presentation.Ctx{Lang: lang}, mview.KitPurchaseView{Bought: bought, Seller: seller, Country: req.Country}), nil
 }
 
 // RetrofitState handles military.retrofit: a branch's commander applies an
 // upgrade kit the state holds to one of its own assets. args reused for
 // lack of dedicated fields: req.Target is the kit's serial, req.City the
 // target unit's serial (docs/adr/0021 generations addendum).
-func (h *MilitaryHandler) RetrofitState(ctx context.Context, meta envelope.Metadata, req MilitaryRequest) (*presenter.Response, error) {
+func (h *MilitaryHandler) RetrofitState(ctx context.Context, meta envelope.Metadata, req MilitaryRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
 	var (
-		view    screens.RetrofitView
+		view    mview.StateRetrofitView
 		country *application.Jurisdiction
 	)
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -261,7 +261,7 @@ func (h *MilitaryHandler) RetrofitState(ctx context.Context, meta envelope.Metad
 			return err
 		}
 		if kitSerial == "" || targetSerial == "" {
-			return refuseMilitary(screens.MilitaryRefusedNotFound, country)
+			return refuseMilitary(mview.MilitaryRefusedNotFound, country)
 		}
 		// The commander of the TARGET's own branch, not the kit's: a kit
 		// bought for one branch is still a good in the state's shared
@@ -278,7 +278,7 @@ func (h *MilitaryHandler) RetrofitState(ctx context.Context, meta envelope.Metad
 			}
 		}
 		if branch == "" {
-			return refuseMilitary(screens.MilitaryRefusedNotFound, country)
+			return refuseMilitary(mview.MilitaryRefusedNotFound, country)
 		}
 		b, ok := snap.Branch(branch)
 		if !ok {
@@ -287,7 +287,7 @@ func (h *MilitaryHandler) RetrofitState(ctx context.Context, meta envelope.Metad
 		if _, ok, err := mayAct(ctx, tx, snap, country.ID, b.Command, p); err != nil {
 			return err
 		} else if !ok {
-			r := refuseMilitary(screens.MilitaryRefusedNotHolder, country)
+			r := refuseMilitary(mview.MilitaryRefusedNotHolder, country)
 			r.view.Office = actionOffice(snap, b.Command)
 			return r
 		}
@@ -295,7 +295,7 @@ func (h *MilitaryHandler) RetrofitState(ctx context.Context, meta envelope.Metad
 		if err != nil {
 			return err
 		}
-		view = screens.RetrofitView{Good: plan.good, FromVer: max(plan.current.Version, 1), ToVer: plan.toDesign.Version,
+		view = mview.StateRetrofitView{Country: country.Code, KitSerial: kitSerial, TargetSerial: targetSerial, Good: plan.good, FromVer: max(plan.current.Version, 1), ToVer: plan.toDesign.Version,
 			Duration: h.scale.RealWait(h.rules.RetrofitTime)}
 		if !place {
 			return nil
@@ -317,7 +317,7 @@ func (h *MilitaryHandler) RetrofitState(ctx context.Context, meta envelope.Metad
 			PieceID: plan.target.ID, KitPieceID: plan.kit.ID, FromDesignID: plan.current.ID, ToDesignID: plan.toDesign.ID,
 			GameActionID: actionID, StartedBy: p.ID, StartedAt: now, FinishAt: finish}); err != nil {
 			if isSentinel(err, application.ErrRetrofitBusy) {
-				return refuseMilitary(screens.MilitaryRefusedStock, country)
+				return refuseMilitary(mview.MilitaryRefusedStock, country)
 			}
 			return err
 		}
@@ -332,5 +332,5 @@ func (h *MilitaryHandler) RetrofitState(ctx context.Context, meta envelope.Metad
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.Retrofit(h.screen(meta, lang), view), nil
+	return mview.StateRetrofit(presentation.Ctx{Lang: lang}, view), nil
 }

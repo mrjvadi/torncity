@@ -23,25 +23,11 @@ import (
 // band war.damage.<code>, an operation war.op.<kind>, an objective
 // war.objective.<code>.
 
-// Callback addresses of the war screens.
-const (
-	AddrWarBoard   = "war:board"
-	AddrWarDeclare = "war:declare"
-	AddrWarJoin    = "war:join"
-	AddrWarPropose = "war:propose"
-	AddrWarAnswer  = "war:answer"
-	AddrWarResume  = "war:resume"
-	AddrWarRoom    = "war:room"
-	AddrWarTarget  = "war:target"
-	AddrWarLaunch  = "war:launch"
-)
 
-// WarConfirm confirms a decision of war.
-const WarConfirm = "yes"
 
-// WarAllUnits is the class argument of a ground assault: every ground unit
-// of the garrison goes.
-const WarAllUnits = "all"
+
+
+
 
 // WarGroundName names the ground a war was declared on.
 func (c Context) WarGroundName(code string) string { return c.named("war.ground."+code, code) }
@@ -55,93 +41,19 @@ func (c Context) OperationName(kind string) string { return c.named("war.op."+ki
 // ObjectiveName names an operation's objective.
 func (c Context) ObjectiveName(code string) string { return c.named("war.objective."+code, code) }
 
-// ProposalLine is a ceasefire or a peace on the table.
-type ProposalLine struct {
-	No   int64
-	Kind string
-	// Other is the principal on the other side; Incoming a proposal made
-	// to the viewer's country.
-	Other     GovPlace
-	Incoming  bool
-	ExpiresIn time.Duration
-}
 
-// WarLine is one war on the board.
-type WarLine struct {
-	No                 int64
-	Attacker, Defender GovPlace
-	// Allies of each side that joined.
-	AttackerAllies, DefenderAllies []GovPlace
-	Ground                         string
-	// Status is declared, active, ceasefire or ended; ActiveIn and
-	// ActiveAt when a declared war may be fought.
-	Status   string
-	ActiveIn time.Duration
-	ActiveAt time.Time
-	Since    time.Duration
-	// Broke is a declaration that broke a treaty between the two.
-	Broke     bool
-	Proposals []ProposalLine
-	// For the viewer: may propose a ceasefire or a peace, resume after a
-	// ceasefire, answer an incoming proposal.
-	CanPropose, CanResume bool
-}
 
-// JoinLine is a war the viewer's country may join beside an ally.
-type JoinLine struct {
-	WarNo int64
-	Ally  GovPlace
-	Enemy GovPlace
-}
 
-// OccupationLine is a city held by a country the content does not put it in.
-type OccupationLine struct {
-	CityCode, City string
-	Controller     GovPlace
-	DeJure         GovPlace
-	Since          time.Duration
-}
 
-// DamageLine is a damaged city, in a band.
-type DamageLine struct {
-	CityCode, City string
-	Band           string
-	ClosedIn       time.Duration
-}
 
-// OperationLine is an operation on the board: told in bands in public.
-type OperationLine struct {
-	No             int64
-	Kind           string
-	Objective      string
-	Country        GovPlace
-	CityCode, City string
-	Target         GovPlace
-	// Pending is an operation under way: StrikesIn to go.
-	Pending   bool
-	StrikesIn time.Duration
-	CalledOff bool
-	// Bands of what it did: the damage, each side's losses.
-	DamageBand    string
-	LostBand      string
-	EnemyLostBand string
-	Captured      bool
-	Ago           time.Duration
-}
 
-// WarBoardView is the war board of a country.
-type WarBoardView struct {
-	Country    GovPlace
-	Wars       []WarLine
-	Joinable   []JoinLine
-	Occupied   []OccupationLine
-	Damaged    []DamageLine
-	Operations []OperationLine
-	// CanDeclare is the head of state (or acting for one); CanCommand an
-	// office holder who opens the war room.
-	CanDeclare, CanCommand bool
-	Notice                 string
-}
+
+
+
+
+
+
+
 
 // warStatusKey words a war's status.
 func warLine(c Context, w WarLine) []string {
@@ -219,9 +131,12 @@ func (c Context) lossBand(band string) string {
 
 // WarBoard renders the war board.
 func WarBoard(c Context, v WarBoardView) *presenter.Response {
+	if v.Unavailable != nil {
+		return renderUnavailable(c, v.Unavailable, AddrHome)
+	}
 	blocks := []string{}
-	if v.Notice != "" {
-		blocks = append(blocks, v.Notice)
+	if v.Notice != nil {
+		blocks = append(blocks, c.militaryNotice(*v.Notice))
 	}
 	blocks = append(blocks, c.T("war.board.title", map[string]any{"country": c.PlaceName(v.Country)}))
 	kb := keyboards.New()
@@ -312,24 +227,13 @@ func WarBoard(c Context, v WarBoardView) *presenter.Response {
 	return c.respond(paragraphs(blocks...), kb.Build())
 }
 
-// DeclareView is the flow that declares a war: the country, the ground,
-// then confirm.
-type DeclareView struct {
-	Country GovPlace
-	Targets []GovPlace
-	Target  *GovPlace
-	Grounds []string
-	Ground  string
-	// Notice is how long until the war may be fought (real time).
-	Notice time.Duration
-	// Breaks are the treaties with the target the declaration ends; Allies
-	// the target's allies who will be told.
-	Breaks []Named
-	Allies []GovPlace
-}
+
 
 // Declare renders the declaration flow.
 func Declare(c Context, v DeclareView) *presenter.Response {
+	if v.Unavailable != nil {
+		return renderUnavailable(c, v.Unavailable, AddrHome)
+	}
 	lines := []string{c.T("war.declare.title", map[string]any{"country": c.PlaceName(v.Country)})}
 	kb := keyboards.New()
 	back := keyboards.Data(AddrWarBoard, v.Country.Code)
@@ -369,19 +273,7 @@ func Declare(c Context, v DeclareView) *presenter.Response {
 	return c.respond(body(lines...), kb.Build())
 }
 
-// WarDecisionView confirms joining a war, proposing a ceasefire or a peace,
-// or resuming a war.
-type WarDecisionView struct {
-	// Kind is join, ceasefire, peace or resume.
-	Kind    string
-	Country GovPlace
-	WarNo   int64
-	// Other is the principal on the other side; Ally the one joined.
-	Other  GovPlace
-	Ally   GovPlace
-	Notice time.Duration
-	TTL    time.Duration
-}
+
 
 // WarDecision renders the confirmation of a decision of war.
 func WarDecision(c Context, v WarDecisionView) *presenter.Response {
@@ -401,31 +293,18 @@ func WarDecision(c Context, v WarDecisionView) *presenter.Response {
 	return c.respond(c.T("war.decide."+v.Kind, args), kb.Build())
 }
 
-// RoomTarget is an enemy city in the war room.
-type RoomTarget struct {
-	CityCode, City string
-	Country        GovPlace
-	WarNo          int64
-	// DistanceKM is by road from the nearest garrison of ours.
-	DistanceKM int64
-	DamageBand string
-}
 
-// WarRoomView is the war room: the enemy's cities and what is under way.
-type WarRoomView struct {
-	Country GovPlace
-	Targets []RoomTarget
-	Running []OperationLine
-	// Readiness is ours, in bps.
-	Readiness int64
-	Notice    string
-}
+
+
 
 // WarRoom renders the war room.
 func WarRoom(c Context, v WarRoomView) *presenter.Response {
+	if v.Unavailable != nil {
+		return renderUnavailable(c, v.Unavailable, AddrHome)
+	}
 	blocks := []string{}
-	if v.Notice != "" {
-		blocks = append(blocks, v.Notice)
+	if v.Notice != nil {
+		blocks = append(blocks, c.militaryNotice(*v.Notice))
 	}
 	blocks = append(blocks, body(c.T("war.room.title", map[string]any{"country": c.PlaceName(v.Country)}),
 		c.T("military.forces.readiness", map[string]any{"value": c.T("gov.percent",
@@ -462,38 +341,11 @@ func WarRoom(c Context, v WarRoomView) *presenter.Response {
 	return c.respond(paragraphs(blocks...), kb.Build())
 }
 
-// ForceOption is one operation the viewer's forces could fly or drive at a
-// target: the class, how many are ready at the garrison in reach that has
-// most, and whether the viewer commands them.
-type ForceOption struct {
-	Kind           string
-	Class          Named
-	Ready          int64
-	FromCode, From string
-	DistanceKM     int64
-	// Munitions are the bombs at that garrison (an air strike).
-	Munitions int64
-	// CanLaunch is the viewer commanding the branch; Office the office
-	// that does.
-	CanLaunch bool
-	Office    string
-}
 
-// target is the option's class argument.
-func (o ForceOption) target() string {
-	if o.Kind == "ground" {
-		return WarAllUnits
-	}
-	return o.Class.Code
-}
 
-// WarTargetView is one enemy city and the operations in reach of it.
-type WarTargetView struct {
-	Country  GovPlace
-	Target   RoomTarget
-	Options  []ForceOption
-	Occupied *OccupationLine
-}
+
+
+
 
 // WarTarget renders a target.
 func WarTarget(c Context, v WarTargetView) *presenter.Response {
@@ -525,39 +377,16 @@ func WarTarget(c Context, v WarTargetView) *presenter.Response {
 		}
 		opts = append(opts, line)
 		if o.CanLaunch && !c.Shared {
-			kb.Add(c.T("war.button.launch", oa), AddrWarLaunch, t.CityCode, o.Kind, o.target())
+			kb.Add(c.T("war.button.launch", oa), AddrWarLaunch, t.CityCode, o.Kind, o.TargetArg())
 		}
 	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrWarRoom, RefreshData: keyboards.Data(AddrWarTarget, t.CityCode)}))
 	return c.respond(paragraphs(body(lines...), body(opts...), c.T("war.target.footer", nil)), kb.Build())
 }
 
-// Estimate is a commander's estimate of an operation, averaged over the
-// content's dice and told in bands: an intelligence estimate, not a count.
-type Estimate struct {
-	// Chance is likely, even or unlikely: of any warhead arriving (a
-	// strike), or of taking the city (an assault).
-	Chance string
-	// LossBand is our expected losses; DamageBand the expected damage.
-	LossBand   string
-	DamageBand string
-}
 
-// LaunchView is launching an operation: the objective, how many, then the
-// estimate and confirm.
-type LaunchView struct {
-	Country    GovPlace
-	Target     RoomTarget
-	Option     ForceOption
-	Objectives []string
-	Objective  string
-	Quantities []int64
-	Qty        int64
-	Confirm    bool
-	Prepare    time.Duration
-	Munitions  int64
-	Estimate   *Estimate
-}
+
+
 
 // WarLaunch renders the launch flow.
 func WarLaunch(c Context, v LaunchView) *presenter.Response {
@@ -573,19 +402,19 @@ func WarLaunch(c Context, v LaunchView) *presenter.Response {
 	case v.Objective == "":
 		lines = append(lines, c.T("war.launch.choose_objective", args))
 		for _, obj := range v.Objectives {
-			kb.Add(c.ObjectiveName(obj), AddrWarLaunch, t.CityCode, o.Kind, o.target(), obj)
+			kb.Add(c.ObjectiveName(obj), AddrWarLaunch, t.CityCode, o.Kind, o.TargetArg(), obj)
 		}
 	case !v.Confirm:
 		lines = append(lines, c.T("war.launch.choose_qty", args))
 		var buttons []presenter.Button
 		for _, n := range v.Quantities {
 			if b, ok := keyboards.Button(c.T("military.button.qty", map[string]any{"count": FormatNumber(c, n)}), AddrWarLaunch,
-				t.CityCode, o.Kind, o.target(), v.Objective, strconv.FormatInt(n, 10)); ok {
+				t.CityCode, o.Kind, o.TargetArg(), v.Objective, strconv.FormatInt(n, 10)); ok {
 				buttons = append(buttons, b)
 			}
 		}
 		kb.Grid(4, buttons...)
-		back = keyboards.Data(AddrWarLaunch, t.CityCode, o.Kind, o.target())
+		back = keyboards.Data(AddrWarLaunch, t.CityCode, o.Kind, o.TargetArg())
 	default:
 		lines = append(lines, c.T("war.launch.confirm_"+o.Kind, args))
 		if o.Kind == "air" {
@@ -604,46 +433,19 @@ func WarLaunch(c Context, v LaunchView) *presenter.Response {
 			}
 			lines = append(lines, c.T("war.launch.estimate_note", nil))
 		}
-		kb.Add(c.T("war.button.confirm_launch", nil), AddrWarLaunch, t.CityCode, o.Kind, o.target(), v.Objective,
+		kb.Add(c.T("war.button.confirm_launch", nil), AddrWarLaunch, t.CityCode, o.Kind, o.TargetArg(), v.Objective,
 			strconv.FormatInt(v.Qty, 10), WarConfirm)
 		if o.Kind != "ground" {
 			// An assault has no objective or count to choose: back is the
 			// target.
-			back = keyboards.Data(AddrWarLaunch, t.CityCode, o.Kind, o.target(), v.Objective)
+			back = keyboards.Data(AddrWarLaunch, t.CityCode, o.Kind, o.TargetArg(), v.Objective)
 		}
 	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: back}))
 	return c.respond(body(lines...), kb.Build())
 }
 
-// StrikeReportView is an operation's report, exact: for the commander who
-// launched it and the defender's head of state, privately.
-type StrikeReportView struct {
-	No             int64
-	Kind           string
-	Objective      string
-	Country        GovPlace
-	Target         GovPlace
-	CityCode, City string
-	Class          Named
-	// Ours is the report as the attacker reads it; otherwise as the
-	// defender does.
-	Ours       bool
-	CalledOff  bool
-	Committed  int64
-	Lost       int64
-	Damaged    int64
-	EnemyLost  int64
-	EnemyDmg   int64
-	SeenAtKM   int64
-	Fired      int64
-	Munitions  int64
-	Hits       int64
-	DamageBPS  int64
-	DamageBand string
-	Captured   bool
-	Liberated  bool
-}
+
 
 // StrikeReport renders an operation's report.
 func StrikeReport(c Context, v StrikeReportView) *presenter.Response {
@@ -707,25 +509,7 @@ func StrikeReport(c Context, v StrikeReportView) *presenter.Response {
 	return c.respond(body(lines...), kb.Build())
 }
 
-// WarNoticeView is a private notice of war.
-type WarNoticeView struct {
-	// Kind is struck (to the players in a struck city), ally (an ally was
-	// attacked), proposal (a ceasefire or peace offered) or declared (war
-	// declared on the player's country, to its head of state).
-	Kind           string
-	Country        GovPlace
-	Other          GovPlace
-	Ally           GovPlace
-	CityCode, City string
-	WarNo          int64
-	ProposalNo     int64
-	ProposalKind   string
-	Band           string
-	In             time.Duration
-	// Injury is what a strike did to the player, nil for nothing
-	// (docs/adr/0023).
-	Injury *InjuryView
-}
+
 
 // WarNotice renders a private notice of war.
 func WarNotice(c Context, v WarNoticeView) *presenter.Response {
@@ -743,43 +527,25 @@ func WarNotice(c Context, v WarNoticeView) *presenter.Response {
 		decline, _ := keyboards.Button(c.T("war.button.decline", pa), AddrWarAnswer, pn, AnswerDecline)
 		kb.Row(accept, decline)
 	}
-	if v.Injury != nil && v.Injury.Hospital {
+	var injury *InjuryView
+	if v.Injury != nil {
+		i := InjuryView(*v.Injury)
+		injury = &i
+	}
+	if injury != nil && injury.Hospital {
 		kb.Add(c.T("health.button.hospital", nil), AddrHospital)
 	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: keyboards.Data(AddrWarBoard, v.Country.Code)}))
 	text := c.T("war.notice."+v.Kind, args)
-	if v.Injury != nil {
-		text = paragraphs(text, body(c.T("health.injury.strike", nil), c.injuryLines(v.Injury)))
+	if injury != nil {
+		text = paragraphs(text, body(c.T("health.injury.strike", nil), c.injuryLines(injury)))
 	}
 	return c.respond(text, kb.Build())
 }
 
-// War refusals.
-const (
-	WarRefusedNotHolder  = "not_holder"
-	WarRefusedNoCountry  = "no_country"
-	WarRefusedNotFound   = "not_found"
-	WarRefusedSelf       = "self"
-	WarRefusedAtWar      = "at_war"
-	WarRefusedState      = "state"
-	WarRefusedNotEnemy   = "not_enemy"
-	WarRefusedNotYet     = "not_yet"
-	WarRefusedNoForces   = "no_forces"
-	WarRefusedNoMunition = "no_munitions"
-	WarRefusedOpen       = "open"
-	WarRefusedNoAlly     = "no_ally"
-	WarRefusedStock      = "stock"
-)
 
-// WarRefusalView is a refused decision of war.
-type WarRefusalView struct {
-	Kind    string
-	Country GovPlace
-	Office  string
-	In      time.Duration
-	Max     int64
-	Back    []string
-}
+
+
 
 // WarRefusal renders a refused decision of war.
 func WarRefusal(c Context, v WarRefusalView) *presenter.Response {
@@ -788,31 +554,22 @@ func WarRefusal(c Context, v WarRefusalView) *presenter.Response {
 	if v.Country.Code != "" {
 		back = keyboards.Data(AddrWarBoard, v.Country.Code)
 	}
-	if len(v.Back) > 0 {
-		back = keyboards.Data(v.Back...)
+	if v.Back.Command != "" {
+		back = v.Back.Address()
 	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: back}))
 	return c.respond(c.T("war.refused."+v.Kind, map[string]any{"country": c.PlaceName(v.Country),
 		"office": c.OfficeName(v.Office), "in": FormatDuration(c, v.In), "max": FormatNumber(c, v.Max)}), kb.Build())
 }
 
-// WarBlockedView is a journey the war closes.
-type WarBlockedView struct {
-	// Border is a closed border between From and To; otherwise the city
-	// is closed after a strike for In.
-	Border         bool
-	From, To       GovPlace
-	CityCode, City string
-	In             time.Duration
-	Back           []string
-}
+
 
 // WarBlocked renders a journey the war closes.
 func WarBlocked(c Context, v WarBlockedView) *presenter.Response {
 	kb := keyboards.New()
 	back := AddrHome
-	if len(v.Back) > 0 {
-		back = keyboards.Data(v.Back...)
+	if v.Back.Command != "" {
+		back = v.Back.Address()
 	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: back}))
 	args := map[string]any{"from": c.PlaceName(v.From), "to": c.PlaceName(v.To), "city": c.CityName(v.CityCode, v.City),

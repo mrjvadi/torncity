@@ -470,7 +470,13 @@ every language and the asset keys its art is looked up by
 `company_type`, `item`, `component`, `mode`, `crime`, `course`, `skill`,
 `technology`, `military_unit`; and, for what a notice names (ADR 0039 section
 8), `achievement`, `mission`, `property_type`, `treaty_type`, `loan_product`,
-`insurance_product` and `office`. `asset.icon` is always `<table>:<code>`;
+`insurance_product` and `office`; for the companies, production and recruitment
+screens, `supplier`, `design_slot`, `attribute`, `building_role` (what an
+availability condition names: a craft building of tier 3) and `specialist_name`
+(two entries, `first` and `last`, each a list separated by `|`: a specialist is
+named `first[seed % n] last[(seed / n) % m]` from the view's `name_seed`), and
+the availability tags of every `company_type` (the stage a kind of business
+starts at, what it needs). `asset.icon` is always `<table>:<code>`;
 `asset.model` is set for tables drawn as buildings or vehicles (`place`,
 `company_type`, `mode`, `military_unit`). Items, components, crimes, skills
 and company types carry a `category`, places `kind: place`, military units

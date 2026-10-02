@@ -5,11 +5,13 @@ import (
 	stderrors "errors"
 	"time"
 
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/companies"
+
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/item"
 	"github.com/mrjvadi/torncity/internal/domain/production"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // The next step (docs/adr/0021-production-economy.md section 14): the one
@@ -31,7 +33,7 @@ import (
 // designs nor makes anything, or that has nothing left to do.
 func (h *ProductionHandler) nextStep(ctx context.Context, tx application.Tx, snap *content.Snapshot, c *application.Company,
 	canResearch bool,
-) (*screens.NextStep, error) {
+) (*companies.NextStep, error) {
 	f, err := readFloor(ctx, tx, snap, c)
 	if err != nil {
 		return nil, err
@@ -71,7 +73,7 @@ func (h *ProductionHandler) nextStep(ctx context.Context, tx application.Tx, sna
 	// 1. A first product.
 	if len(finals) == 0 && len(f.def.Produces) > 0 {
 		if draft != nil {
-			return &screens.NextStep{Kind: screens.StepDesignDraft, DesignNo: draft.No, DesignName: draft.Name}, nil
+			return &companies.NextStep{Kind: companies.StepDesignDraft, DesignNo: draft.No, DesignName: draft.Name}, nil
 		}
 		s, err := stageNow()
 		if err != nil {
@@ -82,7 +84,7 @@ func (h *ProductionHandler) nextStep(ctx context.Context, tx application.Tx, sna
 			return nil, err
 		}
 		if len(ready) > 0 {
-			return &screens.NextStep{Kind: screens.StepDesignFirst}, nil
+			return &companies.NextStep{Kind: companies.StepDesignFirst}, nil
 		}
 	}
 
@@ -96,11 +98,11 @@ func (h *ProductionHandler) nextStep(ctx context.Context, tx application.Tx, sna
 	if err != nil {
 		return nil, err
 	}
-	var fallback *screens.NextStep
+	var fallback *companies.NextStep
 	if running < h.rules.MaxRunningOrders {
 		var targets []orderTarget
 		for _, d := range finals {
-			if t, err := h.target(ctx, tx, snap, f, screens.DesignTarget(d.No)); err == nil {
+			if t, err := h.target(ctx, tx, snap, f, presentation.DesignTarget(d.No)); err == nil {
 				targets = append(targets, t)
 			}
 		}
@@ -119,7 +121,7 @@ func (h *ProductionHandler) nextStep(ctx context.Context, tx application.Tx, sna
 			}
 			switch {
 			case step == nil:
-			case step.Kind == screens.StepBuyGoods:
+			case step.Kind == companies.StepBuyGoods:
 				if fallback == nil {
 					fallback = step
 				}
@@ -141,7 +143,7 @@ func (h *ProductionHandler) nextStep(ctx context.Context, tx application.Tx, sna
 				if err != nil {
 					return nil, err
 				}
-				return &screens.NextStep{Kind: screens.StepProducing, Good: line.Good, Qty: line.Output,
+				return &companies.NextStep{Kind: companies.StepProducing, Good: line.Good, Qty: line.Output,
 					FinishAt: line.FinishAt, Left: line.Left}, nil
 			}
 		}
@@ -162,14 +164,14 @@ func (h *ProductionHandler) nextStep(ctx context.Context, tx application.Tx, sna
 	for _, k := range next {
 		for _, stp := range k.Steps {
 			if stp.Research {
-				return &screens.NextStep{Kind: screens.StepResearch, Item: k.Item, Tech: stp.Tech,
+				return &companies.NextStep{Kind: companies.StepResearch, Item: k.Item, Tech: stp.Tech,
 					CanResearch: canResearch}, nil
 			}
 		}
 	}
 	for _, k := range ready {
 		if !designed[k.Code] {
-			return &screens.NextStep{Kind: screens.StepDesignNext, Item: k}, nil
+			return &companies.NextStep{Kind: companies.StepDesignNext, Item: k}, nil
 		}
 	}
 	return nil, nil
@@ -178,7 +180,7 @@ func (h *ProductionHandler) nextStep(ctx context.Context, tx application.Tx, sna
 // sellStep is the first good in the warehouse not yet offered for sale, if
 // the company does not sell it to the city on its own (stocked).
 func (h *ProductionHandler) sellStep(ctx context.Context, tx application.Tx, snap *content.Snapshot, c *application.Company,
-) (*screens.NextStep, error) {
+) (*companies.NextStep, error) {
 	stocked := snap.StockedCodes(c.TypeCode)
 	stacks, pieces, err := tx.Items().OrgHoldings(ctx, application.CompanyOrg(c.ID), application.HoldWarehouse)
 	if err != nil {
@@ -188,7 +190,7 @@ func (h *ProductionHandler) sellStep(ctx context.Context, tx application.Tx, sna
 		if stocked.Has(p.Item) || !h.sellable(snap, p.Item) {
 			continue
 		}
-		good := screens.Good{Item: itemNamed(snap, p.Item)}
+		good := presentation.Good{Item: itemNamed(snap, p.Item)}
 		if p.DesignID != "" {
 			d, err := tx.Production().DesignByID(ctx, p.DesignID)
 			if err != nil {
@@ -196,13 +198,13 @@ func (h *ProductionHandler) sellStep(ctx context.Context, tx application.Tx, sna
 			}
 			good = designGood(snap, *d)
 		}
-		return &screens.NextStep{Kind: screens.StepSell, Good: good}, nil
+		return &companies.NextStep{Kind: companies.StepSell, Good: good}, nil
 	}
 	for _, s := range stacks {
 		if _, component := snap.ComponentDef(s.Item); component || stocked.Has(s.Item) || !h.sellable(snap, s.Item) {
 			continue
 		}
-		return &screens.NextStep{Kind: screens.StepSell, Good: screens.Good{Item: itemNamed(snap, s.Item)}, Qty: s.Qty}, nil
+		return &companies.NextStep{Kind: companies.StepSell, Good: presentation.Good{Item: itemNamed(snap, s.Item)}, Qty: s.Qty}, nil
 	}
 	return nil, nil
 }
@@ -213,7 +215,7 @@ func (h *ProductionHandler) sellStep(ctx context.Context, tx application.Tx, sna
 // quick false keeps the size asked. nil when the target cannot be planned.
 func (h *ProductionHandler) chainStep(ctx context.Context, tx application.Tx, snap *content.Snapshot, f *floor, t orderTarget,
 	qty int64, top bool, now time.Time,
-) (*screens.NextStep, error) {
+) (*companies.NextStep, error) {
 	plan := func(q int64) (plan, bool, error) {
 		p, err := h.planOrder(ctx, tx, snap, f, t, q)
 		var r *productionRefusal
@@ -234,19 +236,19 @@ func (h *ProductionHandler) chainStep(ctx context.Context, tx application.Tx, sn
 		return nil, err
 	}
 	if pl.short == nil {
-		return &screens.NextStep{Kind: screens.StepProduce, Good: t.good, Qty: qty, Batch: t.batch}, nil
+		return &companies.NextStep{Kind: companies.StepProduce, Good: t.good, Qty: qty, Batch: t.batch}, nil
 	}
-	view := screens.ProduceView{Short: shortagesOf(snap, pl.short)}
+	view := companies.ProduceView{Short: shortagesOf(snap, pl.short)}
 	if err := h.sourceShortages(ctx, tx, snap, f, &view, now); err != nil {
 		return nil, err
 	}
 	if view.StockUp > 0 {
-		return &screens.NextStep{Kind: screens.StepSupply, Good: t.good, Qty: qty, Total: view.StockUp}, nil
+		return &companies.NextStep{Kind: companies.StepSupply, Good: t.good, Qty: qty, Total: view.StockUp}, nil
 	}
-	var buy *screens.Shortage
+	var buy *companies.Shortage
 	for i, s := range view.Short {
 		switch s.Source {
-		case screens.ShortMadeHere:
+		case companies.ShortMadeHere:
 			if !top {
 				continue
 			}
@@ -257,10 +259,10 @@ func (h *ProductionHandler) chainStep(ctx context.Context, tx application.Tx, sn
 			batch := max(sub.batch, 1)
 			need := (s.Need - s.Have + batch - 1) / batch
 			step, err := h.chainStep(ctx, tx, snap, f, sub, max(need, 1), false, now)
-			if err != nil || (step != nil && step.Kind != screens.StepBuyGoods) {
+			if err != nil || (step != nil && step.Kind != companies.StepBuyGoods) {
 				return step, err
 			}
-		case screens.ShortFromCompanies:
+		case companies.ShortFromCompanies:
 			if buy == nil {
 				buy = &view.Short[i]
 			}
@@ -269,15 +271,15 @@ func (h *ProductionHandler) chainStep(ctx context.Context, tx application.Tx, sn
 	if buy == nil {
 		return nil, nil
 	}
-	return &screens.NextStep{Kind: screens.StepBuyGoods, Good: t.good, Component: buy.Component}, nil
+	return &companies.NextStep{Kind: companies.StepBuyGoods, Good: t.good, Component: buy.Component}, nil
 }
 
 // shortagesOf names a plan's shortages for a screen.
-func shortagesOf(snap *content.Snapshot, short *production.ShortageError) []screens.Shortage {
-	out := make([]screens.Shortage, 0, len(short.Shortages))
+func shortagesOf(snap *content.Snapshot, short *production.ShortageError) []companies.Shortage {
+	out := make([]companies.Shortage, 0, len(short.Shortages))
 	for _, s := range short.Shortages {
 		comp, _ := snap.ComponentDef(s.Component)
-		out = append(out, screens.Shortage{Component: named(comp.Code, comp.Name), Need: s.Need, Have: s.Have})
+		out = append(out, companies.Shortage{Component: named(comp.Code, comp.Name), Need: s.Need, Have: s.Have})
 	}
 	return out
 }

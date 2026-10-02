@@ -3,6 +3,8 @@ package handlers
 import (
 	"context"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	mview "github.com/mrjvadi/torncity/internal/presentation/military"
 	"sort"
 	"time"
 
@@ -15,8 +17,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/shared/money"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // Arms procurement (docs/adr/0022-military-and-diplomacy.md §2.6): the
@@ -52,7 +52,7 @@ func (h *MilitaryHandler) exportBlock(ctx context.Context, tx application.Tx, sn
 	err := application.CheckSanctions(ctx, tx, diplomacy.Arms, buyer, sellerCountry, h.now())
 	var s *application.SanctionedError
 	if stderrors.As(err, &s) {
-		return screens.ProcureBlockedEmbargo, nil
+		return mview.ProcureBlockedEmbargo, nil
 	}
 	if err != nil {
 		return "", err
@@ -61,7 +61,7 @@ func (h *MilitaryHandler) exportBlock(ctx context.Context, tx application.Tx, sn
 	if err != nil || !denied {
 		return "", err
 	}
-	return screens.ProcureBlockedExport, nil
+	return mview.ProcureBlockedExport, nil
 }
 
 // armsExportDenied reports whether the seller country's arms export policy
@@ -94,28 +94,28 @@ func armsExportDenied(ctx context.Context, tx application.Tx, policy application
 // procureOffer reads a listing as a state's buyer sees it.
 func (h *MilitaryHandler) procureOffer(ctx context.Context, tx application.Tx, snap *content.Snapshot, buyer string,
 	l application.Listing,
-) (screens.ProcureOffer, *application.Design, string, error) {
+) (mview.ProcureOffer, *application.Design, string, error) {
 	seller, err := tx.Companies().ByID(ctx, l.CompanyID)
 	if err != nil {
-		return screens.ProcureOffer{}, nil, "", err
+		return mview.ProcureOffer{}, nil, "", err
 	}
 	city, err := h.cities.ByID(ctx, l.CityID)
 	if err != nil {
-		return screens.ProcureOffer{}, nil, "", err
+		return mview.ProcureOffer{}, nil, "", err
 	}
 	sellerCountry, err := tx.Diplomacy().CountryOfCity(ctx, l.CityID)
 	if err != nil {
-		return screens.ProcureOffer{}, nil, "", err
+		return mview.ProcureOffer{}, nil, "", err
 	}
 	place, err := placeOf(ctx, tx, sellerCountry)
 	if err != nil {
-		return screens.ProcureOffer{}, nil, "", err
+		return mview.ProcureOffer{}, nil, "", err
 	}
 	good, d, err := groupGood(ctx, tx, snap, l.Item, l.DesignID, map[string]*application.Design{})
 	if err != nil {
-		return screens.ProcureOffer{}, nil, "", err
+		return mview.ProcureOffer{}, nil, "", err
 	}
-	o := screens.ProcureOffer{No: l.No, Good: good, Company: companyRef(snap, *seller), CityCode: city.Code, City: city.Name,
+	o := mview.ProcureOffer{No: l.No, Good: good, Company: companyRef(snap, *seller), CityCode: city.Code, City: city.Name,
 		Country: place, Left: l.Left(), Price: l.UnitPrice}
 	if o.Blocked, err = h.exportBlock(ctx, tx, snap, buyer, sellerCountry); err != nil {
 		return o, nil, "", err
@@ -132,7 +132,7 @@ func (h *MilitaryHandler) procurer(ctx context.Context, tx application.Tx, snap 
 		return seat, err
 	}
 	if !ok {
-		r := refuseMilitary(screens.MilitaryRefusedNotHolder, country)
+		r := refuseMilitary(mview.MilitaryRefusedNotHolder, country)
 		r.view.Office = actionOffice(snap, content.ActionProcure)
 		return seat, r
 	}
@@ -141,17 +141,25 @@ func (h *MilitaryHandler) procurer(ctx context.Context, tx application.Tx, snap 
 
 // Procure handles military.procure: the military goods for sale that the
 // country's state may buy, and why not the others.
-func (h *MilitaryHandler) Procure(ctx context.Context, meta envelope.Metadata, req MilitaryRequest) (*presenter.Response, error) {
-	return h.procureWith(ctx, meta, req, "")
+func (h *MilitaryHandler) Procure(ctx context.Context, meta envelope.Metadata, req MilitaryRequest) (*presentation.Response, error) {
+	if err := validatePlayerMeta(meta); err != nil {
+		return nil, err
+	}
+	if un, lang, err := h.procureGate(ctx, meta, h.content.Current()); err != nil {
+		return nil, err
+	} else if un != nil {
+		return mview.Procure(presentation.Ctx{Lang: lang}, mview.ProcureView{Unavailable: un}), nil
+	}
+	return h.procureWith(ctx, meta, req, nil)
 }
 
-func (h *MilitaryHandler) procureWith(ctx context.Context, meta envelope.Metadata, req MilitaryRequest, notice string) (*presenter.Response, error) {
+func (h *MilitaryHandler) procureWith(ctx context.Context, meta envelope.Metadata, req MilitaryRequest, notice *mview.Notice) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view screens.ProcureView
+	var view mview.ProcureView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
@@ -168,7 +176,7 @@ func (h *MilitaryHandler) procureWith(ctx context.Context, meta envelope.Metadat
 		if err != nil {
 			return err
 		}
-		view = screens.ProcureView{Country: countryPlace(*country), Fund: fund.Balance.Minor(), Notice: notice}
+		view = mview.ProcureView{Country: countryPlace(*country), Fund: fund.Balance.Minor(), Notice: notice}
 		listings, err := tx.Military().ArmsListings(ctx, armsItems(snap))
 		if err != nil {
 			return err
@@ -185,19 +193,19 @@ func (h *MilitaryHandler) procureWith(ctx context.Context, meta envelope.Metadat
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return screens.Procure(h.screen(meta, lang), view), nil
+	return mview.Procure(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // ArmsBuy handles military.buy: one listing — how many, then confirm, then
 // the purchase, once (idempotent on the confirming update).
-func (h *MilitaryHandler) ArmsBuy(ctx context.Context, meta envelope.Metadata, req MilitaryRequest) (*presenter.Response, error) {
+func (h *MilitaryHandler) ArmsBuy(ctx context.Context, meta envelope.Metadata, req MilitaryRequest) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
 	snap := h.content.Current()
 	lang := meta.Language
 	var (
-		view    screens.ArmsBuyView
+		view    mview.ArmsBuyView
 		bought  string
 		country *application.Jurisdiction
 	)
@@ -221,20 +229,20 @@ func (h *MilitaryHandler) ArmsBuy(ctx context.Context, meta envelope.Metadata, r
 		if err != nil {
 			return err
 		}
-		back := []string{screens.AddrProcure, country.Code}
+		back := []string{mview.AddrProcure, country.Code}
 		no, ok := number(req.No)
 		if !ok {
-			return refuseMilitary(screens.MilitaryRefusedNotFound, country).back(back...)
+			return refuseMilitary(mview.MilitaryRefusedNotFound, country).back(back...)
 		}
 		l, err := tx.Production().Listing(ctx, no, false)
 		if isSentinel(err, application.ErrListingNotFound) || (err == nil && l.Status != application.ListingOpen) {
-			return refuseMilitary(screens.MilitaryRefusedNotFound, country).back(back...)
+			return refuseMilitary(mview.MilitaryRefusedNotFound, country).back(back...)
 		}
 		if err != nil {
 			return err
 		}
 		if _, ok := snap.ClassOfItem(l.Item); !ok {
-			return refuseMilitary(screens.MilitaryRefusedNotArms, country).back(back...)
+			return refuseMilitary(mview.MilitaryRefusedNotArms, country).back(back...)
 		}
 		offer, d, sellerCountry, err := h.procureOffer(ctx, tx, snap, country.ID, *l)
 		if err != nil {
@@ -244,13 +252,13 @@ func (h *MilitaryHandler) ArmsBuy(ctx context.Context, meta envelope.Metadata, r
 		if err != nil {
 			return err
 		}
-		view = screens.ArmsBuyView{Country: countryPlace(*country), Offer: offer, Fund: fund.Balance.Minor()}
+		view = mview.ArmsBuyView{Country: countryPlace(*country), Offer: offer, Fund: fund.Balance.Minor()}
 		if d != nil {
 			if a, ok := snap.Archetype(d.Archetype); ok {
 				if attrs, err := item.ObservableAttributes(a, domainDesign(*d), snap.Components()); err == nil {
 					for _, at := range a.Attributes {
 						if v, ok := attrs[at.Name]; ok && at.Name != "quality" {
-							view.Attributes = append(view.Attributes, screens.AttributeLine{Name: at.Name, Value: v, Observable: true})
+							view.Attributes = append(view.Attributes, mview.AttributeLine{Name: at.Name, Value: v, Observable: true})
 						}
 					}
 				}
@@ -264,7 +272,7 @@ func (h *MilitaryHandler) ArmsBuy(ctx context.Context, meta envelope.Metadata, r
 			return nil
 		}
 		if qty > l.Left() {
-			r := refuseMilitary(screens.MilitaryRefusedStock, country).back(screens.AddrArmsBuy, country.Code, qtyText(no))
+			r := refuseMilitary(mview.MilitaryRefusedStock, country).back(mview.AddrArmsBuy, country.Code, qtyText(no))
 			r.view.Max = l.Left()
 			return r
 		}
@@ -280,24 +288,22 @@ func (h *MilitaryHandler) ArmsBuy(ctx context.Context, meta envelope.Metadata, r
 		return resp, err
 	}
 	if bought != "" {
-		c := h.screen(meta, lang)
-		notice := c.T("military.buy.done", map[string]any{"count": screens.FormatNumber(c, view.Qty),
-			"good": c.GoodName(view.Offer.Good), "total": screens.FormatMoney(c, view.Total)})
+		notice := &mview.Notice{Code: mview.NoticeBuyDone, Count: view.Qty, Good: view.Offer.Good, Total: view.Total}
 		return h.procureWith(ctx, meta, MilitaryRequest{Country: country.Code}, notice)
 	}
-	return screens.ArmsBuy(h.screen(meta, lang), view), nil
+	return mview.ArmsBuy(presentation.Ctx{Lang: lang}, view), nil
 }
 
 // refuseBlocked refuses a purchase the seller's export policy or a
 // sanction forbids, with the sanction's own screen for an embargo.
-func (h *MilitaryHandler) refuseBlocked(ctx context.Context, tx application.Tx, offer screens.ProcureOffer,
+func (h *MilitaryHandler) refuseBlocked(ctx context.Context, tx application.Tx, offer mview.ProcureOffer,
 	country *application.Jurisdiction, sellerCountry string, back []string,
 ) error {
 	switch offer.Blocked {
-	case screens.ProcureBlockedEmbargo:
+	case mview.ProcureBlockedEmbargo:
 		return checkSanctions(ctx, tx, application.CheckSanctions(ctx, tx, diplomacy.Arms, country.ID, sellerCountry, h.now()), back...)
-	case screens.ProcureBlockedExport:
-		r := refuseMilitary(screens.MilitaryRefusedExport, country).back(back...)
+	case mview.ProcureBlockedExport:
+		r := refuseMilitary(mview.MilitaryRefusedExport, country).back(back...)
 		r.view.Country = offer.Country
 		return r
 	}
@@ -310,7 +316,7 @@ func (h *MilitaryHandler) refuseBlocked(ctx context.Context, tx application.Tx, 
 func (h *MilitaryHandler) purchase(ctx context.Context, tx application.Tx, snap *content.Snapshot, meta envelope.Metadata,
 	p *application.Player, seat application.Office, country *application.Jurisdiction, sellerCountry string, no, qty int64,
 ) (string, error) {
-	back := []string{screens.AddrProcure, country.Code}
+	back := []string{mview.AddrProcure, country.Code}
 	l, err := tx.Production().Listing(ctx, no, false)
 	if err != nil {
 		return "", err
@@ -329,22 +335,22 @@ func (h *MilitaryHandler) purchase(ctx context.Context, tx application.Tx, snap 
 		return "", err
 	}
 	if l.Status != application.ListingOpen || !seller.Active() {
-		return "", refuseMilitary(screens.MilitaryRefusedNotFound, country).back(back...)
+		return "", refuseMilitary(mview.MilitaryRefusedNotFound, country).back(back...)
 	}
 	if qty < 1 || qty > l.Left() {
-		r := refuseMilitary(screens.MilitaryRefusedStock, country).back(back...)
+		r := refuseMilitary(mview.MilitaryRefusedStock, country).back(back...)
 		r.view.Max = l.Left()
 		return "", r
 	}
 	class, ok := snap.ClassOfItem(l.Item)
 	if !ok {
-		return "", refuseMilitary(screens.MilitaryRefusedNotArms, country).back(back...)
+		return "", refuseMilitary(mview.MilitaryRefusedNotArms, country).back(back...)
 	}
 	// Export control: the one place a sale of goods is cleared, the state
 	// as the buyer.
 	def, _ := snap.ItemDef(l.Item)
 	if technology.Cleared(def.ExportControl.Control(), technology.Buyer{Kind: content.StateBuyerClass}) != nil {
-		return "", refuseMilitary(screens.MilitaryRefusedNotArms, country).back(back...)
+		return "", refuseMilitary(mview.MilitaryRefusedNotArms, country).back(back...)
 	}
 	if block, err := h.exportBlock(ctx, tx, snap, country.ID, sellerCountry); err != nil {
 		return "", err
@@ -353,7 +359,7 @@ func (h *MilitaryHandler) purchase(ctx context.Context, tx application.Tx, snap 
 		if err != nil {
 			return "", err
 		}
-		return "", h.refuseBlocked(ctx, tx, screens.ProcureOffer{Blocked: block, Country: place}, country, sellerCountry, back)
+		return "", h.refuseBlocked(ctx, tx, mview.ProcureOffer{Blocked: block, Country: place}, country, sellerCountry, back)
 	}
 	now := h.now()
 	total := money.FromMinor(qty * l.UnitPrice)
@@ -362,7 +368,7 @@ func (h *MilitaryHandler) purchase(ctx context.Context, tx application.Tx, snap 
 		return "", err
 	}
 	if fund.Balance.Minor() < total.Minor() {
-		r := refuseMilitary(screens.MilitaryRefusedFunds, country).back(back...)
+		r := refuseMilitary(mview.MilitaryRefusedFunds, country).back(back...)
 		r.view.Need, r.view.Have = total.Minor(), fund.Balance.Minor()
 		return "", r
 	}
@@ -374,7 +380,7 @@ func (h *MilitaryHandler) purchase(ctx context.Context, tx application.Tx, snap 
 		total, now)
 	if err != nil {
 		if isSentinel(err, application.ErrInsufficientFunds) {
-			r := refuseMilitary(screens.MilitaryRefusedFunds, country).back(back...)
+			r := refuseMilitary(mview.MilitaryRefusedFunds, country).back(back...)
 			r.view.Need, r.view.Have = total.Minor(), fund.Balance.Minor()
 			return "", r
 		}

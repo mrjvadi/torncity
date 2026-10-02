@@ -8,8 +8,9 @@ import (
 	"github.com/mrjvadi/torncity/internal/domain/budget"
 	"github.com/mrjvadi/torncity/internal/domain/vehicle"
 	"github.com/mrjvadi/torncity/internal/presentation"
-	"github.com/mrjvadi/torncity/internal/presentation/life"
 	"github.com/mrjvadi/torncity/internal/presentation/economy"
+	"github.com/mrjvadi/torncity/internal/presentation/life"
+	mview "github.com/mrjvadi/torncity/internal/presentation/military"
 	"github.com/mrjvadi/torncity/internal/shared/money"
 	"strconv"
 	"strings"
@@ -534,7 +535,7 @@ func (h *TravelHandler) options(ctx context.Context, meta envelope.Metadata, req
 		return screens.SanctionBlocked(sc, v), nil
 	}
 	if v, ok := asWarBlocked(err); ok {
-		return screens.WarBlocked(sc, v), nil
+		return mview.WarBlocked(presentation.Ctx{Lang: lang}, v), nil
 	}
 	if err != nil {
 		return nil, err
@@ -819,7 +820,7 @@ func (h *TravelHandler) Start(ctx context.Context, meta envelope.Metadata, req S
 		return screens.SanctionBlocked(h.screen(meta, lang), v), nil
 	}
 	if v, ok := asWarBlocked(err); ok {
-		return screens.WarBlocked(h.screen(meta, lang), v), nil
+		return mview.WarBlocked(presentation.Ctx{Lang: lang}, v), nil
 	}
 	if err != nil {
 		return nil, err
@@ -961,7 +962,7 @@ func (h *TravelHandler) checkout(ctx context.Context, meta envelope.Metadata, re
 		return screens.SanctionBlocked(h.screen(meta, lang), v), false, nil
 	}
 	if v, ok := asWarBlocked(err); ok {
-		return screens.WarBlocked(h.screen(meta, lang), v), false, nil
+		return mview.WarBlocked(presentation.Ctx{Lang: lang}, v), false, nil
 	}
 	switch {
 	case err != nil:
