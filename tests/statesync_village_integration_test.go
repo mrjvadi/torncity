@@ -82,6 +82,13 @@ func TestStateSyncSettlementSummary(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	// a standing hall and a watch hut: the overlay has something to say
+	for i, code := range []string{"civic_hall", "watch_hut"} {
+		if _, err := pool.Raw().Exec(ctx, `INSERT INTO settlement_buildings (id, settlement_id, type_code, lot_x, lot_y, status, queued_at, completed_at)
+			VALUES (gen_random_uuid(), $1::uuid, $2, $3, 0, 'complete', now(), now())`, cityID, code, i*3); err != nil {
+			t.Fatal(err)
+		}
+	}
 	villages := &clientapi.VillageService{Settlements: postgres.NewSettlementReader(pool), Buildings: postgres.NewSettlementBuildingReader(pool),
 		Content: registryOf(loadTestContent(t)), VillageGridLots: 5, Citizens: postgres.NewCitizenReader(pool),
 		Overlay: postgres.NewVillageFacts(pool), StockBaseCapacity: 60}
