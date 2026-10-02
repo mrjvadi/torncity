@@ -197,6 +197,10 @@ const (
 	BoardCities    = "cities"
 	BoardWorkers   = "workers"
 	BoardInvestors = "investors"
+	// BoardVillage is the residents of the viewer's own settlement by what
+	// each is worth, worked out when it is asked for; it is not one of the
+	// periodic boards in Boards.
+	BoardVillage = "village"
 )
 
 // Boards lists them, in the order screens offer them.
@@ -257,6 +261,9 @@ type LifeRepository interface {
 	// NetWorth is the worth of one player, or of every active player for
 	// "", at the prices given.
 	NetWorth(ctx context.Context, prices NetWorthPrices, playerID string) ([]NetWorth, error)
+	// ResidentWorth is the worth of every active player whose home is the
+	// settlement, at the prices given: the village board's source.
+	ResidentWorth(ctx context.Context, prices NetWorthPrices, settlementID string) ([]NetWorth, error)
 
 	// RecordSleep writes a night at a spot.
 	RecordSleep(ctx context.Context, s LifeSleep) error

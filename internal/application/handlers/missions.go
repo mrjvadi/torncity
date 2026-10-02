@@ -241,18 +241,37 @@ func (h *MissionsHandler) Board(ctx context.Context, meta envelope.Metadata, req
 		if w.city == nil {
 			return application.ErrCityNotFound
 		}
-		view.CityCode, view.City = w.city.Code, w.city.Name
+		view.CityCode, view.City, view.Tier = w.city.Code, w.city.Name, tierStage(w.city.Tier)
+		// A settlement posts only the boards and missions its stage reaches (availability.yml): a village has its own
+		// works board, never the city hall's or the police station's. A content city judges by its own map.
+		founded, ferr := tx.Settlements().ByID(ctx, w.city.ID)
+		if ferr != nil && !isSentinel(ferr, application.ErrCityNotFound) {
+			return ferr
+		}
+		inSettlement := ferr == nil
+		view.Currency = villageCurrency(founded)
+		reaches := func(kind, code string) bool { return !inSettlement || stageReaches(snap, kind, code, w.city.Tier) }
+		posted := func(board string) []content.MissionDef {
+			var out []content.MissionDef
+			for _, def := range snap.BoardMissions(board, w.city.Code) {
+				if reaches("mission", def.Code) {
+					out = append(out, def)
+				}
+			}
+			return out
+		}
 		for _, b := range snap.MissionBoards() {
-			if len(snap.BoardMissions(b.Code, w.city.Code)) == 0 {
+			open := len(posted(b.Code))
+			if open == 0 || !reaches("mission_board", b.Code) {
 				continue
 			}
 			if _, ok := w.cmap.Find(b.Place); !ok && w.placed() {
 				continue
 			}
-			view.Boards = append(view.Boards, screens.MissionBoardRef{Code: b.Code, Name: b.Name, Place: placeNamed(snap, b.Place)})
+			view.Boards = append(view.Boards, screens.MissionBoardRef{Code: b.Code, Name: b.Name, Place: placeNamed(snap, b.Place), Open: open})
 		}
 		board, ok := snap.MissionBoard(strings.TrimSpace(req.Board))
-		if !ok {
+		if !ok || !reaches("mission_board", board.Code) {
 			return nil
 		}
 		view.Board = &screens.MissionBoardRef{Code: board.Code, Name: board.Name, Place: placeNamed(snap, board.Place)}
@@ -262,10 +281,11 @@ func (h *MissionsHandler) Board(ctx context.Context, meta envelope.Metadata, req
 		if err != nil {
 			return err
 		}
-		for _, def := range snap.BoardMissions(board.Code, w.city.Code) {
+		for _, def := range posted(board.Code) {
 			why, left := h.availability(def, hs, active, now)
 			view.Missions = append(view.Missions, screens.MissionLine{Mission: named(def.Code, def.Name),
-				Reward: missionReward(snap, def), Blocked: why, Wait: left, Repeatable: def.Repeat == content.RepeatAgain})
+				Reward: missionReward(snap, def), Blocked: why, Wait: left, Repeatable: def.Repeat == content.RepeatAgain,
+				Objectives: missionObjectives(snap, def, nil)})
 		}
 		return nil
 	})
@@ -370,6 +390,14 @@ func (h *MissionsHandler) Accept(ctx context.Context, meta envelope.Metadata, re
 			return refuseMission(screens.MissionRefusedNotHere)
 		}
 		board, _ := snap.MissionBoard(def.Board)
+		if _, err := tx.Settlements().ByID(ctx, w.city.ID); err == nil {
+			// a settlement takes only the missions its stage reaches
+			if !stageReaches(snap, "mission", def.Code, w.city.Tier) || !stageReaches(snap, "mission_board", board.Code, w.city.Tier) {
+				return refuseMission(screens.MissionRefusedNotHere)
+			}
+		} else if !isSentinel(err, application.ErrCityNotFound) {
+			return err
+		}
 		if w.placed() {
 			target, ok := w.cmap.Find(board.Place)
 			if !ok {
@@ -914,4 +942,16 @@ func (h *MissionsHandler) OnEvent(ctx context.Context, env *envelope.Envelope, s
 		}
 		return nil
 	})
+}
+
+// stageReaches says whether the settlement of the given tier reaches an entry that availability.yml tags: its stage is
+// at or below the tier's. An entry with no tag, or one whose stage nothing here can judge (undecided), is reached
+// everywhere; one that only the neutral city has (stage support) is never a settlement's.
+func stageReaches(snap *content.Snapshot, kind, code, tier string) bool {
+	tag, ok := snap.AvailabilityTag(kind, code)
+	if !ok || tag.Stage == content.StageUndecided {
+		return true
+	}
+	need := content.StageRank(tag.Stage)
+	return need != 0 && content.StageRank(tierStage(tier)) >= need
 }

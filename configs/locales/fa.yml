@@ -1433,6 +1433,7 @@ career_category:
 mission_board:
   city_hall: تابلوی اعلانات شهرداری
   police: تابلوی پلیس
+  village_works: تابلوی کارهای روستا
 
 # مأموریت‌ها (docs/adr/0023): کارهایی که شهر روی تابلوهایش می‌گذارد.
 mission:
@@ -1457,6 +1458,15 @@ mission:
   first_aid_course:
     name: "آموزش کمک‌های اولیه"
     brief: "پلیس از داوطلبان می‌خواهد دارو را درست به کار ببرند."
+  village_first_lesson:
+    name: "اولین درس"
+    brief: "روستا به آدم‌های باسواد نیاز دارد: یک دوره را تا آخر بخوانید."
+  village_bread_run:
+    name: "نان برای انبار"
+    brief: "انبار روستا نان کم آورده؛ سه نان به تابلو برسانید."
+  village_bandage_run:
+    name: "باند برای خانهٔ بهداشت"
+    brief: "خانهٔ بهداشت باند کم دارد؛ سه باند به تابلو برسانید."
   objective:
     travel: "سفر به {target}"
     travel_any: "سفر به شهری دیگر"
@@ -1481,6 +1491,7 @@ mission:
   reward_item: "{qty} {item}"
   boards_title: "📋 تابلوهای مأموریت {city}"
   board_line: "• {board} - در {place}"
+  board_line_here: "• {board}"
   boards_none: "این شهر هنوز تابلوی مأموریت ندارد."
   board_title: "📋 {board} - {city}"
   board_elsewhere: "برای گرفتن مأموریت باید در {place} باشید."
@@ -1600,6 +1611,9 @@ life:
     richest_line: "{pos}. {name} - {tag} - {value}"
     richest_tab: "💎 ثروتمندترین‌ها"
     richest_hint: "دارایی خالص: نقد، بانک، پس‌انداز، سهام، طلا، املاک و کالاها، منهای بدهی و وام."
+    village_title: "🏡 ثروتمندترین‌های {village}"
+    village_tab: "🏡 روستا"
+    village_hint: "هم‌روستایی‌ها بر پایهٔ دارایی خالص‌شان."
     companies_title: "🏢 بزرگ‌ترین شرکت‌ها"
     companies_line: "{pos}. {name} - {tag} در {city} - {value}"
     companies_tab: "🏢 شرکت‌ها"

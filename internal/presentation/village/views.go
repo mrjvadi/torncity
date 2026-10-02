@@ -135,10 +135,27 @@ const (
 	KnowledgeLocked      = "locked"
 )
 
+// What a knowledge item opens, by kind.
+const (
+	UnlockBuilding  = "building"
+	UnlockKnowledge = "knowledge"
+	UnlockCourse    = "course"
+)
+
+// KnowledgeUnlock is one thing holding a knowledge item opens: a building the
+// village may then raise, a deeper item it may then research, or a course it may
+// then teach.
+type KnowledgeUnlock struct {
+	Kind string
+	Item presentation.Named
+}
+
 // KnowledgeLine is one item of the knowledge list.
 type KnowledgeLine struct {
 	Knowledge presentation.Named
 	State     string
+	// Unlocks is what holding it opens: buildings, deeper knowledge and courses.
+	Unlocks []KnowledgeUnlock
 	// ResearchCost/ResearchTime: what starting research now would take.
 	ResearchCost int64
 	ResearchTime time.Duration
@@ -161,7 +178,9 @@ type KnowledgeResearchLine struct {
 
 // KnowledgeListView is a settlement's own knowledge list.
 type KnowledgeListView struct {
-	Name            string
+	Name string
+	// Currency is the money the village prices things in; nil when it has none of its own.
+	Currency        *presentation.Currency
 	Treasury        int64
 	LiteracyPercent int
 	Running         *KnowledgeResearchLine

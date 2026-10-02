@@ -6,8 +6,8 @@ import (
 	stderrors "errors"
 	"github.com/mrjvadi/torncity/internal/domain/budget"
 	"github.com/mrjvadi/torncity/internal/presentation"
-	plife "github.com/mrjvadi/torncity/internal/presentation/life"
 	"github.com/mrjvadi/torncity/internal/presentation/economy"
+	plife "github.com/mrjvadi/torncity/internal/presentation/life"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
@@ -68,6 +68,9 @@ type EducationHandler struct {
 	msgs    Translator
 	content ContentSource
 	cities  application.CityRepository
+	// home is the code of the neutral city (settlement.home_city_code), where a course a
+	// settlement does not teach can be had.
+	home string
 	// scale is the game clock: a course's duration is game time, and the
 	// student waits it through this (config game.time_scale).
 	scale gametime.Scale
@@ -311,6 +314,16 @@ func (h *EducationHandler) List(ctx context.Context, meta envelope.Metadata, req
 			view.Certificates = append(view.Certificates, courseRef(snap, c.CourseCode))
 		}
 
+		hereC, err := h.courseHereOf(ctx, tx, snap, s.here())
+		if err != nil {
+			return err
+		}
+		view.Place, view.Tier = presentation.Named{}, ""
+		if !hereC.all {
+			view.Place = presentation.Named{Code: hereC.settlement.Code, Name: hereC.settlement.Name}
+			view.Tier = hereC.tier
+			view.Currency = villageCurrency(hereC.settlement)
+		}
 		var lines []screens.CourseLine
 		for _, def := range snap.Courses() {
 			if !visible(def, s, here) {
@@ -326,6 +339,22 @@ func (h *EducationHandler) List(ctx context.Context, meta envelope.Metadata, req
 			if course, err = smarterCourse(ctx, tx, snap, p.ID, course); err != nil {
 				return err
 			}
+			// only what this settlement teaches is listed; what it could come to teach (its stage is
+			// reached) is shown as «not here» with where it is taught and what it lacks
+			tag, tagged := snap.AvailabilityTag("course", def.Code)
+			taught, reachable, needs := hereC.judge(snap, tag, tagged)
+			if !taught {
+				if reachable {
+					near, err := h.nearest(ctx, tag, tagged)
+					if err != nil {
+						return err
+					}
+					view.Elsewhere = append(view.Elsewhere, screens.CourseGap{
+						Course: screens.CourseRef{Code: def.Code, Name: def.Name}, Fee: course.Cost.Minor(),
+						Duration: h.scale.RealWait(course.Duration), Nearest: near, Needs: needs})
+				}
+				continue
+			}
 			lines = append(lines, screens.CourseLine{
 				Course:   screens.CourseRef{Code: def.Code, Name: def.Name},
 				Fee:      course.Cost.Minor(),
@@ -334,6 +363,14 @@ func (h *EducationHandler) List(ctx context.Context, meta envelope.Metadata, req
 				Eligible: s.stats.Level >= course.MinLevel,
 			})
 		}
+		if !hereC.all && hereC.hasClass {
+			lit := &screens.EducationLiteracy{ShareBPS: hereC.literacy}
+			if step, ok := snap.SettlementTierStep(hereC.settlement.Tier); ok {
+				lit.NextBPS, lit.NextStage = int(step.LiteracyBPS), step.Code
+			}
+			view.Literacy = lit
+		}
+		view.Empty, view.Build = educationEmpty(snap, hereC, len(lines))
 		start, end, pages := pageWindow(len(lines), page, h.pageSize)
 		view.Courses = lines[start:end]
 		view.Page, view.Pages = min(page, pages), pages
@@ -475,6 +512,13 @@ func (h *EducationHandler) View(ctx context.Context, meta envelope.Metadata, req
 		} else if ok {
 			view.Requirements = append(view.Requirements, req)
 		}
+		notHere, err := h.taughtHere(ctx, tx, snap, def.Code, s.here())
+		if err != nil {
+			return err
+		}
+		if notHere != nil {
+			view.Requirements = append(view.Requirements, *notHere)
+		}
 		if def.Certifies && s.holds(def.Code) {
 			view.Requirements = append(view.Requirements, screens.Requirement{Kind: screens.ReqAlreadyCertified})
 		}
@@ -499,7 +543,7 @@ func (h *EducationHandler) View(ctx context.Context, meta envelope.Metadata, req
 		if course.Capacity > 0 && seats >= course.Capacity {
 			view.Requirements = append(view.Requirements, screens.Requirement{Kind: screens.ReqCourseFull})
 		}
-		view.CanEnrol = visible(def, s, here) && education.CanEnroll(course, s.applicant(here, current), seats) == nil
+		view.CanEnrol = notHere == nil && visible(def, s, here) && education.CanEnroll(course, s.applicant(here, current), seats) == nil
 		if view.CanEnrol && course.Cost.Minor() > 0 {
 			w, err := application.OpenWallet(ctx, tx.Ledger(), p.ID)
 			if err != nil {
@@ -547,6 +591,11 @@ func (h *EducationHandler) enrollPlan(ctx context.Context, tx application.Tx, sn
 	def, course, err := h.course(ctx, snap, code, s, here)
 	if err != nil {
 		return plan, err
+	}
+	if req, err := h.taughtHere(ctx, tx, snap, code, s.here()); err != nil {
+		return plan, err
+	} else if req != nil {
+		return plan, refuse(screens.RefusalCourseRequirements, []screens.Requirement{*req})
 	}
 	if course, err = h.subsidised(ctx, tx, p, course); err != nil {
 		return plan, err

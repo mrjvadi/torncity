@@ -53,7 +53,8 @@ func (h *VillageHandler) KnowledgeList(ctx context.Context, meta envelope.Metada
 		}
 
 		tree := snap.SettlementKnowledgeTree()
-		view = village.KnowledgeListView{Name: s.Name, Treasury: treasury, LiteracyPercent: st.LiteracyShareBPS / 100}
+		view = village.KnowledgeListView{Name: s.Name, Treasury: treasury, LiteracyPercent: st.LiteracyShareBPS / 100,
+			Currency: villageCurrency(s)}
 		if running != nil {
 			d, _ := snap.SettlementKnowledgeDef(running.Code)
 			view.Running = &village.KnowledgeResearchLine{Knowledge: named(d.Code, d.Name), FinishAt: running.FinishAt,
@@ -89,9 +90,12 @@ func (h *VillageHandler) KnowledgeList(ctx context.Context, meta envelope.Metada
 					line.Missing = missingNamed(snap, st.Missing(t, tree))
 				}
 			}
-			if line.State == village.KnowledgeLocked && len(line.Missing) > 0 {
-				continue // one step away only (ADR 0033 section 5): what needs unowned knowledge is not listed
+			if line.State == village.KnowledgeLocked && (len(line.Missing) > 0 || !line.TerrainOK) {
+				// one step away only (ADR 0033 section 5): what needs unowned knowledge is not listed, and what this
+				// land can never allow is never revealed (section 5.2)
+				continue
 			}
+			line.Unlocks = knowledgeUnlocks(snap, d)
 			view.Lines = append(view.Lines, line)
 		}
 		_ = cell
@@ -322,4 +326,60 @@ func builtRoleCounts(ctx context.Context, tx application.Tx, snap *content.Snaps
 		out[settlementbuilding.RoleTier{Role: d.Role, Tier: d.Tier}]++
 	}
 	return out, nil
+}
+
+// villageCurrency is the money a founded settlement reserved at founding, nil for one
+// founded before the form existed.
+func villageCurrency(s application.FoundedSettlement) *presentation.Currency {
+	if s.Currency.Code == "" && s.Currency.Name == "" {
+		return nil
+	}
+	return &presentation.Currency{Code: s.Currency.Code, Name: s.Currency.Name, Symbol: s.Currency.Symbol}
+}
+
+// knowledgeUnlocks is what holding a knowledge item opens: the buildings that name it (by code or by a capability it
+// provides) as a requirement, the knowledge that names it, and the courses whose availability tag needs it. It reads the
+// content only; nothing here is a rule.
+func knowledgeUnlocks(snap *content.Snapshot, d content.SettlementKnowledgeDef) []village.KnowledgeUnlock {
+	provides := d.Provides
+	if len(provides) == 0 {
+		provides = []string{d.Code}
+	}
+	has := func(list []string, code string) bool {
+		for _, c := range list {
+			if c == code {
+				return true
+			}
+		}
+		return false
+	}
+	var out []village.KnowledgeUnlock
+	for _, code := range sortedBuildingCodes(snap) {
+		b, _ := snap.SettlementBuildingDef(code)
+		if b.Private() {
+			continue
+		}
+		open := has(b.RequiresKnowledge, d.Code)
+		for _, c := range b.RequiresKnowledgeCapability {
+			open = open || has(provides, c)
+		}
+		if open {
+			out = append(out, village.KnowledgeUnlock{Kind: village.UnlockBuilding, Item: named(b.Code, b.Name)})
+		}
+	}
+	for _, k := range snap.SettlementKnowledgeDefs() {
+		open := has(k.Requires, d.Code)
+		for _, c := range k.RequiresCapability {
+			open = open || has(provides, c)
+		}
+		if open && k.IsModeEligible() {
+			out = append(out, village.KnowledgeUnlock{Kind: village.UnlockKnowledge, Item: named(k.Code, k.Name)})
+		}
+	}
+	for _, c := range snap.Courses() {
+		if tag, ok := snap.AvailabilityTag("course", c.Code); ok && tag.Requires != nil && has(tag.Requires.Knowledge, d.Code) {
+			out = append(out, village.KnowledgeUnlock{Kind: village.UnlockCourse, Item: named(c.Code, c.Name)})
+		}
+	}
+	return out
 }

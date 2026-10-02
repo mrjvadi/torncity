@@ -68,3 +68,49 @@ type Requirement struct {
 	// Wait is how long until a time requirement is met.
 	Wait time.Duration
 }
+
+// What a settlement lacks before it can teach a course, by kind.
+const (
+	CourseNeedStage     = "stage"
+	CourseNeedKnowledge = "knowledge"
+	CourseNeedBuilding  = "building"
+	CourseNeedTeacher   = "teacher"
+)
+
+// CourseNeed is one thing a settlement lacks before it can teach a course: the stage
+// (Code), a knowledge item to research (Code), a building to raise (Code, or Role and
+// Tier) or someone to teach.
+type CourseNeed struct {
+	Kind string
+	Code string
+	Role string
+	Tier int
+}
+
+// CourseGap is a course this place does not teach: where it is taught, and what this
+// place would need to teach it itself.
+type CourseGap struct {
+	Course   CourseRef
+	Fee      int64
+	Duration time.Duration
+	// Nearest is the place that teaches it; nil when none is known.
+	Nearest *Named
+	Needs   []CourseNeed
+}
+
+// EducationLiteracy is the first lesson, reading and writing, and how far the
+// settlement has come: its literate share against what the next stage asks.
+type EducationLiteracy struct {
+	ShareBPS int
+	// NextBPS is what the next stage asks (0 when there is no next stage), NextStage its name.
+	NextBPS   int
+	NextStage string
+}
+
+// What a place offers no course for.
+const (
+	// EducationNoClass: no class stands here, so nothing is taught.
+	EducationNoClass = "no_class"
+	// EducationNothingTaught: a class stands, but no course is open here yet.
+	EducationNothingTaught = "nothing_taught"
+)

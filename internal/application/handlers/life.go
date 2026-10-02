@@ -671,22 +671,66 @@ func (h *LifeHandler) Top(ctx context.Context, meta envelope.Metadata, req LifeR
 		return nil, err
 	}
 	board := strings.ToLower(strings.TrimSpace(req.Board))
-	known := false
+	known := board == application.BoardVillage
 	for _, b := range application.Boards {
 		known = known || b == board
 	}
 	if !known {
-		board = application.BoardRichest
+		board = ""
 	}
 	lang := meta.Language
-	view := society.BoardView{Board: board, Ranks: map[string]presentation.Named{}}
+	view := society.BoardView{Ranks: map[string]presentation.Named{}}
 	for _, r := range def.Ranks.Ladder {
 		view.Ranks[r.Code] = presentation.Named{Code: r.Code, Name: r.Name}
 	}
+	lb := def.Leaderboards
 	err = h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := h.player(ctx, tx, meta, &lang)
 		if err != nil {
 			return err
+		}
+		// The village board comes first for a player who lives in a settlement: their neighbours, by what each is
+		// worth. A game client (the web) lands on it; an old chat keeps asking for "richest" by name.
+		var home *application.PlayerSettlement
+		if ps, err := tx.Settlements().ByPlayer(ctx, p.ID); err == nil && ps.Resident {
+			home = &ps
+			view.Village = &presentation.Named{Code: ps.Code, Name: ps.Name}
+		} else if err != nil && !stderrors.Is(err, application.ErrCityNotFound) {
+			return err
+		}
+		switch {
+		case board == application.BoardVillage && home == nil:
+			board = ""
+		case board == "" && home != nil && meta.FromClient():
+			board = application.BoardVillage
+		}
+		if board == "" {
+			board = application.BoardRichest
+		}
+		view.Board = board
+		if board == application.BoardVillage {
+			prices, err := netWorthPrices(ctx, tx, snap, h.cities, nil)
+			if err != nil {
+				return err
+			}
+			worths, err := tx.Life().ResidentWorth(ctx, prices, home.CityID)
+			if err != nil {
+				return err
+			}
+			sort.SliceStable(worths, func(i, j int) bool { return worths[i].Worth.Total() > worths[j].Worth.Total() })
+			for _, n := range worths {
+				name, ok := lb.PublicName(n.Name)
+				if !ok || len(view.Lines) >= lb.VillageSize {
+					continue
+				}
+				if n.Name == fallbackDisplayName(n.TelegramUserID) {
+					name = ""
+				}
+				rank, _ := def.Ladder().Next("", n.Worth.Total())
+				view.Lines = append(view.Lines, society.BoardLine{Position: len(view.Lines) + 1, Code: n.Code, Name: name,
+					Tag: rank, Value: n.Worth.Total(), Mine: n.Code == p.PublicCode})
+			}
+			return nil
 		}
 		lines, _, at, err := tx.Life().Board(ctx, board)
 		if err != nil {
@@ -709,8 +753,16 @@ func (h *LifeHandler) Top(ctx context.Context, meta envelope.Metadata, req LifeR
 					bl.TagName = d.Name
 				}
 			}
-			bl.Mine = (board == application.BoardRichest || board == application.BoardWorkers ||
-				board == application.BoardInvestors) && l.Code == p.PublicCode
+			if board == application.BoardRichest || board == application.BoardWorkers || board == application.BoardInvestors {
+				// a person's name: the game's own accounts stand on no board, and a Telegram handle never shows
+				name, ok := lb.PublicName(l.Name)
+				if !ok {
+					continue
+				}
+				bl.Name = name
+				bl.Mine = l.Code == p.PublicCode
+			}
+			bl.Position = len(view.Lines) + 1
 			view.Lines = append(view.Lines, bl)
 		}
 		return nil

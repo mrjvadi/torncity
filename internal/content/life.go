@@ -3,6 +3,8 @@ package content
 import (
 	"errors"
 	"fmt"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/domain/life"
@@ -192,8 +194,29 @@ type LeaderboardsDef struct {
 	Period string `yaml:"period" json:"period"`
 	Size   int    `yaml:"size" json:"size"`
 	// Keep is how many periods of boards are kept.
-	Keep      int          `yaml:"keep" json:"keep"`
+	Keep int `yaml:"keep" json:"keep"`
+	// VillageSize is how many lines the village board (the residents of the
+	// viewer's own settlement) shows.
+	VillageSize int `yaml:"village_size" json:"village_size"`
+	// HiddenNames are the game's own accounts, never listed on a board.
+	HiddenNames []string `yaml:"hidden_names" json:"hidden_names"`
 	CityScore CityScoreDef `yaml:"city_score" json:"city_score"`
+}
+
+// handleInName finds a Telegram @handle written inside a display name.
+var handleInName = regexp.MustCompile(`@[A-Za-z0-9_]{3,}`)
+
+// PublicName is a display name as a board shows it: a Telegram @handle written
+// into it is cut out (a name is never a way to reach someone off the game), and
+// it is "" for one of the game's own accounts (HiddenNames), which stand on no
+// board. A name with nothing left is "" too.
+func (l LeaderboardsDef) PublicName(name string) (shown string, ok bool) {
+	for _, h := range l.HiddenNames {
+		if strings.EqualFold(strings.TrimSpace(name), strings.TrimSpace(h)) {
+			return "", false
+		}
+	}
+	return strings.Join(strings.Fields(handleInName.ReplaceAllString(name, " ")), " "), true
 }
 
 // PeriodDuration is the refresh period, zero when unreadable.
@@ -469,6 +492,9 @@ func (p *Pack) validateLife(problems *[]error) {
 	}
 	if lb.Size < 3 || lb.Size > 25 || lb.Keep < 1 || lb.Keep > 100 {
 		bad("leaderboards size %d (3..25), keep %d (1..100)", lb.Size, lb.Keep)
+	}
+	if lb.VillageSize < 3 || lb.VillageSize > 50 {
+		bad("leaderboards village_size %d (3..50)", lb.VillageSize)
 	}
 }
 

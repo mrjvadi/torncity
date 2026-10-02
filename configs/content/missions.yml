@@ -47,7 +47,11 @@
 
 version: 1
 
+# A board with no place is a settlement's own: the village works board stands in
+# the village itself (ADR 0038 4.5), posted from content for now; the citizens'
+# request board has no postings until residents can post requests.
 mission_boards:
+  - {code: village_works, name: Village works board}
   - {code: city_hall, name: Civic noticeboard, place: city_hall}
   - {code: police,    name: Police board,      place: police_station}
 
@@ -118,3 +122,29 @@ missions:
     objectives:
       - {kind: use_item, target: medicine, count: 2}
     reward: {cash: 200, xp: 20, items: [{item: first_aid_kit, qty: 1}]}
+
+  # The village works board (ADR 0038 4.5): what the village asks of its people.
+  - code: village_first_lesson
+    name: First lesson
+    board: village_works
+    objectives:
+      - {kind: course, count: 1}
+    reward: {cash: 200, xp: 30}
+
+  - code: village_bread_run
+    name: Bread run
+    board: village_works
+    objectives:
+      - {kind: deliver, target: bread, count: 3}
+    repeat: repeat
+    cooldown: 24h
+    reward: {cash: 300, xp: 25}
+
+  - code: village_bandage_run
+    name: Bandage run
+    board: village_works
+    objectives:
+      - {kind: deliver, target: bandage, count: 3}
+    repeat: repeat
+    cooldown: 24h
+    reward: {cash: 400, xp: 30}

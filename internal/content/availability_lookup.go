@@ -12,6 +12,17 @@ func (s *Snapshot) buildAvailabilityIndex(p *Pack) {
 	for _, a := range p.Availability {
 		s.availability[a.Kind+"/"+a.Code] = a
 	}
+	s.staffRoles = make(map[string]StaffRoleDef, len(p.StaffRoles))
+	for _, r := range p.StaffRoles {
+		s.staffRoles[r.Code] = r
+	}
+}
+
+// StaffRole is a role someone must fill for a service to run (availability.yml
+// staff_roles): the building it works in and what its holder must have.
+func (s *Snapshot) StaffRole(code string) (StaffRoleDef, bool) {
+	r, ok := s.staffRoles[code]
+	return r, ok
 }
 
 // AvailabilityTag is the tag of one entry, by kind ("finance_service",
