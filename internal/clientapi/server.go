@@ -67,6 +67,11 @@ type ServerConfig struct {
 	PresenceTTL time.Duration
 	// Msgs words the few refusals a player may be shown (group_only).
 	Msgs screens.Translator
+	// Sync is client state sync (state.go); nil turns its endpoints off
+	// (state_sync_off) and leaves command answers and the bootstrap as
+	// before. PullsPerMinute bounds its reads per player (0 = unbounded).
+	Sync           StateSync
+	PullsPerMinute int
 
 	SignInsPerMinute  int
 	CommandsPerMinute int
@@ -108,6 +113,8 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("POST /api/v1/auth/logout", s.authed(s.logout))
 	mux.HandleFunc("POST /api/v1/command", s.authed(s.command))
 	mux.HandleFunc("GET /api/v1/bootstrap", s.authed(s.bootstrap))
+	mux.HandleFunc("GET /api/v1/state", s.authed(s.state))
+	mux.HandleFunc("GET /api/v1/updates", s.authed(s.updates))
 	mux.HandleFunc("GET /api/v1/content", s.authed(s.content))
 	mux.HandleFunc("POST /api/v1/client-log", s.clientLog)
 	mux.HandleFunc("GET /api/v1/world/city", s.authed(s.cityWorld))
@@ -243,6 +250,7 @@ func (s *Server) command(w http.ResponseWriter, r *http.Request, pr Principal) {
 		s.fail(w, r, pr.Lang, err)
 		return
 	}
+	s.commandUpdates(r.Context(), pr, &screen)
 	writeJSON(w, http.StatusOK, screen)
 }
 
@@ -252,6 +260,7 @@ func (s *Server) bootstrap(w http.ResponseWriter, r *http.Request, pr Principal)
 		s.fail(w, r, pr.Lang, err)
 		return
 	}
+	b.Features.Updates = s.syncOn()
 	writeJSON(w, http.StatusOK, b)
 }
 
@@ -322,6 +331,9 @@ type RealtimeToken struct {
 	User      string   `json:"user,omitempty"`
 	Channels  []string `json:"channels,omitempty"`
 	Channel   string   `json:"channel,omitempty"`
+	// Updates says the player's channel carries state sync publications
+	// (contract 1.4, docs/adr/0034).
+	Updates bool `json:"updates,omitempty"`
 }
 
 // realtimeToken is a connection token that subscribes the player, on the
@@ -337,7 +349,8 @@ func (s *Server) realtimeToken(w http.ResponseWriter, r *http.Request, pr Princi
 		s.fail(w, r, pr.Lang, err)
 		return
 	}
-	writeJSON(w, http.StatusOK, RealtimeToken{Token: tok, ExpiresAt: exp.UTC().Format(time.RFC3339), User: pr.PlayerID, Channels: channels})
+	writeJSON(w, http.StatusOK, RealtimeToken{Token: tok, ExpiresAt: exp.UTC().Format(time.RFC3339), User: pr.PlayerID,
+		Channels: channels, Updates: s.syncOn()})
 }
 
 // realtimeSubscribe is a subscription token for a public city channel, and
@@ -435,8 +448,10 @@ func classify(err error) (int, string) {
 		return http.StatusUnauthorized, "invalid_refresh_token"
 	case errors.Is(err, errRateLimited), errors.Is(err, application.ErrClientLinkRateLimited):
 		return http.StatusTooManyRequests, "rate_limited"
-	case errors.Is(err, errBadBody), errors.Is(err, ErrBadArgs):
+	case errors.Is(err, errBadBody), errors.Is(err, ErrBadArgs), errors.Is(err, errBadCursor), errors.Is(err, errBadKinds):
 		return http.StatusBadRequest, "bad_request"
+	case errors.Is(err, errSyncOff):
+		return http.StatusNotFound, "state_sync_off"
 	case errors.Is(err, ErrBadChunk):
 		return http.StatusBadRequest, "bad_chunk"
 	case errors.Is(err, ErrNoWorld):

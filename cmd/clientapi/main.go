@@ -29,6 +29,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/clientapi"
 	"github.com/mrjvadi/torncity/internal/config"
 	"github.com/mrjvadi/torncity/internal/content"
+	"github.com/mrjvadi/torncity/internal/domain/player"
 	"github.com/mrjvadi/torncity/internal/domain/worldgen"
 	"github.com/mrjvadi/torncity/internal/gateway/groups"
 	"github.com/mrjvadi/torncity/internal/gateway/identity/firstcontact"
@@ -40,6 +41,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/infrastructure/storage"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/money"
+	"github.com/mrjvadi/torncity/internal/statesync"
 	"github.com/mrjvadi/torncity/internal/telegram/i18n"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
@@ -283,6 +285,29 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 		Repo:        postgres.NewPresenceRepository(pool),
 		RosterLimit: cfg.Realtime.RosterLimit,
 	}
+	// Client state sync (docs/adr/0034): the snapshot and log endpoints, and
+	// a command's own records in its answer. The publications go to the
+	// player's realtime channel when the API key is set; without it the log
+	// is still written and a client pulls.
+	var syncAPI clientapi.StateSync
+	if cfg.StateSync.Enabled {
+		var pub statesync.Publisher
+		if key := os.Getenv("CENTRIFUGO_API_KEY"); key != "" {
+			pub = centrifugo.NewPublisher(cfg.Realtime.APIURL, key, cfg.Realtime.PublishTimeout)
+		}
+		store := postgres.NewStateSync(pool, postgres.StateRules{
+			EnergyRegenAmount: player.EnergyRegenAmount, EnergyRegenInterval: player.EnergyRegenInterval,
+			NerveMax: cfg.Crime.NerveMax, NerveRegenAmount: cfg.Crime.NerveRegenAmount,
+			NerveRegenInterval: cfg.Crime.NerveRegenInterval, NoticesKept: cfg.StateSync.NoticesKept,
+		})
+		store.Layouts = villages
+		store.LockTimeout = cfg.StateSync.LockTimeout
+		svc := &statesync.Service{Store: store, Pub: pub, Cfg: statesync.FromConfig(cfg.StateSync),
+			Metrics: statesync.NewMetrics(), Log: logger.With(slog.String("component", "state_sync"))}
+		go svc.Reporter(ctx, cfg.StateSync.MetricsInterval)
+		syncAPI = svc
+	}
+
 	server := clientapi.NewServer(clientapi.ServerConfig{
 		Presence:    presenceSvc,
 		Versions:    infraredis.NewSettlementVersions(rdb, cfg.Realtime.SettlementEventTTL),
@@ -302,6 +327,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			Villages: villages, CitySpots: citySpots, Msgs: catalog, Realtime: tokens.Enabled(), Now: time.Now},
 		WorldSvc: worldSvc, Villages: villages,
 		Limits: limits, Realtime: tokens, Msgs: catalog,
+		Sync: syncAPI, PullsPerMinute: cfg.StateSync.PullsPerMinute,
 		ChunksPerMinute: cfg.Client.ChunksPerMinute, LayoutsPerMinute: cfg.Client.LayoutsPerMinute,
 		SignInsPerMinute: cfg.Client.SignInsPerMinute, CommandsPerMinute: cfg.Client.CommandsPerMinute,
 		MaxBodyBytes: int64(cfg.Client.MaxBodyBytes), TrustedProxies: proxies,

@@ -68,6 +68,8 @@ type fileConfig struct {
 
 	Client   clientSettings   `yaml:"client"`
 	Realtime realtimeSettings `yaml:"realtime"`
+
+	StateSync stateSyncSettings `yaml:"state_sync"`
 }
 
 type laborSettings struct {
@@ -800,7 +802,7 @@ func aliasSetting(s setting) setting {
 
 // settings is the whole configurable surface of this project, in the order
 // configs/config.yml declares it.
-var settings = append(append(coreSettings, panelSettingsTable()...), clientSettingsTable()...)
+var settings = append(append(append(coreSettings, panelSettingsTable()...), clientSettingsTable()...), stateSyncSettingsTable()...)
 
 // coreSettings are the game's own settings; the panel's are in panel.go.
 var coreSettings = []setting{

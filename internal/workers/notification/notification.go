@@ -165,6 +165,13 @@ type Config struct {
 	PlayerInbox   PlayerInbox
 	DeliveryModes *DeliveryModes
 	EditThrottle  time.Duration
+
+	// Recorded, when set, is told after a notice was stored in the
+	// player's inbox (an inbox item or an archived instant one): client
+	// state sync projects the player again, so the stored notice reaches
+	// their client (docs/adr/0034). Nil does nothing; it never changes
+	// what is sent to Telegram.
+	Recorded func(ctx context.Context, playerID string, meta envelope.Metadata)
 }
 
 // Worker turns events into notices.

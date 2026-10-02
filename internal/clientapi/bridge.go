@@ -21,6 +21,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/subjects"
 	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/statesync"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
@@ -150,6 +151,10 @@ type Screen struct {
 	Actions   []Action        `json:"actions"`
 	Notice    *Notice         `json:"notice,omitempty"`
 	Error     *APIError       `json:"error,omitempty"`
+	// Updates are the state sync records this command caused, when they
+	// were ready in time (contract 1.4, docs/adr/0034); the same records
+	// also arrive by push and are dropped there by pts.
+	Updates *statesync.CommandUpdates `json:"updates,omitempty"`
 }
 
 // Notice is a short message that does not replace the screen (what

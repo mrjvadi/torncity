@@ -34,7 +34,12 @@ building panel, batch placement, automatic roads and land (section 4.3,
 `grid.lots` that may be larger than the tier's base side. The content
 catalogue's `settlement_building` entries gain `cap_exempt` (roads), which tells
 a client which buildings it may lay many at a time. Nothing that 1.0,
-1.1, 1.2, 1.3 or 1.4 returned has changed.
+1.1, 1.2, 1.3 or 1.4 returned has changed. 1.6 adds state sync (section
+5.6): `GET /state`, `GET /updates?since=`, the `updates` and
+`updates_too_long` publications on the player's channel, `updates` on a
+command's answer, `features.updates` on the bootstrap, `updates` on the
+realtime token, and the error code `state_sync_off`. Nothing that 1.0 to 1.5
+returned has changed.
 
 The contract between the game and a game client (a native build or the
 Telegram Mini App build). Served by `cmd/clientapi` (package
@@ -58,7 +63,7 @@ structured view behind it (for key screens), and its buttons as actions.
 2. [Commands](#2-commands)
 3. [Views](#3-views)
 4. [Bootstrap](#4-bootstrap) (4.3: the world and the village, 4.4: the founding form)
-5. [Realtime](#5-realtime)
+5. [Realtime](#5-realtime) (5.6: state sync, the snapshot, the update log and the push)
 6. [Error codes](#6-error-codes)
 7. [Bot commands, configuration and secrets](#7-bot-commands-configuration-and-secrets)
 
@@ -207,6 +212,7 @@ Answer (a real `bank.show`, English):
 | `view` | structured facts of the screen (section 3), absent for screens without one |
 | `actions` | the screen's buttons |
 | `notice` | `{"text": "...", "alert": bool}` — a short message that does not replace the screen (what Telegram shows as a toast); `screen` is then `notice` |
+| `updates` | (1.6) `{"pts", "records"}`: the state sync records this command caused, when ready within `state_sync.command_wait` (300 ms); see 5.6 |
 
 **Actions.** Each button of the screen, translated from its Telegram callback
 data by the same parser the gateway reads a pressed button with, so sending
@@ -403,7 +409,9 @@ Load once after signing in (and after a content change).
 ```
 
 Names are in the player's language. `places` are the places of the player's
-current city. `realtime` says whether section 5 is available. `settlement`
+current city. `realtime` says whether section 5 is available.
+`features` (1.6) says which optional parts are served: `features.updates`
+is state sync (5.6); a client that sees it keeps a store instead of polling. `settlement`
 (1.1) is the player's own settlement and is absent when they belong to none;
 see 4.3.
 
@@ -1048,7 +1056,8 @@ A Centrifugo **connection token** (HS256; claims `sub` = player id, `exp`
 subscribes the connection **server-side** to the player's personal channel
 `player:<player_id>` and to the channel of every settlement the player lives
 in or is standing in (`settlement:<id>`, section 5.4; usually one, two while
-visiting): the client does not (and cannot) subscribe to them itself. The
+visiting): the client does not (and cannot) subscribe to them itself. `updates: true` (1.6) says the player's channel carries
+state sync publications (5.6). The
 list is computed by the server when the token is issued, so fetch a new
 token after moving house or travelling (or when the SDK asks for one, its
 `getToken` callback).
@@ -1230,6 +1239,146 @@ otherwise):
 `hidden: true` means the caller chose `nobody`, so no row carries presence.
 Keep it live with the `member_*` publications of section 5.4.
 
+### 5.6 State sync — snapshot, update log and push (contract 1.6)
+
+A client that keeps the player's state in a store instead of asking each
+screen again (docs/adr/0034). Everything here is additive: a 1.5 client
+ignores it, and the legacy `notice`, `vitals` and `inbox` publications of
+5.3 keep coming. A server says it serves this with
+`bootstrap.features.updates: true` (and `updates: true` on the realtime
+token); `state_sync.enabled` switches it.
+
+**The model.** The client holds **entities**: `(kind, id)` with a version
+`v` and data `d`. Every change to one of the player's entities is a
+**record** in the player's own log, numbered **pts** = 1, 2, 3… with no
+holes. The client keeps the pts it has applied; `GET /state` gives a
+snapshot and the pts it is current to; `GET /updates?since=<pts>` gives what
+came after; the player's channel pushes new records as they are written; and
+a command's answer carries the records the command itself caused. All data
+is neutral (codes, numbers, ids, RFC 3339 instants): the client words it.
+
+| kind | id | data |
+|---|---|---|
+| `player` | player id | `name`, `code`, `lang`, `status`, `level`, `xp`, `next_level_xp`, `rank` (code of the catalogue table `life_rank`) |
+| `vitals` | player id | `energy`, `nerve`, `health`, each `{value, max, as_of, regen?: {amount, every_seconds, bps}}` |
+| `wallet` | currency code | `currency`, `cash`, `bank`, `premium` (the premium currency, Nil), `primary` (the game's money, the one prices are in) |
+| `inventory` | item code | `item`, `qty`, `holdings` (`{carried: n, escrow: n}`), `pieces` (`[{id, holding, quality, uses_left}]`) |
+| `skill` | skill code | `skill`, `level`, `xp` |
+| `timed_action` | action id | `kind` (`travel`, `education`, `work_shift`, `settlement_work`, `place_move`…), `ref_type`, `ref_id`, `state`, `started_at`, `finish_at` |
+| `location` | `self` | `city` (code), `place`, `settlement` (id, when the city is a founded settlement), `travel` (`{from, to, mode, departed_at, arrives_at}` or null), `walk` (`{from, to, started_at, arrives_at}` or null) |
+| `inbox` | `self` | `unread`, `latest` (ids of the newest notices, newest first) |
+| `notice` | notice id | `kind`, `category`, `screen`, `view`, `created_at`, `read`, `instant` (told at once; the others wait in the inbox) — the newest `state_sync.notices_kept` (50); older ones through `inbox.show` |
+| `residence` | `self` | `settlement`, `code`, `name`, `tier`, `is_head`, `resident` (absent: the player belongs to no settlement) |
+| `settlement` | settlement id | `id`, `code`, `name`, `tier`, `viewer` (`head`, `member` or `public`), `grid_lots`, `layout_version` (the version `GET /settlements/{id}/layout` answers **this** viewer), and for members `treasury` (`{currency, balance}`), `knowledge` (count), `research` (`{code, finish_at}` or null) |
+| `relations` | `self` | `friends` (player ids), `faction` (`{id, rank}` or null), `presence` (`everyone`, `contacts`, `nobody`) |
+
+**Regen is counted by the client.** No record is written as energy or
+nerve comes back. Shown value =
+`min(max, value + floor(elapsed × bps / 10000 / every_seconds) × amount)`,
+with `elapsed` measured from `as_of` on the server's clock (the offset from
+`server_time`), never the device clock alone. A meter with no `regen` (health)
+shows `value`.
+
+#### `GET /api/v1/state[?kinds=wallet,vitals]`
+
+```json
+{"pts": 18234, "epoch": "1", "server_time": "2026-10-02T10:00:00Z",
+ "entities": {
+   "wallet": {"SUP": {"v": 55, "d": {"currency": "SUP", "cash": 125000, "bank": 480000, "premium": false, "primary": true}}},
+   "vitals": {"8a4e…": {"v": 4402, "d": {"energy": {"value": 80, "max": 100, "as_of": "2026-10-02T09:58:12Z",
+                                                    "regen": {"amount": 5, "every_seconds": 900, "bps": 10000}}, "…": "…"}}},
+   "notice": {}, "…": {}},
+ "channels": {"settlement:3c1f…": 1790724836123}}
+```
+
+Every entity of the kinds asked (all by default; an unknown kind is
+`400 bad_request`), current to `pts`: applying `GET /updates?since=pts`
+on top gives the state exactly. The server brings the player's log up to
+date before answering. `channels` is the current `seq` of each settlement
+channel on the realtime token (5.4), so the first publication there is
+compared with something.
+
+#### `GET /api/v1/updates?since=<pts>[&limit=<n>][&epoch=<e>]`
+
+```json
+{"pts": 18240, "updates": [ {…}, … ], "more": false, "epoch": "1"}
+{"pts": 18240, "updates": [], "more": false, "reset": true, "reason": "too_long", "epoch": "1"}
+```
+
+The records after `since`, oldest first, at most `limit` (and
+`state_sync.pull_limit`, 500). `more: true`: ask again from the last pts
+(Telegram's `differenceSlice`). `reset: true`: drop the local copy and read
+`GET /state` — `reason` is `too_long` (behind by more than
+`state_sync.reset_threshold`, 2000, or behind the oldest record kept),
+`epoch` (the log was rebuilt; `epoch` was sent and differs) or `ahead`
+(`since` beyond anything written). `since` equal to the current pts is an
+empty answer and costs one indexed read. The cursor **is** the
+acknowledgement: there is nothing else to acknowledge, and two devices each
+keep their own. `400 bad_request` for a `since` that is not a whole number
+≥ 0. Both reads are bounded per player (`state_sync.pulls_per_minute`).
+
+**A record:**
+
+```json
+{"pts": 18235, "type": "wallet.set", "entity": "wallet", "id": "SUP", "v": 56, "op": "set",
+ "data": {"currency": "SUP", "cash": 125000, "bank": 480000, "premium": false, "primary": true},
+ "at": "2026-10-02T10:00:00Z", "cause": "0b9f…"}
+```
+
+`op` is `set` (the whole entity) or `del` (no `data`); `patch` is reserved
+(a JSON merge patch valid only on top of version `v - 1`; not sent yet).
+`cause` is the `request_id` of the command that made the change, when one
+did. Records are full entity states, not events: a burst of changes to one
+entity between two projections is one record.
+
+#### The push — on `player:<id>`
+
+```json
+{"type": "updates", "from": 18236, "to": 18238, "updates": [ {…}, {…}, {…} ]}
+{"type": "updates_too_long", "from": 18236, "to": 18338}
+```
+
+`updates_too_long` replaces a batch too big to push
+(`state_sync.push_max_records`, `push_max_bytes`): pull. Pushes are best
+effort; the log is the guarantee.
+
+#### A command's own records
+
+`POST /api/v1/command` answers (when records are ready within
+`state_sync.command_wait`, 300 ms) with
+
+```json
+"updates": {"pts": 18241, "records": [ {…} ]}
+```
+
+the records whose `cause` is this command's `request_id`. Apply them like
+any others; the same records arriving later by push are duplicates. Absent
+when the wait ran out: the push brings them.
+
+#### The client's rules
+
+1. **Start:** subscribe to the realtime channel, then `GET /state` (or, with
+   a stored copy of the same player and epoch, `GET /updates?since=`), then
+   apply what the socket delivered meanwhile. Subscribe → pull → apply, so
+   nothing committed in between is lost.
+2. **Apply** a list of records in pts order: `pts <= local` is a duplicate
+   (drop); `pts == local + 1` applies and becomes the local pts; anything
+   further is a **gap**. Within an applied `set`, the entity changes only if
+   `v` is newer than the one held; a `del` removes it.
+3. **Gap:** keep the out-of-order records, wait up to 0.5 s (a reordered
+   push usually arrives), then `GET /updates?since=<local>` and apply, then
+   the kept records (now mostly duplicates).
+4. **Reconnect and return:** after the socket reconnects, and whenever the
+   app comes back (`visibilitychange`, the Mini App's `activated`, `focus`,
+   `online`), pull `since` even if the socket says it is connected.
+5. **Reset:** discard the copy (keep pending optimistic changes) and read
+   `GET /state`.
+6. **Notices:** show a toast once per notice id, only for an `instant`
+   notice, and only for one that arrived live (a record with a pts beyond
+   what the copy held when the session started), never for a snapshot or a
+   catch-up of history. The others raise the inbox count.
+7. **Fallback:** with no socket, pull `since` every 20 s while visible.
+
 ---
 
 ## 6. Error codes
@@ -1253,9 +1402,10 @@ Keep it live with the `member_*` publications of section 5.4.
 | 404 | `not_found` | |
 | 404 | `world_not_created` | (1.1) no world has been created yet (`admin world create`) |
 | 404 | `no_settlement` | (1.1) the village endpoints are not configured on this server |
+| 404 | `state_sync_off` | (1.6) state sync is not served (`bootstrap.features.updates` is false) |
 | 200 | `founding_*` | (1.3) a refused founding form, `ok: false` with `screen: "founding_refusal"`; see 4.4 |
 | 409 | `relink` | the device's bot is gone; link again |
-| 429 | `rate_limited` | too many sign-ins, link codes or commands |
+| 429 | `rate_limited` | too many sign-ins, link codes, commands or state pulls |
 | 503 | `realtime_unavailable` | realtime is not configured |
 | 504 | `timeout` | the command was not answered in time (retry with the same idempotency key) |
 | 500 | `internal` | |
