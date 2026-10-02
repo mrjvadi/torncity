@@ -13,7 +13,9 @@ dist/
 vendor/
 *.test
 *.out
-coverage.*
+coverage.out
+coverage.html
+coverage.txt
 
 # runtime data
 telegram-bot-api-data/
