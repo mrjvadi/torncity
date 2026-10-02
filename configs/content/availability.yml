@@ -56,7 +56,39 @@ staff_roles:
   - {code: teacher, building: {role: education, tier: 1}, personal: [{kind: literacy}], support_npc: true, note: "a qualified citizen or the building's staff; ADR 0038 owner decision 6 point 3"}
   - {code: health_worker, building: {role: health, tier: 1}, personal: [{kind: certificate, code: first_aid}], support_npc: true, note: "village health worker (Iran: behvarz), ADR 0038 section 2"}
   - {code: nurse, building: {role: health, tier: 2}, personal: [{kind: certificate, code: nursing}], support_npc: true}
-  - {code: watchman, building: {role: security, tier: 1}, personal: [{kind: level, min: 2}], support_npc: true, note: "village watch warden, ADR 0036 section 9.4"}
+  - {code: watchman, wage_bps: 10000, building: {role: security, tier: 1}, personal: [{kind: level, min: 2}], support_npc: true, note: "village watch warden, ADR 0036 section 9.4"}
+  # Roles of the working buildings (roadmap step 0.5; ADR 0041 5.1, ADR 0042 8.9, ADR 0045 8.3):
+  # `skill` is the trade the shifts train (a planned skill until the skill set in code
+  # has it, audit M-04), `wage_bps` the wage class as basis points of the market wage.
+  - {code: labourer, skill: "", wage_bps: 10000, support_npc: true, note: "ADR 0041 5.1"}
+  - {code: woodcutter, skill: forestry, wage_bps: 10000, support_npc: true, note: "ADR 0041 5.1"}
+  - {code: carpenter, skill: carpentry, wage_bps: 12500, personal: [{kind: level, min: 2}], support_npc: true, note: "ADR 0041 5.1"}
+  - {code: mason, skill: masonry, wage_bps: 12500, personal: [{kind: level, min: 2}], support_npc: true, note: "ADR 0041 5.1"}
+  - {code: smith, skill: smithing, wage_bps: 14000, personal: [{kind: level, min: 3}], support_npc: true, note: "ADR 0041 5.1"}
+  - {code: weaver, skill: weaving, wage_bps: 11000, support_npc: true, note: "ADR 0041 5.1"}
+  - {code: potter, skill: pottery, wage_bps: 11000, support_npc: true, note: "ADR 0041 5.1"}
+  - {code: miller, skill: milling, wage_bps: 11000, support_npc: true, note: "ADR 0041 5.1"}
+  - {code: baker, skill: baking, wage_bps: 11000, support_npc: true, note: "ADR 0041 5.1"}
+  - {code: storekeeper, skill: trade, wage_bps: 11000, personal: [{kind: literacy}], support_npc: true, note: "ADR 0041 5.1"}
+  - {code: beacon_keeper, skill: vigilance, wage_bps: 10000, personal: [{kind: level, min: 1}], support_npc: true, note: "ADR 0042 8.9"}
+  - {code: stall_keeper, skill: "", support_npc: true, note: "ADR 0040 16.4 names the keeper; neither its prerequisite nor its wage is written (needs research)"}
+  - {code: miner, skill: "", support_npc: true, note: "ADR 0045 8.3 names the face miner; prerequisite, skill and wage class are not written (needs research)"}
+  - {code: mine_hauler, skill: "", support_npc: true, note: "ADR 0045 8.3 (hand-cart hauler); prerequisite, skill and wage class not written (needs research)"}
+  - {code: timberman, skill: "", support_npc: true, note: "ADR 0045 8.3; prerequisite, skill and wage class not written (needs research)"}
+  # First stage of the accepted missing-prerequisites research (2026-10-03 2.5, 5.5, 6.5).
+  # `building: {code}` binds a role to one building function. A certificate whose course is
+  # not in education.yml yet is a planned_personal entry (the neutral city teaches it: support_npc).
+  - {code: innkeeper, building: {code: teahouse_inn}, skill: hospitality, wage_bps: 12500, support_npc: true, note: "RESEARCH 2026-10-03 2.5: no personal prerequisite at level 1 (ADR 0041 5.1 asked level 2: the research wins)"}
+  - {code: tea_server, building: {code: teahouse_inn}, skill: hospitality, wage_bps: 10000, support_npc: true, note: "RESEARCH 2026-10-03 2.5; ADR 0041 5.1"}
+  - {code: housekeeper, building: {code: teahouse_inn}, support_npc: true, note: "RESEARCH 2026-10-03 2.3: hotel level 2; skill and wage not written (needs research)"}
+  - {code: hotel_manager, building: {code: teahouse_inn}, personal: [{kind: literacy}], support_npc: true, note: "RESEARCH 2026-10-03 2.5"}
+  - {code: registrar, building: {code: land_registry}, personal: [{kind: literacy}], planned_personal: [{kind: certificate, code: registry_clerk}], support_npc: true, note: "RESEARCH 2026-10-03 5.5; the certificate registry_clerk is ADR 0036's town row, its course is not in education.yml yet"}
+  - {code: surveyor, building: {code: land_registry}, personal: [{kind: literacy}], planned_personal: [{kind: certificate, code: surveyor}], support_npc: true, note: "RESEARCH 2026-10-03 5.5; the course surveyor is not in education.yml yet"}
+  - {code: moneychanger, building: {code: exchange_house}, personal: [{kind: literacy}], support_npc: true, note: "RESEARCH 2026-10-03 6.5"}
+  - {code: teller, building: {code: bank}, personal: [{kind: literacy}, {kind: certificate, code: bookkeeping}], support_npc: true, note: "RESEARCH 2026-10-03 6.5"}
+  - {code: loan_officer, building: {code: bank}, personal: [{kind: skill, code: finance, min: 2}], planned_personal: [{kind: certificate, code: credit_analysis}], support_npc: true, note: "RESEARCH 2026-10-03 6.5; the course credit_analysis is not in education.yml yet"}
+  - {code: bank_manager, building: {code: bank}, personal: [{kind: skill, code: management, min: 3}, {kind: skill, code: finance, min: 3}], support_npc: true, note: "RESEARCH 2026-10-03 6.5"}
+  - {code: banksman, skill: "", support_npc: true, note: "ADR 0045 8.3 (the hoist's banksman); prerequisite, skill and wage class not written (needs research)"}
 
 # Personal prerequisites that no certifying course provides yet.
 personal_sources:
@@ -123,6 +155,8 @@ availability:
   - {kind: knowledge, code: carpentry_iii, stage: city, elsewhere: [{where: support}]}
   - {kind: knowledge, code: carpentry_iv, stage: city, elsewhere: [{where: support}]}
   - {kind: knowledge, code: masonry, stage: village, growth: {open: true, founding: true, row: 57}, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: land_survey, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: double_entry_bookkeeping, elsewhere: [{where: support}]}
   - {kind: knowledge, code: masonry_ii, stage: town, elsewhere: [{where: support}]}
   - {kind: knowledge, code: masonry_iii, stage: town, elsewhere: [{where: support}]}
   - {kind: knowledge, code: smithing, stage: village, growth: {open: true, founding: true, row: 60}, elsewhere: [{where: support}]}

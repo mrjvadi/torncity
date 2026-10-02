@@ -32,8 +32,11 @@ var ErrInvalidSettlementBuildingContent = errors.New("content: invalid settlemen
 
 // RequiresBuildingRoleDef names one role/tier pair a promotion requires.
 type RequiresBuildingRoleDef struct {
-	Role string `yaml:"role" json:"role"`
-	Tier int    `yaml:"tier" json:"tier"`
+	Role string `yaml:"role,omitempty" json:"role,omitempty"`
+	Tier int    `yaml:"tier,omitempty" json:"tier,omitempty"`
+	// Code names one building or building function instead of a role and tier
+	// (a staff role bound to `land_registry`): used by staff_roles only.
+	Code string `yaml:"code,omitempty" json:"code,omitempty"`
 }
 
 // SettlementBuildingDef is one entry of settlement_buildings.yml's

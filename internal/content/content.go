@@ -308,6 +308,25 @@ type Pack struct {
 	// (settlementtier.go; docs/adr/0028 section 4.1).
 	SettlementTiers []SettlementTierDef
 
+	// The building schema (buildingschema.go; roadmap step 0.5, ADR 0041 W0,
+	// ADR 0045 B0, ADR 0042 T0): functions and their modules, storage, recipes,
+	// climate, settlement raids, roads and rail.
+	TerrainTags             []TerrainTagDef
+	StorageClasses          []StorageClassDef
+	ItemStorage             []ItemStorageDef
+	ModuleKinds             []ModuleKindDef
+	BuildingFunctions       []BuildingFunctionDef
+	PlannedSkills           []PlannedSkillDef
+	Recipes                 []RecipeDef
+	Climate                 []ClimateDef
+	SettlementRaids         []SettlementRaidDef
+	SettlementRaidDetectors []SettlementRaidDetectorDef
+	RoadClasses             []RoadClassDef
+	RoadPlanner             []RoadPlannerDef
+	RailClasses             []RailClassDef
+	HaulModes               []HaulModeDef
+	Rail                    []RailDef
+
 	// world.yml: world generation content (worldgen.go). LoadWorldGen is
 	// the function a caller actually generating a world uses; these fields
 	// exist on Pack only so Load (the shared, ADR-0004 loader every other

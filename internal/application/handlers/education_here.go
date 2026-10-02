@@ -134,7 +134,7 @@ func (c courseHere) judgeTier(snap *content.Snapshot, tag content.AvailabilityDe
 	for _, code := range tag.Requires.Staff {
 		// the teacher works in the class building: without it nobody teaches
 		if r, ok := snap.StaffRole(code); ok && r.Building != nil {
-			b := content.AvailabilityBuilding{Role: r.Building.Role, Tier: r.Building.Tier}
+			b := content.AvailabilityBuilding{Code: r.Building.Code, Role: r.Building.Role, Tier: r.Building.Tier}
 			if !c.stands(b) && !listed[b] {
 				needs = append(needs, presentation.CourseNeed{Kind: presentation.CourseNeedTeacher, Role: b.Role, Tier: b.Tier})
 				listed[b] = true

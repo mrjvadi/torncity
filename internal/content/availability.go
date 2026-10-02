@@ -159,9 +159,21 @@ type StaffRoleDef struct {
 	Building *RequiresBuildingRoleDef `yaml:"building,omitempty" json:"building,omitempty"`
 	// Personal are what the holder must personally have.
 	Personal []AvailabilityPersonal `yaml:"personal,omitempty" json:"personal,omitempty"`
+	// PlannedPersonal are personal prerequisites an accepted research names but
+	// the catalogues do not have yet: a certificate whose course is not in
+	// education.yml (registry_clerk, surveyor, credit_analysis, harbour_master).
+	// The lint refuses an entry the catalogue has since gained: the list can only
+	// shrink. Reachability is the course's: the neutral city teaches it (support_npc).
+	PlannedPersonal []AvailabilityPersonal `yaml:"planned_personal,omitempty" json:"planned_personal,omitempty"`
 	// SupportNPC: Support always employs an NPC in this role.
 	SupportNPC bool   `yaml:"support_npc,omitempty" json:"support_npc,omitempty"`
 	Note       string `yaml:"note,omitempty" json:"note,omitempty"`
+	// Skill is the trade a shift in this role trains (ADR 0041 5.1): an existing
+	// skill code or a planned one (building_functions.yml planned_skills); empty
+	// when the ADR names none. WageBPS is the wage class in basis points of the
+	// market wage (0: not fixed).
+	Skill   string `yaml:"skill,omitempty" json:"skill,omitempty"`
+	WageBPS int    `yaml:"wage_bps,omitempty" json:"wage_bps,omitempty"`
 }
 
 // PersonalSourceDef says where a personal prerequisite with no certifying
@@ -466,7 +478,19 @@ func (p *Pack) validateAvailability(problems *[]error) {
 	}
 	for _, s := range p.StaffRoles {
 		checkPersonal("staff role "+s.Code, s.Personal)
-		if s.Building != nil && !roleSeen[s.Building.Role] {
+		if s.Building != nil && s.Building.Code != "" {
+			// bound to one building or building function (the building schema)
+			_, isBuilding := bcode[s.Building.Code]
+			isFunction := false
+			for _, f := range p.BuildingFunctions {
+				if f.Code == s.Building.Code {
+					isFunction = true
+				}
+			}
+			if !isBuilding && !isFunction {
+				bad("staff role %s: %q is neither a building nor a building function", s.Code, s.Building.Code)
+			}
+		} else if s.Building != nil && !roleSeen[s.Building.Role] {
 			bad("staff role %s: no building has role %q", s.Code, s.Building.Role)
 		}
 	}
@@ -546,7 +570,17 @@ func (p *Pack) availabilityReachability(tags map[string]AvailabilityDef, staff m
 		staffState[code] = 1
 		r := staff[code]
 		ok := personalOK(r.Personal)
-		if ok && r.Building != nil {
+		if ok && r.Building != nil && r.Building.Code != "" {
+			// a building function is proved reachable by its own lint (validate_buildingschema.go)
+			if _, have := vr.Buildings[r.Building.Code]; !have {
+				ok = false
+				for _, f := range p.BuildingFunctions {
+					if f.Code == r.Building.Code {
+						ok = true
+					}
+				}
+			}
+		} else if ok && r.Building != nil {
 			ok = roleReach(r.Building.Role, r.Building.Tier)
 		}
 		if ok {

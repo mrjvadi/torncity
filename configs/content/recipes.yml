@@ -1,0 +1,33 @@
+version: 1
+# Recipes (roadmap step 0.5; ADR 0045 4.3, first draft: every number is content).
+# A recipe appears only after its research is known (`requires.knowledge`) or its
+# book learned (recipe-book idea, ADR 0045 4.1). No weapon, ammunition or
+# explosive recipe is written here (ADR 0045 4.3 leaves them to the ADR 0036
+# items and the defence industry).
+#
+# Left out because the ADR fixes no quantity and none is invented (needs
+# research, owner): 14 garments (cloth per piece), 17 iron tools (bars per
+# tool), 18 nails, hinges and lock, 20 barrel, crate and sack, 21 timber props,
+# 22 lamp and oil, 25 wagon and mine cart, 27 bucket and waterskin, 28 gravel,
+# 29 locomotive and boiler (steam_power, later).
+#
+# The first number in a name is the ADR table row. Where the ADR 0041 building
+# spec and this table disagree the row says so in `note` and the owner settles it.
+recipes:
+  - {code: firewood, name: "هیزم", source: "ADR 0045 4.3 #1", evidence: adr, requires: {}, stations: [woodcutter_yard], inputs: {timber: 1}, outputs: {firewood: 4}, note: "the ADR says 1 log; the existing item is timber"}
+  - {code: charcoal, name: "زغال", source: "ADR 0045 4.3 #2", evidence: adr, requires: {}, planned_knowledge: [charcoal_burning], stations: [charcoal_clamp], inputs: {firewood: 6}, outputs: {charcoal: 2}, cycle_game_hours: 8}
+  - {code: planks, name: "الوار", source: "ADR 0045 4.3 #3", evidence: adr, requires: {knowledge: [carpentry]}, stations: [carpentry_workshop], inputs: {timber: 1}, outputs: {plank: 3}, skill: carpentry, note: "ADR 0041 8.10 says timber 3 gives plank 2: to settle"}
+  - {code: bricks, name: "آجر", source: "ADR 0045 4.3 #4", evidence: adr, requires: {knowledge: [pottery]}, stations: [kiln], inputs: {clay: 4, firewood: 1}, outputs: {brick: 4}, skill: pottery, note: "ADR 0041 8.14 says 6 bricks per shift from clay plus firewood 3: to settle"}
+  - {code: lime, name: "آهک", source: "ADR 0045 4.3 #5", evidence: adr, requires: {knowledge: [masonry]}, stations: [kiln], inputs: {limestone: 3, firewood: 2}, outputs: {lime: 2}, skill: masonry}
+  - {code: flour, name: "آرد", source: "ADR 0045 4.3 #6", evidence: adr, requires: {knowledge: [milling]}, stations: [mill], inputs: {wheat: 1}, outputs: {flour_sack: 1}, skill: milling, note: "ADR 0041 8.15 makes 8 flour from 8 wheat per shift: the same ratio"}
+  - {code: bread, name: "نان", source: "ADR 0045 4.3 #7", evidence: adr, requires: {knowledge: [milling]}, stations: [bakery], inputs: {flour_sack: 1, firewood: 1}, outputs: {bread: 1}, skill: baking, needs_water: true, note: "ADR 0045 names the research baking, ADR 0041 8.16 milling: milling is kept"}
+  - {code: roving, name: "نخ‌ریسی اولیه", source: "ADR 0045 4.3 #8", evidence: adr, requires: {knowledge: [weaving]}, stations: [weaving_shed, dwelling], inputs: {fleece: 1}, outputs: {roving: 1}, skill: weaving}
+  - {code: yarn, name: "ریسندگی", source: "ADR 0045 4.3 #9", evidence: adr, requires: {knowledge: [weaving]}, stations: [weaving_shed, dwelling], inputs: {roving: 1}, outputs: {yarn: 1}, skill: weaving}
+  - {code: woollen_cloth, name: "پارچهٔ پشمی", source: "ADR 0045 4.3 #10", evidence: adr, requires: {knowledge: [weaving]}, stations: [weaving_shed], inputs: {yarn: 3}, outputs: {cloth: 1}, skill: weaving}
+  - {code: fulled_cloth, name: "نمد", source: "ADR 0045 4.3 #11", evidence: adr, requires: {knowledge: [weaving_ii]}, stations: [fulling_place], inputs: {cloth: 1, fullers_clay: 1}, outputs: {fulled_cloth: 1}, skill: weaving, needs_water: true}
+  - {code: linen, name: "کتان", source: "ADR 0045 4.3 #12", evidence: adr, requires: {knowledge: [weaving]}, stations: [weaving_shed, dwelling], inputs: {flax: 1}, outputs: {linen: 1}, skill: weaving}
+  - {code: leather, name: "چرم", source: "ADR 0045 4.3 #13", evidence: adr, requires: {}, planned_knowledge: [tanning], stations: [tannery], inputs: {hide: 1, bark: 1}, outputs: {leather: 1}, needs_water: true}
+  - {code: bloom, name: "آهن خام", source: "ADR 0045 4.3 #15, S68", evidence: adr, requires: {}, planned_knowledge: [bloomery], stations: [bloomery], inputs: {iron_ore: 3, charcoal: 4}, outputs: {bloom: 1}, skill: smithing, tool_tier: 1}
+  - {code: bar_iron, name: "شمش آهن", source: "ADR 0045 4.3 #16", evidence: adr, requires: {knowledge: [smithing]}, stations: [smithy], inputs: {bloom: 1, charcoal: 1}, outputs: {bar_iron: 1}, skill: smithing, tool_tier: 1}
+  - {code: rope, name: "طناب", source: "ADR 0045 4.3 #19", evidence: adr, requires: {}, stations: [dwelling], inputs: {fibre: 2}, outputs: {rope: 1}, note: "the ADR also allows linen as input"}
+  - {code: bandage, name: "باند", source: "ADR 0045 4.3 #26", evidence: adr, requires: {knowledge: [basic_medicine]}, stations: [dwelling], inputs: {cloth: 1}, outputs: {bandage: 1}}

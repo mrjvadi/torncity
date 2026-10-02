@@ -1,0 +1,33 @@
+version: 1
+# Climate and the two new needs (roadmap step 0.5; ADR 0045 5.1, 5.2).
+#
+# The world's base temperature comes from the biome and latitude of worldgen
+# (ADR 0045 11 question 11: real Earth-like regional temperature from the seed is
+# the recommendation) with a seasonal swing on the game calendar and a night dip.
+# These are the bands and modifiers on top. Real basis: clothing insulation in
+# clo and layering (ADR 0045 B5, B6); water intake 2 to 2.5 L a day (B29, B30).
+#
+# Needs research (the ADR gives no number, so none is written): the seasonal
+# swing amplitude and the night dip per region, the weather odds (rain and wind)
+# per region, the heat and heavy-work multiplier on thirst, the warmth drift
+# rate, the effect sizes of chilly, cold and freezing, and the garment `warmth`
+# points per garment. The first winter must be survivable with T0 clothes and a
+# fire (ADR 0045 12), which needs the garment values first.
+climate:
+  source: "ADR 0045 5.1, 5.2"
+  evidence: adr
+  requires: {}
+  bands:
+    # warmth points a person needs by temperature band (degrees Celsius, lower bound)
+    - {code: mild,   min_temp_c: 15, required_insulation: 1}
+    - {code: cool,   min_temp_c: 5,  required_insulation: 2}
+    - {code: cold,   min_temp_c: -5, required_insulation: 4}
+    - {code: severe, min_temp_c: -60, required_insulation: 6}
+  rain_insulation: 1
+  wind_insulation: 1
+  heavy_work_insulation: -1
+  thirst_per_game_day: 40
+  game_year_days: 420
+  seasons: 4
+  needs_research: [seasonal_swing, night_dip, weather_odds_by_region, heat_work_thirst_multiplier, warmth_drift_rate, need_effect_sizes, garment_warmth_points]
+  note: "a game year of 420 game days is about a real week; seasons about two real days each (ADR 0018 game clock)"
