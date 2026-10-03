@@ -35,7 +35,7 @@ func seededStanding(buildings, knowledge []string) application.SettlementStandin
 
 func seededSettlements() []SweepSettlement {
 	grown := append(append([]string{}, foundingKit...), "cottage", "health_house", "teaching_circle", "watch_hut", "woodcutter_camp", "carpentry_workshop")
-	grownK := append(append([]string{}, foundingGrants...), "basic_literacy", "record_keeping", "basic_medicine", "carpentry", "masonry", "masonry_ii", "smithing")
+	grownK := append(append([]string{}, foundingGrants...), "basic_literacy", "record_keeping", "basic_medicine", "carpentry", "masonry", "masonry_ii", "smithing", "road_code")
 	town := append(append([]string{}, grown...), "school", "market", "clinic", "police_post", "smithy", "masonry_workshop")
 	townK := append(append([]string{}, grownK...), "basic_medicine_ii", "state_school", "periodic_market", "formal_constabulary")
 	city := append(append([]string{}, town...), "bank", "port", "airport", "barracks", "mine")
