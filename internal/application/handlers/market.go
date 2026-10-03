@@ -621,11 +621,12 @@ func (h *MarketHandler) place(ctx context.Context, tx application.Tx, meta envel
 
 	// The village book: the order takes a stall, and that costs its listing fee,
 	// not refunded whatever becomes of the order.
+	var listingFee int64
 	if fee := vb.listingFee(qty * price); fee > 0 {
 		if err := h.payListingFee(ctx, tx, snap, city, p.ID, method, fee, order.ID, now); err != nil {
 			return economy.OrderPlacedView{}, err
 		}
-		order.ListingFee = fee
+		listingFee = fee
 	}
 	resting, err := tx.Market().OpenOrders(ctx, city.ID, def.Code)
 	if err != nil {
@@ -694,6 +695,11 @@ func (h *MarketHandler) place(ctx context.Context, tx application.Tx, meta envel
 	if err != nil {
 		return economy.OrderPlacedView{}, err
 	}
+	if listingFee > 0 {
+		if err := tx.Market().RecordListingFee(ctx, placed.ID, city.ID, listingFee, now); err != nil {
+			return economy.OrderPlacedView{}, err
+		}
+	}
 
 	var spent, got int64
 	for _, t := range res.Trades {
@@ -740,7 +746,7 @@ func (h *MarketHandler) place(ctx context.Context, tx application.Tx, meta envel
 	}
 	return economy.OrderPlacedView{Item: it, Side: string(side), Qty: qty, Filled: order.Filled, Price: price, No: placed.No,
 		Rests: res.Rests, Spent: spent, Got: got, ExpiresAt: order.ExpiresAt, Method: order.Funding, Embargoed: skipped,
-		ListingFee: order.ListingFee}, nil
+		ListingFee: listingFee}, nil
 }
 
 // embargoedOwners are the owners of resting orders the player may not trade

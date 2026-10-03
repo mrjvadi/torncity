@@ -147,8 +147,8 @@ func (a *EconomyAdmin) verifyShop(ctx context.Context, v *LedgerVerification) er
 			JOIN cities c ON c.id = t.city_id AND c.origin = 'founded'`},
 		{&s.ListingLedger, "village market listing fees in the ledger", `SELECT COALESCE(SUM(amount), 0)::bigint FROM ledger_entries
 			WHERE reason = 'village_market_listing_fee' AND amount > 0
-			  AND reference_id IN (SELECT id FROM market_orders)`},
-		{&s.ListingRows, "village market listing fees on the orders", `SELECT COALESCE(SUM(listing_fee), 0)::bigint FROM market_orders`},
+			  AND reference_id IN (SELECT order_id FROM market_listing_fees)`},
+		{&s.ListingRows, "village market listing fees on the orders", `SELECT COALESCE(SUM(fee), 0)::bigint FROM market_listing_fees`},
 		{&s.PlayerDayBroken, "players' daily counts", `
 			SELECT count(*) FROM (
 			    SELECT COALESCE(p.settlement_id, q.settlement_id), COALESCE(p.line, q.line), COALESCE(p.day, q.day)

@@ -75,8 +75,8 @@ func (h *MarketHandler) villageBookOf(ctx context.Context, tx application.Tx, sn
 	now time.Time,
 ) (villageBook, error) {
 	var vb villageBook
-	if city.Tier == "" {
-		return vb, nil
+	if founded, err := tx.Settlements().IsFounded(ctx, city.ID); err != nil || !founded {
+		return vb, err
 	}
 	here, err := judgeSettlementOf(ctx, tx, snap, city, h.home)
 	if err != nil {

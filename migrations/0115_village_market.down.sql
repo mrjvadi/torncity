@@ -1,3 +1,3 @@
 BEGIN;
-ALTER TABLE market_orders DROP CONSTRAINT IF EXISTS market_orders_listing_fee_check, DROP COLUMN IF EXISTS listing_fee;
+DROP TABLE IF EXISTS market_listing_fees;
 COMMIT;

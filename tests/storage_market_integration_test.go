@@ -401,19 +401,6 @@ func TestTheVillageBook(t *testing.T) {
 	if err := pool.Raw().QueryRow(ctx, `SELECT id::text FROM cities WHERE code = 'support'`).Scan(&supportID); err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() {
-		c, cancel := context.WithTimeout(context.Background(), testTimeout)
-		defer cancel()
-		for _, stmt := range []string{
-			`DELETE FROM game_actions WHERE reference_type = 'market_orders' AND reference_id IN (SELECT id FROM market_orders WHERE city_id = $1::uuid)`,
-			`DELETE FROM market_trades WHERE city_id = $1::uuid`,
-			`DELETE FROM market_orders WHERE city_id = $1::uuid`,
-		} {
-			if _, err := pool.Raw().Exec(c, stmt, cityID); err != nil {
-				t.Errorf("cleanup %q: %v", stmt, err)
-			}
-		}
-	})
 	buyer := insertPlayer(t, pool)
 	setCity := func(playerID, city string) {
 		t.Helper()
@@ -421,6 +408,32 @@ func TestTheVillageBook(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
+	t.Cleanup(func() { // registered last, so it runs before the players' own cleanup
+		c, cancel := context.WithTimeout(context.Background(), testTimeout)
+		defer cancel()
+		for _, stmt := range []string{
+			`DELETE FROM game_actions WHERE reference_type = 'market_orders' AND reference_id IN (SELECT id FROM market_orders WHERE city_id = $1::uuid)`,
+			`DELETE FROM market_listing_fees WHERE city_id = $1::uuid`,
+		} {
+			if _, err := pool.Raw().Exec(c, stmt, cityID); err != nil {
+				t.Errorf("cleanup %q: %v", stmt, err)
+			}
+		}
+		// the trades are append-only: the scratch database lifts that for its own rows
+		for _, stmt := range []string{`ALTER TABLE market_trades DISABLE TRIGGER market_trades_append_only`} {
+			if _, err := pool.Raw().Exec(c, stmt); err != nil {
+				t.Errorf("cleanup %q: %v", stmt, err)
+			}
+		}
+		for _, stmt := range []string{`DELETE FROM market_trades WHERE city_id = $1::uuid`, `DELETE FROM market_orders WHERE city_id = $1::uuid`} {
+			if _, err := pool.Raw().Exec(c, stmt, cityID); err != nil {
+				t.Errorf("cleanup %q: %v", stmt, err)
+			}
+		}
+		if _, err := pool.Raw().Exec(c, `ALTER TABLE market_trades ENABLE TRIGGER market_trades_append_only`); err != nil {
+			t.Errorf("cleanup enabling the trigger: %v", err)
+		}
+	})
 	setCity(buyer.ID, cityID)
 	grant(t, pool, application.AccountPlayerCash, founder.ID, 10_000)
 	grant(t, pool, application.AccountPlayerCash, buyer.ID, 10_000)
