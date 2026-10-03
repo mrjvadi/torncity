@@ -2012,16 +2012,6 @@ export interface GovSection {
   levers: GovLever[] | null
 }
 
-export interface GridGrowView {
-  settlement_name: string
-  side: number
-  new_side: number
-  lots_gained: number
-  buildable_gained: number
-  price: number
-  treasury: number
-}
-
 export interface HealthFacility {
   kind: string
   building: Named
@@ -2594,6 +2584,9 @@ export interface LandView {
   can_buy: boolean
   free_lots: number
   served_lots: number
+  outer: LandCell[] | null
+  roads: RoadPlanLine[] | null
+  can_draw: boolean
 }
 
 export interface LaunchView {
@@ -2889,6 +2882,7 @@ export interface LotConfirmView {
 }
 
 export interface LotGridView {
+  outer: LotCell[] | null
   settlement_name: string
   building: Named
   can_rotate: boolean
@@ -3644,6 +3638,7 @@ export interface PrivateLine {
 }
 
 export interface PrivateLotsView {
+  outer: LotCell[] | null
   village: string
   building: Named
   can_rotate: boolean
@@ -4226,6 +4221,54 @@ export interface ReverseStarted {
   good: Good
   finish_at: string | null
   left_seconds: number
+}
+
+export interface RoadCancelledView {
+  settlement_name: string
+  plan_id: string
+  lots: number
+}
+
+export interface RoadClassOption {
+  class: Named
+  lot_cost: number
+  available: boolean
+  missing: Named[] | null
+}
+
+export interface RoadPlanLine {
+  id: string
+  class: Named
+  lots: number
+  built: number
+  open: number
+  sold: number
+  to: LotRef
+  cancellable: boolean
+}
+
+export interface RoadQuoteView {
+  settlement_name: string
+  settlement_id: string
+  plan_id: string
+  from: LotRef
+  to: LotRef
+  class: Named
+  options: RoadClassOption[] | null
+  lots: number
+  crossings: number
+  length_m: number
+  climb_m: number
+  max_grade_bps: number
+  lot_cost: number
+  crossing_cost: number
+  full_cost: number
+  opens: number
+  usable: number
+  water: number
+  steep: number
+  path: LotRef[] | null
+  open_cells: LandCell[] | null
 }
 
 export interface RoomTarget {
@@ -5559,7 +5602,6 @@ export interface ScreenViews {
   settlement_construction_progress: ConstructionProgressView
   settlement_found_draft: FoundDraftView
   settlement_founded: SettlementFoundedView
-  settlement_grid_grow: GridGrowView
   settlement_knowledge_list: KnowledgeListView
   settlement_land: LandView
   settlement_lot_access: LotAccessView
@@ -5571,6 +5613,9 @@ export interface ScreenViews {
   settlement_private_lots: PrivateLotsView
   settlement_private_menu: PrivateMenuView
   settlement_refusal: SettlementRefusalView
+  settlement_road_cancelled: RoadCancelledView
+  settlement_road_planned: RoadQuoteView
+  settlement_road_quote: RoadQuoteView
   settlement_terms: TermsView
   settlement_who: SettlementWhoView
   shift_started: ShiftStartedView

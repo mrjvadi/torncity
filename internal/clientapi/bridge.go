@@ -451,6 +451,9 @@ func clientAlias(command string, args map[string]json.RawMessage) (string, map[s
 	if command == "settlement.build.place_many" {
 		return command, placeManyArgs(args)
 	}
+	if command == "settlement.road.plan" {
+		return command, roadPlanArgs(args)
+	}
 	return command, args
 }
 
@@ -530,5 +533,34 @@ func neutralScreenOf(resp *presentation.Response, command string, policy *groups
 		out.OK = false
 		out.Error = &APIError{Code: r.Code, Args: r.Args}
 	}
+	return out
+}
+
+// roadPlanArgs lets a client name the end of a road by its numbers, {x, y} (and
+// optionally the lot it starts beside, {from_x, from_y}), the way place names a
+// lot; the handler reads the same lot tokens Telegram's buttons carry. A
+// negative coordinate (land west or south of the first grid) is written by the
+// token with an "m" (screens.LotToken).
+func roadPlanArgs(args map[string]json.RawMessage) map[string]json.RawMessage {
+	out := make(map[string]json.RawMessage, len(args))
+	for k, v := range args {
+		out[k] = v
+	}
+	pair := func(xk, yk, to string) {
+		xr, okx := args[xk]
+		yr, oky := args[yk]
+		if _, has := args[to]; has || !okx || !oky {
+			return
+		}
+		var x, y int
+		if json.Unmarshal(xr, &x) != nil || json.Unmarshal(yr, &y) != nil {
+			return
+		}
+		delete(out, xk)
+		delete(out, yk)
+		out[to], _ = json.Marshal(screens.LotToken(x, y, false))
+	}
+	pair("x", "y", "to")
+	pair("from_x", "from_y", "from")
 	return out
 }

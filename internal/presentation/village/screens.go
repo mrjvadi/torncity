@@ -58,7 +58,9 @@ var (
 	screenWorkStarted    = presentation.Define[WorkView](ScreenVillageWorkStarted, "village")
 	screenBuilding       = presentation.Define[BuildingView](ScreenBuildingView, "village")
 	screenBatchConfirm   = presentation.Define[LotBatchConfirmView](ScreenLotBatchConfirm, "village")
-	screenGridGrow       = presentation.Define[GridGrowView](ScreenGridGrow, "village")
+	screenRoadQuote      = presentation.Define[RoadQuoteView](ScreenRoadQuote, "village")
+	screenRoadPlanned    = presentation.Define[RoadQuoteView](ScreenRoadPlanned, "village")
+	screenRoadCancelled  = presentation.Define[RoadCancelledView](ScreenRoadCancelled, "village")
 )
 
 // EmptyView is the view of a screen that has no facts of its own.
@@ -247,7 +249,7 @@ func BuildMenu(c presentation.Ctx, v BuildMenuView) *presentation.Response {
 			a = append(a, act(AddrBuildLots, l.Building.Code).Named("build.place").About(l.Building.Code))
 		}
 	}
-	a = append(a, act(AddrGridGrow).Named("build.grow"), back(AddrVillageOverview), refresh(AddrBuildMenu))
+	a = append(a, back(AddrVillageOverview), refresh(AddrBuildMenu))
 	return screenBuildMenu.Response(c.Lang, v, a...)
 }
 
@@ -280,6 +282,24 @@ func LotGrid(c presentation.Ctx, v LotGridView) *presentation.Response {
 	}
 	a = append(a, back(AddrBuildMenu), refresh(AddrBuildLots, v.Building.Code))
 	return screenLotGrid.Response(c.Lang, v, a...)
+}
+
+// RoadQuote is the quote of a road drawn out of the village: one press stores
+// the plan, nothing is laid or charged until a lot it serves is bought.
+func RoadQuote(c presentation.Ctx, v RoadQuoteView) *presentation.Response {
+	return screenRoadQuote.Response(c.Lang, v,
+		confirm(AddrRoadPlan, LotToken(v.To.X, v.To.Y, false), LotToken(v.From.X, v.From.Y, false), v.Class.Code, VillageBuildConfirm),
+		back(AddrLand))
+}
+
+// RoadPlanned is the stored plan.
+func RoadPlanned(c presentation.Ctx, v RoadQuoteView) *presentation.Response {
+	return screenRoadPlanned.Response(c.Lang, v, act(AddrLand).Named("citizen.more_land"), back(AddrLand))
+}
+
+// RoadCancelled is a road taken back.
+func RoadCancelled(c presentation.Ctx, v RoadCancelledView) *presentation.Response {
+	return screenRoadCancelled.Response(c.Lang, v, back(AddrLand))
 }
 
 // LotConfirm is the placement confirmation.
@@ -339,11 +359,6 @@ func LotBatchConfirm(c presentation.Ctx, v LotBatchConfirmView) *presentation.Re
 	}
 	a = append(a, back(AddrBuildMenu))
 	return screenBatchConfirm.Response(c.Lang, v, a...)
-}
-
-// GridGrowConfirm is the land purchase confirmation.
-func GridGrowConfirm(c presentation.Ctx, v GridGrowView) *presentation.Response {
-	return screenGridGrow.Response(c.Lang, v, confirm(AddrGridGrow, VillageBuildConfirm), back(AddrBuildMenu))
 }
 
 // VillageDonateMenu is the amounts screen of a gift to the treasury.

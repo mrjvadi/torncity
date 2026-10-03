@@ -58,11 +58,14 @@ func renderVillageRefusal(c Context, v VillageRefusalView) *presenter.Response {
 		VillageNotAvailable, VillageTerrain, VillagePrerequisite, VillageLiteracy, VillageNotFound,
 		VillageOccupied, VillageUnbuildable, VillageOutOfBounds, VillageConcurrentCap, VillageNotDemolishable, VillageMaterials,
 		VillageNotCancellable, VillageAlreadyResident, VillageNotResident, VillageResidenceWait, VillageHoldsOffice, VillageNoHome,
-		VillageDonateRange, VillageDonateNoCash, VillageBatch, VillageNoRoad, VillageGridMax, VillagePromotionTop,
+		VillageDonateRange, VillageDonateNoCash, VillageBatch, VillageNoRoad, VillagePromotionTop,
 		VillageStorageFull, VillageAlreadyWorking, VillageWorkplaceFull, VillageNotWorkplace,
 		LaborNoJob, LaborNotHere, LaborFullyStaffed, LaborBudgetSpent, LaborNotEmployer, LaborNoNPC, LaborWageTooLow,
 		LaborEmployerBroke, LaborNoSite, village.VillageRoadReserved, village.VillageReserved:
 	default:
+		if isRoadRefusal(kind) {
+			break
+		}
 		if isCitizenRefusal(kind) {
 			return renderCitizenRefusal(c, v)
 		}
@@ -350,9 +353,6 @@ func renderBuildMenu(c Context, v BuildMenuView) *presenter.Response {
 
 	kb := keyboards.New()
 	kb.Grid(2, buttons...)
-	if b, ok := keyboards.Button(c.T("build.button.grow", nil), AddrGridGrow); ok {
-		kb.Row(b)
-	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrVillageOverview, RefreshData: AddrBuildMenu}))
 
 	return c.respond(paragraphs(head, list), kb.Build())

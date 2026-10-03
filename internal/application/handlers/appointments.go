@@ -9,9 +9,9 @@ import (
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
-	"github.com/mrjvadi/torncity/internal/shared/idempotency"
 	"github.com/mrjvadi/torncity/internal/presentation"
 	"github.com/mrjvadi/torncity/internal/presentation/society"
+	"github.com/mrjvadi/torncity/internal/shared/idempotency"
 )
 
 // AppointmentHandler serves appointments by office holders

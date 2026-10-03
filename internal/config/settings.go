@@ -350,14 +350,18 @@ type settlementSettings struct {
 	VillageGridLots         *int     `yaml:"village_grid_lots"`
 	MinBuildableLotShareBps *int     `yaml:"min_buildable_lot_share_bps"`
 	GridShiftMaxLots        *int     `yaml:"grid_shift_max_lots"`
-	GridMaxLots             *int     `yaml:"grid_max_lots"`
-	GridLotPrice            *int64   `yaml:"grid_lot_price"`
-	GridPriceStepBPS        *int64   `yaml:"grid_price_step_bps"`
 	AutoRoadCost            *int64   `yaml:"auto_road_cost"`
 	LotAccessCrossingCost   *int64   `yaml:"lot_access_crossing_cost"`
 	LotAccessMaxCrossing    *int     `yaml:"lot_access_max_crossing"`
 	StreetPitch             *int     `yaml:"street_pitch"`
 	StreetPlanMinGrid       *int     `yaml:"street_plan_min_grid"`
+	RoadFrontageDepthLots   *int     `yaml:"road_frontage_depth_lots"`
+	RoadPlanMaxLots         *int     `yaml:"road_plan_max_lots"`
+	RoadOpenLotsMax         *int     `yaml:"road_open_lots_max"`
+	RoadForeignBufferTiles  *int     `yaml:"road_foreign_buffer_tiles"`
+	RoadSteepSlopeM         *int     `yaml:"road_steep_slope_m"`
+	RoadCorridorRingTiles   *int     `yaml:"road_corridor_ring_tiles"`
+	RoadTrackCostBPS        *int     `yaml:"road_track_cost_bps"`
 
 	FoundingDraftTTL          *string `yaml:"founding_draft_ttl"`
 	FoundingNameMin           *int    `yaml:"founding_name_min"`
@@ -1242,15 +1246,6 @@ var coreSettings = []setting{
 	limitSetting("settlement", "grid_shift_max_lots",
 		func(c *Config) *int { return &c.Settlement.GridShiftMaxLots },
 		func(f *fileConfig) *int { return f.Settlement.GridShiftMaxLots }),
-	limitSetting("settlement", "grid_max_lots",
-		func(c *Config) *int { return &c.Settlement.GridMaxLots },
-		func(f *fileConfig) *int { return f.Settlement.GridMaxLots }),
-	moneySetting("settlement", "grid_lot_price",
-		func(c *Config) *int64 { return &c.Settlement.GridLotPrice },
-		func(f *fileConfig) *int64 { return f.Settlement.GridLotPrice }),
-	moneySetting("settlement", "grid_price_step_bps",
-		func(c *Config) *int64 { return &c.Settlement.GridPriceStepBPS },
-		func(f *fileConfig) *int64 { return f.Settlement.GridPriceStepBPS }),
 	moneySetting("settlement", "auto_road_cost",
 		func(c *Config) *int64 { return &c.Settlement.AutoRoadCost },
 		func(f *fileConfig) *int64 { return f.Settlement.AutoRoadCost }),
@@ -1266,6 +1261,27 @@ var coreSettings = []setting{
 	limitSetting("settlement", "street_plan_min_grid",
 		func(c *Config) *int { return &c.Settlement.StreetPlanMinGrid },
 		func(f *fileConfig) *int { return f.Settlement.StreetPlanMinGrid }),
+	limitSetting("settlement", "road_frontage_depth_lots",
+		func(c *Config) *int { return &c.Settlement.RoadFrontageDepthLots },
+		func(f *fileConfig) *int { return f.Settlement.RoadFrontageDepthLots }),
+	limitSetting("settlement", "road_plan_max_lots",
+		func(c *Config) *int { return &c.Settlement.RoadPlanMaxLots },
+		func(f *fileConfig) *int { return f.Settlement.RoadPlanMaxLots }),
+	limitSetting("settlement", "road_open_lots_max",
+		func(c *Config) *int { return &c.Settlement.RoadOpenLotsMax },
+		func(f *fileConfig) *int { return f.Settlement.RoadOpenLotsMax }),
+	limitSetting("settlement", "road_foreign_buffer_tiles",
+		func(c *Config) *int { return &c.Settlement.RoadForeignBufferTiles },
+		func(f *fileConfig) *int { return f.Settlement.RoadForeignBufferTiles }),
+	limitSetting("settlement", "road_steep_slope_m",
+		func(c *Config) *int { return &c.Settlement.RoadSteepSlopeM },
+		func(f *fileConfig) *int { return f.Settlement.RoadSteepSlopeM }),
+	limitSetting("settlement", "road_corridor_ring_tiles",
+		func(c *Config) *int { return &c.Settlement.RoadCorridorRingTiles },
+		func(f *fileConfig) *int { return f.Settlement.RoadCorridorRingTiles }),
+	limitSetting("settlement", "road_track_cost_bps",
+		func(c *Config) *int { return &c.Settlement.RoadTrackCostBPS },
+		func(f *fileConfig) *int { return f.Settlement.RoadTrackCostBPS }),
 	durationSetting("settlement", "founding_draft_ttl",
 		func(c *Config) *time.Duration { return &c.Settlement.FoundingDraftTTL },
 		func(f *fileConfig) *string { return f.Settlement.FoundingDraftTTL }),
