@@ -83,6 +83,27 @@ func (h phaseHandlers) bindWork() map[string]commandFunc {
 			}
 			return h.education.Enroll(ctx, env.Metadata, req)
 		},
+		"education.hire": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.TeachRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.education.TeacherHire(ctx, env.Metadata, req)
+		},
+		"education.teach": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.TeachRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.education.TeacherStart(ctx, env.Metadata, req)
+		},
+		"education.unteach": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.TeachRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.education.TeacherEnd(ctx, env.Metadata, req)
+		},
 		// The scheduler's dispatch payload, as for travel.arrive.
 		"education.complete": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			var req handlers.CompleteCourseRequest

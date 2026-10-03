@@ -251,7 +251,8 @@
           "mode_name": "Car",
           "vehicle": {
             "code": "car",
-            "name": "Car"
+            "name": "Car",
+            "trip": null
           },
           "wait_seconds": 420
         }

@@ -82,7 +82,7 @@ func TestCareerValidate(t *testing.T) {
 		{"empty title", func(c *Career) { c.Tiers[1].Title = "" }, false},
 		{"negative level", func(c *Career) { c.Tiers[0].MinLevel = -1 }, false},
 		{"level above cap", func(c *Career) { c.Tiers[0].MinLevel = player.MaxLevel + 1 }, false},
-		{"unknown skill", func(c *Career) { c.Tiers[1].RequiredSkills[0].Skill = "alchemy" }, false},
+		{"unknown skill", func(c *Career) { c.Tiers[1].RequiredSkills[0].Skill = "Alchemy" }, false},
 		{"zero skill level", func(c *Career) { c.Tiers[1].RequiredSkills[0].Level = 0 }, false},
 		{"skill above cap", func(c *Career) { c.Tiers[1].RequiredSkills[0].Level = player.MaxSkillLevel + 1 }, false},
 		{"skill twice", func(c *Career) {

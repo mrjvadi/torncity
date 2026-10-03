@@ -63,6 +63,8 @@ type fileConfig struct {
 
 	Legislature  legislatureSettings  `yaml:"legislature"`
 	Labor        laborSettings        `yaml:"labor"`
+	Education    educationSettings    `yaml:"education"`
+	Training     trainingSettings     `yaml:"training"`
 	City         citySettings         `yaml:"city"`
 	Property     propertySettings     `yaml:"property"`
 	Achievements achievementsSettings `yaml:"achievements"`
@@ -74,6 +76,26 @@ type fileConfig struct {
 	Realtime realtimeSettings `yaml:"realtime"`
 
 	StateSync stateSyncSettings `yaml:"state_sync"`
+}
+
+type educationSettings struct {
+	TeacherWageBPS     *int64 `yaml:"teacher_wage_bps"`
+	TeacherMinWage     *int64 `yaml:"teacher_min_wage"`
+	TeacherMaxStudents *int64 `yaml:"teacher_max_students"`
+}
+
+type trainingSettings struct {
+	EnergyCost          *int64 `yaml:"energy_cost"`
+	StaminaGain         *int64 `yaml:"stamina_gain"`
+	StrengthXP          *int64 `yaml:"strength_xp"`
+	DiminishStamina     *int64 `yaml:"diminish_stamina"`
+	StaminaPerMaxEnergy *int64 `yaml:"stamina_per_max_energy"`
+	MaxEnergyBonusCap   *int64 `yaml:"max_energy_bonus_cap"`
+	YardBPS             *int64 `yaml:"yard_bps"`
+	GroundBPS           *int64 `yaml:"ground_bps"`
+	GymBPS              *int64 `yaml:"gym_bps"`
+	GroundFee           *int64 `yaml:"ground_fee"`
+	GymFee              *int64 `yaml:"gym_fee"`
 }
 
 type laborSettings struct {
@@ -1380,6 +1402,49 @@ var coreSettings = []setting{
 	limitSetting("settlement", "citizen_home_rest_happiness",
 		func(c *Config) *int { return &c.Settlement.CitizenHomeRestHappiness },
 		func(f *fileConfig) *int { return f.Settlement.CitizenHomeRestHappiness }),
+
+	moneySetting("education", "teacher_wage_bps",
+		func(c *Config) *int64 { return &c.Education.TeacherWageBPS },
+		func(f *fileConfig) *int64 { return f.Education.TeacherWageBPS }),
+	moneySetting("education", "teacher_min_wage",
+		func(c *Config) *int64 { return &c.Education.TeacherMinWage },
+		func(f *fileConfig) *int64 { return f.Education.TeacherMinWage }),
+	moneySetting("education", "teacher_max_students",
+		func(c *Config) *int64 { return &c.Education.TeacherMaxStudents },
+		func(f *fileConfig) *int64 { return f.Education.TeacherMaxStudents }),
+	moneySetting("training", "energy_cost",
+		func(c *Config) *int64 { return &c.Training.EnergyCost },
+		func(f *fileConfig) *int64 { return f.Training.EnergyCost }),
+	moneySetting("training", "stamina_gain",
+		func(c *Config) *int64 { return &c.Training.StaminaGain },
+		func(f *fileConfig) *int64 { return f.Training.StaminaGain }),
+	moneySetting("training", "strength_xp",
+		func(c *Config) *int64 { return &c.Training.StrengthXP },
+		func(f *fileConfig) *int64 { return f.Training.StrengthXP }),
+	moneySetting("training", "diminish_stamina",
+		func(c *Config) *int64 { return &c.Training.DiminishStamina },
+		func(f *fileConfig) *int64 { return f.Training.DiminishStamina }),
+	moneySetting("training", "stamina_per_max_energy",
+		func(c *Config) *int64 { return &c.Training.StaminaPerMaxEnergy },
+		func(f *fileConfig) *int64 { return f.Training.StaminaPerMaxEnergy }),
+	moneySetting("training", "max_energy_bonus_cap",
+		func(c *Config) *int64 { return &c.Training.MaxEnergyBonusCap },
+		func(f *fileConfig) *int64 { return f.Training.MaxEnergyBonusCap }),
+	moneySetting("training", "yard_bps",
+		func(c *Config) *int64 { return &c.Training.YardBPS },
+		func(f *fileConfig) *int64 { return f.Training.YardBPS }),
+	moneySetting("training", "ground_bps",
+		func(c *Config) *int64 { return &c.Training.GroundBPS },
+		func(f *fileConfig) *int64 { return f.Training.GroundBPS }),
+	moneySetting("training", "gym_bps",
+		func(c *Config) *int64 { return &c.Training.GymBPS },
+		func(f *fileConfig) *int64 { return f.Training.GymBPS }),
+	moneySetting("training", "ground_fee",
+		func(c *Config) *int64 { return &c.Training.GroundFee },
+		func(f *fileConfig) *int64 { return f.Training.GroundFee }),
+	moneySetting("training", "gym_fee",
+		func(c *Config) *int64 { return &c.Training.GymFee },
+		func(f *fileConfig) *int64 { return f.Training.GymFee }),
 
 	moneySetting("labor", "shift_minutes",
 		func(c *Config) *int64 { return &c.Labor.ShiftMinutes },

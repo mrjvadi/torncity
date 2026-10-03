@@ -75,6 +75,12 @@ type EducationHandler struct {
 	// student waits it through this (config game.time_scale).
 	scale gametime.Scale
 
+	trips TripHinter
+	// teach, policy and pool are the teaching rules (education_teach.go).
+	teach  TeachRules
+	policy application.PolicyReader
+	pool   func(ctx context.Context, tx application.Tx, settlementID string) (int64, error)
+
 	pageSize       int
 	idempotencyTTL time.Duration
 	now            func() time.Time
@@ -343,12 +349,17 @@ func (h *EducationHandler) List(ctx context.Context, meta envelope.Metadata, req
 			// reached) is shown as «not here» with where it is taught and what it lacks
 			tag, tagged := snap.AvailabilityTag("course", def.Code)
 			taught, reachable, needs := hereC.judge(snap, tag, tagged)
+			taught, reachable, needs, _, err = h.withTeacher(ctx, tx, hereC, def.Code, p.ID, taught, reachable, needs)
+			if err != nil {
+				return err
+			}
 			if !taught {
 				if reachable {
 					near, err := h.nearest(ctx, tag, tagged)
 					if err != nil {
 						return err
 					}
+					near = withTrip(ctx, tx, h.trips, p, near)
 					view.Elsewhere = append(view.Elsewhere, screens.CourseGap{
 						Course: plife.CourseRef{Code: def.Code, Name: def.Name}, Fee: course.Cost.Minor(),
 						Duration: h.scale.RealWait(course.Duration), Nearest: near, Needs: needs})
@@ -512,12 +523,25 @@ func (h *EducationHandler) View(ctx context.Context, meta envelope.Metadata, req
 		} else if ok {
 			view.Requirements = append(view.Requirements, req)
 		}
-		notHere, err := h.taughtHere(ctx, tx, snap, def.Code, s.here())
+		notHere, classTeacher, err := h.taughtHere(ctx, tx, snap, p, def.Code, s.here())
 		if err != nil {
 			return err
 		}
 		if notHere != nil {
 			view.Requirements = append(view.Requirements, *notHere)
+		}
+		if classTeacher != nil && classTeacher.Employer == application.EmployerSelf {
+			// a home teacher is paid the listed fee: the school's subsidy is the treasury's
+			if listed, ok := snap.Course(def.Code); ok {
+				view.Fee, course.Cost = listed.Cost.Minor(), listed.Cost
+			}
+		}
+		hereC, err := h.courseHereOf(ctx, tx, snap, s.here())
+		if err != nil {
+			return err
+		}
+		if view.Staff, view.Teaching, err = h.staffLines(ctx, tx, snap, p, hereC, def, s.holds(def.Code), view.Fee); err != nil {
+			return err
 		}
 		if def.Certifies && s.holds(def.Code) {
 			view.Requirements = append(view.Requirements, plife.Requirement{Kind: screens.ReqAlreadyCertified})
@@ -568,6 +592,10 @@ type enrollPlan struct {
 	current   *application.Enrollment
 	enrolment education.Enrollment
 	fee       money.Amount
+	// teacher teaches the class in a founded settlement; nil in a content city.
+	teacher *application.CourseTeacher
+	// listFee is the course's listed fee, before any subsidy.
+	listFee money.Amount
 }
 
 // enrollPlan resolves the course code a player asked to enrol in: applies
@@ -592,13 +620,20 @@ func (h *EducationHandler) enrollPlan(ctx context.Context, tx application.Tx, sn
 	if err != nil {
 		return plan, err
 	}
-	if req, err := h.taughtHere(ctx, tx, snap, code, s.here()); err != nil {
+	req, teacher, err := h.taughtHere(ctx, tx, snap, p, code, s.here())
+	if err != nil {
 		return plan, err
-	} else if req != nil {
+	}
+	if req != nil {
 		return plan, refuse(plife.RefusalCourseRequirements, []plife.Requirement{*req})
 	}
-	if course, err = h.subsidised(ctx, tx, p, course); err != nil {
-		return plan, err
+	plan.listFee = course.Cost
+	// A home teacher is paid the listed fee; the school's subsidy is the
+	// treasury's own and does not apply to a private teacher.
+	if teacher == nil || teacher.Employer != application.EmployerSelf {
+		if course, err = h.subsidised(ctx, tx, p, course); err != nil {
+			return plan, err
+		}
 	}
 	if course, err = smarterCourse(ctx, tx, snap, p.ID, course); err != nil {
 		return plan, err
@@ -638,7 +673,7 @@ func (h *EducationHandler) enrollPlan(ctx context.Context, tx application.Tx, sn
 		}
 		return plan, errors.Internal(err)
 	}
-	plan.def, plan.course, plan.current, plan.enrolment, plan.fee = def, course, current, enrolment, fee
+	plan.def, plan.course, plan.current, plan.enrolment, plan.fee, plan.teacher = def, course, current, enrolment, fee, teacher
 	return plan, nil
 }
 
@@ -685,7 +720,15 @@ func (h *EducationHandler) Enroll(ctx context.Context, meta envelope.Metadata, r
 
 		enrollmentID := h.ids.NewID()
 		actionID := h.ids.NewID()
-		if err := h.chargeFee(ctx, tx, snap, p.ID, plan.course.Code, enrollmentID, plan.fee, method, now); err != nil {
+		if plan.teacher != nil {
+			// the course lock SeatsTaken took makes this count the last word
+			if n, err := tx.Education().Students(ctx, plan.teacher.ID); err != nil {
+				return err
+			} else if n >= h.teach.max() {
+				return refuse(plife.RefusalCourseRequirements, []plife.Requirement{{Kind: screens.ReqCourseTeacher}})
+			}
+		}
+		if err := h.chargeClass(ctx, tx, snap, p.ID, plan, enrollmentID, method, now); err != nil {
 			return err
 		}
 		payload, err := json.Marshal(EducationActionPayload{
@@ -723,6 +766,17 @@ func (h *EducationHandler) Enroll(ctx context.Context, meta envelope.Metadata, r
 				return refuse(plife.RefusalCourseRequirements, []plife.Requirement{{Kind: screens.ReqAlreadyEnrolled}})
 			}
 			return err
+		}
+		if plan.teacher != nil {
+			wage := int64(0)
+			if plan.teacher.Employer == application.EmployerSettlement {
+				wage = h.teach.wage(plan.listFee.Minor())
+			}
+			if err := tx.Education().Seat(ctx, application.ClassSeat{
+				EnrollmentID: enrollmentID, TeacherID: plan.teacher.ID, SettlementID: plan.teacher.SettlementID, Wage: wage,
+			}); err != nil {
+				return err
+			}
 		}
 		if err := appendEducationEvent(ctx, tx, meta, "enrolled", enrollmentID, map[string]any{
 			"enrollment_id":   enrollmentID,
@@ -762,6 +816,31 @@ func (h *EducationHandler) Enroll(ctx context.Context, meta envelope.Metadata, r
 func (h *EducationHandler) chargeFee(ctx context.Context, tx application.Tx, snap *content.Snapshot,
 	playerID, courseCode, enrollmentID string, fee money.Amount, method payment.Method, now time.Time,
 ) error {
+	return h.chargeTo(ctx, tx, snap, playerID, courseCode, enrollmentID, fee, method, now,
+		application.ReasonServiceFee, []application.LedgerEntry{{AccountID: application.SystemSinkAccountID, Amount: fee}})
+}
+
+// chargeClass charges the fee of a class to where its teacher's employer says: the
+// settlement's treasury for the school (course_fee), the teacher and the tax for a
+// home teacher (tuition); the state's schools of a content city still take it into
+// the sink.
+func (h *EducationHandler) chargeClass(ctx context.Context, tx application.Tx, snap *content.Snapshot,
+	playerID string, plan enrollPlan, enrollmentID string, method payment.Method, now time.Time,
+) error {
+	if plan.teacher == nil || plan.fee.IsZero() {
+		return h.chargeFee(ctx, tx, snap, playerID, plan.course.Code, enrollmentID, plan.fee, method, now)
+	}
+	reason, to, err := h.classLedger(ctx, tx, plan.teacher, plan.fee)
+	if err != nil {
+		return err
+	}
+	return h.chargeTo(ctx, tx, snap, playerID, plan.course.Code, enrollmentID, plan.fee, method, now, reason, to)
+}
+
+func (h *EducationHandler) chargeTo(ctx context.Context, tx application.Tx, snap *content.Snapshot,
+	playerID, courseCode, enrollmentID string, fee money.Amount, method payment.Method, now time.Time,
+	reason application.Reason, to []application.LedgerEntry,
+) error {
 	if fee.IsZero() {
 		return nil
 	}
@@ -777,10 +856,10 @@ func (h *EducationHandler) chargeFee(ctx context.Context, tx application.Tx, sna
 	_, err = w.Pay(ctx, tx.Ledger(), application.Charge{
 		Method:        method,
 		Accepted:      plan.Accepted,
-		Reason:        application.ReasonServiceFee,
+		Reason:        reason,
 		ReferenceType: "enrollments",
 		ReferenceID:   enrollmentID,
-		To:            []application.LedgerEntry{{AccountID: application.SystemSinkAccountID, Amount: fee}},
+		To:            to,
 		CreatedAt:     now,
 	})
 	if stderrors.Is(err, application.ErrPaymentDeclined) {
@@ -866,6 +945,9 @@ func (h *EducationHandler) Complete(ctx context.Context, meta envelope.Metadata,
 			return errors.Internal(err)
 		}
 		if err := tx.Education().Complete(ctx, e.ID, now); err != nil {
+			return err
+		}
+		if err := h.payTeacher(ctx, tx, e.ID, now); err != nil {
 			return err
 		}
 		skills, err := tx.Skills().List(ctx, playerID)

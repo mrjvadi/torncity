@@ -50,6 +50,19 @@ const (
 	ReqCourseFull       = "course_full"
 	ReqAlreadyCertified = "already_certified"
 	ReqAlreadyEnrolled  = "already_enrolled"
+	// Teaching (docs/research/2026-10-03-activities-audit.md section 7).
+	// ReqCourseTeacher: the place has what the course needs but nobody teaches it.
+	ReqCourseTeacher = "course_teacher"
+	// ReqNotHead: only the head of the settlement hires a school teacher.
+	ReqNotHead = "not_head"
+	// ReqTeacherNoPool: no free labourer to hire as a teacher.
+	ReqTeacherNoPool = "teacher_no_pool"
+	// ReqAlreadyTeaching: the player or the course already has that teacher here.
+	ReqAlreadyTeaching = "already_teaching"
+	// ReqNotTeaching: no such teaching post, or it is not the player's to end.
+	ReqNotTeaching = "not_teaching"
+	// ReqTeacherPaid: a class owes its teacher; the treasury cannot hire another.
+	ReqTeacherFull = "teacher_full"
 )
 
 // Requirement is one condition of a position or a course, met or not.
@@ -67,6 +80,8 @@ type Requirement struct {
 	City     string
 	// Wait is how long until a time requirement is met.
 	Wait time.Duration
+	// Trip is the way to the city named above (its fare and wait); nil when unknown.
+	Trip *TripHint
 }
 
 // What a settlement lacks before it can teach a course, by kind.

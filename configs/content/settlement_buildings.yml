@@ -60,7 +60,7 @@ build_categories:
   - {code: construction, roles: [infrastructure, forestry, extraction, storage]}
   - {code: production, roles: [craft]}
   - {code: farming, roles: [food, water_infra]}
-  - {code: public, roles: [governance, health, education, recreation, transport]}
+  - {code: public, roles: [governance, health, education, recreation, training, transport]}
   - {code: security, roles: [security, military]}
   - {code: other, roles: []}
 
@@ -542,6 +542,24 @@ settlement_buildings:
     build_time: 1h
     upkeep: 20
     effects: [{target: service_coverage_bps, op: add, value: 150}]
+
+  # Training ground (docs/research/2026-10-03-activities-audit.md section 7): a levelled
+  # yard where the settlement's people exercise together under an experienced trainer
+  # (the zurkhaneh and the village wrestling ground are the Iranian forms). `upkeep`
+  # pays the trainer and the tools; a session there costs the player a small fee to the
+  # treasury (config training.ground_fee) and trains at ground_bps. Without the building
+  # the same exercise is still possible on open ground, at yard_bps and for nothing.
+  - code: training_ground
+    name: "زمین تمرین"
+    role: training
+    tier: 1
+    footprint: [2, 2]
+    requires_knowledge: [kin_apprenticeship]
+    cost_money: 700
+    cost_materials: {timber: 4}
+    build_time: 2h
+    upkeep: 45
+    effects: [{target: happiness_bps, op: add, value: 100}]
 
   - code: school
     name: "مدرسه"

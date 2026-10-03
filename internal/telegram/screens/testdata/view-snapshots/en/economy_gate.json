@@ -34,7 +34,8 @@
         "here": "village",
         "nearest": {
           "code": "brennhaven",
-          "name": "Brennhaven"
+          "name": "Brennhaven",
+          "trip": null
         },
         "requires": [
           {
@@ -65,7 +66,8 @@
         "here": "village",
         "nearest": {
           "code": "brennhaven",
-          "name": "Brennhaven"
+          "name": "Brennhaven",
+          "trip": null
         },
         "requires": [
           {
@@ -99,7 +101,8 @@
         "here": "town",
         "nearest": {
           "code": "brennhaven",
-          "name": "Brennhaven"
+          "name": "Brennhaven",
+          "trip": null
         },
         "requires": [
           {
@@ -122,7 +125,8 @@
         "here": "village",
         "nearest": {
           "code": "brennhaven",
-          "name": "Brennhaven"
+          "name": "Brennhaven",
+          "trip": null
         },
         "requires": [
           {
@@ -156,7 +160,8 @@
         "here": "village",
         "nearest": {
           "code": "brennhaven",
-          "name": "Brennhaven"
+          "name": "Brennhaven",
+          "trip": null
         },
         "requires": [
           {
@@ -182,7 +187,8 @@
         "here": "town",
         "nearest": {
           "code": "brennhaven",
-          "name": "Brennhaven"
+          "name": "Brennhaven",
+          "trip": null
         },
         "requires": null,
         "service": "auction_house",

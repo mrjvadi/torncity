@@ -22,7 +22,8 @@
           },
           "type": {
             "code": "family_house",
-            "name": "Family house"
+            "name": "Family house",
+            "trip": null
           }
         },
         {
@@ -37,7 +38,8 @@
           },
           "type": {
             "code": "studio",
-            "name": "Studio flat"
+            "name": "Studio flat",
+            "trip": null
           }
         }
       ],
@@ -51,7 +53,8 @@
           "size": 35,
           "type": {
             "code": "studio",
-            "name": "Studio flat"
+            "name": "Studio flat",
+            "trip": null
           }
         },
         {
@@ -63,7 +66,8 @@
           "size": 140,
           "type": {
             "code": "family_house",
-            "name": "Family house"
+            "name": "Family house",
+            "trip": null
           }
         },
         {
@@ -75,7 +79,8 @@
           "size": 60,
           "type": {
             "code": "shop_unit",
-            "name": "Shop premises"
+            "name": "Shop premises",
+            "trip": null
           }
         }
       ]
@@ -124,7 +129,8 @@
       },
       "place": {
         "code": "residential_area",
-        "name": "Residential area"
+        "name": "Residential area",
+        "trip": null
       },
       "price": 46350,
       "quality": 2,
@@ -133,7 +139,8 @@
       "tax_bps": 20,
       "type": {
         "code": "studio",
-        "name": "Studio flat"
+        "name": "Studio flat",
+        "trip": null
       },
       "upkeep": 40,
       "way": null
@@ -157,7 +164,8 @@
       "payment": null,
       "place": {
         "code": "residential_area",
-        "name": "Residential area"
+        "name": "Residential area",
+        "trip": null
       },
       "price": 46350,
       "quality": 2,
@@ -166,13 +174,15 @@
       "tax_bps": 20,
       "type": {
         "code": "studio",
-        "name": "Studio flat"
+        "name": "Studio flat",
+        "trip": null
       },
       "upkeep": 40,
       "way": {
         "place": {
           "code": "city_hall",
-          "name": "City hall"
+          "name": "City hall",
+          "trip": null
         },
         "walk_seconds": 12
       }
@@ -196,7 +206,8 @@
       "payment": null,
       "place": {
         "code": "residential_area",
-        "name": "Residential area"
+        "name": "Residential area",
+        "trip": null
       },
       "price": 46350,
       "quality": 2,
@@ -205,7 +216,8 @@
       "tax_bps": 20,
       "type": {
         "code": "studio",
-        "name": "Studio flat"
+        "name": "Studio flat",
+        "trip": null
       },
       "upkeep": 40,
       "way": null
@@ -229,7 +241,8 @@
       "payment": null,
       "place": {
         "code": "residential_area",
-        "name": "Residential area"
+        "name": "Residential area",
+        "trip": null
       },
       "price": 46350,
       "quality": 2,
@@ -238,7 +251,8 @@
       "tax_bps": 20,
       "type": {
         "code": "studio",
-        "name": "Studio flat"
+        "name": "Studio flat",
+        "trip": null
       },
       "upkeep": 40,
       "way": null
@@ -269,7 +283,8 @@
         },
         "type": {
           "code": "studio",
-          "name": "Studio flat"
+          "name": "Studio flat",
+          "trip": null
         }
       },
       "payment": {
@@ -316,7 +331,8 @@
         },
         "type": {
           "code": "family_house",
-          "name": "Family house"
+          "name": "Family house",
+          "trip": null
         }
       },
       "payment": null,
@@ -351,7 +367,8 @@
         },
         "type": {
           "code": "family_house",
-          "name": "Family house"
+          "name": "Family house",
+          "trip": null
         }
       },
       "payment": null,
@@ -388,7 +405,8 @@
           "tenant": null,
           "type": {
             "code": "studio",
-            "name": "Studio flat"
+            "name": "Studio flat",
+            "trip": null
           },
           "unpaid_periods": 0,
           "value": 46350
@@ -414,7 +432,8 @@
           },
           "type": {
             "code": "family_house",
-            "name": "Family house"
+            "name": "Family house",
+            "trip": null
           },
           "unpaid_periods": 0,
           "value": 180000
@@ -437,7 +456,8 @@
           "tenant": null,
           "type": {
             "code": "shop_unit",
-            "name": "Shop premises"
+            "name": "Shop premises",
+            "trip": null
           },
           "unpaid_periods": 2,
           "value": 120000
@@ -465,7 +485,8 @@
             },
             "type": {
               "code": "",
-              "name": ""
+              "name": "",
+              "trip": null
             }
           },
           "quality": 2,
@@ -474,7 +495,8 @@
           "tenant": null,
           "type": {
             "code": "studio",
-            "name": "Studio flat"
+            "name": "Studio flat",
+            "trip": null
           },
           "unpaid_periods": 0,
           "value": 45000
@@ -528,7 +550,8 @@
           "tenant": null,
           "type": {
             "code": "studio",
-            "name": "Studio flat"
+            "name": "Studio flat",
+            "trip": null
           },
           "unpaid_periods": 0,
           "value": 0
@@ -599,7 +622,8 @@
           "tenant": null,
           "type": {
             "code": "studio",
-            "name": "Studio flat"
+            "name": "Studio flat",
+            "trip": null
           },
           "unpaid_periods": 0,
           "value": 0
@@ -625,7 +649,8 @@
       "notice": "",
       "place": {
         "code": "residential_area",
-        "name": "Residential area"
+        "name": "Residential area",
+        "trip": null
       },
       "property": {
         "arrears": 0,
@@ -645,7 +670,8 @@
         "tenant": null,
         "type": {
           "code": "studio",
-          "name": "Studio flat"
+          "name": "Studio flat",
+          "trip": null
         },
         "unpaid_periods": 0,
         "value": 46350
@@ -663,7 +689,8 @@
       "notice": "listed",
       "place": {
         "code": "residential_area",
-        "name": "Residential area"
+        "name": "Residential area",
+        "trip": null
       },
       "property": {
         "arrears": 0,
@@ -688,7 +715,8 @@
           },
           "type": {
             "code": "",
-            "name": ""
+            "name": "",
+            "trip": null
           }
         },
         "quality": 2,
@@ -697,7 +725,8 @@
         "tenant": null,
         "type": {
           "code": "studio",
-          "name": "Studio flat"
+          "name": "Studio flat",
+          "trip": null
         },
         "unpaid_periods": 0,
         "value": 45000
@@ -715,7 +744,8 @@
       "notice": "",
       "place": {
         "code": "bazaar",
-        "name": "Bazaar"
+        "name": "Bazaar",
+        "trip": null
       },
       "property": {
         "arrears": 0,
@@ -735,7 +765,8 @@
         "tenant": null,
         "type": {
           "code": "shop_unit",
-          "name": "Shop premises"
+          "name": "Shop premises",
+          "trip": null
         },
         "unpaid_periods": 2,
         "value": 120000
@@ -756,7 +787,8 @@
       "lease_no": 4,
       "type": {
         "code": "studio",
-        "name": "Studio flat"
+        "name": "Studio flat",
+        "trip": null
       }
     }
   },
@@ -962,7 +994,8 @@
       },
       "type": {
         "code": "family_house",
-        "name": "Family house"
+        "name": "Family house",
+        "trip": null
       }
     }
   },
@@ -984,7 +1017,8 @@
       },
       "type": {
         "code": "family_house",
-        "name": "Family house"
+        "name": "Family house",
+        "trip": null
       }
     }
   },
@@ -1006,7 +1040,8 @@
       },
       "type": {
         "code": "family_house",
-        "name": "Family house"
+        "name": "Family house",
+        "trip": null
       }
     }
   },
@@ -1028,7 +1063,8 @@
       },
       "type": {
         "code": "family_house",
-        "name": "Family house"
+        "name": "Family house",
+        "trip": null
       }
     }
   },
@@ -1050,7 +1086,8 @@
       },
       "type": {
         "code": "family_house",
-        "name": "Family house"
+        "name": "Family house",
+        "trip": null
       }
     }
   },
@@ -1072,7 +1109,8 @@
       },
       "type": {
         "code": "family_house",
-        "name": "Family house"
+        "name": "Family house",
+        "trip": null
       }
     }
   }

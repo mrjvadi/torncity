@@ -1307,6 +1307,27 @@ settlement:
 # (demand over the labour force, in bps): slack -> below base, short -> above.
 # The labour force follows housing: (base_housing + the homes' capacity - the
 # players who live there) x participation_bps.
+# Teaching (docs/research/2026-10-03-activities-audit.md section 7). A public school's
+# fee goes to the settlement treasury; the teacher is paid from it per student.
+education:
+  teacher_wage_bps: 6000   # a teacher earns this share of the course's listed fee for each student, paid from the treasury when the class ends
+  teacher_min_wage: 40   # the least a class pays its teacher, minor units
+  teacher_max_students: 12   # students one teacher teaches at once
+
+# Training (same audit): a session spends energy and gives stamina and strength.
+training:
+  energy_cost: 10   # energy one session spends
+  stamina_gain: 6   # stamina a session gives at full efficiency, before diminishing returns
+  strength_xp: 30   # strength skill experience a session gives at full efficiency
+  diminish_stamina: 400   # every this much stamina above the starting 100 halves the next gains (1/(1+extra/this))
+  stamina_per_max_energy: 50   # stamina that adds one point of max energy
+  max_energy_bonus_cap: 30   # the most max energy training can add
+  yard_bps: 4000   # efficiency of bodyweight training on open ground (no building)
+  ground_bps: 6000   # efficiency at a settlement training ground (ADR 0038 4.6: 60 percent)
+  gym_bps: 10000   # efficiency at the neutral city gym
+  ground_fee: 20   # session fee at a training ground, to the settlement treasury, minor units
+  gym_fee: 60   # session fee at the neutral city gym, minor units
+
 labor:
   shift_minutes: 60            # one construction shift, GAME minutes
   reference_crew: 4            # workers the content's build time assumes

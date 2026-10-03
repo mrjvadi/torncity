@@ -38,6 +38,7 @@ type phaseHandlers struct {
 
 	jobs      *handlers.JobsHandler
 	education *handlers.EducationHandler
+	training  *handlers.TrainingHandler
 
 	crime *handlers.CrimeHandler
 
@@ -391,6 +392,16 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 		},
 		"work.home": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			return h.village.WorkHome(ctx, env.Metadata)
+		},
+		"training.home": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			return h.training.Home(ctx, env.Metadata)
+		},
+		"training.start": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.TrainRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.training.Start(ctx, env.Metadata, req)
 		},
 		"health.home": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			return h.village.HealthHome(ctx, env.Metadata)

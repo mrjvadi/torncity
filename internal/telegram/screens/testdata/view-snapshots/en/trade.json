@@ -10,7 +10,8 @@
           "best_bid": 35,
           "item": {
             "code": "bread",
-            "name": "Bread"
+            "name": "Bread",
+            "trip": null
           },
           "last": 40,
           "shelf": {
@@ -25,7 +26,8 @@
           "best_bid": 0,
           "item": {
             "code": "bandage",
-            "name": "Bandage"
+            "name": "Bandage",
+            "trip": null
           },
           "last": 0,
           "shelf": {
@@ -42,7 +44,8 @@
       "yours": [
         {
           "code": "lockpick_set",
-          "name": "Lockpick set"
+          "name": "Lockpick set",
+          "trip": null
         }
       ]
     }
@@ -85,7 +88,8 @@
       "holding": 3,
       "item": {
         "code": "bread",
-        "name": "Bread"
+        "name": "Bread",
+        "trip": null
       },
       "nonce": "0a1b2c3d4e62",
       "reference": 40,
@@ -111,7 +115,8 @@
       "holding": 0,
       "item": {
         "code": "bread",
-        "name": "Bread"
+        "name": "Bread",
+        "trip": null
       },
       "nonce": "0a1b2c3d4e62",
       "reference": 40,
@@ -125,7 +130,8 @@
     "view": {
       "item": {
         "code": "bread",
-        "name": "Bread"
+        "name": "Bread",
+        "trip": null
       },
       "nonce": "0a1b2c3d4e63",
       "payment": {
@@ -155,7 +161,8 @@
       "got": 0,
       "item": {
         "code": "bread",
-        "name": "Bread"
+        "name": "Bread",
+        "trip": null
       },
       "method": "cash",
       "no": 41,
@@ -176,7 +183,8 @@
       "got": 43,
       "item": {
         "code": "bread",
-        "name": "Bread"
+        "name": "Bread",
+        "trip": null
       },
       "method": "",
       "no": 42,
@@ -193,7 +201,8 @@
     "view": {
       "item": {
         "code": "bread",
-        "name": "Bread"
+        "name": "Bread",
+        "trip": null
       },
       "left": 2,
       "no": 41,
@@ -207,7 +216,8 @@
     "view": {
       "item": {
         "code": "bread",
-        "name": "Bread"
+        "name": "Bread",
+        "trip": null
       },
       "left": 2,
       "no": 42,
@@ -227,7 +237,8 @@
           "filled": 1,
           "item": {
             "code": "bread",
-            "name": "Bread"
+            "name": "Bread",
+            "trip": null
           },
           "no": 42,
           "price": 44,
@@ -242,7 +253,8 @@
           "filled": 1,
           "item": {
             "code": "bread",
-            "name": "Bread"
+            "name": "Bread",
+            "trip": null
           },
           "no": 41,
           "price": 42,
@@ -257,7 +269,8 @@
           "filled": 0,
           "item": {
             "code": "bandage",
-            "name": "Bandage"
+            "name": "Bandage",
+            "trip": null
           },
           "no": 17,
           "price": 80,
@@ -285,7 +298,8 @@
       "fee": 2,
       "item": {
         "code": "bread",
-        "name": "Bread"
+        "name": "Bread",
+        "trip": null
       },
       "price": 44,
       "qty": 2,
@@ -302,7 +316,8 @@
       "fee": 0,
       "item": {
         "code": "bread",
-        "name": "Bread"
+        "name": "Bread",
+        "trip": null
       },
       "price": 44,
       "qty": 2,
@@ -316,7 +331,8 @@
       "count": 0,
       "item": {
         "code": "lockpick_set",
-        "name": "Lockpick set"
+        "name": "Lockpick set",
+        "trip": null
       },
       "kind": "not_traded"
     }
@@ -328,7 +344,8 @@
       "count": 0,
       "item": {
         "code": "bread",
-        "name": "Bread"
+        "name": "Bread",
+        "trip": null
       },
       "kind": "too_big"
     }
@@ -340,7 +357,8 @@
       "count": 20,
       "item": {
         "code": "",
-        "name": ""
+        "name": "",
+        "trip": null
       },
       "kind": "too_many"
     }
@@ -352,7 +370,8 @@
       "count": 0,
       "item": {
         "code": "bread",
-        "name": "Bread"
+        "name": "Bread",
+        "trip": null
       },
       "kind": "not_enough"
     }
@@ -364,7 +383,8 @@
       "count": 0,
       "item": {
         "code": "",
-        "name": ""
+        "name": "",
+        "trip": null
       },
       "kind": "no_order"
     }
@@ -376,7 +396,8 @@
       "count": 0,
       "item": {
         "code": "",
-        "name": ""
+        "name": "",
+        "trip": null
       },
       "kind": "closed"
     }
@@ -392,7 +413,8 @@
           "high_bid": 2600,
           "item": {
             "code": "phone",
-            "name": "Phone"
+            "name": "Phone",
+            "trip": null
           },
           "leading": true,
           "mine": false,
@@ -407,7 +429,8 @@
           "high_bid": 0,
           "item": {
             "code": "watch",
-            "name": "Wristwatch"
+            "name": "Wristwatch",
+            "trip": null
           },
           "leading": false,
           "mine": false,
@@ -446,7 +469,8 @@
         "high_bid": 0,
         "item": {
           "code": "watch",
-          "name": "Wristwatch"
+          "name": "Wristwatch",
+          "trip": null
         },
         "leading": false,
         "mine": false,
@@ -484,7 +508,8 @@
         "high_bid": 2600,
         "item": {
           "code": "phone",
-          "name": "Phone"
+          "name": "Phone",
+          "trip": null
         },
         "leading": true,
         "mine": false,
@@ -510,7 +535,8 @@
         "high_bid": 2600,
         "item": {
           "code": "phone",
-          "name": "Phone"
+          "name": "Phone",
+          "trip": null
         },
         "leading": false,
         "mine": true,
@@ -536,7 +562,8 @@
         "high_bid": 2600,
         "item": {
           "code": "phone",
-          "name": "Phone"
+          "name": "Phone",
+          "trip": null
         },
         "leading": false,
         "mine": false,
@@ -563,7 +590,8 @@
       ],
       "item": {
         "code": "phone",
-        "name": "Phone"
+        "name": "Phone",
+        "trip": null
       },
       "nonce": "0a1b2c3d4e65",
       "quality": 72,
@@ -583,7 +611,8 @@
       "ends_at": "2026-09-23T11:11:00Z",
       "item": {
         "code": "phone",
-        "name": "Phone"
+        "name": "Phone",
+        "trip": null
       },
       "no": 9,
       "reserve": 2500
@@ -597,7 +626,8 @@
       "ends_at": "2026-09-23T11:08:00Z",
       "item": {
         "code": "watch",
-        "name": "Wristwatch"
+        "name": "Wristwatch",
+        "trip": null
       },
       "method": "card",
       "no": 8
@@ -613,7 +643,8 @@
           "high_bid": 2600,
           "item": {
             "code": "phone",
-            "name": "Phone"
+            "name": "Phone",
+            "trip": null
           },
           "leading": false,
           "mine": true,
@@ -628,7 +659,8 @@
           "high_bid": 2600,
           "item": {
             "code": "phone",
-            "name": "Phone"
+            "name": "Phone",
+            "trip": null
           },
           "leading": true,
           "mine": false,
@@ -643,7 +675,8 @@
           "high_bid": 900,
           "item": {
             "code": "phone",
-            "name": "Phone"
+            "name": "Phone",
+            "trip": null
           },
           "leading": false,
           "mine": false,
@@ -671,7 +704,8 @@
       "fee": 130,
       "item": {
         "code": "phone",
-        "name": "Phone"
+        "name": "Phone",
+        "trip": null
       },
       "kind": "outbid",
       "no": 7
@@ -685,7 +719,8 @@
       "fee": 130,
       "item": {
         "code": "phone",
-        "name": "Phone"
+        "name": "Phone",
+        "trip": null
       },
       "kind": "won",
       "no": 7
@@ -699,7 +734,8 @@
       "fee": 130,
       "item": {
         "code": "phone",
-        "name": "Phone"
+        "name": "Phone",
+        "trip": null
       },
       "kind": "sold",
       "no": 7
@@ -713,7 +749,8 @@
       "fee": 130,
       "item": {
         "code": "phone",
-        "name": "Phone"
+        "name": "Phone",
+        "trip": null
       },
       "kind": "unsold",
       "no": 7

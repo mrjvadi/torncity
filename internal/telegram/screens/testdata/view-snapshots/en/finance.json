@@ -28,7 +28,8 @@
           "arrears": 0,
           "company": {
             "code": "",
-            "name": ""
+            "name": "",
+            "trip": null
           },
           "left": 12,
           "next": 1786,
@@ -36,7 +37,8 @@
           "owed": 21430,
           "product": {
             "code": "personal",
-            "name": "Personal loan"
+            "name": "Personal loan",
+            "trip": null
           },
           "status": "active"
         },
@@ -44,7 +46,8 @@
           "arrears": 0,
           "company": {
             "code": "Q7M2K9B",
-            "name": "Kaveh Bakery"
+            "name": "Kaveh Bakery",
+            "trip": null
           },
           "left": 11,
           "next": 3900,
@@ -52,7 +55,8 @@
           "owed": 42000,
           "product": {
             "code": "business",
-            "name": "Business loan"
+            "name": "Business loan",
+            "trip": null
           },
           "status": "active"
         },
@@ -60,7 +64,8 @@
           "arrears": 0,
           "company": {
             "code": "",
-            "name": ""
+            "name": "",
+            "trip": null
           },
           "left": 0,
           "next": 0,
@@ -68,7 +73,8 @@
           "owed": 0,
           "product": {
             "code": "personal",
-            "name": "Personal loan"
+            "name": "Personal loan",
+            "trip": null
           },
           "status": "repaid"
         }
@@ -83,7 +89,8 @@
           "min_score": 500,
           "product": {
             "code": "personal",
-            "name": "Personal loan"
+            "name": "Personal loan",
+            "trip": null
           },
           "rate_bps": 2600
         },
@@ -93,7 +100,8 @@
           "min_score": 560,
           "product": {
             "code": "mortgage",
-            "name": "Mortgage"
+            "name": "Mortgage",
+            "trip": null
           },
           "rate_bps": 2100
         },
@@ -103,7 +111,8 @@
           "min_score": 700,
           "product": {
             "code": "business",
-            "name": "Business loan"
+            "name": "Business loan",
+            "trip": null
           },
           "rate_bps": 2300
         }
@@ -148,7 +157,8 @@
           "min_score": 500,
           "product": {
             "code": "personal",
-            "name": "Personal loan"
+            "name": "Personal loan",
+            "trip": null
           },
           "rate_bps": 3600
         },
@@ -158,7 +168,8 @@
           "min_score": 560,
           "product": {
             "code": "mortgage",
-            "name": "Mortgage"
+            "name": "Mortgage",
+            "trip": null
           },
           "rate_bps": 3100
         }
@@ -203,7 +214,8 @@
           "min_score": 500,
           "product": {
             "code": "personal",
-            "name": "Personal loan"
+            "name": "Personal loan",
+            "trip": null
           },
           "rate_bps": 3600
         },
@@ -213,7 +225,8 @@
           "min_score": 560,
           "product": {
             "code": "mortgage",
-            "name": "Mortgage"
+            "name": "Mortgage",
+            "trip": null
           },
           "rate_bps": 3100
         }
@@ -252,7 +265,8 @@
       "pledges": null,
       "product": {
         "code": "personal",
-        "name": "Personal loan"
+        "name": "Personal loan",
+        "trip": null
       },
       "rate_bps": 2600,
       "terms": [
@@ -285,14 +299,16 @@
           "no": 3,
           "type": {
             "code": "studio",
-            "name": "Studio flat"
+            "name": "Studio flat",
+            "trip": null
           },
           "value": 46350
         }
       ],
       "product": {
         "code": "mortgage",
-        "name": "Mortgage"
+        "name": "Mortgage",
+        "trip": null
       },
       "rate_bps": 2100,
       "terms": null,
@@ -325,7 +341,8 @@
         "no": 3,
         "type": {
           "code": "studio",
-          "name": "Studio flat"
+          "name": "Studio flat",
+          "trip": null
         },
         "value": 46350
       },
@@ -341,14 +358,16 @@
           "no": 3,
           "type": {
             "code": "studio",
-            "name": "Studio flat"
+            "name": "Studio flat",
+            "trip": null
           },
           "value": 46350
         }
       ],
       "product": {
         "code": "mortgage",
-        "name": "Mortgage"
+        "name": "Mortgage",
+        "trip": null
       },
       "rate_bps": 2100,
       "terms": null,
@@ -368,7 +387,8 @@
       "pledges": null,
       "product": {
         "code": "personal",
-        "name": "Personal loan"
+        "name": "Personal loan",
+        "trip": null
       },
       "rate_bps": 2600,
       "terms": null,
@@ -387,7 +407,8 @@
       "pledge": null,
       "product": {
         "code": "personal",
-        "name": "Personal loan"
+        "name": "Personal loan",
+        "trip": null
       },
       "rate_bps": 2600,
       "term": 28,
@@ -405,7 +426,8 @@
         "arrears": 1,
         "company": {
           "code": "",
-          "name": ""
+          "name": "",
+          "trip": null
         },
         "left": 12,
         "next": 1786,
@@ -413,7 +435,8 @@
         "owed": 21430,
         "product": {
           "code": "personal",
-          "name": "Personal loan"
+          "name": "Personal loan",
+          "trip": null
         },
         "status": "active"
       },
@@ -444,7 +467,8 @@
         "arrears": 1,
         "company": {
           "code": "",
-          "name": ""
+          "name": "",
+          "trip": null
         },
         "left": 12,
         "next": 1786,
@@ -452,7 +476,8 @@
         "owed": 21430,
         "product": {
           "code": "personal",
-          "name": "Personal loan"
+          "name": "Personal loan",
+          "trip": null
         },
         "status": "active"
       },
@@ -483,7 +508,8 @@
         "arrears": 0,
         "company": {
           "code": "",
-          "name": ""
+          "name": "",
+          "trip": null
         },
         "left": 0,
         "next": 0,
@@ -491,7 +517,8 @@
         "owed": 0,
         "product": {
           "code": "mortgage",
-          "name": "Mortgage"
+          "name": "Mortgage",
+          "trip": null
         },
         "status": "defaulted"
       },
@@ -515,7 +542,8 @@
         "no": 3,
         "type": {
           "code": "studio",
-          "name": "Studio flat"
+          "name": "Studio flat",
+          "trip": null
         },
         "value": 46350
       },
@@ -536,7 +564,8 @@
         "arrears": 0,
         "company": {
           "code": "",
-          "name": ""
+          "name": "",
+          "trip": null
         },
         "left": 0,
         "next": 0,
@@ -544,7 +573,8 @@
         "owed": 0,
         "product": {
           "code": "personal",
-          "name": "Personal loan"
+          "name": "Personal loan",
+          "trip": null
         },
         "status": "repaid"
       },
@@ -1049,7 +1079,8 @@
       "pledge": null,
       "product": {
         "code": "personal",
-        "name": "Personal loan"
+        "name": "Personal loan",
+        "trip": null
       }
     }
   },
@@ -1066,7 +1097,8 @@
       "pledge": null,
       "product": {
         "code": "personal",
-        "name": "Personal loan"
+        "name": "Personal loan",
+        "trip": null
       }
     }
   },
@@ -1091,13 +1123,15 @@
         "no": 3,
         "type": {
           "code": "studio",
-          "name": "Studio flat"
+          "name": "Studio flat",
+          "trip": null
         },
         "value": 46350
       },
       "product": {
         "code": "mortgage",
-        "name": "Mortgage"
+        "name": "Mortgage",
+        "trip": null
       }
     }
   },
@@ -1114,7 +1148,8 @@
       "pledge": null,
       "product": {
         "code": "personal",
-        "name": "Personal loan"
+        "name": "Personal loan",
+        "trip": null
       }
     }
   },
@@ -1142,7 +1177,8 @@
           "premium": 40,
           "product": {
             "code": "health",
-            "name": "Health insurance"
+            "name": "Health insurance",
+            "trip": null
           },
           "targets": null,
           "waiting_seconds": 1440
@@ -1156,7 +1192,8 @@
           "premium": 20,
           "product": {
             "code": "property",
-            "name": "Property insurance"
+            "name": "Property insurance",
+            "trip": null
           },
           "targets": [
             {
@@ -1170,7 +1207,8 @@
               "no": 3,
               "type": {
                 "code": "studio",
-                "name": "Studio flat"
+                "name": "Studio flat",
+                "trip": null
               },
               "value": 46350
             }
@@ -1204,7 +1242,8 @@
           "premium": 40,
           "product": {
             "code": "health",
-            "name": "Health insurance"
+            "name": "Health insurance",
+            "trip": null
           },
           "property": null,
           "reason": "",
@@ -1220,7 +1259,8 @@
           "premium": 57,
           "product": {
             "code": "property",
-            "name": "Property insurance"
+            "name": "Property insurance",
+            "trip": null
           },
           "property": {
             "city": {
@@ -1233,7 +1273,8 @@
             "no": 3,
             "type": {
               "code": "studio",
-              "name": "Studio flat"
+              "name": "Studio flat",
+              "trip": null
             },
             "value": 46350
           },
@@ -1250,7 +1291,8 @@
           "premium": 0,
           "product": {
             "code": "health",
-            "name": "Health insurance"
+            "name": "Health insurance",
+            "trip": null
           },
           "property": null,
           "reason": "lapsed",
@@ -1268,7 +1310,8 @@
           "premium": 40,
           "product": {
             "code": "health",
-            "name": "Health insurance"
+            "name": "Health insurance",
+            "trip": null
           },
           "targets": null,
           "waiting_seconds": 1440
@@ -1282,7 +1325,8 @@
           "premium": 20,
           "product": {
             "code": "property",
-            "name": "Property insurance"
+            "name": "Property insurance",
+            "trip": null
           },
           "targets": null,
           "waiting_seconds": 2880
@@ -1304,7 +1348,8 @@
         "premium": 40,
         "product": {
           "code": "health",
-          "name": "Health insurance"
+          "name": "Health insurance",
+          "trip": null
         },
         "property": null,
         "reason": "",
@@ -1329,7 +1374,8 @@
           "premium": 40,
           "product": {
             "code": "health",
-            "name": "Health insurance"
+            "name": "Health insurance",
+            "trip": null
           },
           "property": null,
           "reason": "",
@@ -1345,7 +1391,8 @@
           "premium": 57,
           "product": {
             "code": "property",
-            "name": "Property insurance"
+            "name": "Property insurance",
+            "trip": null
           },
           "property": {
             "city": {
@@ -1358,7 +1405,8 @@
             "no": 3,
             "type": {
               "code": "studio",
-              "name": "Studio flat"
+              "name": "Studio flat",
+              "trip": null
             },
             "value": 46350
           },
@@ -1375,7 +1423,8 @@
           "premium": 0,
           "product": {
             "code": "health",
-            "name": "Health insurance"
+            "name": "Health insurance",
+            "trip": null
           },
           "property": null,
           "reason": "lapsed",
@@ -1393,7 +1442,8 @@
           "premium": 40,
           "product": {
             "code": "health",
-            "name": "Health insurance"
+            "name": "Health insurance",
+            "trip": null
           },
           "targets": null,
           "waiting_seconds": 1440
@@ -1407,7 +1457,8 @@
           "premium": 20,
           "product": {
             "code": "property",
-            "name": "Property insurance"
+            "name": "Property insurance",
+            "trip": null
           },
           "targets": null,
           "waiting_seconds": 2880
@@ -1439,7 +1490,8 @@
       "premium": 40,
       "product": {
         "code": "health",
-        "name": "Health insurance"
+        "name": "Health insurance",
+        "trip": null
       },
       "property": null,
       "waiting_seconds": 1440
@@ -1467,7 +1519,8 @@
       "premium": 57,
       "product": {
         "code": "property",
-        "name": "Property insurance"
+        "name": "Property insurance",
+        "trip": null
       },
       "property": {
         "city": {
@@ -1480,7 +1533,8 @@
         "no": 3,
         "type": {
           "code": "studio",
-          "name": "Studio flat"
+          "name": "Studio flat",
+          "trip": null
         },
         "value": 46350
       },
@@ -1500,7 +1554,8 @@
       "pledge": null,
       "product": {
         "code": "health",
-        "name": "Health insurance"
+        "name": "Health insurance",
+        "trip": null
       }
     }
   },
@@ -1517,7 +1572,8 @@
       "pledge": null,
       "product": {
         "code": "health",
-        "name": "Health insurance"
+        "name": "Health insurance",
+        "trip": null
       }
     }
   },
@@ -1534,7 +1590,8 @@
       "pledge": null,
       "product": {
         "code": "property",
-        "name": "Property insurance"
+        "name": "Property insurance",
+        "trip": null
       }
     }
   },
@@ -1552,13 +1609,15 @@
           },
           "company": {
             "code": "Q7M2K9B",
-            "name": "Kaveh Bakery"
+            "name": "Kaveh Bakery",
+            "trip": null
           },
           "prev": 120,
           "price": 132,
           "type": {
             "code": "grocery",
-            "name": "Grocery store"
+            "name": "Grocery store",
+            "trip": null
           },
           "volume": 240
         },
@@ -1571,13 +1630,15 @@
           },
           "company": {
             "code": "H4T8W2C",
-            "name": "Nilou Repairs"
+            "name": "Nilou Repairs",
+            "trip": null
           },
           "prev": 95,
           "price": 88,
           "type": {
             "code": "repair_workshop",
-            "name": "Repair workshop"
+            "name": "Repair workshop",
+            "trip": null
           },
           "volume": 0
         }
@@ -1639,7 +1700,8 @@
       },
       "company": {
         "code": "Q7M2K9B",
-        "name": "Kaveh Bakery"
+        "name": "Kaveh Bakery",
+        "trip": null
       },
       "controller": "Kaveh",
       "cost": 7200,
@@ -1687,7 +1749,8 @@
       ],
       "type": {
         "code": "grocery",
-        "name": "Grocery store"
+        "name": "Grocery store",
+        "trip": null
       },
       "unavailable": null
     }
@@ -1707,7 +1770,8 @@
       },
       "company": {
         "code": "Q7M2K9B",
-        "name": "Kaveh Bakery"
+        "name": "Kaveh Bakery",
+        "trip": null
       },
       "controller": "Sara",
       "cost": 0,
@@ -1727,7 +1791,8 @@
       "trades": null,
       "type": {
         "code": "grocery",
-        "name": "Grocery store"
+        "name": "Grocery store",
+        "trip": null
       },
       "unavailable": null
     }
@@ -1739,7 +1804,8 @@
       "bank": 21000,
       "company": {
         "code": "Q7M2K9B",
-        "name": "Kaveh Bakery"
+        "name": "Kaveh Bakery",
+        "trip": null
       },
       "expires_at": null,
       "fee_bps": 200,
@@ -1763,7 +1829,8 @@
       "bank": 0,
       "company": {
         "code": "Q7M2K9B",
-        "name": "Kaveh Bakery"
+        "name": "Kaveh Bakery",
+        "trip": null
       },
       "expires_at": null,
       "fee_bps": 200,
@@ -1787,7 +1854,8 @@
       "bank": 0,
       "company": {
         "code": "Q7M2K9B",
-        "name": "Kaveh Bakery"
+        "name": "Kaveh Bakery",
+        "trip": null
       },
       "expires_at": "2026-09-30T11:05:00Z",
       "fee_bps": 0,
@@ -1811,7 +1879,8 @@
       "bank": 0,
       "company": {
         "code": "Q7M2K9B",
-        "name": "Kaveh Bakery"
+        "name": "Kaveh Bakery",
+        "trip": null
       },
       "expires_at": null,
       "fee_bps": 0,
@@ -1839,7 +1908,8 @@
         {
           "company": {
             "code": "Q7M2K9B",
-            "name": "Kaveh Bakery"
+            "name": "Kaveh Bakery",
+            "trip": null
           },
           "cost": 7200,
           "listed": true,
@@ -1851,7 +1921,8 @@
         {
           "company": {
             "code": "H4T8W2C",
-            "name": "Nilou Repairs"
+            "name": "Nilou Repairs",
+            "trip": null
           },
           "cost": 0,
           "listed": false,
@@ -1867,7 +1938,8 @@
         {
           "company": {
             "code": "Q7M2K9B",
-            "name": "Kaveh Bakery"
+            "name": "Kaveh Bakery",
+            "trip": null
           },
           "filled": 40,
           "no": 31,
@@ -1878,7 +1950,8 @@
         {
           "company": {
             "code": "Q7M2K9B",
-            "name": "Kaveh Bakery"
+            "name": "Kaveh Bakery",
+            "trip": null
           },
           "filled": 0,
           "no": 33,
@@ -1919,7 +1992,8 @@
       "chosen": null,
       "company": {
         "code": "Q7M2K9B",
-        "name": "Kaveh Bakery"
+        "name": "Kaveh Bakery",
+        "trip": null
       },
       "fee": 5000,
       "floats": [
@@ -1970,7 +2044,8 @@
       },
       "company": {
         "code": "Q7M2K9B",
-        "name": "Kaveh Bakery"
+        "name": "Kaveh Bakery",
+        "trip": null
       },
       "fee": 5000,
       "floats": [
@@ -2018,7 +2093,8 @@
       "chosen": null,
       "company": {
         "code": "Q7M2K9B",
-        "name": "Kaveh Bakery"
+        "name": "Kaveh Bakery",
+        "trip": null
       },
       "fee": 5000,
       "floats": [
@@ -2066,7 +2142,8 @@
       "chosen": null,
       "company": {
         "code": "Q7M2K9B",
-        "name": "Kaveh Bakery"
+        "name": "Kaveh Bakery",
+        "trip": null
       },
       "fee": 5000,
       "floats": [
@@ -2112,7 +2189,8 @@
       "chosen": null,
       "company": {
         "code": "Q7M2K9B",
-        "name": "Kaveh Bakery"
+        "name": "Kaveh Bakery",
+        "trip": null
       },
       "free": 42000,
       "holders": 0,
@@ -2148,7 +2226,8 @@
       },
       "company": {
         "code": "Q7M2K9B",
-        "name": "Kaveh Bakery"
+        "name": "Kaveh Bakery",
+        "trip": null
       },
       "free": 42000,
       "holders": 0,
@@ -2181,7 +2260,8 @@
       "chosen": null,
       "company": {
         "code": "Q7M2K9B",
-        "name": "Kaveh Bakery"
+        "name": "Kaveh Bakery",
+        "trip": null
       },
       "free": 31500,
       "holders": 4,
@@ -2214,7 +2294,8 @@
       "chosen": null,
       "company": {
         "code": "Q7M2K9B",
-        "name": "Kaveh Bakery"
+        "name": "Kaveh Bakery",
+        "trip": null
       },
       "free": 0,
       "holders": 0,
@@ -2234,7 +2315,8 @@
       "amount": 1320,
       "company": {
         "code": "Q7M2K9B",
-        "name": "Kaveh Bakery"
+        "name": "Kaveh Bakery",
+        "trip": null
       },
       "kind": "filled",
       "player": "",
@@ -2250,7 +2332,8 @@
       "amount": 1294,
       "company": {
         "code": "Q7M2K9B",
-        "name": "Kaveh Bakery"
+        "name": "Kaveh Bakery",
+        "trip": null
       },
       "kind": "filled",
       "player": "",
@@ -2266,7 +2349,8 @@
       "amount": 540,
       "company": {
         "code": "Q7M2K9B",
-        "name": "Kaveh Bakery"
+        "name": "Kaveh Bakery",
+        "trip": null
       },
       "kind": "dividend",
       "player": "",
@@ -2282,7 +2366,8 @@
       "amount": 0,
       "company": {
         "code": "Q7M2K9B",
-        "name": "Kaveh Bakery"
+        "name": "Kaveh Bakery",
+        "trip": null
       },
       "kind": "takeover",
       "player": "",
@@ -2298,7 +2383,8 @@
       "amount": 0,
       "company": {
         "code": "Q7M2K9B",
-        "name": "Kaveh Bakery"
+        "name": "Kaveh Bakery",
+        "trip": null
       },
       "kind": "takeover_lost",
       "player": "",

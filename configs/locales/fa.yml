@@ -111,6 +111,7 @@ skill:
   masonry: بنایی
   smithing: آهنگری
   farming: کشاورزی
+  strength: قدرت بدنی
   herbalism: گیاهان دارویی
 
 # City display names, keyed on the city's content code (configs/content/cities.yml).
@@ -395,6 +396,7 @@ settlement_building:
   clinic: "درمانگاه"
   teaching_circle: "کلاس درس"
   school: "مدرسه"
+  training_ground: "زمین تمرین"
   barter_post: "بازارچه"
   general_store: "دکان"
   market: "بازار"
@@ -1526,6 +1528,7 @@ climate_band:
   severe: "سرمای سخت"
 staff_role:
   teacher: "معلم"
+  trainer: "مربی"
   health_worker: "بهورز"
   nurse: "پرستار"
   watchman: "نگهبان"

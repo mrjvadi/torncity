@@ -71,7 +71,54 @@ type CourseDetailView struct {
 	// Payment is how the fee can be paid, set when the course can be
 	// enrolled in and costs something: a button per way the player can pay.
 	Payment *PaymentChoice
+	// Staff are the teachers of the course in the settlement the player stands
+	// in; Teaching what the player may do about teaching it. Empty in the
+	// neutral city, whose schools are the state's.
+	Staff    []TeacherLine
+	Teaching *TeachingView
 }
+
+// What a teacher is: the school's NPC, a player on the school's post, or a
+// player teaching at home.
+const (
+	TeacherKindNPC    = "npc"
+	TeacherKindSchool = "school"
+	TeacherKindHome   = "home"
+	TeachModeSchool   = "school"
+	TeachModeHome     = "home"
+)
+
+// TeacherLine is one teacher of a course here.
+type TeacherLine struct {
+	ID   string
+	Kind string
+	// Name is the player's name; empty for an NPC teacher.
+	Name     string
+	Students int
+	Max      int
+	// Mine says the post is the viewer's own; CanEnd that the viewer may end it
+	// (the holder, or the head).
+	Mine, CanEnd bool
+}
+
+// TeachingView is what the viewer may do about teaching the course here.
+type TeachingView struct {
+	// CanHire: the viewer is the head, the school can teach it (research and
+	// building stand) and no NPC teacher is hired yet; HireWage what each
+	// student's class then costs the treasury; NoPool says no free labourer.
+	CanHire  bool
+	HireWage int64
+	NoPool   bool
+	// CanSchool: the viewer holds the certificate and the school can teach it;
+	// CanHome: the viewer holds it and may teach at home. SchoolWage is what
+	// the treasury pays a player teacher for each student.
+	CanSchool  bool
+	CanHome    bool
+	SchoolWage int64
+	// TaxBPS is the settlement's income tax a home teacher pays on tuition.
+	TaxBPS int
+}
+
 
 // EnrolledView is a successful enrolment.
 type EnrolledView struct {

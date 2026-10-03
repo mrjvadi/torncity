@@ -20,7 +20,8 @@
           "durability": 0,
           "item": {
             "code": "bread",
-            "name": "Bread"
+            "name": "Bread",
+            "trip": null
           },
           "qty": 3,
           "quality": 0,
@@ -39,7 +40,8 @@
           "durability": 0,
           "item": {
             "code": "bandage",
-            "name": "Bandage"
+            "name": "Bandage",
+            "trip": null
           },
           "qty": 1,
           "quality": 0,
@@ -58,7 +60,8 @@
           "durability": 10,
           "item": {
             "code": "lockpick_set",
-            "name": "Lockpick set"
+            "name": "Lockpick set",
+            "trip": null
           },
           "qty": 0,
           "quality": 62,
@@ -77,7 +80,8 @@
           "durability": 0,
           "item": {
             "code": "phone",
-            "name": "Phone"
+            "name": "Phone",
+            "trip": null
           },
           "qty": 0,
           "quality": 55,
@@ -128,7 +132,8 @@
             "hard_kg": 25,
             "item": {
               "code": "bag_pouch",
-              "name": "Belt pouch"
+              "name": "Belt pouch",
+              "trip": null
             },
             "serial": "P0UCH00001",
             "space": 2,
@@ -145,7 +150,8 @@
             "hard_kg": 30,
             "item": {
               "code": "bag_sack",
-              "name": "Shoulder sack"
+              "name": "Shoulder sack",
+              "trip": null
             },
             "serial": "SACK000001",
             "space": 12,
@@ -172,7 +178,8 @@
           "durability": 0,
           "item": {
             "code": "bread",
-            "name": "Bread"
+            "name": "Bread",
+            "trip": null
           },
           "qty": 3,
           "quality": 0,
@@ -221,7 +228,8 @@
           "durability": 0,
           "item": {
             "code": "bread",
-            "name": "Bread"
+            "name": "Bread",
+            "trip": null
           },
           "qty": 3,
           "quality": 0,
@@ -262,7 +270,8 @@
       "give_to": null,
       "item": {
         "code": "bag_sack",
-        "name": "Shoulder sack"
+        "name": "Shoulder sack",
+        "trip": null
       },
       "nonce": "",
       "piece": true,
@@ -298,7 +307,8 @@
       "give_to": null,
       "item": {
         "code": "bag_pouch",
-        "name": "Belt pouch"
+        "name": "Belt pouch",
+        "trip": null
       },
       "nonce": "",
       "piece": true,
@@ -337,12 +347,14 @@
       "give_to": [
         {
           "code": "B3C4D5F",
-          "name": "Kaveh"
+          "name": "Kaveh",
+          "trip": null
         }
       ],
       "item": {
         "code": "bread",
-        "name": "Bread"
+        "name": "Bread",
+        "trip": null
       },
       "nonce": "0a1b2c3d4e5f",
       "piece": false,
@@ -376,7 +388,8 @@
       "give_to": null,
       "item": {
         "code": "bandage",
-        "name": "Bandage"
+        "name": "Bandage",
+        "trip": null
       },
       "nonce": "",
       "piece": false,
@@ -407,11 +420,13 @@
         "crimes": [
           {
             "code": "home_burglary",
-            "name": "Home burglary"
+            "name": "Home burglary",
+            "trip": null
           },
           {
             "code": "car_break_in",
-            "name": "Car break-in"
+            "name": "Car break-in",
+            "trip": null
           }
         ],
         "nerve": -1,
@@ -423,7 +438,8 @@
       "give_to": null,
       "item": {
         "code": "lockpick_set",
-        "name": "Lockpick set"
+        "name": "Lockpick set",
+        "trip": null
       },
       "nonce": "",
       "piece": true,
@@ -452,7 +468,8 @@
       "cooldown_seconds": 1800,
       "item": {
         "code": "bread",
-        "name": "Bread"
+        "name": "Bread",
+        "trip": null
       },
       "left": 2,
       "ready_at": "2026-09-23T11:35:00Z"
@@ -464,11 +481,13 @@
     "view": {
       "item": {
         "code": "bread",
-        "name": "Bread"
+        "name": "Bread",
+        "trip": null
       },
       "to": {
         "code": "B3C4D5F",
-        "name": "Kaveh"
+        "name": "Kaveh",
+        "trip": null
       }
     }
   },
@@ -478,7 +497,8 @@
     "view": {
       "item": {
         "code": "phone",
-        "name": "Phone"
+        "name": "Phone",
+        "trip": null
       },
       "nonce": "0a1b2c3d4e60",
       "ref": "F0E1D2C3B4"
@@ -490,7 +510,8 @@
     "view": {
       "item": {
         "code": "phone",
-        "name": "Phone"
+        "name": "Phone",
+        "trip": null
       },
       "nonce": "",
       "ref": ""
@@ -502,7 +523,8 @@
     "view": {
       "item": {
         "code": "phone",
-        "name": "Phone"
+        "name": "Phone",
+        "trip": null
       },
       "kind": "not_held",
       "ready_at": null,
@@ -515,7 +537,8 @@
     "view": {
       "item": {
         "code": "lockpick_set",
-        "name": "Lockpick set"
+        "name": "Lockpick set",
+        "trip": null
       },
       "kind": "not_usable",
       "ready_at": null,
@@ -528,7 +551,8 @@
     "view": {
       "item": {
         "code": "bandage",
-        "name": "Bandage"
+        "name": "Bandage",
+        "trip": null
       },
       "kind": "cooling",
       "ready_at": "2026-09-23T11:17:00Z",
@@ -541,7 +565,8 @@
     "view": {
       "item": {
         "code": "bread",
-        "name": "Bread"
+        "name": "Bread",
+        "trip": null
       },
       "kind": "no_effect",
       "ready_at": null,
@@ -554,7 +579,8 @@
     "view": {
       "item": {
         "code": "lockpick_set",
-        "name": "Lockpick set"
+        "name": "Lockpick set",
+        "trip": null
       },
       "kind": "not_tradeable",
       "ready_at": null,
@@ -567,7 +593,8 @@
     "view": {
       "item": {
         "code": "bread",
-        "name": "Bread"
+        "name": "Bread",
+        "trip": null
       },
       "kind": "not_together",
       "ready_at": null,
@@ -580,7 +607,8 @@
     "view": {
       "item": {
         "code": "bread",
-        "name": "Bread"
+        "name": "Bread",
+        "trip": null
       },
       "kind": "not_bag",
       "ready_at": null,
@@ -599,33 +627,39 @@
           "here": true,
           "place": {
             "code": "bazaar",
-            "name": "Bazaar"
+            "name": "Bazaar",
+            "trip": null
           },
           "shop": {
             "code": "grocery",
-            "name": "Grocery"
+            "name": "Grocery",
+            "trip": null
           }
         },
         {
           "here": true,
           "place": {
             "code": "bazaar",
-            "name": "Bazaar"
+            "name": "Bazaar",
+            "trip": null
           },
           "shop": {
             "code": "hardware_store",
-            "name": "Hardware store"
+            "name": "Hardware store",
+            "trip": null
           }
         },
         {
           "here": false,
           "place": {
             "code": "residential_area",
-            "name": "Residential area"
+            "name": "Residential area",
+            "trip": null
           },
           "shop": {
             "code": "pawnshop",
-            "name": "Pawnshop"
+            "name": "Pawnshop",
+            "trip": null
           }
         }
       ]
@@ -649,29 +683,34 @@
       "city_code": "ostmarch",
       "place": {
         "code": "bazaar",
-        "name": "Bazaar"
+        "name": "Bazaar",
+        "trip": null
       },
       "shops": [
         {
           "here": false,
           "place": {
             "code": "bazaar",
-            "name": "Bazaar"
+            "name": "Bazaar",
+            "trip": null
           },
           "shop": {
             "code": "grocery",
-            "name": "Grocery"
+            "name": "Grocery",
+            "trip": null
           }
         },
         {
           "here": false,
           "place": {
             "code": "bazaar",
-            "name": "Bazaar"
+            "name": "Bazaar",
+            "trip": null
           },
           "shop": {
             "code": "hardware_store",
-            "name": "Hardware store"
+            "name": "Hardware store",
+            "trip": null
           }
         }
       ]
@@ -684,7 +723,8 @@
       "here": true,
       "place": {
         "code": "bazaar",
-        "name": "Bazaar"
+        "name": "Bazaar",
+        "trip": null
       },
       "shelves": [
         {
@@ -692,7 +732,8 @@
           "buyback": 300,
           "item": {
             "code": "lockpick_set",
-            "name": "Lockpick set"
+            "name": "Lockpick set",
+            "trip": null
           },
           "next_restock": null,
           "price": 600,
@@ -709,7 +750,8 @@
           "buyback": 0,
           "item": {
             "code": "crowbar",
-            "name": "Crowbar"
+            "name": "Crowbar",
+            "trip": null
           },
           "next_restock": null,
           "price": 390,
@@ -726,7 +768,8 @@
           "buyback": 0,
           "item": {
             "code": "gloves",
-            "name": "Pair of gloves"
+            "name": "Pair of gloves",
+            "trip": null
           },
           "next_restock": "2026-09-23T11:25:00Z",
           "price": 120,
@@ -741,7 +784,8 @@
       ],
       "shop": {
         "code": "hardware_store",
-        "name": "Hardware store"
+        "name": "Hardware store",
+        "trip": null
       },
       "tax_bps": 500,
       "walk_seconds": 0
@@ -754,7 +798,8 @@
       "here": false,
       "place": {
         "code": "bazaar",
-        "name": "Bazaar"
+        "name": "Bazaar",
+        "trip": null
       },
       "shelves": [
         {
@@ -762,7 +807,8 @@
           "buyback": 300,
           "item": {
             "code": "lockpick_set",
-            "name": "Lockpick set"
+            "name": "Lockpick set",
+            "trip": null
           },
           "next_restock": null,
           "price": 600,
@@ -779,7 +825,8 @@
           "buyback": 0,
           "item": {
             "code": "crowbar",
-            "name": "Crowbar"
+            "name": "Crowbar",
+            "trip": null
           },
           "next_restock": null,
           "price": 390,
@@ -796,7 +843,8 @@
           "buyback": 0,
           "item": {
             "code": "gloves",
-            "name": "Pair of gloves"
+            "name": "Pair of gloves",
+            "trip": null
           },
           "next_restock": "2026-09-23T11:25:00Z",
           "price": 120,
@@ -811,7 +859,8 @@
       ],
       "shop": {
         "code": "hardware_store",
-        "name": "Hardware store"
+        "name": "Hardware store",
+        "trip": null
       },
       "tax_bps": 500,
       "walk_seconds": 15
@@ -823,7 +872,8 @@
     "view": {
       "item": {
         "code": "lockpick_set",
-        "name": "Lockpick set"
+        "name": "Lockpick set",
+        "trip": null
       },
       "nonce": "0a1b2c3d4e61",
       "payment": {
@@ -842,7 +892,8 @@
       "qty": 1,
       "shop": {
         "code": "hardware_store",
-        "name": "Hardware store"
+        "name": "Hardware store",
+        "trip": null
       },
       "stock": 4,
       "tax": 30,
@@ -857,7 +908,8 @@
     "view": {
       "item": {
         "code": "lockpick_set",
-        "name": "Lockpick set"
+        "name": "Lockpick set",
+        "trip": null
       },
       "nonce": "",
       "payment": {
@@ -873,7 +925,8 @@
       "qty": 1,
       "shop": {
         "code": "hardware_store",
-        "name": "Hardware store"
+        "name": "Hardware store",
+        "trip": null
       },
       "stock": 4,
       "tax": 30,
@@ -888,13 +941,15 @@
     "view": {
       "item": {
         "code": "lockpick_set",
-        "name": "Lockpick set"
+        "name": "Lockpick set",
+        "trip": null
       },
       "method": "card",
       "qty": 1,
       "shop": {
         "code": "hardware_store",
-        "name": "Hardware store"
+        "name": "Hardware store",
+        "trip": null
       },
       "tax": 30,
       "total": 630
@@ -906,29 +961,34 @@
     "view": {
       "item": {
         "code": "phone",
-        "name": "Phone"
+        "name": "Phone",
+        "trip": null
       },
       "offers": [
         {
           "place": {
             "code": "residential_area",
-            "name": "Residential area"
+            "name": "Residential area",
+            "trip": null
           },
           "price": 1100,
           "shop": {
             "code": "pawnshop",
-            "name": "Pawnshop"
+            "name": "Pawnshop",
+            "trip": null
           }
         },
         {
           "place": {
             "code": "business_district",
-            "name": "Business district"
+            "name": "Business district",
+            "trip": null
           },
           "price": 1250,
           "shop": {
             "code": "electronics_store",
-            "name": "Electronics store"
+            "name": "Electronics store",
+            "trip": null
           }
         }
       ],
@@ -941,7 +1001,8 @@
     "view": {
       "item": {
         "code": "bread",
-        "name": "Bread"
+        "name": "Bread",
+        "trip": null
       },
       "offers": null,
       "ref": "bread"
@@ -953,13 +1014,15 @@
     "view": {
       "item": {
         "code": "phone",
-        "name": "Phone"
+        "name": "Phone",
+        "trip": null
       },
       "left": 0,
       "price": 1100,
       "shop": {
         "code": "pawnshop",
-        "name": "Pawnshop"
+        "name": "Pawnshop",
+        "trip": null
       }
     }
   },
@@ -969,13 +1032,15 @@
     "view": {
       "item": {
         "code": "",
-        "name": ""
+        "name": "",
+        "trip": null
       },
       "kind": "no_shop",
       "next_restock": null,
       "shop": {
         "code": "",
-        "name": ""
+        "name": "",
+        "trip": null
       },
       "stock": 0
     }
@@ -986,13 +1051,15 @@
     "view": {
       "item": {
         "code": "lockpick_set",
-        "name": "Lockpick set"
+        "name": "Lockpick set",
+        "trip": null
       },
       "kind": "not_sold",
       "next_restock": null,
       "shop": {
         "code": "grocery",
-        "name": "Grocery"
+        "name": "Grocery",
+        "trip": null
       },
       "stock": 0
     }
@@ -1003,13 +1070,15 @@
     "view": {
       "item": {
         "code": "lockpick_set",
-        "name": "Lockpick set"
+        "name": "Lockpick set",
+        "trip": null
       },
       "kind": "sold_out",
       "next_restock": "2026-09-23T11:25:00Z",
       "shop": {
         "code": "hardware_store",
-        "name": "Hardware store"
+        "name": "Hardware store",
+        "trip": null
       },
       "stock": 0
     }
@@ -1020,13 +1089,15 @@
     "view": {
       "item": {
         "code": "phone",
-        "name": "Phone"
+        "name": "Phone",
+        "trip": null
       },
       "kind": "not_held",
       "next_restock": null,
       "shop": {
         "code": "pawnshop",
-        "name": "Pawnshop"
+        "name": "Pawnshop",
+        "trip": null
       },
       "stock": 0
     }
@@ -1037,13 +1108,15 @@
     "view": {
       "item": {
         "code": "phone",
-        "name": "Phone"
+        "name": "Phone",
+        "trip": null
       },
       "kind": "no_buyback",
       "next_restock": null,
       "shop": {
         "code": "grocery",
-        "name": "Grocery"
+        "name": "Grocery",
+        "trip": null
       },
       "stock": 0
     }

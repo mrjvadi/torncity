@@ -30,6 +30,9 @@ skills:
   - {code: masonry,     name: Masonry,     category: crafts}
   - {code: smithing,    name: Smithing,    category: crafts}
   - {code: farming,     name: Farming,     category: land}
+  # Trained by the training activity (training.start), read by the crimes that
+  # need force (crimes.yml skill_weights).
+  - {code: strength,    name: Strength,    category: physical}
   - {code: herbalism,   name: Herbal Medicine, category: professional}
   - {code: driving,     name: Driving,     category: trades}
   - {code: medicine,    name: Medicine,    category: professional}

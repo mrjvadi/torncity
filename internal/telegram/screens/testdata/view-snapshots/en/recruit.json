@@ -45,7 +45,8 @@
         "name": "Nilou Industries",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio"
+          "name": "Technology studio",
+          "trip": null
         }
       },
       "running": 1,
@@ -64,7 +65,8 @@
         "name": "Nilou Industries",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio"
+          "name": "Technology studio",
+          "trip": null
         }
       },
       "running": 0,
@@ -151,7 +153,8 @@
         "name": "Nilou Industries",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio"
+          "name": "Technology studio",
+          "trip": null
         }
       },
       "relocation": 1000,
@@ -252,7 +255,8 @@
         "name": "Nilou Industries",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio"
+          "name": "Technology studio",
+          "trip": null
         }
       },
       "relocation": 1000,
@@ -353,7 +357,8 @@
         "name": "Nilou Industries",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio"
+          "name": "Technology studio",
+          "trip": null
         }
       },
       "relocation": 1000,
@@ -454,7 +459,8 @@
         "name": "Nilou Industries",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio"
+          "name": "Technology studio",
+          "trip": null
         }
       },
       "relocation": 1000,
@@ -555,7 +561,8 @@
         "name": "Nilou Industries",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio"
+          "name": "Technology studio",
+          "trip": null
         }
       },
       "relocation": 1000,
@@ -656,7 +663,8 @@
         "name": "Nilou Industries",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio"
+          "name": "Technology studio",
+          "trip": null
         }
       },
       "relocation": 1000,
@@ -738,7 +746,8 @@
         "name": "Nilou Industries",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio"
+          "name": "Technology studio",
+          "trip": null
         }
       },
       "relocation": 1000,
@@ -774,7 +783,8 @@
           "expires_at": "2026-09-23T11:29:00Z",
           "home": {
             "code": "fenwick_span",
-            "name": "Fenwick Span"
+            "name": "Fenwick Span",
+            "trip": null
           },
           "level": 4,
           "name_seed": 7,
@@ -789,7 +799,8 @@
           "expires_at": "2026-09-23T11:25:00Z",
           "home": {
             "code": "ostmarch",
-            "name": "Ostmarch"
+            "name": "Ostmarch",
+            "trip": null
           },
           "level": 3,
           "name_seed": 52,
@@ -804,7 +815,8 @@
           "expires_at": null,
           "home": {
             "code": "calderis",
-            "name": "Calderis"
+            "name": "Calderis",
+            "trip": null
           },
           "level": 3,
           "name_seed": 3,
@@ -819,7 +831,8 @@
           "expires_at": null,
           "home": {
             "code": "fenwick_span",
-            "name": "Fenwick Span"
+            "name": "Fenwick Span",
+            "trip": null
           },
           "level": 5,
           "name_seed": 88,
@@ -834,7 +847,8 @@
           "expires_at": null,
           "home": {
             "code": "fenwick_span",
-            "name": "Fenwick Span"
+            "name": "Fenwick Span",
+            "trip": null
           },
           "level": 3,
           "name_seed": 120,
@@ -847,11 +861,13 @@
       "cities": [
         {
           "code": "fenwick_span",
-          "name": "Fenwick Span"
+          "name": "Fenwick Span",
+          "trip": null
         },
         {
           "code": "ostmarch",
-          "name": "Ostmarch"
+          "name": "Ostmarch",
+          "trip": null
         }
       ],
       "confirm_cancel": false,
@@ -881,7 +897,8 @@
         "name": "Nilou Industries",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio"
+          "name": "Technology studio",
+          "trip": null
         }
       }
     }
@@ -901,7 +918,8 @@
           "expires_at": "2026-09-23T11:29:00Z",
           "home": {
             "code": "fenwick_span",
-            "name": "Fenwick Span"
+            "name": "Fenwick Span",
+            "trip": null
           },
           "level": 4,
           "name_seed": 7,
@@ -916,7 +934,8 @@
           "expires_at": "2026-09-23T11:25:00Z",
           "home": {
             "code": "ostmarch",
-            "name": "Ostmarch"
+            "name": "Ostmarch",
+            "trip": null
           },
           "level": 3,
           "name_seed": 52,
@@ -931,7 +950,8 @@
           "expires_at": null,
           "home": {
             "code": "calderis",
-            "name": "Calderis"
+            "name": "Calderis",
+            "trip": null
           },
           "level": 3,
           "name_seed": 3,
@@ -946,7 +966,8 @@
           "expires_at": null,
           "home": {
             "code": "fenwick_span",
-            "name": "Fenwick Span"
+            "name": "Fenwick Span",
+            "trip": null
           },
           "level": 5,
           "name_seed": 88,
@@ -961,7 +982,8 @@
           "expires_at": null,
           "home": {
             "code": "fenwick_span",
-            "name": "Fenwick Span"
+            "name": "Fenwick Span",
+            "trip": null
           },
           "level": 3,
           "name_seed": 120,
@@ -974,11 +996,13 @@
       "cities": [
         {
           "code": "fenwick_span",
-          "name": "Fenwick Span"
+          "name": "Fenwick Span",
+          "trip": null
         },
         {
           "code": "ostmarch",
-          "name": "Ostmarch"
+          "name": "Ostmarch",
+          "trip": null
         }
       ],
       "confirm_cancel": false,
@@ -1008,7 +1032,8 @@
         "name": "Nilou Industries",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio"
+          "name": "Technology studio",
+          "trip": null
         }
       }
     }
@@ -1028,7 +1053,8 @@
           "expires_at": "2026-09-23T11:29:00Z",
           "home": {
             "code": "fenwick_span",
-            "name": "Fenwick Span"
+            "name": "Fenwick Span",
+            "trip": null
           },
           "level": 4,
           "name_seed": 7,
@@ -1043,7 +1069,8 @@
           "expires_at": "2026-09-23T11:25:00Z",
           "home": {
             "code": "ostmarch",
-            "name": "Ostmarch"
+            "name": "Ostmarch",
+            "trip": null
           },
           "level": 3,
           "name_seed": 52,
@@ -1058,7 +1085,8 @@
           "expires_at": null,
           "home": {
             "code": "calderis",
-            "name": "Calderis"
+            "name": "Calderis",
+            "trip": null
           },
           "level": 3,
           "name_seed": 3,
@@ -1073,7 +1101,8 @@
           "expires_at": null,
           "home": {
             "code": "fenwick_span",
-            "name": "Fenwick Span"
+            "name": "Fenwick Span",
+            "trip": null
           },
           "level": 5,
           "name_seed": 88,
@@ -1088,7 +1117,8 @@
           "expires_at": null,
           "home": {
             "code": "fenwick_span",
-            "name": "Fenwick Span"
+            "name": "Fenwick Span",
+            "trip": null
           },
           "level": 3,
           "name_seed": 120,
@@ -1101,11 +1131,13 @@
       "cities": [
         {
           "code": "fenwick_span",
-          "name": "Fenwick Span"
+          "name": "Fenwick Span",
+          "trip": null
         },
         {
           "code": "ostmarch",
-          "name": "Ostmarch"
+          "name": "Ostmarch",
+          "trip": null
         }
       ],
       "confirm_cancel": true,
@@ -1135,7 +1167,8 @@
         "name": "Nilou Industries",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio"
+          "name": "Technology studio",
+          "trip": null
         }
       }
     }
@@ -1152,7 +1185,8 @@
       "cities": [
         {
           "code": "ostmarch",
-          "name": "Ostmarch"
+          "name": "Ostmarch",
+          "trip": null
         }
       ],
       "confirm_cancel": false,
@@ -1182,7 +1216,8 @@
         "name": "Nilou Industries",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio"
+          "name": "Technology studio",
+          "trip": null
         }
       }
     }
@@ -1199,7 +1234,8 @@
       "cities": [
         {
           "code": "ostmarch",
-          "name": "Ostmarch"
+          "name": "Ostmarch",
+          "trip": null
         }
       ],
       "confirm_cancel": false,
@@ -1229,7 +1265,8 @@
         "name": "Nilou Industries",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio"
+          "name": "Technology studio",
+          "trip": null
         }
       }
     }
@@ -1245,7 +1282,8 @@
           "expiring": false,
           "home": {
             "code": "calderis",
-            "name": "Calderis"
+            "name": "Calderis",
+            "trip": null
           },
           "housing": 33,
           "level": 3,
@@ -1265,7 +1303,8 @@
           "expiring": false,
           "home": {
             "code": "fenwick_span",
-            "name": "Fenwick Span"
+            "name": "Fenwick Span",
+            "trip": null
           },
           "housing": 0,
           "level": 2,
@@ -1285,7 +1324,8 @@
           "expiring": true,
           "home": {
             "code": "ostmarch",
-            "name": "Ostmarch"
+            "name": "Ostmarch",
+            "trip": null
           },
           "housing": 0,
           "level": 5,
@@ -1310,7 +1350,8 @@
         "name": "Nilou Industries",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio"
+          "name": "Technology studio",
+          "trip": null
         }
       }
     }
@@ -1326,7 +1367,8 @@
           "expiring": false,
           "home": {
             "code": "calderis",
-            "name": "Calderis"
+            "name": "Calderis",
+            "trip": null
           },
           "housing": 33,
           "level": 3,
@@ -1346,7 +1388,8 @@
           "expiring": false,
           "home": {
             "code": "fenwick_span",
-            "name": "Fenwick Span"
+            "name": "Fenwick Span",
+            "trip": null
           },
           "housing": 0,
           "level": 2,
@@ -1366,7 +1409,8 @@
           "expiring": true,
           "home": {
             "code": "ostmarch",
-            "name": "Ostmarch"
+            "name": "Ostmarch",
+            "trip": null
           },
           "housing": 0,
           "level": 5,
@@ -1391,7 +1435,8 @@
         "name": "Nilou Industries",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio"
+          "name": "Technology studio",
+          "trip": null
         }
       }
     }
@@ -1404,7 +1449,8 @@
         "expiring": false,
         "home": {
           "code": "fenwick_span",
-          "name": "Fenwick Span"
+          "name": "Fenwick Span",
+          "trip": null
         },
         "housing": 0,
         "level": 2,
@@ -1426,7 +1472,8 @@
           "expiring": false,
           "home": {
             "code": "calderis",
-            "name": "Calderis"
+            "name": "Calderis",
+            "trip": null
           },
           "housing": 33,
           "level": 3,
@@ -1446,7 +1493,8 @@
           "expiring": false,
           "home": {
             "code": "fenwick_span",
-            "name": "Fenwick Span"
+            "name": "Fenwick Span",
+            "trip": null
           },
           "housing": 0,
           "level": 2,
@@ -1466,7 +1514,8 @@
           "expiring": true,
           "home": {
             "code": "ostmarch",
-            "name": "Ostmarch"
+            "name": "Ostmarch",
+            "trip": null
           },
           "housing": 0,
           "level": 5,
@@ -1491,7 +1540,8 @@
         "name": "Nilou Industries",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio"
+          "name": "Technology studio",
+          "trip": null
         }
       }
     }
@@ -1511,7 +1561,8 @@
         "name": "Nilou Industries",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio"
+          "name": "Technology studio",
+          "trip": null
         }
       }
     }
@@ -1534,7 +1585,8 @@
         "name": "Nilou Industries",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio"
+          "name": "Technology studio",
+          "trip": null
         }
       }
     }
@@ -1557,7 +1609,8 @@
         "name": "Nilou Industries",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio"
+          "name": "Technology studio",
+          "trip": null
         }
       }
     }
@@ -1580,7 +1633,8 @@
         "name": "Nilou Industries",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio"
+          "name": "Technology studio",
+          "trip": null
         }
       }
     }
@@ -1603,7 +1657,8 @@
         "name": "Nilou Industries",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio"
+          "name": "Technology studio",
+          "trip": null
         }
       }
     }
@@ -1626,7 +1681,8 @@
         "name": "Nilou Industries",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio"
+          "name": "Technology studio",
+          "trip": null
         }
       }
     }
@@ -1649,7 +1705,8 @@
         "name": "Nilou Industries",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio"
+          "name": "Technology studio",
+          "trip": null
         }
       }
     }
@@ -1672,7 +1729,8 @@
         "name": "Nilou Industries",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio"
+          "name": "Technology studio",
+          "trip": null
         }
       }
     }
@@ -1695,7 +1753,8 @@
         "name": "Nilou Industries",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio"
+          "name": "Technology studio",
+          "trip": null
         }
       }
     }
@@ -1718,7 +1777,8 @@
         "name": "Nilou Industries",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio"
+          "name": "Technology studio",
+          "trip": null
         }
       }
     }
@@ -1741,7 +1801,8 @@
         "name": "Nilou Industries",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio"
+          "name": "Technology studio",
+          "trip": null
         }
       }
     }
@@ -1764,7 +1825,8 @@
         "name": "Nilou Industries",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio"
+          "name": "Technology studio",
+          "trip": null
         }
       }
     }
@@ -1787,7 +1849,8 @@
         "name": "",
         "type": {
           "code": "",
-          "name": ""
+          "name": "",
+          "trip": null
         }
       }
     }
@@ -1803,7 +1866,8 @@
         "name": "Nilou Industries",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio"
+          "name": "Technology studio",
+          "trip": null
         }
       },
       "count": 3,
@@ -1825,7 +1889,8 @@
         "name": "Nilou Industries",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio"
+          "name": "Technology studio",
+          "trip": null
         }
       },
       "count": 0,
@@ -1847,7 +1912,8 @@
         "name": "Nilou Industries",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio"
+          "name": "Technology studio",
+          "trip": null
         }
       },
       "count": 0,
@@ -1869,7 +1935,8 @@
         "name": "Nilou Industries",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio"
+          "name": "Technology studio",
+          "trip": null
         }
       },
       "count": 0,
@@ -1891,7 +1958,8 @@
         "name": "Nilou Industries",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio"
+          "name": "Technology studio",
+          "trip": null
         }
       },
       "count": 0,
@@ -1913,7 +1981,8 @@
         "name": "Nilou Industries",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio"
+          "name": "Technology studio",
+          "trip": null
         }
       },
       "count": 0,
@@ -1935,7 +2004,8 @@
         "name": "Nilou Industries",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio"
+          "name": "Technology studio",
+          "trip": null
         }
       },
       "count": 0,
@@ -1957,7 +2027,8 @@
         "name": "Nilou Industries",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio"
+          "name": "Technology studio",
+          "trip": null
         }
       },
       "count": 0,
@@ -1979,7 +2050,8 @@
         "name": "Nilou Industries",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio"
+          "name": "Technology studio",
+          "trip": null
         }
       },
       "count": 0,
@@ -2001,7 +2073,8 @@
         "name": "Nilou Industries",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio"
+          "name": "Technology studio",
+          "trip": null
         }
       },
       "count": 0,
@@ -2023,7 +2096,8 @@
         "name": "Nilou Industries",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio"
+          "name": "Technology studio",
+          "trip": null
         }
       },
       "count": 0,

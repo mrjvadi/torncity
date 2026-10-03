@@ -20,7 +20,8 @@
           "durability": 0,
           "item": {
             "code": "phone",
-            "name": "Phone"
+            "name": "Phone",
+            "trip": null
           },
           "qty": 1,
           "quality": 61,

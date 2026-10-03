@@ -7,7 +7,8 @@
         {
           "achievement": {
             "code": "first_shift",
-            "name": "First day at work"
+            "name": "First day at work",
+            "trip": null
           },
           "cash": 100,
           "count": 1,
@@ -18,7 +19,8 @@
         {
           "achievement": {
             "code": "homeowner",
-            "name": "Homeowner"
+            "name": "Homeowner",
+            "trip": null
           },
           "cash": 500,
           "count": 1,
@@ -29,7 +31,8 @@
         {
           "achievement": {
             "code": "ten_crimes",
-            "name": "Career criminal"
+            "name": "Career criminal",
+            "trip": null
           },
           "cash": 0,
           "count": 10,
@@ -40,7 +43,8 @@
         {
           "achievement": {
             "code": "hard_worker",
-            "name": "Hard worker"
+            "name": "Hard worker",
+            "trip": null
           },
           "cash": 0,
           "count": 25,
@@ -57,7 +61,8 @@
     "view": {
       "achievement": {
         "code": "homeowner",
-        "name": "Homeowner"
+        "name": "Homeowner",
+        "trip": null
       },
       "cash": 500,
       "withheld": 0
@@ -69,7 +74,8 @@
     "view": {
       "achievement": {
         "code": "first_shift",
-        "name": "First day at work"
+        "name": "First day at work",
+        "trip": null
       },
       "cash": 40,
       "withheld": 60

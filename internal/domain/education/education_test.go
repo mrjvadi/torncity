@@ -83,7 +83,7 @@ func TestCourseValidate(t *testing.T) {
 		{"empty prerequisite", func(c *Course) { c.Prerequisites[0] = "" }, false},
 		{"self prerequisite", func(c *Course) { c.Prerequisites[0] = "cloud_cert" }, false},
 		{"repeated prerequisite", func(c *Course) { c.Prerequisites[1] = "cs_degree" }, false},
-		{"unknown reward skill", func(c *Course) { c.SkillRewards[0].Skill = "alchemy" }, false},
+		{"unknown reward skill", func(c *Course) { c.SkillRewards[0].Skill = "Alchemy" }, false},
 		{"reward skill twice", func(c *Course) { c.SkillRewards[1].Skill = player.SkillProgramming }, false},
 		{"zero reward", func(c *Course) { c.SkillRewards[0].XP = 0 }, false},
 		{"reward above cap", func(c *Course) { c.SkillRewards[0].XP = MaxSkillReward + 1 }, false},

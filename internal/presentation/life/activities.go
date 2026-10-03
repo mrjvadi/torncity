@@ -32,6 +32,7 @@ const (
 	ActivityWork     = "work"
 	ActivityLearn    = "learn"
 	ActivityHealth   = "health"
+	ActivityTraining = "training"
 	ActivityCrime    = "crime"
 	ActivityMissions = "missions"
 	ActivityRankings = "rankings"

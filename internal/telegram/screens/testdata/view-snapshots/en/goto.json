@@ -24,12 +24,14 @@
       "next_level_xp": 300,
       "place": {
         "code": "bazaar",
-        "name": "Bazaar"
+        "name": "Bazaar",
+        "trip": null
       },
       "rank": null,
       "stage": {
         "code": "",
-        "name": ""
+        "name": "",
+        "trip": null
       },
       "travel_remaining_seconds": 0,
       "travel_to": "",
@@ -81,12 +83,14 @@
       "next_level_xp": 300,
       "place": {
         "code": "city_centre",
-        "name": "City centre"
+        "name": "City centre",
+        "trip": null
       },
       "rank": null,
       "stage": {
         "code": "",
-        "name": ""
+        "name": "",
+        "trip": null
       },
       "travel_remaining_seconds": 0,
       "travel_to": "",
@@ -98,7 +102,8 @@
         "remaining_seconds": 12,
         "to": {
           "code": "business_district",
-          "name": "Business district"
+          "name": "Business district",
+          "trip": null
         }
       },
       "work": {
@@ -135,7 +140,8 @@
       "name": "Sara",
       "place": {
         "code": "bazaar",
-        "name": "Bazaar"
+        "name": "Bazaar",
+        "trip": null
       },
       "travelling": false,
       "walk": null
@@ -156,7 +162,8 @@
       "name": "Sara",
       "place": {
         "code": "",
-        "name": ""
+        "name": "",
+        "trip": null
       },
       "travelling": false,
       "walk": {
@@ -164,7 +171,8 @@
         "remaining_seconds": 20,
         "to": {
           "code": "university",
-          "name": "University quarter"
+          "name": "University quarter",
+          "trip": null
         }
       }
     }
@@ -205,7 +213,8 @@
       "walk_to_work_seconds": 15,
       "workplace": {
         "code": "business_district",
-        "name": "Business district"
+        "name": "Business district",
+        "trip": null
       }
     }
   },
@@ -245,7 +254,8 @@
       "walk_to_work_seconds": 0,
       "workplace": {
         "code": "business_district",
-        "name": "Business district"
+        "name": "Business district",
+        "trip": null
       }
     }
   },
@@ -258,12 +268,14 @@
       "energy": 0,
       "from": {
         "code": "city_centre",
-        "name": "City centre"
+        "name": "City centre",
+        "trip": null
       },
       "then": "work",
       "to": {
         "code": "business_district",
-        "name": "Business district"
+        "name": "Business district",
+        "trip": null
       }
     }
   },
@@ -276,12 +288,14 @@
       "energy": 0,
       "from": {
         "code": "city_centre",
-        "name": "City centre"
+        "name": "City centre",
+        "trip": null
       },
       "then": "open",
       "to": {
         "code": "university",
-        "name": "University quarter"
+        "name": "University quarter",
+        "trip": null
       }
     }
   },
@@ -292,23 +306,27 @@
       "arrives_at": null,
       "crime": {
         "code": "",
-        "name": ""
+        "name": "",
+        "trip": null
       },
       "here": {
         "code": "city_centre",
-        "name": "City centre"
+        "name": "City centre",
+        "trip": null
       },
       "mode": "",
       "need": "university",
       "need_args": null,
       "place": {
         "code": "university",
-        "name": "University quarter"
+        "name": "University quarter",
+        "trip": null
       },
       "remaining_seconds": 0,
       "shop": {
         "code": "",
-        "name": ""
+        "name": "",
+        "trip": null
       },
       "then": "education.view",
       "then_args": [
@@ -325,23 +343,27 @@
       "arrives_at": null,
       "crime": {
         "code": "",
-        "name": ""
+        "name": "",
+        "trip": null
       },
       "here": {
         "code": "city_centre",
-        "name": "City centre"
+        "name": "City centre",
+        "trip": null
       },
       "mode": "",
       "need": "shop",
       "need_args": null,
       "place": {
         "code": "bazaar",
-        "name": "Bazaar"
+        "name": "Bazaar",
+        "trip": null
       },
       "remaining_seconds": 0,
       "shop": {
         "code": "hardware_store",
-        "name": "Hardware store"
+        "name": "Hardware store",
+        "trip": null
       },
       "then": "shop.view",
       "then_args": [
@@ -358,23 +380,27 @@
       "arrives_at": null,
       "crime": {
         "code": "",
-        "name": ""
+        "name": "",
+        "trip": null
       },
       "here": {
         "code": "city_centre",
-        "name": "City centre"
+        "name": "City centre",
+        "trip": null
       },
       "mode": "train",
       "need": "departure",
       "need_args": null,
       "place": {
         "code": "train_station",
-        "name": "Train station"
+        "name": "Train station",
+        "trip": null
       },
       "remaining_seconds": 0,
       "shop": {
         "code": "",
-        "name": ""
+        "name": "",
+        "trip": null
       },
       "then": "travel.options",
       "then_args": [
@@ -391,7 +417,8 @@
       "here": false,
       "place": {
         "code": "bazaar",
-        "name": "Bazaar"
+        "name": "Bazaar",
+        "trip": null
       },
       "shelves": [
         {
@@ -399,7 +426,8 @@
           "buyback": 0,
           "item": {
             "code": "lockpick_set",
-            "name": "Lockpick set"
+            "name": "Lockpick set",
+            "trip": null
           },
           "next_restock": null,
           "price": 450,
@@ -414,7 +442,8 @@
       ],
       "shop": {
         "code": "hardware_store",
-        "name": "Hardware store"
+        "name": "Hardware store",
+        "trip": null
       },
       "tax_bps": 0,
       "walk_seconds": 15
@@ -431,7 +460,8 @@
           "best_bid": 18,
           "item": {
             "code": "bread",
-            "name": "Bread"
+            "name": "Bread",
+            "trip": null
           },
           "last": 20,
           "shelf": {
@@ -447,7 +477,8 @@
       "way": {
         "place": {
           "code": "bazaar",
-          "name": "Bazaar"
+          "name": "Bazaar",
+          "trip": null
         },
         "walk_seconds": 15
       },
@@ -466,7 +497,8 @@
       "way": {
         "place": {
           "code": "business_district",
-          "name": "Business district"
+          "name": "Business district",
+          "trip": null
         },
         "walk_seconds": 15
       }

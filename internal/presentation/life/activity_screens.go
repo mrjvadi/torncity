@@ -462,6 +462,22 @@ func CourseDetail(c presentation.Ctx, v CourseDetailView) *presentation.Response
 			a = append(a, act(AddrCourseEnrol, v.Course.Code).Named("education.enrol").About(v.Course.Code))
 		}
 	}
+	if t := v.Teaching; t != nil {
+		if t.CanHire && !t.NoPool {
+			a = append(a, act(AddrCourseHire, v.Course.Code).Named("education.hire").About(v.Course.Code))
+		}
+		if t.CanSchool {
+			a = append(a, act(AddrCourseTeach, v.Course.Code, TeachModeSchool).Named("education.teach_school").About(v.Course.Code))
+		}
+		if t.CanHome {
+			a = append(a, act(AddrCourseTeach, v.Course.Code, TeachModeHome).Named("education.teach_home").About(v.Course.Code))
+		}
+	}
+	for _, s := range v.Staff {
+		if s.CanEnd {
+			a = append(a, act(AddrCourseLeave, v.Course.Code, s.ID).Named("education.unteach").About(s.ID))
+		}
+	}
 	a = append(a, back(AddrEducation), refresh(AddrCourseView, v.Course.Code))
 	return screenCourseDetail.Response(c.Lang, v, a...)
 }

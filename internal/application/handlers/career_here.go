@@ -65,6 +65,13 @@ func (h *JobsHandler) careerHere(ctx context.Context, tx application.Tx, snap *c
 	return false, here.needs(snap, tag), nil
 }
 
+// WithTrips has the «not here» cards carry the way to the nearest place with its
+// fare and wait (the travel screen's own quote).
+func (h *JobsHandler) WithTrips(t TripHinter) *JobsHandler {
+	h.trips = t
+	return h
+}
+
 // careerNearest is the neutral city as the place a career missing here is
 // had, when its tag names it.
 func (h *JobsHandler) careerNearest(ctx context.Context, snap *content.Snapshot, code string) (*presentation.Named, error) {

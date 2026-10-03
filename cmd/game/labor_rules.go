@@ -2,7 +2,9 @@ package main
 
 import (
 	"github.com/mrjvadi/torncity/internal/config"
+	"github.com/mrjvadi/torncity/internal/application/handlers"
 	"github.com/mrjvadi/torncity/internal/domain/labor"
+	"github.com/mrjvadi/torncity/internal/domain/player"
 )
 
 // laborRules turns the labour section of the configuration into the market's
@@ -24,5 +26,14 @@ func laborRules(c config.Labor) labor.Rules {
 			{Code: "journeyman", MinShifts: c.JourneymanShifts, ProductivityBPS: c.JourneymanBPS},
 			{Code: "master", MinShifts: c.MasterShifts, ProductivityBPS: c.MasterBPS},
 		},
+	}
+}
+
+// trainingRules is the training tuning as the handler takes it.
+func trainingRules(c config.Training) handlers.TrainingRules {
+	return handlers.TrainingRules{
+		Session: player.TrainingRules{EnergyCost: int(c.EnergyCost), StaminaGain: c.StaminaGain, StrengthXP: c.StrengthXP,
+			DiminishStamina: c.DiminishStamina, StaminaPerMaxEnergy: c.StaminaPerMaxEnergy, MaxEnergyBonusCap: c.MaxEnergyBonusCap},
+		YardBPS: c.YardBPS, GroundBPS: c.GroundBPS, GymBPS: c.GymBPS, GroundFee: c.GroundFee, GymFee: c.GymFee,
 	}
 }

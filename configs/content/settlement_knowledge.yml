@@ -421,8 +421,12 @@ knowledge:
     provides: [machine_craft]
     cost: 9000
     time: 72h
+  # electricity is KNOWLEDGE only (how generators, wires and motors work). No
+  # power building exists, so nothing is supplied with current: no screen,
+  # course or building may say a settlement "has power". The generation and
+  # distribution chain belongs to ADR 0045 production chains (a later step).
   - code: electricity
-    name: "برق"
+    name: "دانش برق"
     requires: [applied_mechanics]
     provides: [electrification]
     cost: 14000

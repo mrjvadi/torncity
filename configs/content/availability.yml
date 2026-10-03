@@ -50,6 +50,7 @@ legacy_stage_only: []
 # People who make a service run. Support always has an NPC for the role.
 staff_roles:
   - {code: teacher, building: {role: education, tier: 1}, personal: [{kind: literacy}], support_npc: true, note: "a qualified citizen or the building's staff; ADR 0038 owner decision 6 point 3"}
+  - {code: trainer, building: {code: training_ground}, skill: strength, wage_bps: 11000, personal: [{kind: level, min: 2}], support_npc: true, note: "2026-10-03: the trainer of the training ground; upkeep pays the wage, the session fee goes to the treasury"}
   - {code: health_worker, building: {role: health, tier: 1}, personal: [{kind: certificate, code: first_aid}], support_npc: true, note: "village health worker (Iran: behvarz), ADR 0038 section 2"}
   - {code: nurse, building: {role: health, tier: 2}, personal: [{kind: certificate, code: nursing}], support_npc: true}
   - {code: watchman, wage_bps: 10000, building: {role: security, tier: 1}, personal: [{kind: level, min: 2}], support_npc: true, note: "village watch warden, ADR 0036 section 9.4"}
@@ -108,6 +109,7 @@ availability:
   - {kind: building, code: retainer_hall, stage: village}
   - {kind: building, code: constable_post, stage: village}
   - {kind: building, code: police_post, stage: town, elsewhere: [{where: support}]}
+  - {kind: building, code: training_ground, stage: village}
   - {kind: building, code: carpentry_workshop, stage: village}
   - {kind: building, code: masonry_workshop, stage: village}
   - {kind: building, code: smithy, stage: village}
@@ -440,6 +442,7 @@ availability:
   - {kind: skill, code: carpentry, stage: village, growth: {open: true}, requires: {knowledge: [carpentry]}, elsewhere: [{where: support}]}
   - {kind: skill, code: masonry, stage: village, growth: {open: true}, requires: {knowledge: [masonry]}, elsewhere: [{where: support}]}
   - {kind: skill, code: smithing, stage: village, growth: {open: true}, requires: {knowledge: [smithing]}, elsewhere: [{where: support}]}
+  - {kind: skill, code: strength, stage: village, growth: {open: true, founding: true}, requires: {}, elsewhere: [{where: support}], note: "trained by training.start: bodyweight exercise needs no building"}
   - {kind: skill, code: farming, stage: village, growth: {open: true, founding: true}, requires: {}, elsewhere: [{where: support}]}
   - {kind: skill, code: herbalism, stage: village, growth: {open: true}, requires: {knowledge: [basic_medicine]}, elsewhere: [{where: support}]}
 

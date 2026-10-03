@@ -206,6 +206,8 @@ type Config struct {
 	Legislature Legislature
 	// Labor is the labour market (ADR 0037).
 	Labor        Labor
+	Education    Education
+	Training     Training
 	City         City
 	Property     Property
 	Achievements Achievements
@@ -1203,6 +1205,30 @@ type Missions struct {
 	EconomyDailyCap int64 // missions.economy_daily_cap
 }
 
+// Education
+// tuning of teaching (docs/research/2026-10-03-activities-audit.md section 7).
+type Education struct {
+	TeacherWageBPS     int64 // education.teacher_wage_bps: a teacher earns this share of the course's listed fee for each student, paid from the treasury when the class ends
+	TeacherMinWage     int64 // education.teacher_min_wage: the least a class pays its teacher, minor units
+	TeacherMaxStudents int64 // education.teacher_max_students: students one teacher teaches at once
+}
+
+// Training
+// tuning of the training activity (same audit, section 7).
+type Training struct {
+	EnergyCost          int64 // training.energy_cost: energy one session spends
+	StaminaGain         int64 // training.stamina_gain: stamina a session gives at full efficiency, before diminishing returns
+	StrengthXP          int64 // training.strength_xp: strength skill experience a session gives at full efficiency
+	DiminishStamina     int64 // training.diminish_stamina: every this much stamina above the starting 100 halves the next gains (1/(1+extra/this))
+	StaminaPerMaxEnergy int64 // training.stamina_per_max_energy: stamina that adds one point of max energy
+	MaxEnergyBonusCap   int64 // training.max_energy_bonus_cap: the most max energy training can add
+	YardBPS             int64 // training.yard_bps: efficiency of bodyweight training on open ground (no building)
+	GroundBPS           int64 // training.ground_bps: efficiency at a settlement training ground (ADR 0038 4.6: 60 percent)
+	GymBPS              int64 // training.gym_bps: efficiency at the neutral city gym
+	GroundFee           int64 // training.ground_fee: session fee at a training ground, to the settlement treasury, minor units
+	GymFee              int64 // training.gym_fee: session fee at the neutral city gym, minor units
+}
+
 // Labor is the village labour market's tuning (docs/adr/0037-labor-market.md):
 // construction is done by workers, and an NPC labourer's wage follows how
 // scarce labour is. Wages and minimums are minor units per construction shift;
@@ -1644,6 +1670,8 @@ func Defaults() *Config {
 			TaxDefaultBPS: 300, TaxMaxBPS: 1500, TaxPresets: []int64{100, 300, 500, 1000}, OutputDays: 7},
 		Premium:     Premium{NilUnitSup: 100, NilExamples: []int64{100, 1000, 10000}},
 		Legislature: Legislature{VoteWindow: 48 * time.Hour, ListSize: 8},
+		Education:   Education{TeacherWageBPS: 6000, TeacherMinWage: 40, TeacherMaxStudents: 12},
+		Training:    Training{EnergyCost: 10, StaminaGain: 6, StrengthXP: 30, DiminishStamina: 400, StaminaPerMaxEnergy: 50, MaxEnergyBonusCap: 30, YardBPS: 4000, GroundBPS: 6000, GymBPS: 10000, GroundFee: 20, GymFee: 60},
 		Labor: Labor{
 			ShiftMinutes:       60,
 			ReferenceCrew:      4,

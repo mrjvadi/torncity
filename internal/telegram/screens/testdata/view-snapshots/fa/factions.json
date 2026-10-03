@@ -164,7 +164,8 @@
         ],
         "crime": {
           "code": "warehouse_heist",
-          "name": "Warehouse heist"
+          "name": "Warehouse heist",
+          "trip": null
         },
         "expired": false,
         "left_seconds": 90,
@@ -174,7 +175,8 @@
         "no": 4,
         "place": {
           "code": "industrial_zone",
-          "name": "Industrial zone"
+          "name": "Industrial zone",
+          "trip": null
         },
         "status": "gathering"
       },
@@ -465,7 +467,8 @@
         {
           "crime": {
             "code": "warehouse_heist",
-            "name": "Warehouse heist"
+            "name": "Warehouse heist",
+            "trip": null
           },
           "duration_seconds": 180,
           "max": 5,
@@ -475,14 +478,16 @@
           "places": [
             {
               "code": "industrial_zone",
-              "name": "Industrial zone"
+              "name": "Industrial zone",
+              "trip": null
             }
           ]
         },
         {
           "crime": {
             "code": "armoured_van_job",
-            "name": "Armoured van job"
+            "name": "Armoured van job",
+            "trip": null
           },
           "duration_seconds": 240,
           "max": 6,
@@ -492,7 +497,8 @@
           "places": [
             {
               "code": "business_district",
-              "name": "Business district"
+              "name": "Business district",
+              "trip": null
             }
           ]
         }
@@ -539,7 +545,8 @@
         ],
         "crime": {
           "code": "warehouse_heist",
-          "name": "Warehouse heist"
+          "name": "Warehouse heist",
+          "trip": null
         },
         "expired": false,
         "left_seconds": 90,
@@ -549,7 +556,8 @@
         "no": 4,
         "place": {
           "code": "industrial_zone",
-          "name": "Industrial zone"
+          "name": "Industrial zone",
+          "trip": null
         },
         "status": "gathering"
       },
@@ -603,7 +611,8 @@
         ],
         "crime": {
           "code": "warehouse_heist",
-          "name": "Warehouse heist"
+          "name": "Warehouse heist",
+          "trip": null
         },
         "expired": false,
         "left_seconds": 90,
@@ -613,7 +622,8 @@
         "no": 4,
         "place": {
           "code": "industrial_zone",
-          "name": "Industrial zone"
+          "name": "Industrial zone",
+          "trip": null
         },
         "status": "gathering"
       },
@@ -1022,23 +1032,27 @@
       "arrives_at": null,
       "crime": {
         "code": "warehouse_heist",
-        "name": "Warehouse heist"
+        "name": "Warehouse heist",
+        "trip": null
       },
       "here": {
         "code": "bazaar",
-        "name": "Bazaar"
+        "name": "Bazaar",
+        "trip": null
       },
       "mode": "",
       "need": "heist",
       "need_args": null,
       "place": {
         "code": "industrial_zone",
-        "name": "Industrial zone"
+        "name": "Industrial zone",
+        "trip": null
       },
       "remaining_seconds": 0,
       "shop": {
         "code": "",
-        "name": ""
+        "name": "",
+        "trip": null
       },
       "then": "faction.crime",
       "then_args": null,
@@ -1132,7 +1146,8 @@
     "view": {
       "crime": {
         "code": "warehouse_heist",
-        "name": "Warehouse heist"
+        "name": "Warehouse heist",
+        "trip": null
       },
       "cut": 1170,
       "fine": 0,
@@ -1155,7 +1170,8 @@
     "view": {
       "crime": {
         "code": "armoured_van_job",
-        "name": "Armoured van job"
+        "name": "Armoured van job",
+        "trip": null
       },
       "cut": 0,
       "fine": 2400,
@@ -1170,7 +1186,8 @@
       "jail": {
         "crime": {
           "code": "",
-          "name": ""
+          "name": "",
+          "trip": null
         },
         "ends_at": "2026-09-23T11:23:00Z",
         "remaining_seconds": 1080
@@ -1191,7 +1208,8 @@
     "view": {
       "crime": {
         "code": "warehouse_heist",
-        "name": "Warehouse heist"
+        "name": "Warehouse heist",
+        "trip": null
       },
       "cut": 0,
       "fine": 0,

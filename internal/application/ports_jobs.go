@@ -179,6 +179,7 @@ type Certification struct {
 // EducationRepository persists study. Reach it through Tx.Education, so an
 // enrolment, its fee and its scheduled completion commit together.
 type EducationRepository interface {
+	TeacherRepository
 	// Active returns the player's course in progress, or
 	// ErrNoActiveEnrollment.
 	Active(ctx context.Context, playerID string) (*Enrollment, error)

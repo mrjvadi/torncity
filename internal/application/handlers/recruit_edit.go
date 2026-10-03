@@ -341,7 +341,11 @@ func (h *RecruitHandler) post(ctx context.Context, tx application.Tx, meta envel
 	var anybody int64
 	for _, ci := range cities {
 		for level := camp.MinLevel; level <= def.MaxLevel(); level++ {
-			anybody += m.capacity(ci, camp.Skill, level)
+			c, err := m.capacityAt(ctx, tx, ci, camp.Skill, level)
+			if err != nil {
+				return err
+			}
+			anybody += c
 		}
 	}
 	if anybody == 0 {

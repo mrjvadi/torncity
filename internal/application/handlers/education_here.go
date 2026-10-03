@@ -24,6 +24,13 @@ func (h *EducationHandler) WithHomeCity(code string) *EducationHandler {
 	return h
 }
 
+// WithTrips has the «not here» cards carry the way to the nearest place with its
+// fare and wait (the travel screen's own quote).
+func (h *EducationHandler) WithTrips(t TripHinter) *EducationHandler {
+	h.trips = t
+	return h
+}
+
 // courseHere is how the settlement the player stands in stands for teaching.
 type courseHere struct {
 	// all says every course is taught: a content city (or no settlement to judge by).
@@ -46,6 +53,12 @@ type courseHere struct {
 
 // courseHereOf reads the standing of the settlement of cityID.
 func (h *EducationHandler) courseHereOf(ctx context.Context, tx application.Tx, snap *content.Snapshot, cityID string) (courseHere, error) {
+	return courseHereFor(ctx, tx, snap, cityID)
+}
+
+// courseHereFor is courseHereOf without a handler: the recruitment market asks the
+// same question (what can this settlement teach).
+func courseHereFor(ctx context.Context, tx application.Tx, snap *content.Snapshot, cityID string) (courseHere, error) {
 	c := courseHere{all: true}
 	if cityID == "" {
 		return c, nil
@@ -168,24 +181,33 @@ func (h *EducationHandler) nearest(ctx context.Context, tag content.Availability
 }
 
 // taughtHere is the requirement a course shows when this place does not teach it, nil when it does.
-func (h *EducationHandler) taughtHere(ctx context.Context, tx application.Tx, snap *content.Snapshot, code, cityID string,
-) (*presentation.Requirement, error) {
+func (h *EducationHandler) taughtHere(ctx context.Context, tx application.Tx, snap *content.Snapshot, p *application.Player, code, cityID string,
+) (*presentation.Requirement, *application.CourseTeacher, error) {
 	here, err := h.courseHereOf(ctx, tx, snap, cityID)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	tag, tagged := snap.AvailabilityTag("course", code)
-	taught, _, _ := here.judge(snap, tag, tagged)
-	if taught {
-		return nil, nil
+	judged, _, _ := here.judge(snap, tag, tagged)
+	taught, _, _, teacher, err := h.withTeacher(ctx, tx, here, code, p.ID, judged, true, nil)
+	if err != nil {
+		return nil, nil, err
 	}
-	req := &presentation.Requirement{Kind: presentation.ReqCourseCity}
+	if taught {
+		return nil, teacher, nil
+	}
+	kind := presentation.ReqCourseCity
+	if judged {
+		kind = presentation.ReqCourseTeacher
+	}
+	req := &presentation.Requirement{Kind: kind}
 	if near, err := h.nearest(ctx, tag, tagged); err != nil {
-		return nil, err
+		return nil, nil, err
 	} else if near != nil {
 		req.CityCode, req.City = near.Code, near.Name
+		req.Trip = withTrip(ctx, tx, h.trips, p, near).Trip
 	}
-	return req, nil
+	return req, nil, nil
 }
 
 // educationEmpty names why nothing is on offer in a settlement and the class building that
