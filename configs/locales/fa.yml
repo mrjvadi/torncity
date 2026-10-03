@@ -826,6 +826,11 @@ item_shelf:
 
 # نام کالاها بر اساس کد محتوایی (configs/content/items.yml).
 item_name:
+  rice: برنج
+  lentils: عدس
+  dried_fruit: خشکبار
+  sugar: قند
+  tea: چای
   bag_pouch: کیسهٔ کمری
   bag_sack: گونی دوشی
   bag_daypack: کولهٔ کوچک

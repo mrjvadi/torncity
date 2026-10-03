@@ -480,6 +480,37 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 			}
 			return h.village.MaterialsBuy(ctx, env.Metadata, req)
 		},
+		"settlement.shop": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			return h.village.Shop(ctx, env.Metadata)
+		},
+		"settlement.shop.buy": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageShopRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.ShopBuy(ctx, env.Metadata, req)
+		},
+		"settlement.shop.cap": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageShopRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.ShopCap(ctx, env.Metadata, req)
+		},
+		"settlement.shop.tax": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageShopRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.ShopTax(ctx, env.Metadata, req)
+		},
+		"settlement.shop.repair": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageShopRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.ShopRepair(ctx, env.Metadata, req)
+		},
 		"settlement.work": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			var req handlers.VillageWorkRequest
 			if err := decode(env, &req); err != nil {

@@ -127,6 +127,18 @@ func (h *VillageHandler) Taught(ctx context.Context, meta envelope.Metadata, req
 		if err := h.SettleTax(ctx, tx, in.SettlementID, now); err != nil {
 			return err
 		}
+		// The village shop's morning delivery rides the same tick: one row per
+		// settlement and game day (village_shop_days), so a redelivery or a player's
+		// first look of the day delivers nothing twice.
+		if h.shop.enabled() {
+			s, err := tx.Settlements().ByID(ctx, in.SettlementID)
+			if err != nil {
+				return err
+			}
+			if _, err := h.SettleShopDay(ctx, tx, s, now); err != nil {
+				return err
+			}
+		}
 		if next == int64(shareBPS) {
 			return nil // no visible change (no school yet); nothing worth announcing
 		}

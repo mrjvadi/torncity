@@ -211,6 +211,7 @@ village:
     leave: "🚪 Leave the city"
     donate: "💰 Give to the treasury"
     materials: "🧱 Stock and market"
+    shop: "🛒 Shop"
     work: "⚒ Work in the city"
   tier_name:
     village: "city"
@@ -382,6 +383,50 @@ village:
     button:
       buy: "🛒 {name} x{quantity}"
       yes: "✅ Yes, buy ({total})"
+  shop:
+    title: "🛒 The shop of {village}"
+    intro: "The shop only sells; it never buys anything. Every day at {hour}:00 game time a fresh delivery arrives; there is little of each thing and nobody can buy it all."
+    open: "✅ The shop is open; today's delivery is in."
+    closed:
+      no_shopkeeper: "⛔ There is no shopkeeper; the shop stays shut until somebody keeps it."
+      unpaid: "⛔ The treasury did not pay the shopkeeper and he stayed home; the shop is shut today."
+      not_yet: "⏳ No morning has passed since the town was founded; the first delivery comes with the next one."
+    next: "🕒 The next delivery arrives at {time}."
+    room: "🎒 Free room: {free} of {capacity}; you can carry {kg} kg more."
+    not_here: "You have to be in this town to buy."
+    shelf_title: "On the counter:"
+    line: "• {name} - {price} each - {stock} left (you may buy {left} more today)"
+    empty: "• Nothing has arrived yet."
+    locked_title: "The shop would also carry these if the town had what they need:"
+    locked_line: "• {name} - needs: {needs}"
+    repair_title: "🪡 Mending bags and sacks (the shop's sewing counter):"
+    repair_line: "• {name} - {wear} of {max} left - mending {cost}"
+    terms: "🏛 The shop's price ceiling is {cap} of the base price and its sales tax {tax}; the tax goes to the treasury, which pays the shopkeeper's daily wage ({wage})."
+    bought: "✅ You bought {qty} {name}: {total} (tax {tax})."
+    mended: "🪡 {name} mended: {cost}."
+    checkout_title: "🛒 Buying from the shop of {village}"
+    checkout_item: "{item} - {qty}, {unit} each"
+    checkout_total: "Total: {total}"
+    checkout_tax: "Sales tax ({pct}): {tax}"
+    checkout_due: "You pay: {due}"
+    checkout_room: "Room needed: {need}; your free room: {free}"
+    refused:
+      closed: "⛔ The shop is not open right now."
+      not_there: "The shop does not have {item} right now."
+      sold_out: "There is not that much {item}; only {stock} left."
+      player_cap: "You cannot buy more {item} today; {left} more is all you may."
+      no_space: "You have no room: {need} needed, {free} free. Buy a bag or empty your pack."
+      too_heavy: "That is too heavy: {needkg} kg more and you can carry only {freekg} kg."
+      not_here: "You have to be in this town to buy."
+      no_building: "The sewing counter is in a built shop only; the town must build a «General store» first."
+      nothing_to_mend: "{item} needs no mending."
+      cap_range: "The price ceiling or tax must be between {min} and {max}."
+    button:
+      buy: "🛒 {name} ×{qty}"
+      repair: "🪡 Mend {name} ({cost})"
+      cap: "🏷 Ceiling {pct}"
+      tax: "🧾 Tax {pct}"
+      back: "🛒 Back to the shop"
   work:
     title: "⚒ Work in {village}"
     material: "{qty} {name}"
@@ -560,6 +605,10 @@ grow:
 # The panel of one placed building (internal/telegram/screens/village_building.go):
 # what it is and what it does; demolishing is the last, quiet button.
 building:
+  shop:
+    open: "🛒 The shopkeeper is at work and today's delivery is in; {lines} kinds of goods are on the counter."
+    closed: "⛔ The shop is shut right now."
+    go: "🛒 Go to the shop"
   view:
     title: "🏛 {building}"
     state_complete: "✅ Built and working."

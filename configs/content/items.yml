@@ -152,6 +152,7 @@ components:
     production: {method: grow, by: [farm], inputs: [{component: seed_grain, quantity: 2}], batch: 5, skill: logistics}
   - code: timber
     shelf: materials.wood
+    weight_g: 8000
     name: Timber
     category: wood
     base_price: 15
@@ -166,11 +167,11 @@ components:
   # end; the settlement_buildings.yml workplaces `produce` and `consume` them.
   # The reachability lint (internal/content/villagereach.go) refuses a material
   # a village could neither buy nor produce.
-  - {code: stone, shelf: materials.mineral, name: Stone,  category: mineral, base_price: 6,  attributes: {quality: 50}, village_buy: true}
-  - {code: wool, shelf: materials.fibre,  name: Wool,   category: fibre,   base_price: 12, attributes: {quality: 50}, village_buy: true}
-  - {code: plank, shelf: materials.wood, name: Planks, category: wood,    base_price: 30, attributes: {quality: 50}}
-  - {code: brick, shelf: materials.mineral, name: Bricks, category: mineral, base_price: 14, attributes: {quality: 50}}
-  - {code: cloth, shelf: materials.fibre, name: Cloth,  category: fibre,   base_price: 40, attributes: {quality: 50}}
+  - {code: stone, shelf: materials.mineral, weight_g: 10000, name: Stone,  category: mineral, base_price: 6,  attributes: {quality: 50}, village_buy: true}
+  - {code: wool, shelf: materials.fibre, weight_g: 500,  name: Wool,   category: fibre,   base_price: 12, attributes: {quality: 50}, village_buy: true}
+  - {code: plank, shelf: materials.wood, weight_g: 6000, name: Planks, category: wood,    base_price: 30, attributes: {quality: 50}}
+  - {code: brick, shelf: materials.mineral, weight_g: 3000, name: Bricks, category: mineral, base_price: 14, attributes: {quality: 50}}
+  - {code: cloth, shelf: materials.fibre, weight_g: 400, name: Cloth,  category: fibre,   base_price: 40, attributes: {quality: 50}}
 
   # --- Made from other components by factories and kitchens ----------------
   # A design counts flour in grams: one wheat mills into a hundred.
@@ -514,3 +515,18 @@ items:
      durability: 150, weight_g: 1500, bag: {slot: back, space: 24, comfort_kg: 22, hard_kg: 45}}
   - {code: bag_frame,   shelf: bags.back, name: Frame rucksack, category: gear, archetype: apparel, form: unique, base_price: 1500,
      durability: 300, weight_g: 2500, bag: {slot: back, space: 36, comfort_kg: 30, hard_kg: 60}}
+
+  # --- Staple foods the village shop sells (docs/adr/0046 section 5.3) ---------
+  # A unit here is a portion, eaten as it is; the cooked meals (sandwich, hot meal)
+  # need a kitchen. Each rests the food group like bread does.
+  - {code: rice, shelf: food.grain, weight_g: 400, name: Rice, category: food, archetype: food, form: stack, base_price: 35,
+     effects: [{target: energy, op: add, value: 8}, {target: hunger, op: add, value: -30}], cooldown: 30m, cooldown_group: food}
+  - {code: lentils, shelf: food.grain, weight_g: 400, name: Lentils, category: food, archetype: food, form: stack, base_price: 28,
+     effects: [{target: energy, op: add, value: 8}, {target: hunger, op: add, value: -28}], cooldown: 30m, cooldown_group: food}
+  - {code: dried_fruit, shelf: food.preserved, weight_g: 200, name: Dried fruit, category: food, archetype: food, form: stack, base_price: 35,
+     effects: [{target: energy, op: add, value: 6}, {target: hunger, op: add, value: -15}, {target: happiness, op: add, value: 2}],
+     cooldown: 30m, cooldown_group: food}
+  - {code: sugar, shelf: food.spice, weight_g: 300, name: Sugar, category: food, archetype: food, form: stack, base_price: 30,
+     effects: [{target: energy, op: add, value: 6}, {target: hunger, op: add, value: -3}], cooldown: 20m, cooldown_group: sweet}
+  - {code: tea, shelf: drink.hot, weight_g: 150, name: Tea, category: drink, archetype: drink, form: stack, base_price: 45,
+     effects: [{target: energy, op: add, value: 5}, {target: stress, op: add, value: -3}], cooldown: 45m, cooldown_group: drink}

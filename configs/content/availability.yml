@@ -284,6 +284,11 @@ availability:
   - {kind: item, code: bag_daypack, stage: village, requires: {buildings: [{code: general_store}]}, elsewhere: [{where: support}], note: "ADR 0046 4.2: the shop building stocks it"}
   - {kind: item, code: bag_hiking, stage: town, requires: {buildings: [{code: weaving_shed}]}, elsewhere: [{where: support}], note: "ADR 0046 4.2: a market with a tailor; no tailor building exists yet, so a weaving shed stands for it"}
   - {kind: item, code: bag_frame, stage: town, requires: {buildings: [{code: weaving_shed}, {code: smithy}]}, elsewhere: [{where: support}], note: "ADR 0046 4.2: needs cloth work and ironwork; the skilled tailor of the ADR is not built yet"}
+  - {kind: item, code: rice, stage: village, requires: {buildings: [{code: barter_post}]}, elsewhere: [{where: support}], note: "ADR 0046 5.3: arrives at the market post; the village shop sells it"}
+  - {kind: item, code: lentils, stage: village, requires: {buildings: [{code: barter_post}]}, elsewhere: [{where: support}], note: "ADR 0046 5.3: arrives at the market post; the village shop sells it"}
+  - {kind: item, code: dried_fruit, stage: village, requires: {buildings: [{code: barter_post}]}, elsewhere: [{where: support}], note: "ADR 0046 5.3: arrives at the market post; the village shop sells it"}
+  - {kind: item, code: sugar, stage: village, requires: {buildings: [{code: barter_post}]}, elsewhere: [{where: support}], note: "ADR 0046 5.3: arrives at the market post; the village shop sells it"}
+  - {kind: item, code: tea, stage: village, requires: {buildings: [{code: barter_post}]}, elsewhere: [{where: support}], note: "ADR 0046 5.3: arrives at the market post; the village shop sells it"}
 
   # ---- defence goods (defence_industry.yml): a factory-class building, export-controlled, never on sale in Support
   - {kind: item, code: fighter_jet, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: "restricted: defence licence and export control"}

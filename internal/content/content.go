@@ -313,6 +313,9 @@ type Pack struct {
 	// build_categories (settlement_buildings.yml): the groups of the build menu
 	// (buildcategory.go).
 	BuildCategories []BuildCategoryDef
+	// village_shop.yml: the basic goods a village's shop sells, at most one
+	// section (villageshop.go; docs/adr/0046 section 5).
+	VillageShop []VillageShopDef
 
 	// The building schema (buildingschema.go; roadmap step 0.5, ADR 0041 W0,
 	// ADR 0045 B0, ADR 0042 T0): functions and their modules, storage, recipes,

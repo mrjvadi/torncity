@@ -15,7 +15,10 @@ import (
 // what is left of them.
 
 // ItemName is a good's display name in this context's language.
-func (c Context) ItemName(n Named) string { return c.named("item_name."+n.Code, n.Name) }
+func (c Context) ItemName(n Named) string {
+	// A material a player carries (timber, stone) is named in the components' table.
+	return c.named("item_name."+n.Code, c.named("component."+n.Code, n.Name))
+}
 
 // itemCategory is a good's group.
 func (c Context) itemCategory(code string) string { return c.named("item_category."+code, code) }

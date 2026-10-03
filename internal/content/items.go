@@ -43,7 +43,10 @@ type ComponentDef struct {
 	Category string `yaml:"category" json:"category"`
 	// Shelf is the leaf of item_categories.yml the component sits on
 	// (itemshelf.go): how a market groups and filters it.
-	Shelf      string           `yaml:"shelf,omitempty" json:"shelf,omitempty"`
+	Shelf string `yaml:"shelf,omitempty" json:"shelf,omitempty"`
+	// WeightG is what a unit weighs in grams when a player carries it (a
+	// material the village shop sells); omitted, DefaultWeightG.
+	WeightG    int              `yaml:"weight_g,omitempty" json:"weight_g,omitempty"`
 	Attributes map[string]int64 `yaml:"attributes,omitempty" json:"attributes,omitempty"`
 	// BasePrice is its reference price, minor units: what a design's cost
 	// floor counts it at (item.ItemizedCost) and what a listing is compared
@@ -704,4 +707,28 @@ func validateItemCarry(d ItemDef, where string, add func(error)) {
 	if !boolOr(d.Tradeable, true) {
 		bad("is a bag and is bought and sold")
 	}
+}
+
+// BulkOf is the room one unit of a good or a material takes in a player's bags:
+// a good's own bulk, a material's room in the village stock (the building
+// schema's item_storage), else 1.
+func (s *Snapshot) BulkOf(code string) int64 {
+	if d, ok := s.ItemDef(code); ok {
+		return d.BulkUnits()
+	}
+	if st, ok := s.ItemStorage(code); ok && st.Bulk > 0 {
+		return int64(st.Bulk)
+	}
+	return 1
+}
+
+// WeightOf is what one unit of a good or a material weighs, in grams.
+func (s *Snapshot) WeightOf(code string) int64 {
+	if d, ok := s.ItemDef(code); ok {
+		return d.WeightGrams()
+	}
+	if c, ok := s.ComponentDef(code); ok && c.WeightG > 0 {
+		return int64(c.WeightG)
+	}
+	return DefaultWeightG
 }

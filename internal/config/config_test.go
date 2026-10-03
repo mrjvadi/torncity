@@ -667,6 +667,10 @@ merchant:
   supply_value_per_resident_day: 61
   building_boost_bps: 15001
   cap_presets: [10001, 11001]
+  buy_presets: [2, 4]
+  tax_default_bps: 301
+  tax_max_bps: 1501
+  tax_presets: [1, 301]
 premium:
   nil_unit_sup: 101
 `
@@ -1091,6 +1095,10 @@ var envOverrides = map[string]string{
 	"TORN_MERCHANT_SUPPLY_VALUE_PER_RESIDENT_DAY":   "62",
 	"TORN_MERCHANT_BUILDING_BOOST_BPS":              "15002",
 	"TORN_MERCHANT_CAP_PRESETS":                     "10002,11002",
+	"TORN_MERCHANT_BUY_PRESETS":                     "3,5",
+	"TORN_MERCHANT_TAX_DEFAULT_BPS":                 "302",
+	"TORN_MERCHANT_TAX_MAX_BPS":                     "1502",
+	"TORN_MERCHANT_TAX_PRESETS":                     "2,302",
 	"TORN_PREMIUM_NIL_UNIT_SUP":                     "102",
 }
 

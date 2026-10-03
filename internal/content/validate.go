@@ -202,6 +202,7 @@ func (p *Pack) Validate() error {
 	p.validateSettlementKnowledge(&problems)
 	p.validateSettlementBuildings(&problems)
 	p.validateBuildCategories(&problems)
+	p.validateVillageShop(&problems)
 	p.validateSettlementTiers(&problems)
 	p.validateBuildingSchema(&problems)
 

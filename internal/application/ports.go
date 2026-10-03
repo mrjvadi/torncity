@@ -157,6 +157,9 @@ type Tx interface {
 	// Bags holds the bags a player wears (docs/adr/0046 section 4); see
 	// ports_bags.go.
 	Bags() BagRepository
+	// VillageShop holds a village's shop: its shelves, deliveries and sales
+	// (docs/adr/0046 section 5); see ports_vshop.go.
+	VillageShop() VillageShopRepository
 	Shops() ShopRepository
 	Market() MarketRepository
 	Auctions() AuctionRepository

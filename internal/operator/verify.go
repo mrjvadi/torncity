@@ -159,6 +159,10 @@ func VerifyChecks(v postgres.LedgerVerification, cfg *config.Config) []Check {
 		out.add(t.TopupLedger == t.TopupRows && t.TopupMismatched == 0, fmt.Sprintf("operator top-ups of village treasuries in the ledger match the top-up rows (%d = %d), each the transaction its row names (%d mismatched)", t.TopupLedger, t.TopupRows, t.TopupMismatched))
 	}
 
+	if v.Shop {
+		shopChecks(&out, v.ShopCheck, cfg)
+	}
+
 	if v.Citizen {
 		c := v.CitizenInvariants
 		out.add(c.LotSaleLedger == c.LotSaleRows && c.LotSaleMismatched == 0, fmt.Sprintf("lot sales in the ledger match the lot rows (%d = %d), each moving its price from the buyer's cash to the village treasury (%d mismatched)", c.LotSaleLedger, c.LotSaleRows, c.LotSaleMismatched))
@@ -266,4 +270,34 @@ func financeChecks(out *checks, f postgres.FinanceInvariants) {
 	line(f.GoldHeld == f.GoldReserve && f.GoldNetTrades == f.GoldHoldings,
 		"gold is conserved: the dealer's and every player's add up to the reserve (%d = %d), holdings to the trades (%d = %d)",
 		f.GoldHeld, f.GoldReserve, f.GoldNetTrades, f.GoldHoldings)
+}
+
+// shopChecks are the bags' and the village shop's invariants (docs/adr/0046
+// section 8): the supply is limited and bounded, the price never leaves the
+// reference band, the shop never buys back, and Nil never moves.
+func shopChecks(out *checks, s postgres.ShopInvariants, cfg *config.Config) {
+	line := func(ok bool, format string, args ...any) { out.add(ok, fmt.Sprintf(format, args...)) }
+	line(s.ShelfBroken == 0 && s.SoldOnShelves == s.SoldInSales,
+		"every shop shelf is what was delivered less what was sold and trimmed (%d broken), and the units sold on the shelves are the units of the sales (%d = %d)",
+		s.ShelfBroken, s.SoldOnShelves, s.SoldInSales)
+	line(s.OverBudget == 0, "no morning's delivery passed its supply budget (%d over)", s.OverBudget)
+	if cfg != nil {
+		lo, hi := cfg.Merchant.MarkupMinBPS, cfg.Merchant.MarkupMaxBPS
+		ok := s.MaxMarkupBPS == 0 || (s.MinMarkupBPS >= lo && s.MaxMarkupBPS <= hi)
+		line(ok, "every sale was at or over the reference price and under the ceiling (%d..%d bps seen, %d..%d allowed)", s.MinMarkupBPS, s.MaxMarkupBPS, lo, hi)
+	}
+	line(s.BuyBacks == 0, "the village shop never bought anything back (%d buy-back legs)", s.BuyBacks)
+	line(s.SaleLedger == s.SaleRows && s.SaleMismatched == 0,
+		"shop sales in the ledger match the sale rows (%d = %d), each one the buyer's purse to the sink for its total (%d mismatched)",
+		s.SaleLedger, s.SaleRows, s.SaleMismatched)
+	line(s.TaxLedger == s.TaxRows, "the village sales tax in the ledger matches the sale rows (%d = %d)", s.TaxLedger, s.TaxRows)
+	line(s.WageLedger == s.WageRows && s.WageMismatched == 0,
+		"shopkeepers' wages in the ledger match the delivery days (%d = %d), each one treasury to sink for the wage (%d mismatched)",
+		s.WageLedger, s.WageRows, s.WageMismatched)
+	line(s.PlayerDayBroken == 0, "every player's daily count at the shop is what the sales say (%d broken)", s.PlayerDayBroken)
+	line(s.GrantsUnjournalled == 0 && s.GrantsDuplicated == 0,
+		"every starting bag was given once, from a recorded origin (%d without one, %d given twice)", s.GrantsUnjournalled, s.GrantsDuplicated)
+	line(s.BagsWornNotCarried == 0, "every bag worn is carried by its wearer (%d not)", s.BagsWornNotCarried)
+	line(s.MixedCurrency == 0 && s.NilMovements == 0,
+		"no ledger transaction ever mixed currencies and Nil never moved (%d mixed, %d Nil entries): the Nil quote is a display", s.MixedCurrency, s.NilMovements)
 }

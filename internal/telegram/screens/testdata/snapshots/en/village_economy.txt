@@ -20,7 +20,8 @@ What the city's own workplaces make comes cheaper than the market; to get going 
   [🛒 Timber x5] → settlement:materials.buy:timber:5   │   [🛒 Timber x20] → settlement:materials.buy:timber:20   │   [🛒 Timber x50] → settlement:materials.buy:timber:50
   [🛒 Stone x5] → settlement:materials.buy:stone:5   │   [🛒 Stone x20] → settlement:materials.buy:stone:20   │   [🛒 Stone x50] → settlement:materials.buy:stone:50
   [🛒 Wool x5] → settlement:materials.buy:wool:5   │   [🛒 Wool x20] → settlement:materials.buy:wool:20   │   [🛒 Wool x50] → settlement:materials.buy:wool:50
-  [⚒ Work in the city] → settlement:work   │   [🏗 Construction] → settlement:build
+  [🛒 Shop] → settlement:shop   │   [⚒ Work in the city] → settlement:work
+  [🏗 Construction] → settlement:build   │   [🏘 City] → settlement:overview
   [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:materials
 
 ━━━ Stock and market · a resident, empty stock, just bought ━━━
@@ -41,7 +42,8 @@ The stock is empty.
 
 What the city's own workplaces make comes cheaper than the market; to get going you can buy here.
   ───
-  [⚒ Work in the city] → settlement:work   │   [🏗 Construction] → settlement:build
+  [🛒 Shop] → settlement:shop   │   [⚒ Work in the city] → settlement:work
+  [🏗 Construction] → settlement:build   │   [🏘 City] → settlement:overview
   [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:materials
 
 ━━━ Buy confirm · ten timber ━━━
@@ -214,3 +216,277 @@ A resident works each shift; nothing is made without a worker and the wage is pa
   [🏗 Build Woodcutter's camp] → settlement:build.lots:woodcutter_camp   │   [🏗 Build Civic hall] → settlement:build.lots:civic_hall
   [🗺 Expand the land] → settlement:grid.grow
   [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:build
+
+━━━ Shop · open, a resident ━━━
+(edits message 42)
+🛒 The shop of Korendal
+
+The shop only sells; it never buys anything. Every day at 6:00 game time a fresh delivery arrives; there is little of each thing and nobody can buy it all.
+
+✅ The shop is open; today's delivery is in.
+
+🕒 The next delivery arrives at 14:55.
+
+🎒 Free room: 12 of 20; you can carry 31 kg more.
+
+On the counter:
+• Bread - 44 SUP each - 7 left (you may buy 3 more today)
+• Shoulder sack - 92 SUP each - 2 left (you may buy 2 more today)
+• Timber - 18 SUP each - 0 left (you may buy 2 more today)
+
+The shop would also carry these if the town had what they need:
+• Small rucksack - needs: General store
+  ───
+  [🛒 Bread ×1] → settlement:shop.buy:bread:1   │   [🛒 Bread ×3] → settlement:shop.buy:bread:3
+  [🛒 Shoulder sack ×1] → settlement:shop.buy:bag_sack:1
+  [🧱 Stock and market] → settlement:materials   │   [🏗 Construction] → settlement:build
+  [🔙 Back] → settlement:materials   │   [🔄 Refresh] → settlement:shop
+
+━━━ Shop · the head sees the two levers ━━━
+(edits message 42)
+🛒 The shop of Korendal
+
+The shop only sells; it never buys anything. Every day at 6:00 game time a fresh delivery arrives; there is little of each thing and nobody can buy it all.
+
+✅ The shop is open; today's delivery is in.
+
+🕒 The next delivery arrives at 14:55.
+
+🎒 Free room: 12 of 20; you can carry 31 kg more.
+
+On the counter:
+• Bread - 44 SUP each - 7 left (you may buy 3 more today)
+• Shoulder sack - 92 SUP each - 2 left (you may buy 2 more today)
+• Timber - 18 SUP each - 0 left (you may buy 2 more today)
+
+The shop would also carry these if the town had what they need:
+• Small rucksack - needs: General store
+
+🏛 The shop's price ceiling is 125 of the base price and its sales tax 3; the tax goes to the treasury, which pays the shopkeeper's daily wage (30 SUP).
+  ───
+  [🛒 Bread ×1] → settlement:shop.buy:bread:1   │   [🛒 Bread ×3] → settlement:shop.buy:bread:3
+  [🛒 Shoulder sack ×1] → settlement:shop.buy:bag_sack:1
+  [🏷 Ceiling 100] → settlement:shop.cap:10000   │   [🏷 Ceiling 150] → settlement:shop.cap:15000
+  [🧾 Tax 1] → settlement:shop.tax:100   │   [🧾 Tax 5] → settlement:shop.tax:500
+  [🧱 Stock and market] → settlement:materials   │   [🏗 Construction] → settlement:build
+  [🔙 Back] → settlement:materials   │   [🔄 Refresh] → settlement:shop
+
+━━━ Shop · a shop building, a sack to mend ━━━
+(edits message 42)
+🛒 The shop of Korendal
+
+The shop only sells; it never buys anything. Every day at 6:00 game time a fresh delivery arrives; there is little of each thing and nobody can buy it all.
+
+✅ The shop is open; today's delivery is in.
+
+🕒 The next delivery arrives at 14:55.
+
+🎒 Free room: 12 of 20; you can carry 31 kg more.
+
+On the counter:
+• Bread - 44 SUP each - 7 left (you may buy 3 more today)
+• Shoulder sack - 92 SUP each - 2 left (you may buy 2 more today)
+• Timber - 18 SUP each - 0 left (you may buy 2 more today)
+
+🪡 Mending bags and sacks (the shop's sewing counter):
+• Shoulder sack - 12 of 40 left - mending 6 SUP
+  ───
+  [🛒 Bread ×1] → settlement:shop.buy:bread:1   │   [🛒 Bread ×3] → settlement:shop.buy:bread:3
+  [🛒 Shoulder sack ×1] → settlement:shop.buy:bag_sack:1
+  [🪡 Mend Shoulder sack (6 SUP)] → settlement:shop.repair:SACK000001
+  [🧱 Stock and market] → settlement:materials   │   [🏗 Construction] → settlement:build
+  [🔙 Back] → settlement:materials   │   [🔄 Refresh] → settlement:shop
+
+━━━ Shop · shut: no_shopkeeper ━━━
+(edits message 42)
+🛒 The shop of Korendal
+
+The shop only sells; it never buys anything. Every day at 6:00 game time a fresh delivery arrives; there is little of each thing and nobody can buy it all.
+
+⛔ There is no shopkeeper; the shop stays shut until somebody keeps it.
+
+🕒 The next delivery arrives at 14:55.
+
+🎒 Free room: 12 of 20; you can carry 31 kg more.
+
+On the counter:
+• Bread - 44 SUP each - 7 left (you may buy 3 more today)
+• Shoulder sack - 92 SUP each - 2 left (you may buy 2 more today)
+• Timber - 18 SUP each - 0 left (you may buy 2 more today)
+
+The shop would also carry these if the town had what they need:
+• Small rucksack - needs: General store
+  ───
+  [🧱 Stock and market] → settlement:materials   │   [🏗 Construction] → settlement:build
+  [🔙 Back] → settlement:materials   │   [🔄 Refresh] → settlement:shop
+
+━━━ Shop · shut: unpaid ━━━
+(edits message 42)
+🛒 The shop of Korendal
+
+The shop only sells; it never buys anything. Every day at 6:00 game time a fresh delivery arrives; there is little of each thing and nobody can buy it all.
+
+⛔ The treasury did not pay the shopkeeper and he stayed home; the shop is shut today.
+
+🕒 The next delivery arrives at 14:55.
+
+🎒 Free room: 12 of 20; you can carry 31 kg more.
+
+On the counter:
+• Bread - 44 SUP each - 7 left (you may buy 3 more today)
+• Shoulder sack - 92 SUP each - 2 left (you may buy 2 more today)
+• Timber - 18 SUP each - 0 left (you may buy 2 more today)
+
+The shop would also carry these if the town had what they need:
+• Small rucksack - needs: General store
+  ───
+  [🧱 Stock and market] → settlement:materials   │   [🏗 Construction] → settlement:build
+  [🔙 Back] → settlement:materials   │   [🔄 Refresh] → settlement:shop
+
+━━━ Shop · shut: not_yet ━━━
+(edits message 42)
+🛒 The shop of Korendal
+
+The shop only sells; it never buys anything. Every day at 6:00 game time a fresh delivery arrives; there is little of each thing and nobody can buy it all.
+
+⏳ No morning has passed since the town was founded; the first delivery comes with the next one.
+
+🕒 The next delivery arrives at 14:55.
+
+🎒 Free room: 12 of 20; you can carry 31 kg more.
+
+On the counter:
+• Bread - 44 SUP each - 7 left (you may buy 3 more today)
+• Shoulder sack - 92 SUP each - 2 left (you may buy 2 more today)
+• Timber - 18 SUP each - 0 left (you may buy 2 more today)
+
+The shop would also carry these if the town had what they need:
+• Small rucksack - needs: General store
+  ───
+  [🧱 Stock and market] → settlement:materials   │   [🏗 Construction] → settlement:build
+  [🔙 Back] → settlement:materials   │   [🔄 Refresh] → settlement:shop
+
+━━━ Shop · a visitor cannot buy ━━━
+(edits message 42)
+🛒 The shop of Korendal
+
+The shop only sells; it never buys anything. Every day at 6:00 game time a fresh delivery arrives; there is little of each thing and nobody can buy it all.
+
+✅ The shop is open; today's delivery is in.
+
+🕒 The next delivery arrives at 14:55.
+
+🎒 Free room: 12 of 20; you can carry 31 kg more.
+
+You have to be in this town to buy.
+
+On the counter:
+• Bread - 44 SUP each - 7 left (you may buy 3 more today)
+• Shoulder sack - 92 SUP each - 2 left (you may buy 2 more today)
+• Timber - 18 SUP each - 0 left (you may buy 2 more today)
+
+The shop would also carry these if the town had what they need:
+• Small rucksack - needs: General store
+  ───
+  [🧱 Stock and market] → settlement:materials   │   [🏗 Construction] → settlement:build
+  [🔙 Back] → settlement:materials   │   [🔄 Refresh] → settlement:shop
+
+━━━ Shop · just bought ━━━
+(edits message 42)
+✅ You bought 2 Bread: 88 SUP (tax 3 SUP).
+
+🛒 The shop of Korendal
+
+The shop only sells; it never buys anything. Every day at 6:00 game time a fresh delivery arrives; there is little of each thing and nobody can buy it all.
+
+✅ The shop is open; today's delivery is in.
+
+🕒 The next delivery arrives at 14:55.
+
+🎒 Free room: 12 of 20; you can carry 31 kg more.
+
+On the counter:
+• Bread - 44 SUP each - 7 left (you may buy 3 more today)
+• Shoulder sack - 92 SUP each - 2 left (you may buy 2 more today)
+• Timber - 18 SUP each - 0 left (you may buy 2 more today)
+
+The shop would also carry these if the town had what they need:
+• Small rucksack - needs: General store
+  ───
+  [🧱 Stock and market] → settlement:materials   │   [🏗 Construction] → settlement:build
+  [🔙 Back] → settlement:materials   │   [🔄 Refresh] → settlement:shop
+
+━━━ Checkout · village shop ━━━
+(edits message 42)
+🛒 Buying from the shop of Korendal
+
+Bread - 2, 44 SUP each
+Total: 88 SUP
+Sales tax (3): 3 SUP
+You pay: 91 SUP
+Room needed: 2; your free room: 12
+
+How would you like to pay?
+  ───
+  [💵 Pay cash - 91 SUP] → settlement:shop.buy:bread:2:cash:0a1b2c3d4e5f   │   [💳 Pay by card - 91 SUP] → settlement:shop.buy:bread:2:card:0a1b2c3d4e5f
+  [🔙 Back] → settlement:shop
+
+━━━ ShopRefused · closed ━━━
+(edits message 42)
+⛔ There is no shopkeeper; the shop stays shut until somebody keeps it.
+🕒 The next delivery arrives at 14:55.
+  ───
+  [🛒 Back to the shop] → settlement:shop
+  [🔙 Back] → settlement:materials
+
+━━━ ShopRefused · not_there ━━━
+(edits message 42)
+The shop does not have Bread right now.
+  ───
+  [🛒 Back to the shop] → settlement:shop
+  [🔙 Back] → settlement:materials
+
+━━━ ShopRefused · sold_out ━━━
+(edits message 42)
+There is not that much Bread; only 1 left.
+  ───
+  [🛒 Back to the shop] → settlement:shop
+  [🔙 Back] → settlement:materials
+
+━━━ ShopRefused · player_cap ━━━
+(edits message 42)
+You cannot buy more Bread today; 0 more is all you may.
+🕒 The next delivery arrives at 14:55.
+  ───
+  [🛒 Back to the shop] → settlement:shop
+  [🔙 Back] → settlement:materials
+
+━━━ ShopRefused · no_space ━━━
+(edits message 42)
+You have no room: 4 needed, 1 free. Buy a bag or empty your pack.
+  ───
+  [🛒 Back to the shop] → settlement:shop
+  [🎒 Bag] → inventory:show
+  [🔙 Back] → settlement:materials
+
+━━━ ShopRefused · too_heavy ━━━
+(edits message 42)
+That is too heavy: 16 kg more and you can carry only 3 kg.
+  ───
+  [🛒 Back to the shop] → settlement:shop
+  [🎒 Bag] → inventory:show
+  [🔙 Back] → settlement:materials
+
+━━━ ShopRefused · no_building ━━━
+(edits message 42)
+The sewing counter is in a built shop only; the town must build a «General store» first.
+  ───
+  [🛒 Back to the shop] → settlement:shop
+  [🔙 Back] → settlement:materials
+
+━━━ ShopRefused · cap_range ━━━
+(edits message 42)
+The price ceiling or tax must be between 100 and 150.
+  ───
+  [🛒 Back to the shop] → settlement:shop
+  [🔙 Back] → settlement:materials

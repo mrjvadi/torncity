@@ -459,6 +459,13 @@ var all = []Subscription{
 	// sends settlement.worked, a shift reaching its end.
 	{Domain: "settlement", Action: "materials", Origin: FromPlayer},
 	{Domain: "settlement", Action: "materials.buy", Origin: FromPlayer},
+	// The village shop (docs/adr/0046 section 5): the shelf, a purchase, the head's
+	// price cap and sales tax, and the mending counter.
+	{Domain: "settlement", Action: "shop", Origin: FromPlayer},
+	{Domain: "settlement", Action: "shop.buy", Origin: FromPlayer},
+	{Domain: "settlement", Action: "shop.cap", Origin: FromPlayer},
+	{Domain: "settlement", Action: "shop.tax", Origin: FromPlayer},
+	{Domain: "settlement", Action: "shop.repair", Origin: FromPlayer},
 	{Domain: "settlement", Action: "work", Origin: FromPlayer},
 	{Domain: "settlement", Action: "worked", Origin: FromScheduler},
 	// The labour market (ADR 0037): the hiring board, a construction site,

@@ -462,6 +462,10 @@ type BuildingView struct {
 	// whether the button is worth showing.
 	HasUpgrade bool
 	Upgrades   []BuildingUpgradeLine
+
+	// Shop is the shop building's panel (Kind "shop"): the same facts as the
+	// village_shop screen, so the panel draws the shelf without another page.
+	Shop *ShopView `json:"shop,omitempty"`
 }
 
 // LotBatchLot is one lot of a batch.

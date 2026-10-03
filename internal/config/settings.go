@@ -236,6 +236,10 @@ type merchantSettings struct {
 	SupplyValueFood  *int64  `yaml:"supply_value_per_resident_day"`
 	BuildingBoostBPS *int64  `yaml:"building_boost_bps"`
 	CapPresets       []int64 `yaml:"cap_presets"`
+	BuyPresets       []int64 `yaml:"buy_presets"`
+	TaxDefaultBPS    *int64  `yaml:"tax_default_bps"`
+	TaxMaxBPS        *int64  `yaml:"tax_max_bps"`
+	TaxPresets       []int64 `yaml:"tax_presets"`
 }
 
 type premiumSettings struct {
@@ -1173,6 +1177,18 @@ var coreSettings = []setting{
 	moneyListSetting("merchant", "cap_presets",
 		func(c *Config) *[]int64 { return &c.Merchant.CapPresets },
 		func(f *fileConfig) []int64 { return f.Merchant.CapPresets }),
+	moneyListSetting("merchant", "buy_presets",
+		func(c *Config) *[]int64 { return &c.Merchant.BuyPresets },
+		func(f *fileConfig) []int64 { return f.Merchant.BuyPresets }),
+	moneySetting("merchant", "tax_default_bps",
+		func(c *Config) *int64 { return &c.Merchant.TaxDefaultBPS },
+		func(f *fileConfig) *int64 { return f.Merchant.TaxDefaultBPS }),
+	moneySetting("merchant", "tax_max_bps",
+		func(c *Config) *int64 { return &c.Merchant.TaxMaxBPS },
+		func(f *fileConfig) *int64 { return f.Merchant.TaxMaxBPS }),
+	moneyListSetting("merchant", "tax_presets",
+		func(c *Config) *[]int64 { return &c.Merchant.TaxPresets },
+		func(f *fileConfig) []int64 { return f.Merchant.TaxPresets }),
 	moneySetting("premium", "nil_unit_sup",
 		func(c *Config) *int64 { return &c.Premium.NilUnitSup },
 		func(f *fileConfig) *int64 { return f.Premium.NilUnitSup }),

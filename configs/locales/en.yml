@@ -732,6 +732,11 @@ item_shelf:
 
 # Goods, keyed on their content code (configs/content/items.yml).
 item_name:
+  rice: Rice
+  lentils: Lentils
+  dried_fruit: Dried fruit
+  sugar: Sugar
+  tea: Tea
   bag_pouch: Belt pouch
   bag_sack: Shoulder sack
   bag_daypack: Small rucksack

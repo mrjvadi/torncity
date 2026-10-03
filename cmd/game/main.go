@@ -471,7 +471,8 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 				StreetPitch: cfg.Settlement.StreetPitch, StreetPlanMinGrid: cfg.Settlement.StreetPlanMinGrid,
 			}).
 			WithLabor(laborRules(cfg.Labor), cfg.Labor.HirePresets, cfg.Labor.WagePresets).
-			WithActivities(activityRules(cfg)),
+			WithActivities(activityRules(cfg)).
+			WithShop(shopRules(cfg)),
 	}
 
 	// Work and study read careers and courses from the live registry and a

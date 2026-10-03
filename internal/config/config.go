@@ -287,6 +287,10 @@ type Merchant struct {
 	SupplyValueFood  int64   // merchant.supply_value_per_resident_day: the most goods value a resident's day draws, reference minor units
 	BuildingBoostBPS int64   // merchant.building_boost_bps: the delivery of a village with a shop building, over the stall's
 	CapPresets       []int64 // merchant.cap_presets: the price caps the head's buttons offer
+	BuyPresets       []int64 // merchant.buy_presets: the quantities the buy buttons offer
+	TaxDefaultBPS    int64   // merchant.tax_default_bps: a village's sales tax until its head sets one
+	TaxMaxBPS        int64   // merchant.tax_max_bps: the most the head may set
+	TaxPresets       []int64 // merchant.tax_presets: the taxes the head's buttons offer
 }
 
 // Premium is the display constant of the Nil quote (docs/adr/0046 section 7.4).
@@ -1633,8 +1637,9 @@ func Defaults() *Config {
 		Bag: Bag{CarryBase: 8, BaseComfortKG: 7, BaseHardKG: 20, FullShareBPS: 5000, TornSpaceBPS: 5000,
 			RepairShareBPS: 2500, WearPerDay: 1},
 		Merchant: Merchant{RestockHour: 6, MarkupMinBPS: 10000, MarkupMaxBPS: 15000, StockDays: 2,
-			FoodShareBPS: 4000, OtherShareBPS: 3000, PlayerDayFood: 3, PlayerDayOther: 2, SupplyValueFood: 60,
-			BuildingBoostBPS: 15000, CapPresets: []int64{10000, 11000, 12500, 15000}},
+			FoodShareBPS: 4000, OtherShareBPS: 3000, PlayerDayFood: 3, PlayerDayOther: 2, SupplyValueFood: 600,
+			BuildingBoostBPS: 15000, CapPresets: []int64{10000, 11000, 12500, 15000}, BuyPresets: []int64{1, 3, 5},
+			TaxDefaultBPS: 300, TaxMaxBPS: 1500, TaxPresets: []int64{100, 300, 500, 1000}},
 		Premium:     Premium{NilUnitSup: 100},
 		Legislature: Legislature{VoteWindow: 48 * time.Hour, ListSize: 8},
 		Labor: Labor{

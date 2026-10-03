@@ -112,15 +112,13 @@ func (e carryEnv) load(ctx context.Context, tx application.Tx, snap *content.Sna
 	}
 	// What is carried takes room, except the bags that are on.
 	for _, s := range stacks {
-		def, _ := snap.ItemDef(s.Item)
-		st.usedSpace += s.Qty * def.BulkUnits()
-		st.usedG += s.Qty * def.WeightGrams()
+		st.usedSpace += s.Qty * snap.BulkOf(s.Item)
+		st.usedG += s.Qty * snap.WeightOf(s.Item)
 	}
 	for _, p := range pieces {
-		def, _ := snap.ItemDef(p.Item)
-		st.usedG += def.WeightGrams()
+		st.usedG += snap.WeightOf(p.Item)
 		if !wornIDs[p.ID] {
-			st.usedSpace += def.BulkUnits()
+			st.usedSpace += snap.BulkOf(p.Item)
 		}
 	}
 	st.refresh(e.rules)

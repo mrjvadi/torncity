@@ -2,6 +2,7 @@ package screens
 
 import (
 	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/village"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
@@ -118,4 +119,61 @@ func villageEconomySnapshots(c Context, who people, add func(string, *presenter.
 				MissingBuildings: []Named{sampleNamed(c.Lang, "teaching_circle", "حلقهٔ آموزش", "Teaching circle")}},
 		},
 	}))
+
+	// The village shop (docs/adr/0046 section 5).
+	bread := sampleNamed(c.Lang, "bread", "نان", "Bread")
+	sack := sampleNamed(c.Lang, "bag_sack", "گونی دوشی", "Shoulder sack")
+	daypack := sampleNamed(c.Lang, "bag_daypack", "کولهٔ کوچک", "Small rucksack")
+	store := sampleNamed(c.Lang, "general_store", "دکان", "General store")
+	shopLines := []village.ShopLine{
+		{Item: bread, Kind: "item", Price: 44, Reference: 40, Stock: 7, LeftToday: 3, Fits: 12, MaxBuy: 3},
+		{Item: sack, Kind: "item", Price: 92, Reference: 80, Stock: 2, LeftToday: 2, Fits: 12, MaxBuy: 2},
+		{Item: timber, Kind: "component", Price: 18, Reference: 15, Stock: 0, LeftToday: 2, Fits: 3, MaxBuy: 0},
+	}
+	shopLocked := []village.ShopLockedLine{{Item: daypack, Kind: "item", NeedsBuildings: []Named{store}}}
+	shopBase := village.ShopView{
+		Village: villageNameFor(c), NextDelivery: snapshotNow.Add(20 * time.Minute), DeliveryHour: 6, Wage: 30, TaxBPS: 300, TaxMaxBPS: 1500,
+		PriceCapBPS: 15_000, CapMinBPS: 10_000, CapMaxBPS: 15_000, Presets: []int64{1, 3}, Resident: true,
+		FreeSpace: 12, Capacity: 20, FreeG: 31_000, Lines: shopLines, Locked: shopLocked,
+	}
+	add("Shop · open, a resident", VillageShop(g, shopBase))
+	head := shopBase
+	head.CanSetCap, head.CapPresets, head.TaxPresets = true, []int64{10_000, 12_500, 15_000}, []int64{100, 300, 500}
+	head.PriceCapBPS = 12_500
+	add("Shop · the head sees the two levers", VillageShop(g, head))
+	built := shopBase
+	built.Building, built.CanRepair, built.Locked = true, true, nil
+	built.Repairs = []village.ShopRepairLine{{Item: sack, Serial: "SACK000001", Slot: "back", Wear: 12, WearMax: 40, Cost: 6}}
+	add("Shop · a shop building, a sack to mend", VillageShop(g, built))
+	for _, closed := range []string{village.ShopNoShopkeeper, village.ShopUnpaid, village.ShopNotYet} {
+		shut := shopBase
+		shut.Closed = closed
+		for i := range shut.Lines {
+			shut.Lines[i].MaxBuy = 0
+		}
+		add("Shop · shut: "+closed, VillageShop(g, shut))
+	}
+	stranger := shopBase
+	stranger.Resident = false
+	add("Shop · a visitor cannot buy", VillageShop(g, stranger))
+	justBought := shopBase
+	justBought.Bought = &village.ShopBought{Item: bread, Kind: "item", Qty: 2, Total: 88, Tax: 3}
+	add("Shop · just bought", VillageShop(g, justBought))
+	add("Checkout · village shop", VillageShopCheckout(g, village.ShopCheckoutView{
+		Village: villageNameFor(c), Item: bread, Kind: "item", Qty: 2, Unit: 44, Total: 88, Tax: 3, TaxBPS: 300, Stock: 7, Space: 2, FreeSpace: 12,
+		Grams: 600, Payment: PaymentChoice{Amount: 91, Accepted: []string{"cash", "card"}, Usable: []string{"cash", "card"}, Cash: 400, Bank: 1000},
+		Nonce: "0a1b2c3d4e5f",
+	}))
+	for _, r := range []village.ShopRefusalView{
+		{Kind: village.ShopRefusedClosed, Closed: village.ShopNoShopkeeper, NextDelivery: snapshotNow.Add(20 * time.Minute)},
+		{Kind: village.ShopRefusedNotThere, Item: bread},
+		{Kind: village.ShopRefusedSoldOut, Item: bread, Stock: 1},
+		{Kind: village.ShopRefusedCap, Item: bread, LeftToday: 0, NextDelivery: snapshotNow.Add(20 * time.Minute)},
+		{Kind: village.ShopRefusedNoSpace, Item: timber, FreeSpace: 1, NeedSpace: 4},
+		{Kind: village.ShopRefusedTooHeavy, Item: timber, FreeG: 3000, NeedG: 16_000},
+		{Kind: village.ShopRefusedNoBuilding},
+		{Kind: village.ShopRefusedCapRange, Min: 10_000, Max: 15_000},
+	} {
+		add("ShopRefused · "+r.Kind, VillageShopRefusal(g, r))
+	}
 }

@@ -493,6 +493,7 @@ export interface BuildingView {
   research: BuildingResearchLine | null
   has_upgrade: boolean
   upgrades: BuildingUpgradeLine[] | null
+  shop: ShopView | null
 }
 
 export interface BuyView {
@@ -4313,16 +4314,6 @@ export interface SettlementWhoView {
   offline: number
 }
 
-export interface ShelfLine {
-  item: Named
-  shelf: ShelfRef
-  price: number
-  stock: number
-  busy: boolean
-  buyback: number
-  next_restock: string | null
-}
-
 export interface ShelfRef {
   code: string
   group: string
@@ -4359,6 +4350,15 @@ export interface ShiftWorkedView {
   injury: InjuryView | null
 }
 
+export interface ShopBought {
+  item: Named
+  kind: string
+  qty: number
+  total: number
+  tax: number
+  method: string
+}
+
 export interface ShopBoughtView {
   shop: Named
   item: Named
@@ -4382,9 +4382,29 @@ export interface ShopCheckoutView {
 }
 
 export interface ShopLine {
-  shop: Named
-  place: Named
-  here: boolean
+  item: Named
+  kind: string
+  shelf: ShelfRef
+  price: number
+  reference: number
+  stock: number
+  left_today: number
+  fits: number
+  max_buy: number
+  tradable: boolean
+}
+
+export interface ShopLockedLine {
+  item: Named
+  kind: string
+  shelf: ShelfRef
+  needs_buildings: Named[] | null
+  needs_knowledge: Named[] | null
+}
+
+export interface ShopMended {
+  item: Named
+  cost: number
 }
 
 export interface ShopRefusalView {
@@ -4395,6 +4415,16 @@ export interface ShopRefusalView {
   next_restock: string | null
 }
 
+export interface ShopRepairLine {
+  item: Named
+  serial: string
+  slot: string
+  wear: number
+  wear_max: number
+  torn: boolean
+  cost: number
+}
+
 export interface ShopSoldView {
   shop: Named
   item: Named
@@ -4403,12 +4433,32 @@ export interface ShopSoldView {
 }
 
 export interface ShopView {
-  shop: Named
-  place: Named
-  here: boolean
-  walk_seconds: number
-  shelves: ShelfLine[] | null
+  village: string
+  building: boolean
+  closed: string
+  next_delivery: string | null
+  delivery_hour: number
+  wage: number
   tax_bps: number
+  tax_max_bps: number
+  tax_presets: number[] | null
+  price_cap_bps: number
+  cap_min_bps: number
+  cap_max_bps: number
+  cap_presets: number[] | null
+  can_set_cap: boolean
+  presets: number[] | null
+  resident: boolean
+  lines: ShopLine[] | null
+  locked: ShopLockedLine[] | null
+  free_space: number
+  capacity: number
+  free_g: number
+  repairs: ShopRepairLine[] | null
+  can_repair: boolean
+  cash: number
+  bought: ShopBought | null
+  mended: ShopMended | null
 }
 
 export interface ShopsView {
@@ -5524,6 +5574,9 @@ export interface ScreenViews {
   village_refusal: VillageRefusalView
   village_residence_confirm: ResidenceView
   village_residence_done: ResidenceView
+  village_shop: ShopView
+  village_shop_checkout: ShopCheckoutView
+  village_shop_refusal: ShopRefusalView
   village_work: WorkView
   village_work_started: WorkView
   voted: VotedView
@@ -5542,4 +5595,4 @@ export interface ScreenViews {
 }
 
 /** Screens whose response is a refusal: the answer carries an error code instead of ok. */
-export const REFUSAL_SCREENS = ['appoint_refusal', 'auction_refusal', 'bill_refusal', 'company_refusal', 'crime_refusal', 'diplomacy_refusal', 'election_refusal', 'faction_refusal', 'finance_refusal', 'founding_refusal', 'health_refusal', 'item_refusal', 'life_refusal', 'market_refusal', 'military_refusal', 'mission_refusal', 'policy_refused', 'production_refusal', 'property_refusal', 'recruit_refusal', 'refusal', 'sanction_blocked', 'settlement_refusal', 'shop_refusal', 'village_refusal', 'war_blocked', 'war_refusal'] as const
+export const REFUSAL_SCREENS = ['appoint_refusal', 'auction_refusal', 'bill_refusal', 'company_refusal', 'crime_refusal', 'diplomacy_refusal', 'election_refusal', 'faction_refusal', 'finance_refusal', 'founding_refusal', 'health_refusal', 'item_refusal', 'life_refusal', 'market_refusal', 'military_refusal', 'mission_refusal', 'policy_refused', 'production_refusal', 'property_refusal', 'recruit_refusal', 'refusal', 'sanction_blocked', 'settlement_refusal', 'shop_refusal', 'village_refusal', 'village_shop_refusal', 'war_blocked', 'war_refusal'] as const

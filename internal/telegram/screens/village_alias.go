@@ -82,6 +82,7 @@ const BuildingModeCancel = village.BuildingModeCancel
 const BuildingKindRoad = village.BuildingKindRoad
 const BuildingKindCivicHall = village.BuildingKindCivicHall
 const BuildingKindStorage = village.BuildingKindStorage
+const BuildingKindShop = village.BuildingKindShop
 const BuildingKindSchool = village.BuildingKindSchool
 const BuildingKindSecurity = village.BuildingKindSecurity
 const BuildingKindGeneric = village.BuildingKindGeneric

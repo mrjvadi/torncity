@@ -435,6 +435,11 @@ commands:
   # scheduler's (settlement.worked).
   settlement.materials: {channel: group, client: true}
   settlement.materials.buy: {channel: group, client: true}
+  settlement.shop: {channel: group, client: true}
+  settlement.shop.buy: {channel: group, client: true}
+  settlement.shop.cap: {channel: group, client: true}
+  settlement.shop.tax: {channel: group, client: true}
+  settlement.shop.repair: {channel: group, client: true}
   settlement.work: {channel: group, client: true}
   # The labour market (ADR 0037): construction is done by workers.
   settlement.labor.board: {channel: group, client: true}

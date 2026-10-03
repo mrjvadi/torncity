@@ -57,6 +57,15 @@ func (c *Config) validateCarry() error {
 	case m.FoodShareBPS > 10_000 || m.OtherShareBPS > 10_000 || m.BuildingBoostBPS < 10_000:
 		return fmt.Errorf("%w: merchant shares must be at most 10000 bps and building_boost_bps at least 10000", ErrInvalidValue)
 	}
+	if m.TaxMaxBPS > 5_000 || m.TaxDefaultBPS > m.TaxMaxBPS {
+		return fmt.Errorf("%w: merchant.tax_default_bps %d, merchant.tax_max_bps %d (need default <= max <= 5000)",
+			ErrInvalidValue, m.TaxDefaultBPS, m.TaxMaxBPS)
+	}
+	for _, p := range m.TaxPresets {
+		if p < 0 || p > m.TaxMaxBPS {
+			return fmt.Errorf("%w: merchant.tax_presets has %d, outside 0..%d", ErrInvalidValue, p, m.TaxMaxBPS)
+		}
+	}
 	for _, p := range m.CapPresets {
 		if p < m.MarkupMinBPS || p > m.MarkupMaxBPS {
 			return fmt.Errorf("%w: merchant.cap_presets has %d, outside %d..%d", ErrInvalidValue, p, m.MarkupMinBPS, m.MarkupMaxBPS)

@@ -63,7 +63,7 @@ item_storage:
   - {code: clay,        planned: true, raw: true, source: "ADR 0041 6.4", evidence: adr, requires: {}, class: bulk, bulk: 1}
   - {code: cheese,      planned: true, raw: true, source: "ADR 0041 6.4, 6.5", evidence: adr, requires: {}, class: food, bulk: 1, food_points: 4}
   - {code: fish,        planned: true, raw: true, source: "ADR 0041 6.4, 6.5", evidence: adr, requires: {}, class: food, bulk: 1, food_points: 4}
-  - {code: tea,         planned: true, raw: true, source: "ADR 0041 6.4, 6.5", evidence: adr, requires: {}, class: food, bulk: 1, food_points: 0}
+  - {code: tea,         source: "ADR 0041 6.4, 6.5", evidence: adr, requires: {}, class: food, bulk: 1, food_points: 0}
   - {code: pots,        planned: true, source: "ADR 0041 6.4, 8.14", evidence: adr, requires: {}, class: goods, bulk: 1}
   - {code: flour_sack,  planned: true, source: "ADR 0041 12", evidence: adr, requires: {}, class: food, bulk: 1, food_points: 0}
   - {code: charcoal,    planned: true, source: "ADR 0045 4.3", evidence: adr, requires: {}, class: bulk, bulk: 1, needs_research: [bulk]}

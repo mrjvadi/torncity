@@ -135,7 +135,13 @@ func bring(ctx context.Context, tx application.Tx, snap *content.Snapshot, ids I
 
 // itemNamed is a good as a screen names it.
 func itemNamed(snap *content.Snapshot, code string) screens.Named {
-	def, _ := snap.ItemDef(code)
+	def, ok := snap.ItemDef(code)
+	if !ok {
+		// a material a player carries (timber, stone) is named by its component
+		if c, isComp := snap.ComponentDef(code); isComp {
+			return screens.Named{Code: code, Name: c.Name}
+		}
+	}
 	return screens.Named{Code: code, Name: def.Name}
 }
 

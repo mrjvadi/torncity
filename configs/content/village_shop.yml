@@ -1,0 +1,72 @@
+# The village shop (docs/adr/0046-bags-merchants-currency-exchange.md section 5;
+# internal/content/villageshop.go, rules internal/domain/vshop, tuning config
+# merchant.*).
+#
+# WHAT IT IS. Every village has a shop from the day it is founded: a counter
+# («دکان»), the peddler's stand of the founding core, that sells a few basic
+# goods in LIMITED quantity at a price a little over the reference (the good's
+# base_price in items.yml or components in items.yml). It is not a market: a day's
+# delivery follows the number of people it serves, a shelf holds two days of it,
+# and one player may buy only so much of a line a day, so nobody can buy
+# everything and the people who make the same goods are not undercut for good. It
+# ONLY SELLS. It never buys anything back (a buy-back would be a money faucet).
+#
+# WHO KEEPS IT. A shopkeeper: an NPC citizen of the labour pool, paid a day's NPC
+# wage from the treasury at each morning delivery (06:00 game clock,
+# merchant.restock_hour). No shopkeeper in the pool, or an empty treasury, and
+# the shop is frozen: no delivery and no sale until the next morning it is kept.
+#
+# WHAT A LINE NEEDS (rule 2). `requires` is research (`knowledge`) and standing
+# buildings (`buildings`, by code), nothing else. `{}` means the stall carries
+# the line from the day the village is founded (the founding set, the one
+# exception to "nothing exists by default" that ADR 0046 asks the owner to confirm
+# as availability class A). A building line appears when that building stands.
+#
+# THE ROUTE (gap, as built). ADR 0046 5.4 makes an imported line depend on a
+# road or cart route to a supplier. No world road network exists yet (ADR 0042
+# builds it), so an imported line asks for the building a delivery arrives at,
+# the barter post («بازارچه»), which every village is founded with. When the
+# routes exist this becomes a requirement on the route; nothing else changes.
+#
+# line
+#   item          an items.yml good, or a component (timber, plank, stone, cloth)
+#                 a player carries and builds with.
+#   class         food (a resident's daily need, limited by food_share_bps) or
+#                 other (other_share_bps).
+#   markup_bps    the usual price as a share of the reference, 10000..15000.
+#   per_head_milli  units a resident draws a day, in thousandths.
+#   floor         the least units delivered a day, however few live there.
+#   tradable      traded between places: enters the basket a currency's buying
+#                 power is read off (ADR 0046 7.3, phase M3).
+#   requires      see above.
+#
+# demand: every unit sold in a restock day beyond free_sales adds step_bps to the
+# markup, up to max_extra_bps; the head's price cap and the config bounds hold
+# the result.
+
+version: 1
+
+village_shop:
+  # The shop building that makes it bigger (settlement_buildings.yml).
+  building: general_store
+  demand: {free_sales: 3, step_bps: 100, max_extra_bps: 2500}
+  lines:
+    # --- the founding stall -------------------------------------------------
+    - {item: bread,        class: food,  markup_bps: 11000, per_head_milli: 300, floor: 5, requires: {}}
+    - {item: water_bottle, class: food,  markup_bps: 11000, per_head_milli: 200, floor: 5, requires: {}}
+    - {item: bag_pouch,    class: other, markup_bps: 11500, per_head_milli: 30,  floor: 2, tradable: true, requires: {}}
+    - {item: bag_sack,     class: other, markup_bps: 11500, per_head_milli: 30,  floor: 3, tradable: true, requires: {}}
+    # --- what arrives at the market post -------------------------------------
+    - {item: rice,         class: food,  markup_bps: 11000, per_head_milli: 200, floor: 4, tradable: true, requires: {buildings: [{code: barter_post}]}}
+    - {item: lentils,      class: food,  markup_bps: 11000, per_head_milli: 150, floor: 4, tradable: true, requires: {buildings: [{code: barter_post}]}}
+    - {item: dried_fruit,  class: food,  markup_bps: 11000, per_head_milli: 100, floor: 3, tradable: true, requires: {buildings: [{code: barter_post}]}}
+    - {item: sugar,        class: food,  markup_bps: 11000, per_head_milli: 80,  floor: 3, tradable: true, requires: {buildings: [{code: barter_post}]}}
+    - {item: tea,          class: food,  markup_bps: 11000, per_head_milli: 80,  floor: 3, tradable: true, requires: {buildings: [{code: barter_post}]}}
+    - {item: bandage,      class: other, markup_bps: 11500, per_head_milli: 50,  floor: 3, requires: {buildings: [{code: barter_post}]}}
+    - {item: cloth,        class: other, markup_bps: 12000, per_head_milli: 100, floor: 4, tradable: true, requires: {buildings: [{code: barter_post}]}}
+    - {item: plank,        class: other, markup_bps: 12000, per_head_milli: 100, floor: 4, tradable: true, requires: {buildings: [{code: barter_post}]}}
+    - {item: stone,        class: other, markup_bps: 12000, per_head_milli: 200, floor: 8, tradable: true, requires: {buildings: [{code: barter_post}]}}
+    # --- the village's own timber: only where a woodcutter's camp stands ------
+    - {item: timber,       class: other, markup_bps: 12000, per_head_milli: 200, floor: 6, requires: {buildings: [{code: woodcutter_camp}]}}
+    # --- what the shop building stocks ---------------------------------------
+    - {item: bag_daypack,  class: other, markup_bps: 11500, per_head_milli: 10,  floor: 1, tradable: true, requires: {buildings: [{code: general_store}]}}

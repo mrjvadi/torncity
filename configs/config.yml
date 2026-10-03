@@ -1371,6 +1371,12 @@ bag:
 #   building_boost_bps  the delivery of a village that has built a shop
 #                       building, over the founding stall's (10000 = the same)
 #   cap_presets         the price caps the head's buttons offer
+#   buy_presets         the quantities the buy buttons offer
+#   tax_default_bps     the village's sales tax on a purchase until its head sets
+#                       one, in basis points of the price; the tax goes to the
+#                       treasury, which pays the shopkeeper
+#   tax_max_bps         the most the head may set
+#   tax_presets         the taxes the head's buttons offer
 merchant:
   restock_hour: 6
   markup_min_bps: 10000
@@ -1380,9 +1386,13 @@ merchant:
   other_share_bps: 3000
   player_day_food: 3
   player_day_other: 2
-  supply_value_per_resident_day: 60
+  supply_value_per_resident_day: 600
   building_boost_bps: 15000
   cap_presets: [10000, 11000, 12500, 15000]
+  buy_presets: [1, 3, 5]
+  tax_default_bps: 300
+  tax_max_bps: 1500
+  tax_presets: [100, 300, 500, 1000]
 
 # Nil as a unit of account (docs/adr/0046 section 7.4). One Nil stands for this
 # many neutral-currency units: a village currency is QUOTED in Nil as
