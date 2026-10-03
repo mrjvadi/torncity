@@ -10,6 +10,7 @@ import (
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
+	"github.com/mrjvadi/torncity/internal/domain/carry"
 	"github.com/mrjvadi/torncity/internal/domain/gametime"
 	"github.com/mrjvadi/torncity/internal/domain/inventory"
 	"github.com/mrjvadi/torncity/internal/domain/payment"
@@ -51,6 +52,14 @@ type ShopsHandler struct {
 
 	idempotencyTTL time.Duration
 	now            func() time.Time
+	// carry is the room check (room.go); zero checks nothing.
+	carry carryEnv
+}
+
+// WithCarry has a purchase refused when the goods do not fit in the bags.
+func (h *ShopsHandler) WithCarry(rules carry.Rules, clock gametime.Clock) *ShopsHandler {
+	h.carry = carryEnvOf(rules, clock)
+	return h
 }
 
 // NewShopsHandler wires the handler. A missing dependency is a wiring mistake
@@ -100,6 +109,9 @@ func (h *ShopsHandler) finish(meta envelope.Metadata, lang string, err error) (*
 	var r *shopRefusal
 	if stderrors.As(err, &r) {
 		return economy.ShopRefusal(presentation.Ctx{Lang: lang}, r.view), nil
+	}
+	if resp, ok := noRoomResponse(err, lang, h.content.Current(), economy.AddrShops); ok {
+		return resp, nil
 	}
 	if v, ok := asNotHere(err); ok {
 		return screens.NotHere(h.screen(meta, lang), v), nil
@@ -346,6 +358,10 @@ func (h *ShopsHandler) Buy(ctx context.Context, meta envelope.Metadata, req Shop
 		if shelf.Stock < qty {
 			return &shopRefusal{view: economy.ShopRefusalView{Kind: economy.ShopRefusedSoldOut, Shop: named(def.Code, def.Name),
 				Item: named(item.Code, item.Name), Stock: shelf.Stock, NextRestock: line.NextRestock}}
+		}
+		// No room, no buy: before the checkout, so nobody pays for what will not fit.
+		if err := h.carry.fit(ctx, tx, snap, p.ID, item.Code, qty); err != nil {
+			return err
 		}
 		unit := money.FromMinor(line.Price)
 		total, err := shop.Total(unit, qty)

@@ -723,6 +723,10 @@ func (h *ProductionHandler) buy(ctx context.Context, tx application.Tx, snap *co
 			r.view.CityCode, r.view.City = listingCity.Code, listingCity.Name
 			return r
 		}
+		// No room, no buy.
+		if err := h.carry.fit(ctx, tx, snap, p.ID, l.Item, qty); err != nil {
+			return err
+		}
 		wallet, err := application.OpenWallet(ctx, tx.Ledger(), p.ID)
 		if err != nil {
 			return err

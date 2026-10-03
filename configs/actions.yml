@@ -92,6 +92,9 @@ commands:
   inventory.drop: {kind: danger, icon: "action:drop"}
   inventory.bag.wear: {kind: primary, icon: "action:bag"}
   inventory.bag.off: {kind: secondary, icon: "action:bag"}
+  inventory.store: {kind: secondary, icon: "action:bag"}
+  inventory.fetch: {kind: secondary, icon: "action:bag"}
+  inventory.claim: {kind: primary, icon: "action:bag"}
   shop.list: {kind: navigation, icon: "action:shop"}
   shop.view: {kind: navigation, icon: "action:shop"}
   shop.buy: {kind: primary, icon: "action:buy"}
@@ -311,6 +314,8 @@ commands:
   settlement.build.cancel: {kind: danger, icon: "action:cancel_build"}
   settlement.materials: {kind: navigation, icon: "action:materials"}
   settlement.materials.buy: {kind: primary, icon: "action:buy"}
+  settlement.stock.donate: {kind: primary, icon: "action:give"}
+  settlement.stock.take: {kind: secondary, icon: "action:bag"}
   settlement.shop: {kind: navigation, icon: "action:shop"}
   settlement.shop.buy: {kind: primary, icon: "action:buy"}
   settlement.shop.cap: {kind: secondary, icon: "action:shop"}

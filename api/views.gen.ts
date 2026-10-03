@@ -362,6 +362,8 @@ export interface BookView {
   at_market: boolean
   way: Way | null
   nonce: string
+  unavailable: Unavailable | null
+  village: VillageBookView | null
 }
 
 export interface BoughtView {
@@ -493,7 +495,7 @@ export interface BuildingView {
   research: BuildingResearchLine | null
   has_upgrade: boolean
   upgrades: BuildingUpgradeLine[] | null
-  shop: ShopView | null
+  shop: VillageShopView | null
 }
 
 export interface BuyView {
@@ -538,6 +540,7 @@ export interface CardView {
 
 export interface CarryLine {
   used: number
+  reserved: number
   capacity: number
   base: number
   load_g: number
@@ -2085,6 +2088,13 @@ export interface HoldingLine {
   listed: boolean
 }
 
+export interface HomeStoreView {
+  capacity: number
+  used: number
+  here: boolean
+  lines: InventoryLine[] | null
+}
+
 export interface HospitalView {
   health: number
   max: number
@@ -2261,6 +2271,8 @@ export interface InventoryView {
   in_escrow: number
   bags: BagSlotLine[] | null
   carry: CarryLine
+  home: HomeStoreView | null
+  claims: InventoryLine[] | null
 }
 
 export interface ItemDetailView {
@@ -2277,6 +2289,7 @@ export interface ItemDetailView {
   gear: GearLine | null
   usable: boolean
   tradeable: boolean
+  can_store: boolean
   cooldown_seconds: number
   cooling_for_seconds: number
   ready_at: string | null
@@ -2970,6 +2983,7 @@ export interface MarketRefusalView {
   kind: string
   item: Named
   count: number
+  unavailable: Unavailable | null
 }
 
 export interface MarketView {
@@ -2979,6 +2993,8 @@ export interface MarketView {
   yours: Named[] | null
   at_market: boolean
   way: Way | null
+  unavailable: Unavailable | null
+  village: VillageBookView | null
 }
 
 export interface MaterialBought {
@@ -3018,6 +3034,10 @@ export interface MaterialsView {
   stock: MaterialStockLine[] | null
   used: number
   capacity: number
+  classes: StockClassLine[] | null
+  stores: StockStoreLine[] | null
+  wage: number
+  spoil_bps: number
   market: MaterialMarketLine[] | null
   can_buy: boolean
   presets: number[] | null
@@ -3308,6 +3328,18 @@ export interface NilExample {
   nil_micro: number
 }
 
+export interface NoRoomView {
+  item: Named
+  qty: number
+  need_space: number
+  free_space: number
+  short: number
+  need_g: number
+  free_g: number
+  heavy: boolean
+  back: string
+}
+
 export interface NotHereView {
   need: string
   need_args: Record<string, unknown> | null
@@ -3409,6 +3441,7 @@ export interface OrderLine {
 }
 
 export interface OrderPlacedView {
+  listing_fee: number
   item: Named
   side: string
   no: number
@@ -4405,6 +4438,16 @@ export interface SettlementWhoView {
   offline: number
 }
 
+export interface ShelfLine {
+  item: Named
+  shelf: ShelfRef
+  price: number
+  stock: number
+  busy: boolean
+  buyback: number
+  next_restock: string | null
+}
+
 export interface ShelfRef {
   code: string
   group: string
@@ -4473,16 +4516,9 @@ export interface ShopCheckoutView {
 }
 
 export interface ShopLine {
-  item: Named
-  kind: string
-  shelf: ShelfRef
-  price: number
-  reference: number
-  stock: number
-  left_today: number
-  fits: number
-  max_buy: number
-  tradable: boolean
+  shop: Named
+  place: Named
+  here: boolean
 }
 
 export interface ShopLockedLine {
@@ -4524,32 +4560,12 @@ export interface ShopSoldView {
 }
 
 export interface ShopView {
-  village: string
-  building: boolean
-  closed: string
-  next_delivery: string | null
-  delivery_hour: number
-  wage: number
+  shop: Named
+  place: Named
+  here: boolean
+  walk_seconds: number
+  shelves: ShelfLine[] | null
   tax_bps: number
-  tax_max_bps: number
-  tax_presets: number[] | null
-  price_cap_bps: number
-  cap_min_bps: number
-  cap_max_bps: number
-  cap_presets: number[] | null
-  can_set_cap: boolean
-  presets: number[] | null
-  resident: boolean
-  lines: ShopLine[] | null
-  locked: ShopLockedLine[] | null
-  free_space: number
-  capacity: number
-  free_g: number
-  repairs: ShopRepairLine[] | null
-  can_repair: boolean
-  cash: number
-  bought: ShopBought | null
-  mended: ShopMended | null
 }
 
 export interface ShopsView {
@@ -4678,6 +4694,13 @@ export interface StationView {
   confirm: boolean
 }
 
+export interface StockClassLine {
+  class: string
+  used: number
+  capacity: number
+  reserved: number
+}
+
 export interface StockOrderView {
   company: Named
   side: string
@@ -4721,6 +4744,11 @@ export interface StockPageView {
   notice: string
   notice_args: Record<string, unknown> | null
   unavailable: Unavailable | null
+}
+
+export interface StockStoreLine {
+  building: Named
+  kept: boolean
 }
 
 export interface StockView {
@@ -5045,6 +5073,16 @@ export interface VictimView {
   item: Named | null
 }
 
+export interface VillageBookView {
+  stalls: number
+  stalls_used: number
+  per_player: number
+  mine: number
+  listing_bps: number
+  dues_bps: number
+  market_day: boolean
+}
+
 export interface VillageHeldLine {
   building: Named
   state: string
@@ -5125,6 +5163,7 @@ export interface VillageRefusalView {
   min: number
   max: number
   lots: BatchLotFailure[] | null
+  missing: number
   action: string
   subject: Named
   needs: VillageNeed[] | null
@@ -5134,6 +5173,80 @@ export interface VillageRoleLine {
   role: string
   building: Named
   tier: number
+}
+
+export interface VillageShopCheckoutView {
+  village: string
+  item: Named
+  kind: string
+  qty: number
+  unit: number
+  total: number
+  tax: number
+  tax_bps: number
+  stock: number
+  space: number
+  free_space: number
+  grams: number
+  payment: PaymentChoice
+  nonce: string
+}
+
+export interface VillageShopLine {
+  item: Named
+  kind: string
+  shelf: ShelfRef
+  price: number
+  reference: number
+  stock: number
+  left_today: number
+  fits: number
+  max_buy: number
+  tradable: boolean
+}
+
+export interface VillageShopRefusalView {
+  kind: string
+  item: Named
+  closed: string
+  stock: number
+  left_today: number
+  free_space: number
+  need_space: number
+  free_g: number
+  need_g: number
+  min: number
+  max: number
+  next_delivery: string | null
+}
+
+export interface VillageShopView {
+  village: string
+  building: boolean
+  closed: string
+  next_delivery: string | null
+  delivery_hour: number
+  wage: number
+  tax_bps: number
+  tax_max_bps: number
+  tax_presets: number[] | null
+  price_cap_bps: number
+  cap_min_bps: number
+  cap_max_bps: number
+  cap_presets: number[] | null
+  can_set_cap: boolean
+  presets: number[] | null
+  resident: boolean
+  lines: VillageShopLine[] | null
+  locked: ShopLockedLine[] | null
+  free_space: number
+  capacity: number
+  free_g: number
+  repairs: ShopRepairLine[] | null
+  can_repair: boolean
+  cash: number
+  bought: ShopBought | null
+  mended: ShopMended | null
 }
 
 export interface VillageSupport {
@@ -5548,6 +5661,7 @@ export interface ScreenViews {
   my_auctions: MyAuctionsView
   my_office: MyOfficeView
   my_orders: MyOrdersView
+  no_room: NoRoomView
   not_here: NotHereView
   office_notice: OfficeView
   order_cancelled: OrderCancelledView
@@ -5668,9 +5782,9 @@ export interface ScreenViews {
   village_refusal: VillageRefusalView
   village_residence_confirm: ResidenceView
   village_residence_done: ResidenceView
-  village_shop: ShopView
-  village_shop_checkout: ShopCheckoutView
-  village_shop_refusal: ShopRefusalView
+  village_shop: VillageShopView
+  village_shop_checkout: VillageShopCheckoutView
+  village_shop_refusal: VillageShopRefusalView
   village_work: WorkView
   village_work_started: WorkView
   voted: VotedView
@@ -5689,4 +5803,4 @@ export interface ScreenViews {
 }
 
 /** Screens whose response is a refusal: the answer carries an error code instead of ok. */
-export const REFUSAL_SCREENS = ['appoint_refusal', 'auction_refusal', 'bill_refusal', 'company_refusal', 'crime_refusal', 'diplomacy_refusal', 'election_refusal', 'faction_refusal', 'finance_refusal', 'founding_refusal', 'health_refusal', 'item_refusal', 'life_refusal', 'market_refusal', 'military_refusal', 'mission_refusal', 'policy_refused', 'production_refusal', 'property_refusal', 'recruit_refusal', 'refusal', 'sanction_blocked', 'settlement_refusal', 'shop_refusal', 'village_refusal', 'village_shop_refusal', 'war_blocked', 'war_refusal'] as const
+export const REFUSAL_SCREENS = ['appoint_refusal', 'auction_refusal', 'bill_refusal', 'company_refusal', 'crime_refusal', 'diplomacy_refusal', 'election_refusal', 'faction_refusal', 'finance_refusal', 'founding_refusal', 'health_refusal', 'item_refusal', 'life_refusal', 'market_refusal', 'military_refusal', 'mission_refusal', 'no_room', 'policy_refused', 'production_refusal', 'property_refusal', 'recruit_refusal', 'refusal', 'sanction_blocked', 'settlement_refusal', 'shop_refusal', 'village_refusal', 'village_shop_refusal', 'war_blocked', 'war_refusal'] as const

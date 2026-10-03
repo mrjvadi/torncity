@@ -382,6 +382,8 @@ type settlementSettings struct {
 	DemolitionSalvageBPS  *int64  `yaml:"demolition_salvage_bps"`
 	MaterialMarkupBPS     *int64  `yaml:"material_markup_bps"`
 	StockBaseCapacity     *int64  `yaml:"stock_base_capacity"`
+	StorageSpoilKeptBPS   *int64  `yaml:"storage_spoil_kept_bps"`
+	StorageSpoilUnkeptBPS *int64  `yaml:"storage_spoil_unkept_bps"`
 	MaterialBuyMax        *int64  `yaml:"material_buy_max"`
 	MaterialBuyPresets    []int64 `yaml:"material_buy_presets"`
 
@@ -436,6 +438,11 @@ type crimeSettings struct {
 type tradeSettings struct {
 	MarketOrderTTL      *string  `yaml:"market_order_ttl"`
 	MarketMaxOpenOrders *int     `yaml:"market_max_open_orders"`
+	VillageStallsPost          *int `yaml:"village_stalls_post"`
+	VillageStallsHall          *int `yaml:"village_stalls_hall"`
+	VillageStallsPerPlayerPost *int `yaml:"village_stalls_per_player_post"`
+	VillageStallsPerPlayerHall *int `yaml:"village_stalls_per_player_hall"`
+	MarketDayEveryDays         *int `yaml:"market_day_every_days"`
 	MarketMaxQuantity   *int     `yaml:"market_max_quantity"`
 	MarketMaxPrice      *int64   `yaml:"market_max_price"`
 	AuctionDurations    []string `yaml:"auction_durations"`
@@ -1336,6 +1343,12 @@ var coreSettings = []setting{
 	moneySetting("settlement", "stock_base_capacity",
 		func(c *Config) *int64 { return &c.Settlement.StockBaseCapacity },
 		func(f *fileConfig) *int64 { return f.Settlement.StockBaseCapacity }),
+	moneySetting("settlement", "storage_spoil_kept_bps",
+		func(c *Config) *int64 { return &c.Settlement.StorageSpoilKeptBPS },
+		func(f *fileConfig) *int64 { return f.Settlement.StorageSpoilKeptBPS }),
+	moneySetting("settlement", "storage_spoil_unkept_bps",
+		func(c *Config) *int64 { return &c.Settlement.StorageSpoilUnkeptBPS },
+		func(f *fileConfig) *int64 { return f.Settlement.StorageSpoilUnkeptBPS }),
 	moneySetting("settlement", "material_buy_max",
 		func(c *Config) *int64 { return &c.Settlement.MaterialBuyMax },
 		func(f *fileConfig) *int64 { return f.Settlement.MaterialBuyMax }),
@@ -1595,6 +1608,21 @@ var coreSettings = []setting{
 	limitSetting("trade", "market_max_open_orders",
 		func(c *Config) *int { return &c.Trade.MarketMaxOpenOrders },
 		func(f *fileConfig) *int { return f.Trade.MarketMaxOpenOrders }),
+	limitSetting("trade", "village_stalls_post",
+		func(c *Config) *int { return &c.Trade.VillageStallsPost },
+		func(f *fileConfig) *int { return f.Trade.VillageStallsPost }),
+	limitSetting("trade", "village_stalls_hall",
+		func(c *Config) *int { return &c.Trade.VillageStallsHall },
+		func(f *fileConfig) *int { return f.Trade.VillageStallsHall }),
+	limitSetting("trade", "village_stalls_per_player_post",
+		func(c *Config) *int { return &c.Trade.VillageStallsPerPlayerPost },
+		func(f *fileConfig) *int { return f.Trade.VillageStallsPerPlayerPost }),
+	limitSetting("trade", "village_stalls_per_player_hall",
+		func(c *Config) *int { return &c.Trade.VillageStallsPerPlayerHall },
+		func(f *fileConfig) *int { return f.Trade.VillageStallsPerPlayerHall }),
+	limitSetting("trade", "market_day_every_days",
+		func(c *Config) *int { return &c.Trade.MarketDayEveryDays },
+		func(f *fileConfig) *int { return f.Trade.MarketDayEveryDays }),
 	limitSetting("trade", "market_max_quantity",
 		func(c *Config) *int { return &c.Trade.MarketMaxQuantity },
 		func(f *fileConfig) *int { return f.Trade.MarketMaxQuantity }),

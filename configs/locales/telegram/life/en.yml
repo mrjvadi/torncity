@@ -220,6 +220,9 @@ item:
   piece: "quality {quality}"
   piece_worn: "quality {quality} - {uses} of {durability} uses left"
   in_escrow: "📦 {count} of your goods are on the market or up for auction."
+  claims_title: "📮 Held for you, waiting for room (make room and claim):"
+  home_title: "🏠 My store: {used} of {capacity} space"
+  home_away: "To put in or take out you must be in a settlement where you hold a house or shed."
   carry_space: "🎒 Room: {used} of {capacity}"
   carry_load: "⚖️ Load: {load} kg (comfortable to {comfort}, at most {hard})"
   bag_slot:
@@ -256,6 +259,9 @@ item:
   button:
     bag: "🎒 Bag"
     open: "🎒 {item}"
+    claim: "📮 Claim {item}"
+    fetch: "🏠 Bring {item}"
+    store: "🏠 Put {item} in my store"
     use: "✅ Use {item}"
     give: "🎁 Give to {player}"
     drop: "🗑 Throw away"
@@ -270,6 +276,8 @@ item:
     no_effect: "{item} would do nothing now: you are already at full."
     not_tradeable: "{item} cannot change hands."
     not_bag: "{item} is not a bag; it cannot be worn."
+    no_home: "You hold no house or shed here; there is nowhere to keep {item}."
+    home_full: "Your home store is full; {item} does not fit."
     not_together: "👥 You can only hand something to a friend who stands at the same place as you."
 
 # The kinds of goods (configs/content/items.yml).

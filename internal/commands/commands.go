@@ -181,6 +181,9 @@ var all = []Subscription{
 	{Domain: "inventory", Action: "drop", Origin: FromPlayer},
 	{Domain: "inventory", Action: "bag.wear", Origin: FromPlayer},
 	{Domain: "inventory", Action: "bag.off", Origin: FromPlayer},
+	{Domain: "inventory", Action: "store", Origin: FromPlayer},
+	{Domain: "inventory", Action: "fetch", Origin: FromPlayer},
+	{Domain: "inventory", Action: "claim", Origin: FromPlayer},
 	{Domain: "shop", Action: "list", Origin: FromPlayer},
 	{Domain: "shop", Action: "view", Origin: FromPlayer},
 	{Domain: "shop", Action: "buy", Origin: FromPlayer},
@@ -460,6 +463,8 @@ var all = []Subscription{
 	// sends settlement.worked, a shift reaching its end.
 	{Domain: "settlement", Action: "materials", Origin: FromPlayer},
 	{Domain: "settlement", Action: "materials.buy", Origin: FromPlayer},
+	{Domain: "settlement", Action: "stock.donate", Origin: FromPlayer},
+	{Domain: "settlement", Action: "stock.take", Origin: FromPlayer},
 	// The village shop (docs/adr/0046 section 5): the shelf, a purchase, the head's
 	// price cap and sales tax, and the mending counter.
 	{Domain: "settlement", Action: "shop", Origin: FromPlayer},

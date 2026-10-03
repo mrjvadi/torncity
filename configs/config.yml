@@ -508,6 +508,16 @@ trade:
   # One player's resting orders at a time, and the most one order may ask:
   # units, and minor units per unit.
   market_max_open_orders: 20
+  # The village book (docs/adr/0040 section 5): stalls are the open orders a
+  # settlement's market takes at once, per market post and per market hall that
+  # stands, and how many of them one player may hold; a settlement that has
+  # researched the periodic market holds a market day every so many game days,
+  # when the listing fee is nothing and the dues are halved.
+  village_stalls_post: 6
+  village_stalls_hall: 20
+  village_stalls_per_player_post: 3
+  village_stalls_per_player_hall: 6
+  market_day_every_days: 7
   market_max_quantity: 10000
   market_max_price: 100000000
 
@@ -1264,6 +1274,10 @@ settlement:
   # stock what it needs to build; production and purchases stop at the
   # capacity, so a granary is what lets a village keep more.
   stock_base_capacity: 60
+  # Food in the stock spoils a share per game day (basis points of the food):
+  # little with a staffed granary keeping it, more in the open yard.
+  storage_spoil_kept_bps: 5
+  storage_spoil_unkept_bps: 30
   material_buy_max: 200
   material_buy_presets: [5, 20, 50]
   # Village treasury start-up. A village has no income until its abstract

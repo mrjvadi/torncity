@@ -470,10 +470,26 @@ func Inventory(c presentation.Ctx, v InventoryView) *presentation.Response {
 			a = append(a, act(AddrBagOff, b.Slot).Named("bag.off").About(b.Bag.Item.Code))
 		}
 	}
+	for _, l := range v.Claims {
+		a = append(a, act(AddrItemClaim, lineRef(l), "1000000").Named("item.claim").About(l.Item.Code))
+	}
+	if v.Home != nil && v.Home.Here {
+		for _, l := range v.Home.Lines {
+			a = append(a, act(AddrItemFetch, lineRef(l), "1000000").Named("item.fetch").About(l.Item.Code))
+		}
+	}
 	a = append(a, act(AddrShops).Named("shops"), act(AddrMarket).Named("market"))
 	a = append(a, pager(AddrInventory, v.Page, v.Pages)...)
 	a = append(a, back(AddrHome), pageRefresh(AddrInventory, v.Page))
 	return screenInventory.Response(c.Lang, v, a...)
+}
+
+// lineRef is how a button names a line: a piece by its serial, a stack by its good.
+func lineRef(l InventoryLine) string {
+	if l.Serial != "" {
+		return l.Serial
+	}
+	return l.Item.Code
 }
 
 // ItemDetail is one good or piece in detail.
@@ -499,6 +515,9 @@ func ItemDetail(c presentation.Ctx, v ItemDetailView) *presentation.Response {
 		} else {
 			a = append(a, act(AddrBagWear, v.Ref).Named("bag.wear").About(v.Item.Code))
 		}
+	}
+	if v.CanStore {
+		a = append(a, act(AddrItemStore, v.Ref, "1000000").Named("item.store").About(v.Item.Code))
 	}
 	a = append(a, act(AddrItemDrop, v.Ref).Named("item.drop").As(presentation.RoleDanger),
 		back(AddrInventory), refresh(AddrItem, v.Ref))

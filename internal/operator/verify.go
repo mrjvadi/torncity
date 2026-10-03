@@ -294,6 +294,14 @@ func shopChecks(out *checks, s postgres.ShopInvariants, cfg *config.Config) {
 	line(s.WageLedger == s.WageRows && s.WageMismatched == 0,
 		"shopkeepers' wages in the ledger match the delivery days (%d = %d), each one treasury to sink for the wage (%d mismatched)",
 		s.WageLedger, s.WageRows, s.WageMismatched)
+	line(s.StoreWageLedger == s.StoreWageRows && s.StoreWageMismatched == 0,
+		"storekeepers' wages in the ledger match the storage days (%d = %d), each one treasury to sink for the wage (%d mismatched)",
+		s.StoreWageLedger, s.StoreWageRows, s.StoreWageMismatched)
+	line(s.SpoilJournal == s.SpoilRows, "the food that spoiled in the item journal is what the storage days say (%d = %d)", s.SpoilJournal, s.SpoilRows)
+	line(s.MarketDuesLedger == s.MarketDuesRows,
+		"the dues the village markets paid the treasuries in the ledger are the fee of their trades (%d = %d)", s.MarketDuesLedger, s.MarketDuesRows)
+	line(s.ListingLedger == s.ListingRows,
+		"the listing fees in the ledger are the listing fees on the orders (%d = %d)", s.ListingLedger, s.ListingRows)
 	line(s.PlayerDayBroken == 0, "every player's daily count at the shop is what the sales say (%d broken)", s.PlayerDayBroken)
 	line(s.GrantsUnjournalled == 0 && s.GrantsDuplicated == 0,
 		"every starting bag was given once, from a recorded origin (%d without one, %d given twice)", s.GrantsUnjournalled, s.GrantsDuplicated)

@@ -148,6 +148,13 @@ func goodsSnapshots(c Context, who people, add func(string, *presenter.Response)
 	} {
 		add("Shop refused · "+r.title, ShopRefusal(c, r.view))
 	}
+	add("No room · too bulky", NoRoom(c, NoRoomView{Item: snapBread, Qty: 12, NeedSpace: 12, FreeSpace: 5, Short: 7}))
+	add("No room · too heavy", NoRoom(c, NoRoomView{Item: snapBread, Qty: 12, NeedG: 6000, FreeG: 2000, Heavy: true}))
+	add("Inventory · a holding slot and a home store", Inventory(c, InventoryView{
+		Lines: []InventoryLine{{Item: snapBread, Category: "food", Qty: 3}}, Page: 1, Pages: 1, Total: 1,
+		Claims: []InventoryLine{{Item: snapBandage, Qty: 2}},
+		Home:   &HomeStoreView{Capacity: 40, Used: 6, Here: true, Lines: []InventoryLine{{Item: snapBread, Qty: 6}}},
+	}))
 }
 
 func tradeSnapshots(c Context, who people, add func(string, *presenter.Response)) {

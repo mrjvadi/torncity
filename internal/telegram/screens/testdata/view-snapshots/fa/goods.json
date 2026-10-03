@@ -10,8 +10,11 @@
         "comfort_g": 0,
         "hard_g": 0,
         "load_g": 0,
+        "reserved": 0,
         "used": 0
       },
+      "claims": null,
+      "home": null,
       "in_escrow": 2,
       "lines": [
         {
@@ -107,8 +110,11 @@
         "comfort_g": 0,
         "hard_g": 0,
         "load_g": 0,
+        "reserved": 0,
         "used": 0
       },
+      "claims": null,
+      "home": null,
       "in_escrow": 0,
       "lines": null,
       "page": 1,
@@ -162,8 +168,11 @@
         "comfort_g": 17000,
         "hard_g": 50000,
         "load_g": 1100,
+        "reserved": 0,
         "used": 9
       },
+      "claims": null,
+      "home": null,
       "in_escrow": 0,
       "lines": [
         {
@@ -211,8 +220,11 @@
         "comfort_g": 7000,
         "hard_g": 20000,
         "load_g": 900,
+        "reserved": 0,
         "used": 3
       },
+      "claims": null,
+      "home": null,
       "in_escrow": 0,
       "lines": [
         {
@@ -253,6 +265,7 @@
         "torn": false,
         "worn": false
       },
+      "can_store": false,
       "category": "gear",
       "cooldown_seconds": 0,
       "cooling_for_seconds": 0,
@@ -289,6 +302,7 @@
         "torn": true,
         "worn": true
       },
+      "can_store": false,
       "category": "gear",
       "cooldown_seconds": 0,
       "cooling_for_seconds": 0,
@@ -317,6 +331,7 @@
     "screen": "item_detail",
     "view": {
       "bag": null,
+      "can_store": false,
       "category": "food",
       "cooldown_seconds": 1800,
       "cooling_for_seconds": 0,
@@ -361,6 +376,7 @@
     "screen": "item_detail",
     "view": {
       "bag": null,
+      "can_store": false,
       "category": "medicine",
       "cooldown_seconds": 3600,
       "cooling_for_seconds": 720,
@@ -395,6 +411,7 @@
     "screen": "item_detail",
     "view": {
       "bag": null,
+      "can_store": false,
       "category": "gear",
       "cooldown_seconds": 0,
       "cooling_for_seconds": 0,
@@ -1046,6 +1063,130 @@
         "name": "Grocery"
       },
       "stock": 0
+    }
+  },
+  {
+    "title": "No room · too bulky",
+    "screen": "no_room",
+    "view": {
+      "back": "",
+      "free_g": 0,
+      "free_space": 5,
+      "heavy": false,
+      "item": {
+        "code": "bread",
+        "name": "Bread"
+      },
+      "need_g": 0,
+      "need_space": 12,
+      "qty": 12,
+      "short": 7
+    }
+  },
+  {
+    "title": "No room · too heavy",
+    "screen": "no_room",
+    "view": {
+      "back": "",
+      "free_g": 2000,
+      "free_space": 0,
+      "heavy": true,
+      "item": {
+        "code": "bread",
+        "name": "Bread"
+      },
+      "need_g": 6000,
+      "need_space": 0,
+      "qty": 12,
+      "short": 0
+    }
+  },
+  {
+    "title": "Inventory · a holding slot and a home store",
+    "screen": "inventory",
+    "view": {
+      "bags": null,
+      "carry": {
+        "base": 0,
+        "capacity": 0,
+        "comfort_g": 0,
+        "hard_g": 0,
+        "load_g": 0,
+        "reserved": 0,
+        "used": 0
+      },
+      "claims": [
+        {
+          "category": "",
+          "design": "",
+          "durability": 0,
+          "item": {
+            "code": "bandage",
+            "name": "Bandage"
+          },
+          "qty": 2,
+          "quality": 0,
+          "serial": "",
+          "shelf": {
+            "code": "",
+            "group": "",
+            "group_label": "",
+            "label": ""
+          },
+          "uses_left": 0
+        }
+      ],
+      "home": {
+        "capacity": 40,
+        "here": true,
+        "lines": [
+          {
+            "category": "",
+            "design": "",
+            "durability": 0,
+            "item": {
+              "code": "bread",
+              "name": "Bread"
+            },
+            "qty": 6,
+            "quality": 0,
+            "serial": "",
+            "shelf": {
+              "code": "",
+              "group": "",
+              "group_label": "",
+              "label": ""
+            },
+            "uses_left": 0
+          }
+        ],
+        "used": 6
+      },
+      "in_escrow": 0,
+      "lines": [
+        {
+          "category": "food",
+          "design": "",
+          "durability": 0,
+          "item": {
+            "code": "bread",
+            "name": "Bread"
+          },
+          "qty": 3,
+          "quality": 0,
+          "serial": "",
+          "shelf": {
+            "code": "",
+            "group": "",
+            "group_label": "",
+            "label": ""
+          },
+          "uses_left": 0
+        }
+      ],
+      "page": 1,
+      "pages": 1,
+      "total": 1
     }
   }
 ]

@@ -133,8 +133,10 @@ availability:
   - {kind: building, code: barter_post, stage: village, growth: {open: true, founding: true, row: 38}, elsewhere: [{where: support}]}
   - {kind: building, code: market, stage: town, elsewhere: [{where: support}]}
   - {kind: building, code: granary, stage: village, growth: {open: true, founding: true, row: 40}}
+  - {kind: building, code: storehouse, requires: {buildings: [{code: civic_hall}]}, note: "ADR 0041 8.23: bulk and goods store; needs a keeper"}
   - {kind: building, code: private_cottage, stage: village, growth: {open: true, founding: true, row: 41}}
   - {kind: building, code: private_house, stage: village}
+  - {kind: building, code: private_shed, requires: {buildings: [{code: civic_hall}]}, note: "ADR 0040 6.2: needs only a lot of one's own; keeps goods at home («انبار من»)"}
   - {kind: building, code: general_store, stage: village, note: "ADR 0046 5.1: the shop building; its research is the barter ring every settlement is founded with"}
   - {kind: building, code: home_workshop, stage: village}
   - {kind: building, code: market_stall, stage: village, growth: {open: true, founding: true, row: 44}, elsewhere: [{where: support}]}
@@ -468,6 +470,9 @@ availability:
   - {kind: office, code: deputy_mayor, stage: city, growth: {deferred: charter, row: 309, note: "ADR 0044 section 6: a charter office or permission (phase G2)"}, requires: {}}
   - {kind: office, code: city_council, stage: city, growth: {deferred: charter, row: 310, note: "ADR 0044 section 6: a charter office or permission (phase G2)"}, requires: {}}
   - {kind: office, code: police_chief, stage: city, requires: {buildings: [{role: security, tier: 2}]}}
+  - {kind: office, code: village_market_warden, requires: {buildings: [{code: barter_post}]}, note: "ADR 0040 5.4: the village market's keeper of dues; only where a market post stands"}
+  - {kind: office, code: town_market_warden, requires: {buildings: [{code: barter_post}]}, note: "ADR 0040 5.4: the town market's keeper of dues; only where a market post stands"}
+  - {kind: office, code: market_warden, requires: {buildings: [{code: barter_post}]}, note: "ADR 0040 5.4: the market's keeper of dues and honest dealing; only where a market post stands"}
   - {kind: office, code: deputy_police_chief, stage: city, requires: {buildings: [{role: security, tier: 2}]}}
   - {kind: office, code: military_governor, stage: city, growth: {deferred: charter, row: 313, note: "ADR 0044 section 6: a charter office or permission (phase G2)"}, requires: {}}
   - {kind: office, code: village_head, stage: village, requires: {buildings: [{code: civic_hall}]}}

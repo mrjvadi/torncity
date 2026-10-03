@@ -4,7 +4,7 @@
 
 🏦 Treasury: 58,000 SUP
 
-📦 Stock room: 14 of 60 units
+📦 Stock room: 14 of 60 space
 
 📥 In the stock:
 • Timber: 9
@@ -32,7 +32,7 @@ What the city's own workplaces make comes cheaper than the market; to get going 
 
 🏦 Treasury: 57,820 SUP
 
-📦 Stock room: 0 of 60 units
+📦 Stock room: 0 of 60 space
 
 📥 In the stock:
 The stock is empty.
@@ -187,7 +187,7 @@ A resident works each shift; nothing is made without a worker and the wage is pa
 
 ━━━ Refusal · the stock is full ━━━
 (edits message 42)
-📦 The city stock has no room. A granary adds room.
+📦 The city stock has no room; this needs 0 more units of free space. A granary adds room.
   ───
   [🔙 Back] → settlement:materials
 

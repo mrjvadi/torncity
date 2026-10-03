@@ -10,8 +10,11 @@
         "comfort_g": 0,
         "hard_g": 0,
         "load_g": 0,
+        "reserved": 0,
         "used": 0
       },
+      "claims": null,
+      "home": null,
       "in_escrow": 0,
       "lines": [
         {

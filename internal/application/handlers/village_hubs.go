@@ -179,17 +179,20 @@ func (h *VillageHandler) EconomyHub(ctx context.Context, meta envelope.Metadata)
 			return err
 		}
 		view.Place = h.placeOf(city)
-		// below a city the market is the settlement's own store and stall
-		// («انبار و بازار»), not the city's bazaar
-		market := "market.list"
-		if here.stageRank < content.StageRank(content.StageCity) {
-			market = "settlement.materials"
+		// The market is listed only where one stands (audit F4, F6): a market
+		// post or a hall in a settlement, or the neutral city's own bazaar.
+		// It always opens the market, never the head's procurement screen;
+		// the storehouse is its own entry.
+		view.Entries = []plife.ActivityEntry{{Code: plife.EconomyInventory, Command: "inventory.show"}}
+		if un, err := closedIn(ctx, tx, snap, city, h.homeCityCode, marketNeed); err != nil {
+			return err
+		} else if un == nil {
+			view.Entries = append(view.Entries, plife.ActivityEntry{Code: plife.EconomyMarket, Command: "market.list"})
 		}
-		view.Entries = []plife.ActivityEntry{
-			{Code: plife.EconomyInventory, Command: "inventory.show"},
-			{Code: plife.EconomyMarket, Command: market},
-			{Code: plife.EconomyBank, Command: "bank.show"},
+		if !here.content && !here.neutral {
+			view.Entries = append(view.Entries, plife.ActivityEntry{Code: plife.EconomyStorehouse, Command: "settlement.materials"})
 		}
+		view.Entries = append(view.Entries, plife.ActivityEntry{Code: plife.EconomyBank, Command: "bank.show"})
 		if len(mine) > 0 || h.smallholdingHere(snap, here) {
 			view.Entries = append(view.Entries, plife.ActivityEntry{Code: plife.EconomyCompanies, Command: "company.mine"})
 		}

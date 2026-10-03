@@ -613,9 +613,21 @@ settlement_buildings:
     cost_money: 500
     build_time: 1h
     upkeep: 20
-    # Adds this many units to the village stock's capacity
-    # (settlement.stock_base_capacity is what a village holds without one):
-    # the wheat, wool, timber and stone its workplaces make and the materials
-    # it buys are kept here.
-    storage: 300
+    # Its room is the food class of building_functions.yml (`granary`: food 300)
+    # and it only counts while a storekeeper keeps it: the stock is kept in
+    # classes (bulk, food, goods), each with the base room of storage_classes
+    # and whatever a KEPT store adds. Unkept, the granary gives nothing.
     effects: [{target: food_coverage_bps, op: add, value: 150}]
+
+  # The storehouse (ADR 0041 8.23): a covered store for bulk goods and finished
+  # goods. A storekeeper keeps it (an NPC citizen of the labour pool, a day's
+  # wage from the treasury); unkept it gives nothing beyond the open yard.
+  - code: storehouse
+    name: "انبار"
+    role: storage
+    tier: 1
+    footprint: [2, 1]
+    cost_money: 400
+    cost_materials: {timber: 6}
+    build_time: 1h
+    upkeep: 15

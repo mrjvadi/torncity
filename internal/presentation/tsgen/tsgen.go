@@ -23,7 +23,7 @@ var (
 // Generate returns the TypeScript declarations of every defined screen's view
 // and the ScreenViews map from a screen's name to its view type.
 func Generate(specs []presentation.Spec) string {
-	g := &gen{decls: map[string]string{}, order: nil}
+	g := &gen{decls: map[string]string{}, types: map[string]reflect.Type{}, order: nil}
 	for _, s := range specs {
 		g.ref(s.View)
 	}
@@ -58,9 +58,25 @@ func Generate(specs []presentation.Spec) string {
 	return b.String()
 }
 
+// Collisions lists the type names two different Go structs share. The file is flat
+// by name, so the second struct would silently take the first one's declaration
+// (a village shop's view drawn as a city shop's): every name must be one struct.
+func Collisions(specs []presentation.Spec) []string {
+	g := &gen{decls: map[string]string{}, types: map[string]reflect.Type{}}
+	for _, s := range specs {
+		g.ref(s.View)
+	}
+	sort.Strings(g.clash)
+	return g.clash
+}
+
 type gen struct {
 	decls map[string]string
+	// types remembers which Go struct a name was declared from, so a second
+	// struct of the same name is found rather than merged.
+	types map[string]reflect.Type
 	order []string
+	clash []string
 }
 
 // ref returns the TypeScript spelling of a type, declaring named structs as
@@ -94,6 +110,11 @@ func (g *gen) ref(t reflect.Type) string {
 			return g.body(t)
 		}
 		name := t.Name()
+		if prev, ok := g.types[name]; !ok {
+			g.types[name] = t
+		} else if prev != t && shape(prev) != shape(t) {
+			g.clash = append(g.clash, fmt.Sprintf("%s: %s and %s", name, prev, t))
+		}
 		if _, ok := g.decls[name]; !ok {
 			g.decls[name] = "" // reserve: a struct may mention itself
 			g.order = append(g.order, name)
@@ -102,6 +123,19 @@ func (g *gen) ref(t reflect.Type) string {
 		return name
 	}
 	return "unknown"
+}
+
+// shape is a struct's fields by wire key and Go type, so two structs of one name
+// that mean the same thing (a reference copied between packages) are not a clash.
+func shape(t reflect.Type) string {
+	var b strings.Builder
+	for i := 0; i < t.NumField(); i++ {
+		f := t.Field(i)
+		if key, ok := presentation.FieldKey(f); ok {
+			b.WriteString(key + ":" + f.Type.Name() + f.Type.Kind().String() + ";")
+		}
+	}
+	return b.String()
 }
 
 func wrap(s string) string {

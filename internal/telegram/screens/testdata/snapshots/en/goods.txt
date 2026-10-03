@@ -399,3 +399,34 @@ Grocery does not buy Phone.
   ───
   [🛒 Shops] → shop:list
   [🔙 Back] → player:profile.get
+
+━━━ No room · too bulky ━━━
+(edits message 42)
+🎒 No room: 12 x Bread needs 12 space and you have 5 free; 7 short. Sell something, store it at home or put on a bigger bag.
+  ───
+  [🎒 Backpack] → inventory:show
+  [🔙 Back] → player:profile.get
+
+━━━ No room · too heavy ━━━
+(edits message 42)
+🎒 Too heavy: 12 x Bread weighs 6,000 g and you can take 2,000 g more.
+  ───
+  [🎒 Backpack] → inventory:show
+  [🔙 Back] → player:profile.get
+
+━━━ Inventory · a holding slot and a home store ━━━
+(edits message 42)
+<b>🎒 Your bag</b>
+
+• Bread - 3
+
+📮 Held for you, waiting for room (make room and claim):
+• Bandage - 2
+🏠 My store: 6 of 40 space
+• Bread - 6
+  ───
+  [🎒 Bread] → inventory:item:bread
+  [📮 Claim Bandage] → inventory:claim:bandage:1000000
+  [🏠 Bring Bread] → inventory:fetch:bread:1000000
+  [🛒 Shops] → shop:list   │   [🏪 Market] → market:list
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → inventory:show:1

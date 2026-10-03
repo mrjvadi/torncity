@@ -171,7 +171,10 @@ func (h *InventoryHandler) Show(ctx context.Context, meta envelope.Metadata, req
 			return err
 		}
 		view.InEscrow = len(esc) + len(escPieces)
-		return nil
+		view.Home, view.Claims, err = h.storageView(ctx, tx, snap, p, func(ps []application.Piece) (map[string]string, error) {
+			return designNames(ctx, tx, ps)
+		})
+		return err
 	})
 	if err != nil {
 		return nil, err
@@ -287,6 +290,11 @@ func (h *InventoryHandler) detail(ctx context.Context, tx application.Tx, snap *
 			}
 			v.Bag = h.bagDetail(snap, def, st, piece)
 		}
+	}
+	if capacity, where, err := homeCapacity(ctx, tx, snap, p.ID); err != nil {
+		return v, err
+	} else if capacity > 0 && p.CityID != nil && where[*p.CityID] {
+		v.CanStore = true
 	}
 	for _, e := range def.Effects {
 		v.Effects = append(v.Effects, plife.EffectLine{Target: e.Target, Op: e.Op, Value: e.Value})
@@ -638,8 +646,12 @@ func (h *InventoryHandler) Give(ctx context.Context, meta envelope.Metadata, req
 		if !def.Item().Tradeable {
 			return refuseItem(plife.ItemRefusedNotTradeable, itemNamed(snap, code))
 		}
+		gifted, err := h.carry.arrival(ctx, tx, snap, friendID, code, 1)
+		if err != nil {
+			return err
+		}
 		move := application.ItemMove{ID: h.ids.NewID(), Item: code, Qty: 1, From: p.ID, FromHolding: application.HoldCarried,
-			To: friendID, ToHolding: application.HoldCarried, Reason: application.ItemGift,
+			To: friendID, ToHolding: gifted, Reason: application.ItemGift,
 			ReferenceType: "players", ReferenceID: friendID, At: now}
 		if piece != nil {
 			move.PieceID = piece.ID

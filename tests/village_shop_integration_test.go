@@ -100,26 +100,26 @@ func (e *shopEnv) buyer(t *testing.T, cash int64) *application.Player {
 	return p
 }
 
-func (e *shopEnv) view(t *testing.T, p *application.Player) village.ShopView {
+func (e *shopEnv) view(t *testing.T, p *application.Player) village.VillageShopView {
 	t.Helper()
 	resp, err := e.shop.Shop(testCtx(t), e.as(p, "settlement.shop", "shop"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	var v village.ShopView
+	var v village.VillageShopView
 	if err := presentation.DecodeView(resp.View, &v); err != nil {
 		t.Fatalf("the shop view does not decode: %v (%s)", err, resp.Screen)
 	}
 	return v
 }
 
-func (e *shopEnv) lineOf(v village.ShopView, code string) (village.ShopLine, bool) {
+func (e *shopEnv) lineOf(v village.VillageShopView, code string) (village.VillageShopLine, bool) {
 	for _, l := range v.Lines {
 		if l.Item.Code == code {
 			return l, true
 		}
 	}
-	return village.ShopLine{}, false
+	return village.VillageShopLine{}, false
 }
 
 // buy asks for a purchase the two-step way and returns the answer's screen.
@@ -249,7 +249,7 @@ func TestABuyerPaysTheShelfLosesAndTheGoodsArrive(t *testing.T) {
 	if got := cashBalance(t, e.pool, application.AccountPlayerCash, p.ID); got != cash {
 		t.Fatalf("the checkout moved money: %d -> %d", cash, got)
 	}
-	var co village.ShopCheckoutView
+	var co village.VillageShopCheckoutView
 	if err := presentation.DecodeView(resp.View, &co); err != nil {
 		t.Fatal(err)
 	}

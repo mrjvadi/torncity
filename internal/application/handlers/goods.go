@@ -67,6 +67,17 @@ type origin struct {
 	reason application.ItemReason
 	// refType and refID name the row: a shop sale, a crime, a grant.
 	refType, refID string
+	// hold is where the goods land: the bags (the default) or the holding
+	// slot (application.HoldClaim) when they did not fit (room.go).
+	hold string
+}
+
+// holding is the holding the goods land in.
+func (o origin) holding() string {
+	if o.hold == "" {
+		return application.HoldCarried
+	}
+	return o.hold
 }
 
 // provenance is the item rule's view of an origin.
@@ -92,7 +103,7 @@ func bring(ctx context.Context, tx application.Tx, snap *content.Snapshot, ids I
 		return nil, errors.Internal(stderrors.New("handlers: goods named that the content does not have: " + code))
 	}
 	move := application.ItemMove{
-		Item: code, Qty: qty, To: playerID, ToHolding: application.HoldCarried,
+		Item: code, Qty: qty, To: playerID, ToHolding: o.holding(),
 		Reason: o.reason, ReferenceType: o.refType, ReferenceID: o.refID, At: now,
 	}
 	if def.Form != string(inventory.Unique) {
@@ -120,7 +131,7 @@ func bring(ctx context.Context, tx application.Tx, snap *content.Snapshot, ids I
 		}
 		p := application.Piece{
 			ID: ids.NewID(), Serial: inst.Serial, Item: code, Archetype: inst.Archetype, Quality: inst.Quality,
-			UsesLeft: def.Durability, OwnerID: playerID, Holding: application.HoldCarried,
+			UsesLeft: def.Durability, OwnerID: playerID, Holding: o.holding(),
 			Origin: o.kind, OriginRef: o.refID, CreatedAt: now,
 		}
 		m := move

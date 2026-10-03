@@ -14,6 +14,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/diplomacy"
+	"github.com/mrjvadi/torncity/internal/domain/carry"
 	"github.com/mrjvadi/torncity/internal/domain/gametime"
 	"github.com/mrjvadi/torncity/internal/domain/market"
 	"github.com/mrjvadi/torncity/internal/domain/payment"
@@ -76,6 +77,36 @@ type MarketHandler struct {
 
 	// watch is the watch's tuning (docs/adr/0023); nil checks nothing.
 	watch *watch.Thresholds
+
+	// home is the neutral city's code (settlement.home_city_code): the
+	// nearest place with a market when the settlement has none.
+	home string
+	// carry is the room check (room.go); zero checks nothing.
+	carry carryEnv
+	// village is the village book's stalls and market day (market_village.go).
+	village VillageMarketRules
+}
+
+// WithCarry has a bid refused when its goods would not fit in the bags, and
+// reserves their room until it is filled or ends.
+func (h *MarketHandler) WithCarry(rules carry.Rules, clock gametime.Clock) *MarketHandler {
+	h.carry = carryEnvOf(rules, clock)
+	return h
+}
+
+// WithHome names the neutral city, which has a market of its own and is where
+// a settlement without a market post is sent.
+func (h *MarketHandler) WithHome(code string) *MarketHandler {
+	h.home = code
+	return h
+}
+
+// closed says the settlement the player stands in has no market standing
+// (storage and market audit F4): the answer names what to build and the
+// nearest place that has one.
+func (h *MarketHandler) closed(ctx context.Context, tx application.Tx, snap *content.Snapshot, w whereabouts) (*economy.Unavailable, error) {
+	un, err := closedIn(ctx, tx, snap, w.city, h.home, marketNeed)
+	return withNearest(ctx, h.cities, h.home, un), err
 }
 
 // WithWatch has every trade checked against its good's reference price.
@@ -148,6 +179,9 @@ func (h *MarketHandler) finish(meta envelope.Metadata, lang string, err error) (
 	if v, ok := asDeclined(err, economy.PaymentDeclinedView{}); ok {
 		return economy.PaymentDeclined(presentation.Ctx{Lang: lang}, v), nil
 	}
+	if resp, ok := noRoomResponse(err, lang, h.content.Current(), economy.AddrMarket); ok {
+		return resp, nil
+	}
 	return nil, err
 }
 
@@ -203,6 +237,9 @@ func (h *MarketHandler) Books(ctx context.Context, meta envelope.Metadata, req M
 			return err
 		}
 		view.CityCode, view.City = w.city.Code, w.city.Name
+		if view.Unavailable, err = h.closed(ctx, tx, snap, w); err != nil || view.Unavailable != nil {
+			return err
+		}
 		books, err := tx.Market().Books(ctx, w.city.ID)
 		if err != nil {
 			return err
@@ -227,6 +264,17 @@ func (h *MarketHandler) Books(ctx context.Context, meta envelope.Metadata, req M
 		}
 		view.AtMarket = h.atMarket(w)
 		view.Way = wayTo(w, snap, place.ServiceMarket, h.scale)
+		vb, err := h.villageBookOf(ctx, tx, snap, w.city, h.now())
+		if err != nil {
+			return err
+		}
+		if vb.active {
+			used, mine, err := tx.Market().CountOpenIn(ctx, w.city.ID, p.ID)
+			if err != nil {
+				return err
+			}
+			view.Village = vb.view(used, mine)
+		}
 		return nil
 	})
 	if resp, ferr := h.finish(meta, lang, err); resp != nil || ferr != nil {
@@ -264,6 +312,10 @@ func (h *MarketHandler) Book(ctx context.Context, meta envelope.Metadata, req Ma
 		}
 		w, err := h.city(ctx, tx, snap, p)
 		if err != nil {
+			return err
+		}
+		if un, err := h.closed(ctx, tx, snap, w); err != nil || un != nil {
+			view = economy.BookView{Item: named(def.Code, def.Name), CityCode: w.city.Code, City: w.city.Name, Unavailable: un}
 			return err
 		}
 		view, err = h.bookView(ctx, tx, snap, w, p, def)
@@ -310,6 +362,17 @@ func (h *MarketHandler) bookView(ctx context.Context, tx application.Tx, snap *c
 		v.Trades = append(v.Trades, economy.TradeLine{Qty: t.Qty, Price: t.Price, At: t.At})
 	}
 	v.Reference = reference(snap, def.Code, last)
+	vb, err := h.villageBookOf(ctx, tx, snap, w.city, now)
+	if err != nil {
+		return v, err
+	}
+	if vb.active {
+		used, mine, err := tx.Market().CountOpenIn(ctx, w.city.ID, p.ID)
+		if err != nil {
+			return v, err
+		}
+		v.Village = vb.view(used, mine)
+	}
 	stacks, _, _, err := carried(ctx, tx, p.ID)
 	if err != nil {
 		return v, err
@@ -403,6 +466,13 @@ func (h *MarketHandler) Order(ctx context.Context, meta envelope.Metadata, req M
 		if err != nil {
 			return err
 		}
+		if un, err := h.closed(ctx, tx, snap, w); err != nil {
+			return err
+		} else if un != nil {
+			r := refuseMarket(economy.MarketRefusedUnavailable)
+			r.view.Item, r.view.Unavailable = it, un
+			return r
+		}
 		if err := needService(w, snap, place.ServiceMarket, h.scale, now); err != nil {
 			return thenFor(err, "market.book", def.Code)
 		}
@@ -413,6 +483,13 @@ func (h *MarketHandler) Order(ctx context.Context, meta envelope.Metadata, req M
 			r := refuseMarket(economy.MarketRefusedTooBig)
 			r.view.Item = it
 			return r
+		}
+		if side == market.Buy {
+			// A bid keeps the room of its goods from now on (ADR 0040 6.3): checked
+			// here, before any money moves, so a fill never fails for space.
+			if err := h.carry.fit(ctx, tx, snap, p.ID, def.Code, qty); err != nil {
+				return err
+			}
 		}
 		reserve, err := market.Reserve(market.Order{Side: side, Quantity: qty, UnitPrice: money.FromMinor(price)})
 		if err != nil {
@@ -433,6 +510,26 @@ func (h *MarketHandler) Order(ctx context.Context, meta envelope.Metadata, req M
 				return err
 			}
 		}
+		vb, err := h.villageBookOf(ctx, tx, snap, w.city, now)
+		if err != nil {
+			return err
+		}
+		if vb.active {
+			used, mine, err := tx.Market().CountOpenIn(ctx, w.city.ID, p.ID)
+			if err != nil {
+				return err
+			}
+			if used >= vb.Stalls {
+				r := refuseMarket(economy.MarketRefusedStallsFull)
+				r.view.Count = vb.Stalls
+				return r
+			}
+			if mine >= vb.PerPlayer {
+				r := refuseMarket(economy.MarketRefusedStallLimit)
+				r.view.Count = vb.PerPlayer
+				return r
+			}
+		}
 		open, err := tx.Market().CountOpen(ctx, p.ID)
 		if err != nil {
 			return err
@@ -442,7 +539,7 @@ func (h *MarketHandler) Order(ctx context.Context, meta envelope.Metadata, req M
 			r.view.Count = h.limits.MaxOpen
 			return r
 		}
-		placed, err = h.place(ctx, tx, meta, snap, w.city, p, def, side, qty, price, method, reserve, now)
+		placed, err = h.place(ctx, tx, meta, snap, w.city, p, def, side, qty, price, method, reserve, now, vb)
 		return err
 	})
 	if resp, ferr := h.finish(meta, lang, err); resp != nil || ferr != nil {
@@ -461,15 +558,23 @@ func (h *MarketHandler) Order(ctx context.Context, meta envelope.Metadata, req M
 // every fill, and rests what is left, in the caller's transaction.
 func (h *MarketHandler) place(ctx context.Context, tx application.Tx, meta envelope.Metadata, snap *content.Snapshot,
 	city *application.City, p *application.Player, def content.ItemDef, side market.Side, qty, price int64,
-	method payment.Method, reserve market.Reservation, now time.Time,
+	method payment.Method, reserve market.Reservation, now time.Time, vb villageBook,
 ) (economy.OrderPlacedView, error) {
 	it := named(def.Code, def.Name)
 	if err := tx.Market().LockBook(ctx, city.ID, def.Code); err != nil {
 		return economy.OrderPlacedView{}, err
 	}
-	feeLever, err := h.policy.Get(ctx, city.JurisdictionID, LeverMarketFee)
-	if err != nil {
-		return economy.OrderPlacedView{}, err
+	// A city's book pays the mayor's market fee to the sink; a village book pays
+	// its warden's dues to the treasury (market_village.go).
+	var feeBPS int64
+	if vb.active {
+		feeBPS = vb.DuesBPS
+	} else {
+		feeLever, err := h.policy.Get(ctx, city.JurisdictionID, LeverMarketFee)
+		if err != nil {
+			return economy.OrderPlacedView{}, err
+		}
+		feeBPS = feeLever.Value
 	}
 	order := application.MarketOrder{
 		ID: h.ids.NewID(), CityID: city.ID, Item: def.Code, Side: string(side), Kind: string(market.Limit),
@@ -514,9 +619,25 @@ func (h *MarketHandler) place(ctx context.Context, tx application.Tx, meta envel
 		}
 	}
 
+	// The village book: the order takes a stall, and that costs its listing fee,
+	// not refunded whatever becomes of the order.
+	var listingFee int64
+	if fee := vb.listingFee(qty * price); fee > 0 {
+		if err := h.payListingFee(ctx, tx, snap, city, p.ID, method, fee, order.ID, now); err != nil {
+			return economy.OrderPlacedView{}, err
+		}
+		listingFee = fee
+	}
 	resting, err := tx.Market().OpenOrders(ctx, city.ID, def.Code)
 	if err != nil {
 		return economy.OrderPlacedView{}, err
+	}
+	// A stall sells for its owner only while the owner is in the settlement.
+	var away map[string]bool
+	if vb.active {
+		if away, err = h.awayAsks(ctx, tx, city.ID, resting); err != nil {
+			return economy.OrderPlacedView{}, err
+		}
 	}
 	// A trade embargo (docs/adr/0022): offers whose owner's country and the
 	// player's are under one stay on the book, unmatched by this order.
@@ -529,6 +650,9 @@ func (h *MarketHandler) place(ctx context.Context, tx application.Tx, meta envel
 	book := market.NewBook(key)
 	stored := map[string]application.MarketOrder{}
 	for _, o := range resting {
+		if o.Side == string(market.Sell) && away[o.OwnerID] {
+			continue
+		}
 		if embargoed[o.OwnerID] {
 			if o.Side != string(side) && ((side == market.Buy && o.Price <= price) || (side == market.Sell && o.Price >= price)) {
 				skipped++
@@ -571,10 +695,15 @@ func (h *MarketHandler) place(ctx context.Context, tx application.Tx, meta envel
 	if err != nil {
 		return economy.OrderPlacedView{}, err
 	}
+	if listingFee > 0 {
+		if err := tx.Market().RecordListingFee(ctx, placed.ID, city.ID, listingFee, now); err != nil {
+			return economy.OrderPlacedView{}, err
+		}
+	}
 
 	var spent, got int64
 	for _, t := range res.Trades {
-		fee, err := h.settle(ctx, tx, meta, snap, city, def, t, stored, placed, int(feeLever.Value), now)
+		fee, err := h.settle(ctx, tx, meta, snap, city, def, t, stored, placed, int(feeBPS), now, vb.active)
 		if err != nil {
 			return economy.OrderPlacedView{}, err
 		}
@@ -616,7 +745,8 @@ func (h *MarketHandler) place(ctx context.Context, tx application.Tx, meta envel
 		}
 	}
 	return economy.OrderPlacedView{Item: it, Side: string(side), Qty: qty, Filled: order.Filled, Price: price, No: placed.No,
-		Rests: res.Rests, Spent: spent, Got: got, ExpiresAt: order.ExpiresAt, Method: order.Funding, Embargoed: skipped}, nil
+		Rests: res.Rests, Spent: spent, Got: got, ExpiresAt: order.ExpiresAt, Method: order.Funding, Embargoed: skipped,
+		ListingFee: listingFee}, nil
 }
 
 // embargoedOwners are the owners of resting orders the player may not trade
@@ -670,7 +800,7 @@ func embargoedOwners(ctx context.Context, tx application.Tx, playerID string, re
 // the fee, and a resting buyer's price improvement back. It returns the fee.
 func (h *MarketHandler) settle(ctx context.Context, tx application.Tx, meta envelope.Metadata, snap *content.Snapshot,
 	city *application.City, def content.ItemDef, t market.Trade, stored map[string]application.MarketOrder,
-	incoming application.MarketOrder, feeBPS int, now time.Time,
+	incoming application.MarketOrder, feeBPS int, now time.Time, village bool,
 ) (int64, error) {
 	s, err := market.Settle(t, int64(feeBPS))
 	if err != nil {
@@ -714,9 +844,19 @@ func (h *MarketHandler) settle(ctx context.Context, tx application.Tx, meta enve
 	}
 	if !s.Fee.IsZero() {
 		neg, _ := s.Fee.Neg()
+		// A city's fee leaves the economy; a village book's dues go to the
+		// settlement's treasury (ADR 0040 section 5.4).
+		reason, to := application.ReasonMarketFee, application.SystemSinkAccountID
+		if village {
+			treasury, err := tx.Ledger().AccountFor(ctx, application.AccountCityTreasury, city.ID)
+			if err != nil {
+				return 0, err
+			}
+			reason, to = application.ReasonVillageMarketDues, treasury.ID
+		}
 		feeTx, err := tx.Ledger().Post(ctx, application.LedgerTransaction{
-			Reason: application.ReasonMarketFee, ReferenceType: "market_trades", ReferenceID: tradeID,
-			Entries:   []application.LedgerEntry{{AccountID: buyerEscrow.ID, Amount: neg}, {AccountID: application.SystemSinkAccountID, Amount: s.Fee}},
+			Reason: reason, ReferenceType: "market_trades", ReferenceID: tradeID,
+			Entries:   []application.LedgerEntry{{AccountID: buyerEscrow.ID, Amount: neg}, {AccountID: to, Amount: s.Fee}},
 			CreatedAt: now,
 		})
 		if err != nil {

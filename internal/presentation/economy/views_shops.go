@@ -105,6 +105,22 @@ const (
 	ShopRefusedNoBuyback = "no_buyback"
 )
 
+// NoRoomView is a purchase, an order or a claim refused because the goods do
+// not fit in the player's bags (storage and market audit P1, ADR 0040 req. 3):
+// what was asked, the room it needs, the room there is, and so what is missing.
+// The clients word it; the view carries codes and numbers only.
+type NoRoomView struct {
+	Item Named
+	Qty  int64
+	// NeedSpace, FreeSpace and Short are in «جا»; NeedG and FreeG in grams.
+	NeedSpace, FreeSpace, Short int64
+	NeedG, FreeG                int64
+	// Heavy: the load, not the space, stopped it.
+	Heavy bool
+	// Back is the address the screen's back button leads to.
+	Back string
+}
+
 // ShopRefusalView is a refused shop request.
 type ShopRefusalView struct {
 	Kind        string

@@ -38,6 +38,7 @@ hubs:
     entry:
       inventory: "🎒 کوله‌پشتی"
       market: "🛒 بازار"
+      storehouse: "📦 انبار"
       bank: "🏦 بانک"
       companies: "💼 شرکت‌های من"
       property: "🏠 ملک"

@@ -437,6 +437,21 @@ func (r *SettlementRepository) ResidentCount(ctx context.Context, settlementID s
 	return n, nil
 }
 
+// IsFounded says whether the city is a founded settlement.
+func (r *SettlementRepository) IsFounded(ctx context.Context, id string) (bool, error) {
+	if !isUUID(id) {
+		return false, nil
+	}
+	var founded bool
+	if err := r.q.QueryRow(ctx, `SELECT origin = 'founded' FROM cities WHERE id = $1::uuid`, id).Scan(&founded); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return false, nil
+		}
+		return false, fmt.Errorf("postgres: reading the origin of %s: %w", id, err)
+	}
+	return founded, nil
+}
+
 // Promote moves a settlement one tier up. See application.SettlementRepository.
 func (r *SettlementRepository) Promote(ctx context.Context, p application.SettlementPromotion) (bool, error) {
 	if !isUUID(p.SettlementID) || !isUUID(p.JurisdictionID) {

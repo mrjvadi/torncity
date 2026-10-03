@@ -28,6 +28,8 @@ const (
 const (
 	EconomyInventory = "inventory"
 	EconomyMarket    = "market"
+	// EconomyStorehouse is the settlement's storehouse («انبار»).
+	EconomyStorehouse = "storehouse"
 	EconomyBank      = "bank"
 	EconomyCompanies = "companies"
 	EconomyProperty  = "property"

@@ -55,6 +55,7 @@ var (
 	screenSellOffers  = presentation.Define[SellOffersView](ScreenSellOffers, "economy")
 	screenShopSold    = presentation.Define[ShopSoldView](ScreenShopSold, "economy")
 	screenShopNo      = presentation.Define[ShopRefusalView](ScreenShopRefusal, "economy", presentation.Refusal())
+	screenNoRoom      = presentation.Define[NoRoomView](ScreenNoRoom, "economy", presentation.Refusal())
 	screenAuctions    = presentation.Define[AuctionsView](ScreenAuctions, "economy")
 	screenAuction     = presentation.Define[AuctionDetailView](ScreenAuctionDetail, "economy")
 	screenAuctionNew  = presentation.Define[AuctionNewView](ScreenAuctionNew, "economy")
@@ -521,6 +522,9 @@ func Dividend(c presentation.Ctx, v DividendView) *presentation.Response {
 
 // Market is a city's books.
 func Market(c presentation.Ctx, v MarketView) *presentation.Response {
+	if v.Unavailable != nil {
+		return screenMarket.Response(c.Lang, v, v.Unavailable.actions(AddrHome)...)
+	}
 	var a []presentation.Action
 	for _, b := range v.Books {
 		a = append(a, act(AddrMarketBook, b.Item.Code).Named("market.book").About(b.Item.Code))
@@ -541,6 +545,9 @@ func Market(c presentation.Ctx, v MarketView) *presentation.Response {
 
 // Book is one good's book, with the orders the player may place.
 func Book(c presentation.Ctx, v BookView) *presentation.Response {
+	if v.Unavailable != nil {
+		return screenBook.Response(c.Lang, v, v.Unavailable.actions(AddrHome)...)
+	}
 	var a []presentation.Action
 	item := v.Item.Code
 	order := func(side string, qty, price int64, extra ...string) presentation.Action {
@@ -616,6 +623,10 @@ func MarketRefusal(c presentation.Ctx, v MarketRefusalView) *presentation.Respon
 	}
 	if len(args) == 0 {
 		args = nil
+	}
+	if v.Unavailable != nil {
+		return screenMarketNo.Response(c.Lang, v, v.Unavailable.actions(AddrHome)...).
+			Refused(RefusalCode("market", v.Kind), args)
 	}
 	return screenMarketNo.Response(c.Lang, v, act(AddrMarket).Named("market.list"), back(AddrHome)).
 		Refused(RefusalCode("market", v.Kind), args)
@@ -695,6 +706,17 @@ func SellOffers(c presentation.Ctx, v SellOffersView) *presentation.Response {
 // ShopSold is a good sold back.
 func ShopSold(c presentation.Ctx, v ShopSoldView) *presentation.Response {
 	return screenShopSold.Response(c.Lang, v, act(AddrInventory).Named("item.bag"), back(AddrHome))
+}
+
+// NoRoom is a request refused for lack of room: the way to the bags (to free
+// some room or put a bag on) and the way back.
+func NoRoom(c presentation.Ctx, v NoRoomView) *presentation.Response {
+	backTo := v.Back
+	if backTo == "" {
+		backTo = AddrHome
+	}
+	return screenNoRoom.Response(c.Lang, v, act(AddrInventory).Named("item.bag"), back(backTo)).
+		Refused("no_room", map[string]any{"short": v.Short})
 }
 
 // ShopRefusal is a refused shop request.

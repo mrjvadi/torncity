@@ -48,18 +48,18 @@ func newGoodsHandlers(
 		inventory: handlers.NewInventoryHandler(uow, uuidGenerator{}, msgs, registry, cities, scale,
 			crimeRules(crimeCfg).Nerve, handlers.DefaultPageSize, idempotencyTTL, nil).WithCarry(carryRules, clock),
 		shops: handlers.NewShopsHandler(uow, uuidGenerator{}, msgs, registry, cities, policy, scale,
-			cryptoDice{}, idempotencyTTL, nil),
+			cryptoDice{}, idempotencyTTL, nil).WithCarry(carryRules, clock),
 		market: handlers.NewMarketHandler(uow, uuidGenerator{}, msgs, registry, cities, policy, scale,
 			handlers.MarketLimits{
 				OrderTTL: trade.MarketOrderTTL, MaxOpen: trade.MarketMaxOpenOrders,
 				MaxQuantity: int64(trade.MarketMaxQuantity), MaxPrice: trade.MarketMaxPrice,
-			}, handlers.DefaultPageSize, idempotencyTTL, nil),
+			}, handlers.DefaultPageSize, idempotencyTTL, nil).WithCarry(carryRules, clock),
 		auctions: handlers.NewAuctionsHandler(uow, uuidGenerator{}, msgs, registry, cities, policy, scale,
 			handlers.AuctionRules{
 				Durations: trade.AuctionDurations, MaxReserve: trade.AuctionMaxReserve,
 				StepBPS: trade.AuctionStepBPS, MinStep: trade.AuctionMinStep, MaxOpen: trade.AuctionMaxOpen,
 				ReservesBPS: reserves,
-			}, handlers.DefaultPageSize, idempotencyTTL, nil),
+			}, handlers.DefaultPageSize, idempotencyTTL, nil).WithCarry(carryRules, clock),
 		elections: handlers.NewElectionsHandler(uow, uuidGenerator{}, msgs, registry, cities, scale,
 			crimeRules(crimeCfg).Nerve, idempotencyTTL, nil),
 	}
@@ -96,6 +96,10 @@ func (h phaseHandlers) bindGoods() map[string]commandFunc {
 		// Bags (docs/adr/0046 section 4): put one on, take one off.
 		"inventory.bag.wear": decoded(g.inventory.Wear),
 		"inventory.bag.off":  decoded(g.inventory.TakeOff),
+		// «انبار من» and the holding slot (storage and market audit P1).
+		"inventory.store": decoded(g.inventory.Store),
+		"inventory.fetch": decoded(g.inventory.Fetch),
+		"inventory.claim": decoded(g.inventory.Claim),
 
 		"shop.list":   decoded(g.shops.List),
 		"shop.view":   decoded(g.shops.View),

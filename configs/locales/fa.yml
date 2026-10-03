@@ -273,6 +273,9 @@ error:
 office:
   mayor: شهردار
   deputy_mayor: معاون شهردار
+  market_warden: ناظر بازار
+  village_market_warden: ناظر بازار روستا
+  town_market_warden: ناظر بازار شهرک
   city_council: شورای شهر
   police_chief: رئیس پلیس
   deputy_police_chief: معاون رئیس پلیس
@@ -310,6 +313,8 @@ lever:
     investigation_effort: شدت پیگیری پرونده‌ها
     sales_tax: مالیات فروش
     market_fee: کارمزد بازار
+    market_listing_fee_bps: هزینهٔ غرفهٔ بازار
+    market_dues_bps: عوارض معاملهٔ بازار
     company_registration: هزینهٔ ثبت شرکت (درصد از میزان پایه)
     corporate_tax: مالیات شرکت
     budget: بودجهٔ شهر
@@ -324,8 +329,12 @@ lever:
     bank_reserve_ratio: "ذخیرهٔ قانونی بانک ملی"
     bank_funding: "سرمایه‌گذاری خزانه در بانک ملی (سهم هر دوره)"
   village:
+    market_listing_fee_bps: هزینهٔ غرفهٔ بازار
+    market_dues_bps: عوارض معاملهٔ بازار
     local_levy: "عوارض محلی شهر"
   town:
+    market_listing_fee_bps: هزینهٔ غرفهٔ بازار
+    market_dues_bps: عوارض معاملهٔ بازار
     local_levy: "عوارض محلی"
     building_permit_fee: "هزینهٔ پروانهٔ ساخت"
   province:
@@ -357,10 +366,12 @@ settlement_building:
   road: جاده
   civic_hall: "شهرداری"
   private_cottage: "کلبه"
+  private_shed: "انباری"
   private_house: "خانه"
   woodcutter_camp: "کارگاه هیزم‌شکنی"
   cottage: "خانهٔ روستایی"
   granary: "انبار غله"
+  storehouse: "انبار"
   housing_block: "آپارتمان"
   park: "پارک"
   small_pit: "گودال معدن"

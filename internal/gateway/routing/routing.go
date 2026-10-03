@@ -481,6 +481,8 @@ var argNames = map[string][]string{
 	"settlement.build.cancel":       {"id"},
 	"settlement.materials":          {},
 	"settlement.materials.buy":      {"item", "qty", "confirm"},
+	"settlement.stock.donate":       {"item", "qty"},
+	"settlement.stock.take":         {"item", "qty"},
 	"settlement.shop":               {},
 	"settlement.shop.buy":           {"item", "qty", "method", "nonce"},
 	"settlement.shop.cap":           {"bps"},
@@ -552,6 +554,10 @@ var argNames = map[string][]string{
 	// A bag piece (its serial) to put on; the slot (belt or back) to empty.
 	"inventory.bag.wear": {"item"},
 	"inventory.bag.off":  {"slot"},
+	// Between the bags, «انبار من» and the holding slot: the good or piece, how many, a token.
+	"inventory.store": {"item", "qty", "nonce"},
+	"inventory.fetch": {"item", "qty", "nonce"},
+	"inventory.claim": {"item", "qty", "nonce"},
 	"shop.list":      {"place"},
 	"shop.view":      {"shop"},
 	"shop.buy":       {"shop", "item", "qty", "method", "nonce"},

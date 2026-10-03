@@ -129,6 +129,12 @@ const (
 	// bag in a slot.
 	AddrBagWear = "inventory:bag.wear"
 	AddrBagOff  = "inventory:bag.off"
+	// AddrItemStore, AddrItemFetch and AddrItemClaim move goods between the
+	// bags and «انبار من» and the holding slot (the good's code or the
+	// piece's serial, then the quantity).
+	AddrItemStore = "inventory:store"
+	AddrItemFetch = "inventory:fetch"
+	AddrItemClaim = "inventory:claim"
 )
 
 // DropConfirmation is the argument that turns inventory.drop from "are you
@@ -183,7 +189,8 @@ type BagSlotLine struct {
 // (Used of Capacity, hands and pockets Base, the rest from worn bags) and the
 // load in grams against the comfortable and the hard limit.
 type CarryLine struct {
-	Used, Capacity, Base   int64
+	// Reserved is the room a listing in escrow and the open bids keep.
+	Used, Reserved, Capacity, Base int64
 	LoadG, ComfortG, HardG int64
 }
 
@@ -198,6 +205,20 @@ type InventoryView struct {
 	// Bags are the two slots, belt then back; Carry the space and load.
 	Bags  []BagSlotLine
 	Carry CarryLine
+	// Home is «انبار من», nil when the player has no storing building and
+	// nothing stored; Claims is the holding slot: goods that arrived when
+	// there was no room, waiting to be claimed.
+	Home   *HomeStoreView
+	Claims []InventoryLine
+}
+
+// HomeStoreView is the player's own store at home (ADR 0040 6.2).
+type HomeStoreView struct {
+	Capacity, Used int64
+	// Here: the player stands in a settlement where they hold a storing
+	// building, so goods can be put in and taken out.
+	Here  bool
+	Lines []InventoryLine
 }
 
 // BagDetail is what a bag piece adds to its detail view: the slot it is worn
@@ -241,6 +262,9 @@ type ItemDetailView struct {
 	Effects                       []EffectLine
 	Gear                          *GearLine
 	Usable, Tradeable             bool
+	// CanStore: the player stands where they hold a storing building, so
+	// the good can go to «انبار من».
+	CanStore bool
 	// Cooldown is the rest after a use; CoolingFor what is left of it now.
 	Cooldown   time.Duration
 	CoolingFor time.Duration
@@ -291,6 +315,10 @@ const (
 	ItemRefusedNoEffect     = "no_effect"
 	ItemRefusedNotTradeable = "not_tradeable"
 	ItemRefusedNotTogether  = "not_together"
+	// ItemRefusedNoHome: no storing building of the player's here.
+	ItemRefusedNoHome = "no_home"
+	// ItemRefusedHomeFull: the home store has no room for it.
+	ItemRefusedHomeFull = "home_full"
 	// ItemRefusedNotBag: the piece is not a bag.
 	ItemRefusedNotBag = "not_bag"
 )

@@ -31,6 +31,15 @@ const (
 	// HoldListed is an organisation's goods put up for sale: still its, not
 	// to use until the listing is sold or withdrawn.
 	HoldListed = "listed"
+	// HoldClaim is the holding slot (storage and market audit P1): goods that
+	// arrived when the player had no room, a reward, a delivery, a gift. They
+	// wait here, still the player's, until room is made and they are claimed.
+	// Never lost, never counted against the bags.
+	HoldClaim = "claim"
+	// HoldHome is «انبار من»: what a player keeps in their own house, cottage
+	// or shed (ADR 0040 6.2). Not carried, so it takes no room in the bags;
+	// its own capacity is the storing buildings the player owns.
+	HoldHome = "home"
 )
 
 // Organisation kinds: holders of goods that are not players
@@ -101,6 +110,12 @@ const (
 	ItemAuctionReturn ItemReason = "auction_return"
 	ItemAuctionSold   ItemReason = "auction_sold"
 
+	// The holding slot and the home store (storage and market audit P1).
+	// Changes of place of the player's own goods: nothing enters or leaves.
+	ItemClaimed ItemReason = "claimed"
+	ItemStored  ItemReason = "stored"
+	ItemFetched ItemReason = "fetched"
+
 	// The production economy (migration 0020). Origins: a production
 	// order's output, a supplier's delivery. Ends: an order's inputs, the
 	// sample reverse engineering destroyed, a unit sold to the population.
@@ -139,6 +154,7 @@ var itemReasons = map[ItemReason]bool{
 	ItemShopPurchase: true, ItemCrimeLoot: true, ItemGrant: true,
 	ItemUsed: true, ItemWornOut: true, ItemShopSale: true, ItemConfiscated: true, ItemDropped: true,
 	ItemTheft: true, ItemRestitution: true, ItemGift: true,
+	ItemClaimed: true, ItemStored: true, ItemFetched: true,
 	ItemMarketEscrow: true, ItemMarketRelease: true, ItemMarketTrade: true,
 	ItemAuctionEscrow: true, ItemAuctionReturn: true, ItemAuctionSold: true,
 	ItemProduced: true, ItemSupplied: true, ItemProductionInput: true, ItemReverseSample: true, ItemNPCSale: true,
@@ -376,6 +392,11 @@ type MarketRepository interface {
 	// PlayerOrders lists a player's orders, open first then the latest.
 	PlayerOrders(ctx context.Context, playerID string, limit int) ([]MarketOrder, error)
 	CountOpen(ctx context.Context, playerID string) (int, error)
+	// CountOpenIn counts the open orders of one city's books, and of one player in them:
+	// the stalls a village book has taken.
+	CountOpenIn(ctx context.Context, cityID, playerID string) (total, mine int, err error)
+	// RecordListingFee writes the listing fee an order paid the settlement's treasury.
+	RecordListingFee(ctx context.Context, orderID, cityID string, fee int64, at time.Time) error
 	// Books sums the open books of a city, one line per good with orders
 	// or a trade.
 	Books(ctx context.Context, cityID string) ([]BookLine, error)

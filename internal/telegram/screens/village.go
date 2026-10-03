@@ -59,7 +59,7 @@ func renderVillageRefusal(c Context, v VillageRefusalView) *presenter.Response {
 		VillageOccupied, VillageUnbuildable, VillageOutOfBounds, VillageConcurrentCap, VillageNotDemolishable, VillageMaterials,
 		VillageNotCancellable, VillageAlreadyResident, VillageNotResident, VillageResidenceWait, VillageHoldsOffice, VillageNoHome,
 		VillageDonateRange, VillageDonateNoCash, VillageBatch, VillageNoRoad, VillagePromotionTop,
-		VillageStorageFull, VillageAlreadyWorking, VillageWorkplaceFull, VillageNotWorkplace,
+		VillageStorageFull, VillageNotEnough, VillageAlreadyWorking, VillageWorkplaceFull, VillageNotWorkplace,
 		LaborNoJob, LaborNotHere, LaborFullyStaffed, LaborBudgetSpent, LaborNotEmployer, LaborNoNPC, LaborWageTooLow,
 		LaborEmployerBroke, LaborNoSite, village.VillageRoadReserved, village.VillageReserved:
 	default:
@@ -79,7 +79,7 @@ func renderVillageRefusal(c Context, v VillageRefusalView) *presenter.Response {
 	kb.Nav(c.nav(keyboards.Nav{BackData: back}))
 	return c.respond(c.T("village.refusal."+kind, map[string]any{
 		"time": FormatDuration(c, v.Remaining), "min": FormatMoney(c, v.Min), "max": FormatMoney(c, v.Max),
-		"lots": batchFailureList(c, v.Lots),
+		"lots": batchFailureList(c, v.Lots), "missing": FormatNumber(c, v.Missing),
 	}), kb.Build())
 }
 

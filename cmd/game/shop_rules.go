@@ -31,3 +31,12 @@ func shopRules(cfg *config.Config) handlers.ShopRules {
 		Carry: cfg.CarryRules(), Clock: clock,
 	}
 }
+
+// storageRules reads the stores' tuning (settlement.storage_*, game.clock_epoch):
+// the game clock their days are counted on and the share of the food that
+// spoils per day, kept and unkept.
+func storageRules(cfg *config.Config) handlers.StorageRules {
+	clock, _ := cfg.GameClock()
+	return handlers.StorageRules{Clock: clock,
+		SpoilKeptBPS: cfg.Settlement.StorageSpoilKeptBPS, SpoilUnkeptBPS: cfg.Settlement.StorageSpoilUnkeptBPS}
+}

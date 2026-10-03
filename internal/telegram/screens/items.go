@@ -78,6 +78,7 @@ func renderInventory(c Context, v InventoryView) *presenter.Response {
 	if v.InEscrow > 0 {
 		escrow = c.T("item.in_escrow", map[string]any{"count": FormatNumber(c, int64(v.InEscrow))})
 	}
+	waiting := c.storageLines(v, kb)
 	shops, _ := keyboards.Button(c.T("shop.button.shops", nil), AddrShops)
 	market, _ := keyboards.Button(c.T("market.button.market", nil), AddrMarket)
 	kb.Row(shops, market)
@@ -86,7 +87,48 @@ func renderInventory(c Context, v InventoryView) *presenter.Response {
 		BackData: AddrHome,
 	}))
 	title := htmlBold(htmlEscape(c.T("item.bag_title", nil)))
-	return c.respond(paragraphs(title, htmlEscape(carryText), htmlEscape(content), htmlEscape(escrow)), kb.Build()).AsHTML()
+	return c.respond(paragraphs(title, htmlEscape(carryText), htmlEscape(content), htmlEscape(escrow), htmlEscape(waiting)), kb.Build()).AsHTML()
+}
+
+// storageLines words the holding slot (goods waiting for room, with a button
+// to claim each) and «انبار من», and adds their buttons.
+func (c Context) storageLines(v InventoryView, kb *keyboards.Builder) string {
+	var lines []string
+	if len(v.Claims) > 0 {
+		lines = append(lines, c.T("item.claims_title", nil))
+		for _, l := range v.Claims {
+			name := c.ItemName(l.Item)
+			lines = append(lines, c.T("item.bag_stack", map[string]any{"item": name, "qty": FormatNumber(c, l.Qty)}))
+			ref := l.Item.Code
+			if l.Serial != "" {
+				ref = l.Serial
+			}
+			if btn, ok := keyboards.Button(c.T("item.button.claim", map[string]any{"item": name}), AddrItemClaim, ref, "1000000"); ok {
+				kb.Row(btn)
+			}
+		}
+	}
+	if v.Home != nil {
+		lines = append(lines, c.T("item.home_title", map[string]any{
+			"used": FormatNumber(c, v.Home.Used), "capacity": FormatNumber(c, v.Home.Capacity)}))
+		for _, l := range v.Home.Lines {
+			name := c.ItemName(l.Item)
+			lines = append(lines, c.T("item.bag_stack", map[string]any{"item": name, "qty": FormatNumber(c, l.Qty)}))
+			ref := l.Item.Code
+			if l.Serial != "" {
+				ref = l.Serial
+			}
+			if v.Home.Here {
+				if btn, ok := keyboards.Button(c.T("item.button.fetch", map[string]any{"item": name}), AddrItemFetch, ref, "1000000"); ok {
+					kb.Row(btn)
+				}
+			}
+		}
+		if !v.Home.Here {
+			lines = append(lines, c.T("item.home_away", nil))
+		}
+	}
+	return body(lines...)
 }
 
 // kilos is a weight in grams as whole kilograms, rounded up: a player is told
@@ -268,6 +310,11 @@ func renderItemDetail(c Context, v ItemDetailView) *presenter.Response {
 			}
 		}
 		kb.Grid(2, gifts...)
+	}
+	if v.CanStore {
+		if btn, ok := keyboards.Button(c.T("item.button.store", map[string]any{"item": c.ItemName(v.Item)}), AddrItemStore, v.Ref, "1000000"); ok {
+			kb.Row(btn)
+		}
 	}
 	if btn, ok := keyboards.Button(c.T("item.button.drop", nil), AddrItemDrop, v.Ref); ok {
 		kb.Row(btn)

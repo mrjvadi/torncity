@@ -147,6 +147,7 @@ const ShopRefusedNotHeld = economy.ShopRefusedNotHeld
 const ShopRefusedNoBuyback = economy.ShopRefusedNoBuyback
 
 type ShopRefusalView = economy.ShopRefusalView
+type NoRoomView = economy.NoRoomView
 
 const AddrExchange = economy.AddrExchange
 const AddrStock = economy.AddrStock

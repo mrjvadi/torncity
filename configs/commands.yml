@@ -182,6 +182,9 @@ commands:
   inventory.drop: {channel: private}
   inventory.bag.wear: {channel: private}
   inventory.bag.off: {channel: private}
+  inventory.store: {channel: private}
+  inventory.fetch: {channel: private}
+  inventory.claim: {channel: private}
   shop.list: {channel: private}
   shop.view: {channel: private}
   shop.buy: {channel: private}
@@ -436,6 +439,8 @@ commands:
   # scheduler's (settlement.worked).
   settlement.materials: {channel: group, client: true}
   settlement.materials.buy: {channel: group, client: true}
+  settlement.stock.donate: {channel: group, client: true}
+  settlement.stock.take: {channel: group, client: true}
   settlement.shop: {channel: group, client: true}
   settlement.shop.buy: {channel: group, client: true}
   settlement.shop.cap: {channel: group, client: true}

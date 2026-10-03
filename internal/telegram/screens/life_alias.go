@@ -28,6 +28,7 @@ type (
 	ItemDetailView      = life.ItemDetailView
 	ItemDroppedView     = life.ItemDroppedView
 	ItemGivenView       = life.ItemGivenView
+	HomeStoreView       = life.HomeStoreView
 	ItemRefusalView     = life.ItemRefusalView
 	ItemUsedView        = life.ItemUsedView
 	LifeRefusalView     = life.LifeRefusalView
@@ -79,6 +80,9 @@ const (
 	AddrItem                 = life.AddrItem
 	AddrItemUse              = life.AddrItemUse
 	AddrItemGive             = life.AddrItemGive
+	AddrItemClaim            = life.AddrItemClaim
+	AddrItemFetch            = life.AddrItemFetch
+	AddrItemStore            = life.AddrItemStore
 	AddrItemDrop             = life.AddrItemDrop
 	AddrBagWear              = life.AddrBagWear
 	AddrBagOff               = life.AddrBagOff
@@ -91,6 +95,8 @@ const (
 	ItemRefusedCooling       = life.ItemRefusedCooling
 	ItemRefusedNoEffect      = life.ItemRefusedNoEffect
 	ItemRefusedNotTradeable  = life.ItemRefusedNotTradeable
+	ItemRefusedNoHome        = life.ItemRefusedNoHome
+	ItemRefusedHomeFull      = life.ItemRefusedHomeFull
 	ItemRefusedNotTogether   = life.ItemRefusedNotTogether
 	AddrLife                 = life.AddrLife
 	AddrLifeCard             = life.AddrLifeCard

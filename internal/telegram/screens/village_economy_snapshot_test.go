@@ -125,13 +125,13 @@ func villageEconomySnapshots(c Context, who people, add func(string, *presenter.
 	sack := sampleNamed(c.Lang, "bag_sack", "گونی دوشی", "Shoulder sack")
 	daypack := sampleNamed(c.Lang, "bag_daypack", "کولهٔ کوچک", "Small rucksack")
 	store := sampleNamed(c.Lang, "general_store", "دکان", "General store")
-	shopLines := []village.ShopLine{
+	shopLines := []village.VillageShopLine{
 		{Item: bread, Kind: "item", Price: 44, Reference: 40, Stock: 7, LeftToday: 3, Fits: 12, MaxBuy: 3},
 		{Item: sack, Kind: "item", Price: 92, Reference: 80, Stock: 2, LeftToday: 2, Fits: 12, MaxBuy: 2},
 		{Item: timber, Kind: "component", Price: 18, Reference: 15, Stock: 0, LeftToday: 2, Fits: 3, MaxBuy: 0},
 	}
 	shopLocked := []village.ShopLockedLine{{Item: daypack, Kind: "item", NeedsBuildings: []Named{store}}}
-	shopBase := village.ShopView{
+	shopBase := village.VillageShopView{
 		Village: villageNameFor(c), NextDelivery: snapshotNow.Add(20 * time.Minute), DeliveryHour: 6, Wage: 30, TaxBPS: 300, TaxMaxBPS: 1500,
 		PriceCapBPS: 15_000, CapMinBPS: 10_000, CapMaxBPS: 15_000, Presets: []int64{1, 3}, Resident: true,
 		FreeSpace: 12, Capacity: 20, FreeG: 31_000, Lines: shopLines, Locked: shopLocked,
@@ -159,12 +159,12 @@ func villageEconomySnapshots(c Context, who people, add func(string, *presenter.
 	justBought := shopBase
 	justBought.Bought = &village.ShopBought{Item: bread, Kind: "item", Qty: 2, Total: 88, Tax: 3}
 	add("Shop · just bought", VillageShop(g, justBought))
-	add("Checkout · village shop", VillageShopCheckout(g, village.ShopCheckoutView{
+	add("Checkout · village shop", VillageShopCheckout(g, village.VillageShopCheckoutView{
 		Village: villageNameFor(c), Item: bread, Kind: "item", Qty: 2, Unit: 44, Total: 88, Tax: 3, TaxBPS: 300, Stock: 7, Space: 2, FreeSpace: 12,
 		Grams: 600, Payment: PaymentChoice{Amount: 91, Accepted: []string{"cash", "card"}, Usable: []string{"cash", "card"}, Cash: 400, Bank: 1000},
 		Nonce: "0a1b2c3d4e5f",
 	}))
-	for _, r := range []village.ShopRefusalView{
+	for _, r := range []village.VillageShopRefusalView{
 		{Kind: village.ShopRefusedClosed, Closed: village.ShopNoShopkeeper, NextDelivery: snapshotNow.Add(20 * time.Minute)},
 		{Kind: village.ShopRefusedNotThere, Item: bread},
 		{Kind: village.ShopRefusedSoldOut, Item: bread, Stock: 1},

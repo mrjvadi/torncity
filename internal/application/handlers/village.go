@@ -84,6 +84,8 @@ type VillageHandler struct {
 	autoRoadCost       int64
 	materialMarkupBPS  int64
 	stockBaseCapacity  int64
+	// storage is the stores' keepers and spoilage (village_storage.go).
+	storage StorageRules
 	materialBuyMax     int64
 	materialBuyPresets []int64
 	residenceCooldown  time.Duration
@@ -224,6 +226,8 @@ type villageRefusal struct {
 	min, max int64
 	// lots are the lots a refused batch names.
 	lots []village.BatchLotFailure
+	// missing is the room a refused shift or purchase lacks, in units.
+	missing int64
 	// action, subject and needs are the attempt view of a refused build,
 	// research or shift: exactly what is missing and where it comes from
 	// (village_economy.go).
@@ -257,7 +261,7 @@ func (h *VillageHandler) villageFinish(meta envelope.Metadata, lang string, err 
 		if r.access != nil {
 			return village.LotAccessScreen(c, *r.access), nil
 		}
-		return village.VillageRefusal(c, village.VillageRefusalView{Kind: r.kind, Back: presentation.RefOfAddress(r.back), Remaining: r.remaining, Min: r.min, Max: r.max, Lots: r.lots,
+		return village.VillageRefusal(c, village.VillageRefusalView{Kind: r.kind, Back: presentation.RefOfAddress(r.back), Remaining: r.remaining, Min: r.min, Max: r.max, Lots: r.lots, Missing: r.missing,
 			Action: r.action, Subject: r.subject, Needs: r.needs}), nil
 	}
 	if stderrors.Is(err, application.ErrCityNotFound) {

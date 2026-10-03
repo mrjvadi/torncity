@@ -242,6 +242,26 @@ func (r *MarketRepository) CountOpen(ctx context.Context, playerID string) (int,
 	return n, nil
 }
 
+// RecordListingFee writes the listing fee an order paid the settlement's treasury.
+func (r *MarketRepository) RecordListingFee(ctx context.Context, orderID, cityID string, fee int64, at time.Time) error {
+	if _, err := r.q.Exec(ctx, `INSERT INTO market_listing_fees (order_id, city_id, fee, at) VALUES ($1::uuid, $2::uuid, $3, $4)`,
+		orderID, cityID, fee, at.UTC()); err != nil {
+		return fmt.Errorf("postgres: recording a listing fee: %w", err)
+	}
+	return nil
+}
+
+// CountOpenIn counts the open orders in one city's books, and one player's among them.
+func (r *MarketRepository) CountOpenIn(ctx context.Context, cityID, playerID string) (total, mine int, err error) {
+	err = r.q.QueryRow(ctx,
+		`SELECT count(*), count(*) FILTER (WHERE owner_id = $2::uuid) FROM market_orders WHERE city_id = $1::uuid AND status = 'open'`,
+		cityID, playerID).Scan(&total, &mine)
+	if err != nil {
+		return 0, 0, fmt.Errorf("postgres: counting a book's stalls: %w", err)
+	}
+	return total, mine, nil
+}
+
 // Books sums a city's books.
 func (r *MarketRepository) Books(ctx context.Context, cityID string) ([]application.BookLine, error) {
 	rows, err := r.q.Query(ctx,

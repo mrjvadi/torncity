@@ -12,6 +12,7 @@ import (
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
+	"github.com/mrjvadi/torncity/internal/domain/carry"
 	"github.com/mrjvadi/torncity/internal/domain/gametime"
 	"github.com/mrjvadi/torncity/internal/domain/mission"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
@@ -55,6 +56,15 @@ type MissionsHandler struct {
 
 	idempotencyTTL time.Duration
 	now            func() time.Time
+	// carry is the room check (room.go): a reward that does not fit waits in
+	// the holding slot; zero puts every reward in the bags.
+	carry carryEnv
+}
+
+// WithCarry has a mission reward that does not fit wait in the holding slot.
+func (h *MissionsHandler) WithCarry(rules carry.Rules, clock gametime.Clock) *MissionsHandler {
+	h.carry = carryEnvOf(rules, clock)
+	return h
 }
 
 // NewMissionsHandler wires the handler.
@@ -783,7 +793,12 @@ func (h *MissionsHandler) complete(ctx context.Context, tx application.Tx, snap 
 		}
 		grant := origin{kind: application.OriginGrant, reason: application.ItemGrant, refType: application.MissionReference, refID: a.ID}
 		for _, it := range reward.Items {
-			if _, err := bring(ctx, tx, snap, h.ids, nil, a.PlayerID, it.Item, it.Qty, -1, grant, now); err != nil {
+			g := grant
+			var err error
+			if g.hold, err = h.carry.arrival(ctx, tx, snap, a.PlayerID, it.Item, it.Qty); err != nil {
+				return nil, err
+			}
+			if _, err := bring(ctx, tx, snap, h.ids, nil, a.PlayerID, it.Item, it.Qty, -1, g, now); err != nil {
 				return nil, err
 			}
 		}

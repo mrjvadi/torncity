@@ -487,6 +487,20 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 			}
 			return h.village.MaterialsBuy(ctx, env.Metadata, req)
 		},
+		"settlement.stock.donate": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageStockMoveRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.StockDonate(ctx, env.Metadata, req)
+		},
+		"settlement.stock.take": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageStockMoveRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.StockTake(ctx, env.Metadata, req)
+		},
 		"settlement.money": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			return h.village.Money(ctx, env.Metadata)
 		},

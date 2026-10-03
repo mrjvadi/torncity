@@ -335,6 +335,11 @@ crime:
 trade:
   market_order_ttl: 169h
   market_max_open_orders: 21
+  village_stalls_post: 7
+  village_stalls_hall: 21
+  village_stalls_per_player_post: 4
+  village_stalls_per_player_hall: 7
+  market_day_every_days: 8
   market_max_quantity: 10001
   market_max_price: 100000001
   auction_durations: [2h, 7h]
@@ -605,6 +610,8 @@ settlement:
   demolition_salvage_bps: 2001
   material_markup_bps: 12001
   stock_base_capacity: 61
+  storage_spoil_kept_bps: 6
+  storage_spoil_unkept_bps: 31
   material_buy_max: 201
   material_buy_presets: [6, 21, 51]
   founding_grant: 10001
@@ -805,16 +812,21 @@ var envOverrides = map[string]string{
 	"TORN_CRIME_GEAR_MAX_REWARD_BPS":             "5002",
 	"TORN_CRIME_GEAR_MAX_NERVE":                  "7",
 
-	"TORN_TRADE_MARKET_ORDER_TTL":       "170h",
-	"TORN_TRADE_MARKET_MAX_OPEN_ORDERS": "22",
-	"TORN_TRADE_MARKET_MAX_QUANTITY":    "10002",
-	"TORN_TRADE_MARKET_MAX_PRICE":       "100000002",
-	"TORN_TRADE_AUCTION_DURATIONS":      "3h,8h",
-	"TORN_TRADE_AUCTION_MAX_RESERVE":    "100000002",
-	"TORN_TRADE_AUCTION_STEP_BPS":       "502",
-	"TORN_TRADE_AUCTION_MIN_STEP":       "12",
-	"TORN_TRADE_AUCTION_MAX_OPEN":       "7",
-	"TORN_TRADE_AUCTION_RESERVES_BPS":   "3000,8000",
+	"TORN_TRADE_MARKET_ORDER_TTL":               "170h",
+	"TORN_TRADE_MARKET_MAX_OPEN_ORDERS":         "22",
+	"TORN_TRADE_VILLAGE_STALLS_POST":            "8",
+	"TORN_TRADE_VILLAGE_STALLS_HALL":            "22",
+	"TORN_TRADE_VILLAGE_STALLS_PER_PLAYER_POST": "5",
+	"TORN_TRADE_VILLAGE_STALLS_PER_PLAYER_HALL": "8",
+	"TORN_TRADE_MARKET_DAY_EVERY_DAYS":          "9",
+	"TORN_TRADE_MARKET_MAX_QUANTITY":            "10002",
+	"TORN_TRADE_MARKET_MAX_PRICE":               "100000002",
+	"TORN_TRADE_AUCTION_DURATIONS":              "3h,8h",
+	"TORN_TRADE_AUCTION_MAX_RESERVE":            "100000002",
+	"TORN_TRADE_AUCTION_STEP_BPS":               "502",
+	"TORN_TRADE_AUCTION_MIN_STEP":               "12",
+	"TORN_TRADE_AUCTION_MAX_OPEN":               "7",
+	"TORN_TRADE_AUCTION_RESERVES_BPS":           "3000,8000",
 
 	"TORN_COMPANY_PERIOD":                     "26h",
 	"TORN_COMPANY_MAX_PER_PLAYER":             "4",
@@ -1042,6 +1054,8 @@ var envOverrides = map[string]string{
 	"TORN_SETTLEMENT_FOUNDING_GRANT":                "10002",
 	"TORN_SETTLEMENT_MATERIAL_MARKUP_BPS":           "12002",
 	"TORN_SETTLEMENT_STOCK_BASE_CAPACITY":           "62",
+	"TORN_SETTLEMENT_STORAGE_SPOIL_KEPT_BPS":        "7",
+	"TORN_SETTLEMENT_STORAGE_SPOIL_UNKEPT_BPS":      "32",
 	"TORN_SETTLEMENT_MATERIAL_BUY_MAX":              "202",
 	"TORN_SETTLEMENT_MATERIAL_BUY_PRESETS":          "7,22,52",
 	"TORN_SETTLEMENT_DONATION_MIN":                  "102",

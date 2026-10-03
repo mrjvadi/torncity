@@ -163,11 +163,37 @@ func renderVillageMaterials(c Context, v MaterialsView) *presenter.Response {
 			"qty": v.Bought.Qty, "name": c.ComponentName(v.Bought.Item), "total": FormatMoney(c, v.Bought.Total),
 		})
 	}
+	var classes []string
+	for _, cl := range v.Classes {
+		key := "village.materials.class_line"
+		if cl.Reserved > 0 {
+			key = "village.materials.class_reserved"
+		}
+		classes = append(classes, c.T(key, map[string]any{
+			"class": c.coded("village.materials.class_name.", cl.Class, "village.materials.class_name.bulk"),
+			"used":  cl.Used, "capacity": cl.Capacity, "reserved": cl.Reserved,
+		}))
+	}
+	var stores []string
+	for _, st := range v.Stores {
+		key := "village.materials.store_unkept"
+		if st.Kept {
+			key = "village.materials.store_kept"
+		}
+		stores = append(stores, c.T(key, map[string]any{"name": c.SettlementBuildingName(st.Building), "wage": FormatMoney(c, v.Wage)}))
+	}
+	var spoil string
+	if v.SpoilBPS > 0 {
+		spoil = c.T("village.materials.spoil", map[string]any{"pct": PercentFromBPS(c, int(v.SpoilBPS))})
+	}
 	text := paragraphs(
 		bought,
 		c.T("village.materials.title", map[string]any{"village": v.Village}),
 		c.T("village.materials.treasury", map[string]any{"amount": FormatMoney(c, v.Treasury)}),
 		c.T("village.materials.capacity", map[string]any{"used": v.Used, "capacity": v.Capacity}),
+		body(classes...),
+		body(stores...),
+		spoil,
 		c.T("village.materials.stock_title", nil)+"\n"+stockText,
 		c.T("village.materials.market_title", nil)+"\n"+body(market...),
 		c.T("village.materials.hint", nil),

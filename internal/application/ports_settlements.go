@@ -337,6 +337,10 @@ type SettlementRepository interface {
 	// ResidentCount is how many active players have this settlement as
 	// their home (players.residence_city_id): its population.
 	ResidentCount(ctx context.Context, settlementID string) (int64, error)
+
+	// IsFounded says whether the city is a founded settlement (cities.origin) and
+	// not a content city: a light read for the places that only ask that.
+	IsFounded(ctx context.Context, id string) (bool, error)
 }
 
 // PlayerSettlement is a settlement as seen by one of its people.

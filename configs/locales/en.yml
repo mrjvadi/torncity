@@ -197,6 +197,9 @@ error:
 office:
   mayor: Mayor
   deputy_mayor: Deputy mayor
+  market_warden: Market warden
+  village_market_warden: Village market warden
+  town_market_warden: Town market warden
   city_council: City council
   police_chief: Police chief
   deputy_police_chief: Deputy police chief
@@ -234,6 +237,8 @@ lever:
     investigation_effort: Investigation effort
     sales_tax: Sales tax
     market_fee: Market fee
+    market_listing_fee_bps: Market stall fee
+    market_dues_bps: Market dues
     company_registration: Company registration fee (% of standard)
     corporate_tax: Corporate tax
     budget: City budget
@@ -248,8 +253,12 @@ lever:
     bank_reserve_ratio: "National bank reserve ratio"
     bank_funding: "Treasury funding of the national bank (share per period)"
   village:
+    market_listing_fee_bps: Market stall fee
+    market_dues_bps: Market dues
     local_levy: City local levy
   town:
+    market_listing_fee_bps: Market stall fee
+    market_dues_bps: Market dues
     local_levy: Local levy
     building_permit_fee: Building permit fee
   province:
@@ -281,10 +290,12 @@ settlement_building:
   road: Road
   civic_hall: Civic hall
   private_cottage: Private cottage
+  private_shed: Private shed
   private_house: Private house
   woodcutter_camp: Woodcutter's camp
   cottage: Cottage
   granary: Granary
+  storehouse: Storehouse
   housing_block: Housing block
   park: Park
   small_pit: Small pit

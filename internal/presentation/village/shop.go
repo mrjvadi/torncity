@@ -46,8 +46,8 @@ const (
 	ShopNotYet = "not_yet"
 )
 
-// ShopLine is one good on the shelf, priced now.
-type ShopLine struct {
+// VillageShopLine is one good on the shelf, priced now.
+type VillageShopLine struct {
 	Item presentation.Named
 	// Kind is "item" or "component": which table of the content catalogue names it.
 	Kind  string
@@ -99,9 +99,9 @@ type ShopMended struct {
 	Cost int64
 }
 
-// ShopView is a village's shop: who keeps it, whether it opened this morning,
+// VillageShopView is a village's shop: who keeps it, whether it opened this morning,
 // its shelf and the viewer's room.
-type ShopView struct {
+type VillageShopView struct {
 	Village string
 	// Building is true once the shop building stands (a bigger delivery, more
 	// lines, the mending counter).
@@ -131,7 +131,7 @@ type ShopView struct {
 	Presets []int64
 	// Resident says the viewer may buy here.
 	Resident bool
-	Lines    []ShopLine
+	Lines    []VillageShopLine
 	Locked   []ShopLockedLine
 	// FreeSpace and Capacity are the viewer's room in «جا»; FreeG their room in
 	// weight, grams.
@@ -147,8 +147,8 @@ type ShopView struct {
 	Mended *ShopMended `json:"mended,omitempty"`
 }
 
-// ShopCheckoutView is the price of a purchase and the ways to pay it.
-type ShopCheckoutView struct {
+// VillageShopCheckoutView is the price of a purchase and the ways to pay it.
+type VillageShopCheckoutView struct {
 	Village string
 	Item    presentation.Named
 	Kind    string
@@ -180,8 +180,8 @@ const (
 	ShopRefusedCapRange      = "cap_range"
 )
 
-// ShopRefusalView is a purchase or a mending refused before it changed anything.
-type ShopRefusalView struct {
+// VillageShopRefusalView is a purchase or a mending refused before it changed anything.
+type VillageShopRefusalView struct {
 	Kind string
 	Item presentation.Named
 	// Closed is the shop's closed reason, for ShopRefusedClosed.
@@ -196,13 +196,13 @@ type ShopRefusalView struct {
 }
 
 var (
-	screenShop         = presentation.Define[ShopView](ScreenVillageShop, "village")
-	screenShopCheckout = presentation.Define[ShopCheckoutView](ScreenVillageShopCheckout, "village")
-	screenShopRefusal  = presentation.Define[ShopRefusalView](ScreenVillageShopRefusal, "village", presentation.Refusal())
+	screenShop         = presentation.Define[VillageShopView](ScreenVillageShop, "village")
+	screenShopCheckout = presentation.Define[VillageShopCheckoutView](ScreenVillageShopCheckout, "village")
+	screenShopRefusal  = presentation.Define[VillageShopRefusalView](ScreenVillageShopRefusal, "village", presentation.Refusal())
 )
 
 // VillageShop is the shop: its shelf, the viewer's room, the mending counter.
-func VillageShop(c presentation.Ctx, v ShopView) *presentation.Response {
+func VillageShop(c presentation.Ctx, v VillageShopView) *presentation.Response {
 	var a []presentation.Action
 	if v.Resident && v.Closed == ShopOpen {
 		for _, l := range v.Lines {
@@ -237,7 +237,7 @@ func VillageShop(c presentation.Ctx, v ShopView) *presentation.Response {
 }
 
 // VillageShopCheckout is the price and the ways to pay.
-func VillageShopCheckout(c presentation.Ctx, v ShopCheckoutView) *presentation.Response {
+func VillageShopCheckout(c presentation.Ctx, v VillageShopCheckoutView) *presentation.Response {
 	var a []presentation.Action
 	for _, m := range v.Payment.Usable {
 		a = append(a, confirm(AddrShopBuy, v.Item.Code, strconv.FormatInt(v.Qty, 10), m, v.Nonce).Named("shop.pay").About(m))
@@ -250,7 +250,7 @@ func VillageShopCheckout(c presentation.Ctx, v ShopCheckoutView) *presentation.R
 func ShopRefusalCode(kind string) string { return "village_shop_" + kind }
 
 // VillageShopRefusal is a purchase or a mending refused.
-func VillageShopRefusal(c presentation.Ctx, v ShopRefusalView) *presentation.Response {
+func VillageShopRefusal(c presentation.Ctx, v VillageShopRefusalView) *presentation.Response {
 	return screenShopRefusal.Response(c.Lang, v, back(AddrShop), refresh(AddrShop)).Refused(ShopRefusalCode(v.Kind),
 		map[string]any{"item": v.Item.Code})
 }

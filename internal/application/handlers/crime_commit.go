@@ -511,16 +511,25 @@ func (h *CrimeHandler) settle(ctx context.Context, tx application.Tx, meta envel
 		loot := origin{kind: application.OriginLoot, reason: application.ItemCrimeLoot,
 			refType: application.CrimeReferenceAttempt, refID: row.ID}
 		for _, d := range out.Loot {
-			if _, err := bring(ctx, tx, in.snap, h.ids, nil, in.thief.ID, d.Item, d.Qty, d.Quality, loot, in.now); err != nil {
+			l := loot
+			var err error
+			if l.hold, err = h.carry.arrival(ctx, tx, in.snap, in.thief.ID, d.Item, d.Qty); err != nil {
+				return view, err
+			}
+			if _, err := bring(ctx, tx, in.snap, h.ids, nil, in.thief.ID, d.Item, d.Qty, d.Quality, l, in.now); err != nil {
 				return view, err
 			}
 			view.Loot = append(view.Loot, plife.LootLine{Item: itemNamed(in.snap, d.Item), Qty: d.Qty})
 		}
 		if out.StolenItem >= 0 && out.StolenItem < len(takeable) {
 			got := takeable[out.StolenItem]
+			hold, err := h.carry.arrival(ctx, tx, in.snap, in.thief.ID, got.Item, 1)
+			if err != nil {
+				return view, err
+			}
 			if err := tx.Items().Move(ctx, application.ItemMove{
 				ID: h.ids.NewID(), Item: got.Item, PieceID: got.Instance, Qty: 1,
-				From: victimID, FromHolding: application.HoldCarried, To: in.thief.ID, ToHolding: application.HoldCarried,
+				From: victimID, FromHolding: application.HoldCarried, To: in.thief.ID, ToHolding: hold,
 				Reason: application.ItemTheft, ReferenceType: application.CrimeReferenceAttempt, ReferenceID: row.ID, At: in.now,
 			}); err != nil {
 				return view, err

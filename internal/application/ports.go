@@ -160,6 +160,9 @@ type Tx interface {
 	// VillageShop holds a village's shop: its shelves, deliveries and sales
 	// (docs/adr/0046 section 5); see ports_vshop.go.
 	VillageShop() VillageShopRepository
+	// VillageStorage holds the days of a settlement's stores: their keepers,
+	// wages and spoilage (storage and market audit P2); see ports_vstorage.go.
+	VillageStorage() VillageStorageRepository
 	Shops() ShopRepository
 	Market() MarketRepository
 	Auctions() AuctionRepository
