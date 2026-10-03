@@ -125,6 +125,10 @@ const (
 	AddrItemUse   = "inventory:use"
 	AddrItemGive  = "inventory:give"
 	AddrItemDrop  = "inventory:drop"
+	// AddrBagWear puts a bag piece on (the serial); AddrBagOff takes off the
+	// bag in a slot.
+	AddrBagWear = "inventory:bag.wear"
+	AddrBagOff  = "inventory:bag.off"
 )
 
 // DropConfirmation is the argument that turns inventory.drop from "are you
@@ -135,7 +139,9 @@ const DropConfirmation = "yes"
 type InventoryLine struct {
 	Item     Named
 	Category string
-	Qty      int64
+	// Shelf is where the good sits in the item tree (a filter for a client).
+	Shelf presentation.ShelfRef
+	Qty   int64
 	// Serial is set for a piece: its address. Quality, UsesLeft and
 	// Durability describe it.
 	Serial     string
@@ -147,6 +153,40 @@ type InventoryLine struct {
 	Design string
 }
 
+// Slots a bag is worn in, as the core spells them.
+const (
+	BagSlotBelt = "belt"
+	BagSlotBack = "back"
+)
+
+// WornBagLine is a bag a player has on (docs/adr/0046 section 4).
+type WornBagLine struct {
+	Item Named
+	// Serial is the piece's address, for the take-off button.
+	Serial string
+	// FullSpace is what the bag gives new; Space what it gives now (half
+	// when torn). Wear and WearMax are its points left and when new.
+	FullSpace, Space  int64
+	Wear, WearMax     int
+	Torn              bool
+	ComfortKg, HardKg int64
+}
+
+// BagSlotLine is one of the two places a bag is worn; Bag is nil when it is
+// empty.
+type BagSlotLine struct {
+	Slot string
+	Bag  *WornBagLine
+}
+
+// CarryLine is what a player carries against what they can: space in «جا»
+// (Used of Capacity, hands and pockets Base, the rest from worn bags) and the
+// load in grams against the comfortable and the hard limit.
+type CarryLine struct {
+	Used, Capacity, Base   int64
+	LoadG, ComfortG, HardG int64
+}
+
 // InventoryView is one page of the bag.
 type InventoryView struct {
 	Lines       []InventoryLine
@@ -155,6 +195,21 @@ type InventoryView struct {
 	// InEscrow counts the goods set aside for the market and the auction
 	// house: still the player's, not in the bag.
 	InEscrow int
+	// Bags are the two slots, belt then back; Carry the space and load.
+	Bags  []BagSlotLine
+	Carry CarryLine
+}
+
+// BagDetail is what a bag piece adds to its detail view: the slot it is worn
+// in, what it gives, and whether it is on.
+type BagDetail struct {
+	Slot              string
+	Space             int64
+	ComfortKg, HardKg int64
+	Worn, Torn        bool
+	// RepairCost is what mending it costs at a shop counter; 0 when it is
+	// whole.
+	RepairCost int64
 }
 
 // EffectLine is one effect of using a good.
@@ -194,6 +249,8 @@ type ItemDetailView struct {
 	Nonce string
 	// GiveTo are the friends standing here who may receive it.
 	GiveTo []Named
+	// Bag is set for a bag piece.
+	Bag *BagDetail
 }
 
 // VitalChange is one value a use changed.
@@ -234,6 +291,8 @@ const (
 	ItemRefusedNoEffect     = "no_effect"
 	ItemRefusedNotTradeable = "not_tradeable"
 	ItemRefusedNotTogether  = "not_together"
+	// ItemRefusedNotBag: the piece is not a bag.
+	ItemRefusedNotBag = "not_bag"
 )
 
 // ItemRefusalView is a refused request about a good.

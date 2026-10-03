@@ -311,6 +311,9 @@ func BuildingPanel(c presentation.Ctx, v BuildingView) *presentation.Response {
 			a = append(a, act(AddrVillageOverview).Named("village.overview"), act(AddrKnowledgeList).Named("village.knowledge"),
 				act(AddrBuildMenu).Named("village.build"), act(AddrConstructionProgress).Named("village.progress"))
 		}
+		if v.State == BuildingStateComplete && v.Kind == BuildingKindShop {
+			a = append(a, act(AddrShop).Named("village.shop"))
+		}
 		if v.CanManage {
 			switch {
 			case v.State == BuildingStateBuilding:
@@ -607,7 +610,7 @@ func VillageStock(c presentation.Ctx, v MaterialsView) *presentation.Response {
 			}
 		}
 	}
-	a = append(a, act(AddrWork).Named("village.work"), act(AddrBuildMenu).Named("village.build"),
+	a = append(a, act(AddrShop).Named("village.shop"), act(AddrWork).Named("village.work"), act(AddrBuildMenu).Named("village.build"),
 		back(AddrVillageOverview), refresh(AddrMaterials))
 	return screenMaterials.Response(c.Lang, v, a...)
 }

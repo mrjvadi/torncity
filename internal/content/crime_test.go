@@ -130,7 +130,7 @@ func TestPackWithoutCrimesStillValidates(t *testing.T) {
 	p.Crimes, p.CrimeTiers, p.Venues, p.CrimeCategories = nil, nil, nil, nil
 	// Goods whose gear names crimes, and shops at places, go with them; so
 	// do the military classes, which name goods.
-	p.Items, p.Shops, p.ForceClasses = nil, nil, nil
+	p.Items, p.Shops, p.ForceClasses, p.VillageShop = nil, nil, nil, nil
 	// Stage E stands on places, goods and tiers: health, missions and
 	// factions go too, and the pharmacy that stocks medicine.
 	p.Health, p.MissionBoards, p.Missions, p.Factions = nil, nil, nil, nil

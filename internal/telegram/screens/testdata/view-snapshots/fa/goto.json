@@ -403,6 +403,12 @@
           },
           "next_restock": null,
           "price": 450,
+          "shelf": {
+            "code": "",
+            "group": "",
+            "group_label": "",
+            "label": ""
+          },
           "stock": 4
         }
       ],
@@ -427,7 +433,13 @@
             "code": "bread",
             "name": "Bread"
           },
-          "last": 20
+          "last": 20,
+          "shelf": {
+            "code": "",
+            "group": "",
+            "group_label": "",
+            "label": ""
+          }
         }
       ],
       "city": "Ostmarch",

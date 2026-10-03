@@ -78,3 +78,68 @@ func (s Scale) RealWait(game time.Duration) time.Duration {
 	}
 	return wait
 }
+
+// Clock reads the game's time of day from the real clock (docs/adr/0018): game
+// time runs Scale times faster than real time from Epoch, the real instant at
+// which game day 0 began at 00:00. It exists so a thing that happens "once per
+// game day at 06:00" (a shop's morning delivery, ADR 0046) has one definition
+// of what day it is, shared by every replica.
+//
+// Changing the scale or the epoch renumbers the days: the keys written under
+// the old numbering stay unique but no longer mean what they did, so both are
+// changed together with the data that keys on them or not at all.
+type Clock struct {
+	Epoch time.Time
+	Scale Scale
+}
+
+// Day is the length of a game day.
+const Day = 24 * time.Hour
+
+// Validate reports whether the clock is usable.
+func (c Clock) Validate() error {
+	if c.Epoch.IsZero() {
+		return errors.New("gametime: the clock has no epoch")
+	}
+	return c.Scale.Validate()
+}
+
+// Since is the game time elapsed at the real instant now. Before the epoch it
+// is zero.
+func (c Clock) Since(now time.Time) time.Duration {
+	if !now.After(c.Epoch) {
+		return 0
+	}
+	s := c.Scale
+	if s.Validate() != nil {
+		s = 1
+	}
+	return now.Sub(c.Epoch) * time.Duration(s)
+}
+
+// DayAt is the number of the game day at now, counting from the epoch's
+// midnight: 0 on the first game day.
+func (c Clock) DayAt(now time.Time) int64 { return int64(c.Since(now) / Day) }
+
+// DayAtHour is the number of the last game "day" whose boundary at `hour`
+// o'clock game time has passed: the day counter that ticks at that hour
+// instead of at midnight. At 05:59 game time it is still yesterday's number;
+// at 06:00 (hour 6) it is today's. -1 means the first boundary has not come.
+func (c Clock) DayAtHour(now time.Time, hour int) int64 {
+	g := c.Since(now) - time.Duration(hour)*time.Hour
+	if g < 0 {
+		return -1
+	}
+	return int64(g / Day)
+}
+
+// RealAtHour is the real instant at which the boundary of game day n at `hour`
+// o'clock game time falls.
+func (c Clock) RealAtHour(day int64, hour int) time.Time {
+	s := c.Scale
+	if s.Validate() != nil {
+		s = 1
+	}
+	game := time.Duration(day)*Day + time.Duration(hour)*time.Hour
+	return c.Epoch.Add(game / time.Duration(s))
+}

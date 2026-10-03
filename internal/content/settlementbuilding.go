@@ -51,6 +51,9 @@ type SettlementBuildingDef struct {
 	// branch (ADR 0028 section 7).
 	Role string `yaml:"role,omitempty" json:"role,omitempty"`
 	Tier int    `yaml:"tier,omitempty" json:"tier,omitempty"`
+	// BuildCategory is the build menu group (build_categories) when the
+	// building's role does not decide it; omitted, the role does.
+	BuildCategory string `yaml:"build_category,omitempty" json:"build_category,omitempty"`
 	// Footprint is [width, height] in lots.
 	Footprint [2]int `yaml:"footprint" json:"footprint"`
 	// RequiresKnowledge are settlement_knowledge codes the settlement must

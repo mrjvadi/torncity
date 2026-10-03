@@ -202,8 +202,12 @@ const (
 
 // BuildLine is one building type of the menu.
 type BuildLine struct {
-	Building  presentation.Named
-	Role      string
+	Building presentation.Named
+	Role     string
+	// Category is the build menu group the line is drawn in
+	// (settlement_buildings.yml build_categories): housing, shops, construction,
+	// production, farming, public, security or other.
+	Category  string
 	State     string
 	CostMoney int64
 	BuildTime time.Duration
@@ -458,6 +462,10 @@ type BuildingView struct {
 	// whether the button is worth showing.
 	HasUpgrade bool
 	Upgrades   []BuildingUpgradeLine
+
+	// Shop is the shop building's panel (Kind "shop"): the same facts as the
+	// village_shop screen, so the panel draws the shelf without another page.
+	Shop *ShopView `json:"shop,omitempty"`
 }
 
 // LotBatchLot is one lot of a batch.

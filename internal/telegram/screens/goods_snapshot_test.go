@@ -19,6 +19,8 @@ var (
 	snapBandage  = Named{Code: "bandage", Name: "Bandage"}
 	snapLockpick = Named{Code: "lockpick_set", Name: "Lockpick set"}
 	snapPhone    = Named{Code: "phone", Name: "Phone"}
+	snapSack     = Named{Code: "bag_sack", Name: "Shoulder sack"}
+	snapPouch    = Named{Code: "bag_pouch", Name: "Belt pouch"}
 	snapHardware = Named{Code: "hardware_store", Name: "Hardware store"}
 	snapGrocery  = Named{Code: "grocery", Name: "Grocery"}
 	snapPawn     = Named{Code: "pawnshop", Name: "Pawnshop"}
@@ -37,6 +39,29 @@ func goodsSnapshots(c Context, who people, add func(string, *presenter.Response)
 		Page: 1, Pages: 1, Total: 4, InEscrow: 2,
 	}))
 	add("Bag · empty", Inventory(c, InventoryView{Page: 1, Pages: 1}))
+	add("Bag · a sack on the back, a torn pouch on the belt", Inventory(c, InventoryView{
+		Lines: []InventoryLine{{Item: snapBread, Category: "food", Qty: 3}},
+		Page:  1, Pages: 1, Total: 1,
+		Bags: []BagSlotLine{
+			{Slot: BagSlotBelt, Bag: &WornBagLine{Item: snapPouch, Serial: "P0UCH00001", FullSpace: 4, Space: 2, Wear: 0, WearMax: 60, Torn: true, ComfortKg: 10, HardKg: 25}},
+			{Slot: BagSlotBack, Bag: &WornBagLine{Item: snapSack, Serial: "SACK000001", FullSpace: 12, Space: 12, Wear: 31, WearMax: 40, ComfortKg: 10, HardKg: 30}},
+		},
+		Carry: CarryLine{Used: 9, Capacity: 22, Base: 8, LoadG: 1100, ComfortG: 17000, HardG: 50000},
+	}))
+	add("Bag · hands only", Inventory(c, InventoryView{
+		Lines: []InventoryLine{{Item: snapBread, Category: "food", Qty: 3}},
+		Page:  1, Pages: 1, Total: 1,
+		Bags:  []BagSlotLine{{Slot: BagSlotBelt}, {Slot: BagSlotBack}},
+		Carry: CarryLine{Used: 3, Capacity: 8, Base: 8, LoadG: 900, ComfortG: 7000, HardG: 20000},
+	}))
+	add("Item · a sack in the pack", ItemDetail(c, ItemDetailView{
+		Item: snapSack, Category: "gear", Ref: "SACK000001", Piece: true, Quality: 50, UsesLeft: 31, Durability: 40, Worth: 80, Tradeable: true,
+		Bag: &BagDetail{Slot: BagSlotBack, Space: 12, ComfortKg: 10, HardKg: 30, RepairCost: 5},
+	}))
+	add("Item · a torn pouch, worn", ItemDetail(c, ItemDetailView{
+		Item: snapPouch, Category: "gear", Ref: "P0UCH00001", Piece: true, Quality: 50, UsesLeft: 0, Durability: 60, Worth: 25, Tradeable: true,
+		Bag: &BagDetail{Slot: BagSlotBelt, Space: 4, ComfortKg: 10, HardKg: 25, Worn: true, Torn: true, RepairCost: 7},
+	}))
 	add("Item · bread, a friend here", ItemDetail(c, ItemDetailView{
 		Item: snapBread, Category: "food", Qty: 3, Ref: "bread", Worth: 40,
 		Effects: []EffectLine{{Target: "energy", Op: "add", Value: 10}, {Target: "happiness", Op: "add", Value: 2}},
@@ -75,6 +100,7 @@ func goodsSnapshots(c Context, who people, add func(string, *presenter.Response)
 		{"no effect", ItemRefusalView{Kind: ItemRefusedNoEffect, Item: snapBread}},
 		{"not tradeable", ItemRefusalView{Kind: ItemRefusedNotTradeable, Item: snapLockpick}},
 		{"not together", ItemRefusalView{Kind: ItemRefusedNotTogether, Item: snapBread}},
+		{"not a bag", ItemRefusalView{Kind: ItemRefusedNotBag, Item: snapBread}},
 	} {
 		add("Item refused · "+r.title, ItemRefusal(c, r.view))
 	}

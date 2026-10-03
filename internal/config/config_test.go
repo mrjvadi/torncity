@@ -290,6 +290,7 @@ game:
   content_reload_interval: 31s
   command_timeout: 31s
   time_scale: 61
+  clock_epoch: "2026-02-01T00:00:00Z"
 travel:
   arrival_xp: 26
   city_locations: ["support=10.5:20.5"]
@@ -646,6 +647,34 @@ labor:
   wage_short_bps: 25001
   hire_presets: [2, 3, 5]
   wage_presets: [101, 126, 151, 201]
+bag:
+  carry_base: 9
+  base_comfort_kg: 8
+  base_hard_kg: 21
+  full_share_bps: 5001
+  torn_space_bps: 5001
+  repair_share_bps: 2501
+  wear_per_day: 2
+merchant:
+  restock_hour: 7
+  markup_min_bps: 10001
+  markup_max_bps: 15001
+  stock_days: 3
+  food_share_bps: 4001
+  other_share_bps: 3001
+  player_day_food: 4
+  player_day_other: 3
+  supply_value_per_resident_day: 61
+  building_boost_bps: 15001
+  cap_presets: [10001, 11001]
+  buy_presets: [2, 4]
+  tax_default_bps: 301
+  tax_max_bps: 1501
+  tax_presets: [1, 301]
+  output_days: 8
+premium:
+  nil_unit_sup: 101
+  nil_examples: [11, 111]
 `
 
 // envOverrides is the same exercise through the environment. Every entry is a
@@ -1049,6 +1078,32 @@ var envOverrides = map[string]string{
 	"TORN_LABOR_WAGE_SHORT_BPS":                     "25002",
 	"TORN_LABOR_HIRE_PRESETS":                       "3,4,6",
 	"TORN_LABOR_WAGE_PRESETS":                       "102,127,152,202",
+	"TORN_GAME_CLOCK_EPOCH":                         "2026-03-01T00:00:00Z",
+	"TORN_BAG_CARRY_BASE":                           "10",
+	"TORN_BAG_BASE_COMFORT_KG":                      "9",
+	"TORN_BAG_BASE_HARD_KG":                         "22",
+	"TORN_BAG_FULL_SHARE_BPS":                       "5002",
+	"TORN_BAG_TORN_SPACE_BPS":                       "5002",
+	"TORN_BAG_REPAIR_SHARE_BPS":                     "2502",
+	"TORN_BAG_WEAR_PER_DAY":                         "3",
+	"TORN_MERCHANT_RESTOCK_HOUR":                    "8",
+	"TORN_MERCHANT_MARKUP_MIN_BPS":                  "10002",
+	"TORN_MERCHANT_MARKUP_MAX_BPS":                  "15002",
+	"TORN_MERCHANT_STOCK_DAYS":                      "4",
+	"TORN_MERCHANT_FOOD_SHARE_BPS":                  "4002",
+	"TORN_MERCHANT_OTHER_SHARE_BPS":                 "3002",
+	"TORN_MERCHANT_PLAYER_DAY_FOOD":                 "5",
+	"TORN_MERCHANT_PLAYER_DAY_OTHER":                "4",
+	"TORN_MERCHANT_SUPPLY_VALUE_PER_RESIDENT_DAY":   "62",
+	"TORN_MERCHANT_BUILDING_BOOST_BPS":              "15002",
+	"TORN_MERCHANT_CAP_PRESETS":                     "10002,11002",
+	"TORN_MERCHANT_BUY_PRESETS":                     "3,5",
+	"TORN_MERCHANT_TAX_DEFAULT_BPS":                 "302",
+	"TORN_MERCHANT_TAX_MAX_BPS":                     "1502",
+	"TORN_MERCHANT_TAX_PRESETS":                     "2,302",
+	"TORN_MERCHANT_OUTPUT_DAYS":                     "9",
+	"TORN_PREMIUM_NIL_UNIT_SUP":                     "102",
+	"TORN_PREMIUM_NIL_EXAMPLES":                     "12,112",
 }
 
 // clearEnv removes any TORN_ override the surrounding shell happens to carry,

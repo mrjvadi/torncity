@@ -125,6 +125,19 @@ type Named struct {
 	Name string
 }
 
+// ShelfRef is the shelf a good sits on (configs/content/item_categories.yml,
+// ADR 0046 section 6): the leaf code a market filters by, its top-level group,
+// and the locale keys an edge words them with. Empty for a good with no shelf.
+type ShelfRef struct {
+	// Code is the leaf, "food.grain" (a top level with no leaves is its own).
+	Code string
+	// Group is the top-level category, "food".
+	Group string
+	// Label and GroupLabel are the locale keys of the leaf and the group.
+	Label      string
+	GroupLabel string
+}
+
 // Currency is the money a place prices things in: its code, its authored name and
 // its symbol. A place with none of its own (the neutral city) sends none and the edge
 // uses the neutral money's name.

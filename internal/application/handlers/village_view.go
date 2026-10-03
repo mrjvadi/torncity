@@ -44,8 +44,10 @@ type VillageBuildingViewRequest struct {
 }
 
 // buildingKind picks the panel a building is drawn with.
-func buildingKind(d content.SettlementBuildingDef) string {
+func buildingKind(d content.SettlementBuildingDef, shopBuilding string) string {
 	switch {
+	case shopBuilding != "" && d.Code == shopBuilding:
+		return village.BuildingKindShop
 	case d.Code == "road":
 		return village.BuildingKindRoad
 	case d.Code == "civic_hall":
@@ -109,7 +111,7 @@ func (h *VillageHandler) BuildingView(ctx context.Context, meta envelope.Metadat
 			def = def.Rotate()
 		}
 		view = village.BuildingView{
-			ID: b.ID, Building: named(d.Code, d.Name), Role: d.Role, Tier: d.Tier, Kind: buildingKind(d),
+			ID: b.ID, Building: named(d.Code, d.Name), Role: d.Role, Tier: d.Tier, Kind: buildingKind(d, shopBuildingCode(snap)),
 			State: village.BuildingStateComplete, X: b.LotX, Y: b.LotY, W: def.FootprintW, H: def.FootprintH,
 			Rotated: b.Rotated, Upkeep: d.Upkeep, CanManage: head,
 		}
@@ -171,6 +173,14 @@ func (h *VillageHandler) BuildingView(ctx context.Context, meta envelope.Metadat
 					line.Item = named(id.Code, id.Name)
 				}
 				view.Stock = append(view.Stock, line)
+			}
+		case village.BuildingKindShop:
+			if h.shop.enabled() {
+				sv, err := h.shopView(ctx, tx, meta, p, s, h.now())
+				if err != nil {
+					return err
+				}
+				view.Shop = &sv
 			}
 		case village.BuildingKindSchool:
 			literacyBPS, _, err := tx.SettlementKnowledge().Literacy(ctx, s.CityID)
@@ -311,4 +321,12 @@ func progressPercent(start, finish, now time.Time) int {
 		return 100
 	}
 	return p
+}
+
+// shopBuildingCode is the building that is the village shop's, from its content.
+func shopBuildingCode(snap *content.Snapshot) string {
+	if def, ok := snap.VillageShop(); ok {
+		return def.Building
+	}
+	return ""
 }

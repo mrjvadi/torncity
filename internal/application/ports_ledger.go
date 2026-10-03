@@ -549,6 +549,7 @@ var knownReasons = map[Reason]struct{}{
 	ReasonSettlementLotRoad: {}, ReasonSettlementLotRefund: {},
 	ReasonSettlementMaterial: {}, ReasonSettlementWage: {},
 	ReasonLaborEscrow: {}, ReasonLaborWage: {}, ReasonLaborWageNPC: {},
+	ReasonShopkeeperWage: {}, ReasonBagRepair: {},
 }
 
 // Known reports whether r is in the closed set.

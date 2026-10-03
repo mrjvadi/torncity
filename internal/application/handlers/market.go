@@ -213,7 +213,7 @@ func (h *MarketHandler) Books(ctx context.Context, meta envelope.Metadata, req M
 				continue
 			}
 			listed[b.Item] = true
-			view.Books = append(view.Books, economy.BookSummary{Item: itemNamed(snap, b.Item), BestBid: b.BestBid,
+			view.Books = append(view.Books, economy.BookSummary{Item: itemNamed(snap, b.Item), Shelf: shelfRefOf(snap, b.Item), BestBid: b.BestBid,
 				BestAsk: b.BestAsk, Last: b.LastPrice})
 		}
 		stacks, _, _, err := carried(ctx, tx, p.ID)

@@ -253,6 +253,18 @@ func init() {
 			func(p *content.Pack) []content.SettlementTierDef { return p.SettlementTiers },
 			func(d content.SettlementTierDef) string { return d.Code },
 			func(p *content.Pack, d content.SettlementTierDef) { p.SettlementTiers = append(p.SettlementTiers, d) }),
+		listKind("village_shop",
+			func(p *content.Pack) []content.VillageShopDef { return p.VillageShop },
+			func(content.VillageShopDef) string { return "village_shop" },
+			func(p *content.Pack, d content.VillageShopDef) { p.VillageShop = append(p.VillageShop, d) }),
+		listKind("build_category",
+			func(p *content.Pack) []content.BuildCategoryDef { return p.BuildCategories },
+			func(d content.BuildCategoryDef) string { return d.Code },
+			func(p *content.Pack, d content.BuildCategoryDef) { p.BuildCategories = append(p.BuildCategories, d) }),
+		listKind("item_category",
+			func(p *content.Pack) []content.ItemCategoryDef { return p.ItemCategories },
+			func(d content.ItemCategoryDef) string { return d.Code },
+			func(p *content.Pack, d content.ItemCategoryDef) { p.ItemCategories = append(p.ItemCategories, d) }),
 	)
 }
 

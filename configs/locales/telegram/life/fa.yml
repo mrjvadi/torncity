@@ -236,6 +236,17 @@ item:
   piece: "کیفیت {quality}"
   piece_worn: "کیفیت {quality} - {uses} بار از {durability} بار مصرف مانده"
   in_escrow: "📦 {count} قلم از کالاهایتان در بازار یا حراجی است."
+  carry_space: "🎒 جا: {used} از {capacity}"
+  carry_load: "⚖️ بار: {load} کیلو (راحت تا {comfort}، حداکثر {hard})"
+  bag_slot:
+    belt: "کمر"
+    back: "پشت"
+  bag_slot_empty: "• {slot}: خالی"
+  bag_slot_line: "• {slot}: {bag} - {space} جا، {wear} از {max} سالم"
+  bag_slot_torn: "• {slot}: {bag} - پاره شده؛ فقط {space} از {full} جا"
+  bag_detail: "🎒 روی {slot} می‌بندید؛ {space} جا می‌دهد، تا {comfort} کیلو راحت و تا {hard} کیلو را می‌کشد."
+  bag_torn: "🪡 پاره شده و نصف جایش را از دست داده. دوختنش در دکان {cost} خرج دارد."
+  bag_worn_out: "🪡 فرسوده شده. دوختنش در دکان {cost} خرج دارد."
   detail_title: "🎒 {item}"
   category: "نوع: {category}"
   you_have: "{qty} عدد دارید."
@@ -265,6 +276,9 @@ item:
     give: "🎁 بده به {player}"
     drop: "🗑 دور انداختن"
     drop_confirm: "🗑 بله، دور بینداز"
+    bag_wear: "🎒 بپوش"
+    bag_off_this: "🎒 دربیاور"
+    bag_off: "🎒 درآوردن {bag}"
   refused:
     not_held: "{item} همراهتان نیست."
     not_usable: "{item} مصرفی نیست؛ فقط همراهتان می‌ماند."
@@ -272,6 +286,7 @@ item:
     no_effect: "مصرف {item} الان فایده‌ای ندارد؛ همین حالا پر هستید."
     not_tradeable: "{item} قابل واگذاری نیست."
     not_together: "👥 فقط به دوستی می‌توانید چیزی بدهید که همان‌جایی باشد که شما هستید."
+    not_bag: "{item} کوله یا کیسه نیست؛ نمی‌شود به خود آویخت."
 
 # نوع کالاها (configs/content/items.yml).
 property:

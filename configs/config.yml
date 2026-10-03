@@ -320,6 +320,13 @@ game:
   # travel.time_scale, which is still read if present; this key wins.)
   time_scale: 60
 
+  # The real instant (RFC 3339) at which game day 0 began at 00:00. With
+  # time_scale it makes the game's day and hour (gametime.Clock): what "once per
+  # game day at 06:00" (the village shop's morning delivery, merchant.restock_hour)
+  # means, the same on every replica. Changing it, or time_scale, renumbers the
+  # days.
+  clock_epoch: "2026-01-01T00:00:00Z"
+
   # The most one command may run, REAL time. Its context is then cancelled:
   # the transaction rolls back and the message is redelivered, instead of a
   # stuck handler holding its connection and its locks. Must be shorter than
@@ -1326,3 +1333,76 @@ labor:
   wage_short_bps: 25000
   hire_presets: [1, 2, 4]      # NPC crew sizes the hire buttons offer
   wage_presets: [100, 125, 150, 200]  # the employer's wage buttons, % of the market wage
+
+# What a player can carry (docs/adr/0046 section 4; internal/domain/carry).
+# Space is in «جا»: every good takes room (items.yml bulk, 1 if omitted) and a
+# purchase that does not fit is refused, "no room, no buy". Hands and pockets
+# give carry_base; a bag adds its own. Weight is the soft rule: a player with no
+# bag carries base_comfort_kg comfortably and base_hard_kg at most, a bag adds
+# its own loads (items.yml bag block). A bag wears one point per game day it is
+# carried at least full_share_bps full (of the player's whole space); at zero it
+# is torn and gives torn_space_bps of its space until it is mended; a full
+# repair costs repair_share_bps of its price. Nil never buys any of this.
+bag:
+  carry_base: 8
+  base_comfort_kg: 7
+  base_hard_kg: 20
+  full_share_bps: 5000
+  torn_space_bps: 5000
+  repair_share_bps: 2500
+  wear_per_day: 1
+
+# The village shop (docs/adr/0046 section 5; internal/domain/vshop). The lines
+# it sells are content (configs/content/village_shop.yml). The shop only sells:
+# there is no buy-back at all (a buy-back is a money faucet), so there is no
+# switch for it here.
+#   restock_hour        the game hour of the morning delivery (6 = 06:00 game
+#                       clock, once per game day, whichever replica gets there)
+#   markup_min_bps/max  no price under the reference price and none over this
+#                       share of it; the head's price cap moves inside it
+#   stock_days          a shelf holds at most this many days of delivery
+#   food_share_bps      the share of a resident's daily food need the shop covers
+#   other_share_bps     the same for every other line
+#   player_day_food     one player's daily cap on a food line, in multiples of
+#                       one head's daily need of it
+#   player_day_other    one player's daily cap on any other line, in units
+#   supply_value_per_resident_day  the most goods value, in reference minor
+#                       units, one resident draws from the shop a day
+#   building_boost_bps  the delivery of a village that has built a shop
+#                       building, over the founding stall's (10000 = the same)
+#   cap_presets         the price caps the head's buttons offer
+#   buy_presets         the quantities the buy buttons offer
+#   tax_default_bps     the village's sales tax on a purchase until its head sets
+#                       one, in basis points of the price; the tax goes to the
+#                       treasury, which pays the shopkeeper
+#   tax_max_bps         the most the head may set
+#   tax_presets         the taxes the head's buttons offer
+#   output_days         the game days the money panel reads a village's output
+#                       over (the goods its workplaces made, at reference prices)
+merchant:
+  restock_hour: 6
+  markup_min_bps: 10000
+  markup_max_bps: 15000
+  stock_days: 2
+  food_share_bps: 4000
+  other_share_bps: 3000
+  player_day_food: 3
+  player_day_other: 2
+  supply_value_per_resident_day: 600
+  building_boost_bps: 15000
+  cap_presets: [10000, 11000, 12500, 15000]
+  buy_presets: [1, 3, 5]
+  tax_default_bps: 300
+  tax_max_bps: 1500
+  tax_presets: [100, 300, 500, 1000]
+  output_days: 7
+
+# Nil as a unit of account (docs/adr/0046 section 7.4). One Nil stands for this
+# many neutral-currency units: a village currency is QUOTED in Nil as
+# (x_ref / r0) / nil_unit_sup. It is a display constant. Nothing converts at it:
+# Nil never becomes money (ADR 0029 10.4), the TON purchase of Nil stays off
+# (finance.yml ton_exchange), and no ledger moves because of it.
+#   nil_examples  the amounts of the neutral currency the money panel spells out in Nil
+premium:
+  nil_unit_sup: 100
+  nil_examples: [100, 1000, 10000]

@@ -156,7 +156,7 @@ func (h *ShopsHandler) quote(ctx context.Context, tx application.Tx, def content
 		return economy.ShelfLine{}, shop.Shelf{}, errors.Internal(err)
 	}
 	line := economy.ShelfLine{
-		Item: named(item.Code, item.Name), Price: price.Minor(), Stock: shelf.Stock,
+		Item: named(item.Code, item.Name), Shelf: shelfRefOf(h.content.Current(), item.Code), Price: price.Minor(), Stock: shelf.Stock,
 		Busy: demand.Multiplier(recent) > shop.BPS, NextRestock: sh.RestockRule().NextRestock(shelf, h.scale),
 	}
 	if sh.BuybackBPS > 0 {

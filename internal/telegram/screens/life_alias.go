@@ -3,7 +3,7 @@ package screens
 import "github.com/mrjvadi/torncity/internal/presentation/life"
 
 type (
-	ErrorView = life.ErrorView
+	ErrorView           = life.ErrorView
 	AchievementLine     = life.AchievementLine
 	AchievementsView    = life.AchievementsView
 	AvatarChoice        = life.AvatarChoice
@@ -20,6 +20,10 @@ type (
 	HistoryLine         = life.HistoryLine
 	HistoryView         = life.HistoryView
 	InventoryLine       = life.InventoryLine
+	WornBagLine         = life.WornBagLine
+	BagSlotLine         = life.BagSlotLine
+	CarryLine           = life.CarryLine
+	BagDetail           = life.BagDetail
 	InventoryView       = life.InventoryView
 	ItemDetailView      = life.ItemDetailView
 	ItemDroppedView     = life.ItemDroppedView
@@ -76,6 +80,11 @@ const (
 	AddrItemUse              = life.AddrItemUse
 	AddrItemGive             = life.AddrItemGive
 	AddrItemDrop             = life.AddrItemDrop
+	AddrBagWear              = life.AddrBagWear
+	AddrBagOff               = life.AddrBagOff
+	ItemRefusedNotBag        = life.ItemRefusedNotBag
+	BagSlotBelt              = life.BagSlotBelt
+	BagSlotBack              = life.BagSlotBack
 	DropConfirmation         = life.DropConfirmation
 	ItemRefusedNotHeld       = life.ItemRefusedNotHeld
 	ItemRefusedNotUsable     = life.ItemRefusedNotUsable

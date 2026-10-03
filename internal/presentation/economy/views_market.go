@@ -21,7 +21,9 @@ const (
 
 // BookSummary is one good's book in a city, summed.
 type BookSummary struct {
-	Item                   Named
+	Item Named
+	// Shelf is where the good sits in the item tree (a filter for a client).
+	Shelf                  ShelfRef
 	BestBid, BestAsk, Last int64
 }
 

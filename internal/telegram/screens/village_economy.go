@@ -186,7 +186,8 @@ func renderVillageMaterials(c Context, v MaterialsView) *presenter.Response {
 			kb.Row(row...)
 		}
 	}
-	kb.Row(villageButtons(c, "village.button.work", AddrWork, "village.button.build", AddrBuildMenu)...)
+	kb.Row(villageButtons(c, "village.button.shop", AddrShopHere, "village.button.work", AddrWork)...)
+	kb.Row(villageButtons(c, "village.button.build", AddrBuildMenu, "village.button.overview", AddrVillageOverview)...)
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrVillageOverview, RefreshData: AddrMaterials}))
 	return c.respond(text, kb.Build())
 }

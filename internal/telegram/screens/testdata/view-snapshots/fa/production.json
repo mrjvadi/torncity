@@ -3,6 +3,15 @@
     "title": "Bag · a phone a company made",
     "screen": "inventory",
     "view": {
+      "bags": null,
+      "carry": {
+        "base": 0,
+        "capacity": 0,
+        "comfort_g": 0,
+        "hard_g": 0,
+        "load_g": 0,
+        "used": 0
+      },
       "in_escrow": 0,
       "lines": [
         {
@@ -16,6 +25,12 @@
           "qty": 1,
           "quality": 61,
           "serial": "A1B2C3D4E5",
+          "shelf": {
+            "code": "",
+            "group": "",
+            "group_label": "",
+            "label": ""
+          },
           "uses_left": 0
         }
       ],

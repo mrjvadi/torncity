@@ -202,6 +202,8 @@ format:
   # A sum of money. {amount} is already written with the digits and the
   # group separator above.
   money: "{amount} ساپ"
+  # An amount of Nil, the premium unit, shown only as a quote (ADR 0046 7.4).
+  nil: "{amount} نیل"
   # A date: the calendar it is counted in (jalali, the Solar Hijri calendar,
   # or gregorian), its shape, and the month names.
   calendar: jalali
@@ -389,6 +391,7 @@ settlement_building:
   teaching_circle: "کلاس درس"
   school: "مدرسه"
   barter_post: "بازارچه"
+  general_store: "دکان"
   market: "بازار"
   bank: "بانک"
   barracks: "پادگان"
@@ -758,8 +761,90 @@ item_category:
   valuables: اشیای قیمتی
   military: "تجهیزات نظامی"
 
+# قفسه‌های کالا (configs/content/item_categories.yml): نام گروه زیر item_shelf_group.<گروه> و نام هر قفسه زیر item_shelf.<گروه>.<قفسه>.
+item_shelf_group:
+  food: خوراک
+  drink: نوشیدنی
+  clothing: پوشاک
+  bags: کیف و بار
+  tools: ابزار
+  household: لوازم خانه
+  medicine: دارو و کمک‌های اولیه
+  materials: مصالح و مواد
+  electronics: برقی و ارتباطی
+  vehicles: وسیلهٔ نقلیه
+  valuables: اشیای قیمتی
+  documents: مدارک و اسناد
+  military: تجهیزات نظامی
+  other: متفرقه
+item_shelf:
+  food:
+    grain: غلات و آرد
+    cooked: نان و غذای آماده
+    dairy_meat: لبنیات و گوشت
+    spice: "نمک، روغن و شیرینی"
+    preserved: خشکبار و کنسرو
+  drink:
+    cold: آب و نوشیدنی سرد
+    hot: چای و قهوه
+    energy: نوشیدنی انرژی‌زا
+  clothing:
+    body: لباس
+    head: کلاه و روسری
+    hands: دستکش
+    foot: کفش و گیوه
+    outer: پالتو و جامهٔ گرم
+  bags:
+    belt: کمری
+    back: کوله و گونی
+    animal: خورجین
+  tools:
+    hand: ابزار دستی
+    supply: "طناب، میخ و یراق"
+    work: ابزار کارگاه
+    locks: قفل و ابزار باز کردن
+  household:
+    kitchen: آشپزخانه
+    lighting: روشنایی
+    furnish: اثاث
+  medicine:
+    first_aid: کمک‌های اولیه
+    drugs: دارو
+  materials:
+    wood: چوب و تخته
+    mineral: سنگ و خشت و آجر
+    fibre: پارچه و الیاف
+    metal: فلز و سنگ معدن
+    fuel: هیزم و زغال
+    seed_crop: بذر و محصول
+  electronics:
+    phones: تلفن و رادیو
+    lights: چراغ‌قوه
+    parts: قطعه
+  vehicles:
+    cars: خودرو
+    bikes: موتور و دوچرخه
+    parts: قطعه
+  valuables:
+    jewellery: جواهر
+    watches: ساعت
+    gems_metal: سنگ و فلز گران‌بها
+  documents:
+    licences: پروانه و گواهی
+    forged: اسناد غیرمجاز
+
 # نام کالاها بر اساس کد محتوایی (configs/content/items.yml).
 item_name:
+  rice: برنج
+  lentils: عدس
+  dried_fruit: خشکبار
+  sugar: قند
+  tea: چای
+  bag_pouch: کیسهٔ کمری
+  bag_sack: گونی دوشی
+  bag_daypack: کولهٔ کوچک
+  bag_hiking: کولهٔ سفر
+  bag_frame: کولهٔ قاب‌دار
   led_torch: چراغ‌قوه
   pocket_radio: رادیو جیبی
   car: خودرو
@@ -1348,6 +1433,17 @@ presence:
 # یک خبر تنها با جملهٔ کامل می‌آید؛ چند خبر پشت‌سرهم یکی می‌شوند و فهرست‌وار.
 
 # نام نقش ساختمان‌های آبادی (settlement_buildings.yml، role)؛ شرط‌های دسترسی به آن‌ها اشاره می‌کنند.
+# گروه‌های منوی ساخت (settlement_buildings.yml build_categories).
+build_category:
+  housing: "مسکن"
+  shops: "فروشگاه و بازار"
+  construction: "ساخت‌وساز و مصالح"
+  production: "کارگاه و تولید"
+  farming: "کشاورزی"
+  public: "خدمات عمومی"
+  security: "امنیت و دفاع"
+  other: "سایر"
+
 building_role:
   craft: "کارگاه"
   education: "آموزش"
@@ -1439,6 +1535,7 @@ staff_role:
   storekeeper: "انباردار"
   beacon_keeper: "آتشبان"
   stall_keeper: "دکه‌دار"
+  shopkeeper: "دکان‌دار"
   miner: "معدنچی"
   mine_hauler: "باربر معدن"
   timberman: "چوب‌بند معدن"
@@ -1456,6 +1553,7 @@ staff_role:
 building_function:
   dwelling: "خانه"
   stall: "دکهٔ بازار"
+  general_store: "دکان"
   home_workshop: "کارگاه خانگی"
   woodcutter_yard: "کارگاه هیزم‌شکنی"
   charcoal_clamp: "کورهٔ زغال"

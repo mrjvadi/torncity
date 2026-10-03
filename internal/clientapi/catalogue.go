@@ -37,7 +37,12 @@ type CatalogueEntry struct {
 	Name     map[string]string `json:"name"`
 	Asset    CatalogueAsset    `json:"asset"`
 	Category string            `json:"category,omitempty"`
-	Kind     string            `json:"kind,omitempty"`
+	// Shelf is the leaf shelf of an item or a component (table item_shelf).
+	Shelf string `json:"shelf,omitempty"`
+	// BuildCategory is the build menu group of a settlement building (table
+	// build_category).
+	BuildCategory string `json:"build_category,omitempty"`
+	Kind          string `json:"kind,omitempty"`
 	// Footprint is [width, height] in lots, for a settlement building.
 	Footprint []int `json:"footprint,omitempty"`
 	// CapExempt is set for a settlement building the concurrent-construction
@@ -106,12 +111,27 @@ func (w *World) Catalogue(since string) ContentCatalogue {
 			Name: names(func(c screens.Context) string { return c.CompanyTypeName(screens.Named{Code: t.Code, Name: t.Name}) })}, true)
 	}
 	for _, it := range snap.Items() {
-		add("item", CatalogueEntry{Code: it.Code, Category: it.Category,
+		add("item", CatalogueEntry{Code: it.Code, Category: it.Category, Shelf: it.Shelf,
 			Name: names(func(c screens.Context) string { return c.ItemName(screens.Named{Code: it.Code, Name: it.Name}) })}, false)
 	}
 	for _, cp := range snap.ComponentDefs() {
-		add("component", CatalogueEntry{Code: cp.Code, Category: cp.Category,
+		add("component", CatalogueEntry{Code: cp.Code, Category: cp.Category, Shelf: cp.Shelf,
 			Name: names(func(c screens.Context) string { return c.ComponentName(screens.Named{Code: cp.Code, Name: cp.Name}) })}, false)
+	}
+	// The item tree (ADR 0046 section 6): the groups and the leaf shelves a
+	// market filters goods by. A leaf's category is its group.
+	seenGroup := map[string]bool{}
+	for _, sh := range snap.ItemShelves() {
+		sh := sh
+		if !seenGroup[sh.Group] {
+			seenGroup[sh.Group] = true
+			add("item_shelf_group", CatalogueEntry{Code: sh.Group, Name: names(func(c screens.Context) string { return c.T(sh.GroupLabel, nil) })}, false)
+		}
+		add("item_shelf", CatalogueEntry{Code: sh.Code, Category: sh.Group, Name: names(func(c screens.Context) string { return c.T(sh.Label, nil) })}, false)
+	}
+	for _, bc := range snap.BuildCategories() {
+		bc := bc
+		add("build_category", CatalogueEntry{Code: bc.Code, Name: names(func(c screens.Context) string { return c.T("build_category."+bc.Code, nil) })}, false)
 	}
 	for _, m := range snap.TransportModes() {
 		add("mode", CatalogueEntry{Code: m.Code, Name: names(func(c screens.Context) string { return c.ModeName(m.Code, m.Name) })}, true)
@@ -354,7 +374,7 @@ func (w *World) Catalogue(since string) ContentCatalogue {
 		add("building_role", CatalogueEntry{Code: role, Name: names(func(c screens.Context) string { return c.T("building_role."+role, nil) })}, false)
 	}
 	for _, sb := range snap.SettlementBuildingDefs() {
-		add("settlement_building", CatalogueEntry{Code: sb.Code, Category: sb.Role, Footprint: []int{sb.Footprint[0], sb.Footprint[1]}, CapExempt: sb.CapExempt,
+		add("settlement_building", CatalogueEntry{Code: sb.Code, Category: sb.Role, BuildCategory: snap.BuildCategoryOf(sb), Footprint: []int{sb.Footprint[0], sb.Footprint[1]}, CapExempt: sb.CapExempt,
 			Name: names(func(c screens.Context) string {
 				return c.SettlementBuildingName(screens.Named{Code: sb.Code, Name: sb.Name})
 			})}, true)

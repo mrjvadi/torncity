@@ -23,6 +23,74 @@
   [🛒 مغازه‌ها] → shop:list   │   [🏪 بازار] → market:list
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → inventory:show:1
 
+━━━ Bag · a sack on the back, a torn pouch on the belt ━━━
+(edits message 42)
+<b>🎒 کوله‌پشتی شما</b>
+
+🎒 جا: ⁨9⁩ از ⁨22⁩
+⚖️ بار: ⁨2⁩ کیلو (راحت تا ⁨17⁩، حداکثر ⁨50⁩)
+• کمر: کیسهٔ کمری - پاره شده؛ فقط ⁨2⁩ از ⁨4⁩ جا
+• پشت: گونی دوشی - ⁨12⁩ جا، ⁨31⁩ از ⁨40⁩ سالم
+
+• نان - ⁨3⁩ عدد
+  ───
+  [🎒 نان] → inventory:item:bread
+  [🎒 درآوردن کیسهٔ کمری] → inventory:bag.off:belt
+  [🎒 درآوردن گونی دوشی] → inventory:bag.off:back
+  [🛒 مغازه‌ها] → shop:list   │   [🏪 بازار] → market:list
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → inventory:show:1
+
+━━━ Bag · hands only ━━━
+(edits message 42)
+<b>🎒 کوله‌پشتی شما</b>
+
+🎒 جا: ⁨3⁩ از ⁨8⁩
+⚖️ بار: ⁨1⁩ کیلو (راحت تا ⁨7⁩، حداکثر ⁨20⁩)
+• کمر: خالی
+• پشت: خالی
+
+• نان - ⁨3⁩ عدد
+  ───
+  [🎒 نان] → inventory:item:bread
+  [🛒 مغازه‌ها] → shop:list   │   [🏪 بازار] → market:list
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → inventory:show:1
+
+━━━ Item · a sack in the pack ━━━
+(edits message 42)
+🎒 گونی دوشی
+
+نوع: ابزار
+کیفیت ⁨50⁩ - ⁨31⁩ بار از ⁨40⁩ بار مصرف مانده
+💰 ارزش تقریبی: ⁨⁨80⁩ ساپ⁩
+
+🎒 روی پشت می‌بندید؛ ⁨12⁩ جا می‌دهد، تا ⁨10⁩ کیلو راحت و تا ⁨30⁩ کیلو را می‌کشد.
+🪡 فرسوده شده. دوختنش در دکان ⁨⁨5⁩ ساپ⁩ خرج دارد.
+
+👥 برای بخشیدن، باید با یک دوست در یک جا باشید.
+  ───
+  [🎒 بپوش] → inventory:bag.wear:SACK000001
+  [🔨 حراج گذاشتن] → auction:new:SACK000001   │   [💰 فروش به مغازه] → shop:offers:SACK000001
+  [🗑 دور انداختن] → inventory:drop:SACK000001
+  [🔙 بازگشت] → inventory:show   │   [🔄 به‌روزرسانی] → inventory:item:SACK000001
+
+━━━ Item · a torn pouch, worn ━━━
+(edits message 42)
+🎒 کیسهٔ کمری
+
+نوع: ابزار
+کیفیت ⁨50⁩ - ⁨0⁩ بار از ⁨60⁩ بار مصرف مانده
+💰 ارزش تقریبی: ⁨⁨25⁩ ساپ⁩
+
+🎒 روی کمر می‌بندید؛ ⁨4⁩ جا می‌دهد، تا ⁨10⁩ کیلو راحت و تا ⁨25⁩ کیلو را می‌کشد.
+🪡 پاره شده و نصف جایش را از دست داده. دوختنش در دکان ⁨⁨7⁩ ساپ⁩ خرج دارد.
+
+👥 برای بخشیدن، باید با یک دوست در یک جا باشید.
+  ───
+  [🎒 دربیاور] → inventory:bag.off:belt
+  [🔨 حراج گذاشتن] → auction:new:P0UCH00001   │   [💰 فروش به مغازه] → shop:offers:P0UCH00001
+  [🗑 دور انداختن] → inventory:drop:P0UCH00001
+  [🔙 بازگشت] → inventory:show   │   [🔄 به‌روزرسانی] → inventory:item:P0UCH00001
+
 ━━━ Item · bread, a friend here ━━━
 (edits message 42)
 🎒 نان
@@ -159,6 +227,13 @@
 ━━━ Item refused · not together ━━━
 (edits message 42)
 👥 فقط به دوستی می‌توانید چیزی بدهید که همان‌جایی باشد که شما هستید.
+  ───
+  [🎒 کوله‌پشتی] → inventory:show
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Item refused · not a bag ━━━
+(edits message 42)
+نان کوله یا کیسه نیست؛ نمی‌شود به خود آویخت.
   ───
   [🎒 کوله‌پشتی] → inventory:show
   [🔙 بازگشت] → player:profile.get

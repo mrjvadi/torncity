@@ -102,6 +102,9 @@ type VillageHandler struct {
 	// activity is where the Activities hub lists crime (WithActivities).
 	activity ActivityRules
 
+	// shop is the village shop's tuning (village_shop.go); zero has no shop.
+	shop ShopRules
+
 	// labor are the labour market's rules (ADR 0037); zero keeps the timer.
 	labor     labor.Rules
 	laborHire []int64

@@ -69,6 +69,11 @@ func renderBuildingPanel(c Context, v BuildingView) *presenter.Response {
 		kb.Row(villageButtons(c, "village.button.overview", AddrVillageOverview, "village.button.knowledge", AddrKnowledgeList)...)
 		kb.Row(villageButtons(c, "village.button.build", AddrBuildMenu, "village.button.progress", AddrConstructionProgress)...)
 	}
+	if v.State == BuildingStateComplete && v.Kind == BuildingKindShop {
+		if b, ok := keyboards.Button(c.T("building.shop.go", nil), AddrShopHere); ok {
+			kb.Row(b)
+		}
+	}
 	if v.CanManage {
 		switch {
 		case v.State == BuildingStateBuilding:
@@ -124,6 +129,14 @@ func buildingBody(c Context, v BuildingView) []string {
 			lines = append(lines, c.T("building.storage.line", map[string]any{"item": label, "qty": FormatNumber(c, s.Qty)}))
 		}
 		out = append(out, c.T("building.storage.title", nil), body(lines...))
+	case BuildingKindShop:
+		if v.Shop != nil {
+			if v.Shop.Closed == village.ShopOpen {
+				out = append(out, c.T("building.shop.open", map[string]any{"lines": FormatNumber(c, int64(len(v.Shop.Lines)))}))
+			} else {
+				out = append(out, c.T("building.shop.closed", nil), c.T("village.shop.closed."+v.Shop.Closed, nil))
+			}
+		}
 	case BuildingKindSchool:
 		out = append(out, c.T("building.school.literacy", map[string]any{"percent": v.LiteracyPercent}))
 		if v.Teaching {

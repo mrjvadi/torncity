@@ -465,6 +465,11 @@ func Inventory(c presentation.Ctx, v InventoryView) *presentation.Response {
 		}
 		a = append(a, act(AddrItem, ref).Named("item.open").About(l.Item.Code))
 	}
+	for _, b := range v.Bags {
+		if b.Bag != nil {
+			a = append(a, act(AddrBagOff, b.Slot).Named("bag.off").About(b.Bag.Item.Code))
+		}
+	}
 	a = append(a, act(AddrShops).Named("shops"), act(AddrMarket).Named("market"))
 	a = append(a, pager(AddrInventory, v.Page, v.Pages)...)
 	a = append(a, back(AddrHome), pageRefresh(AddrInventory, v.Page))
@@ -486,6 +491,13 @@ func ItemDetail(c presentation.Ctx, v ItemDetailView) *presentation.Response {
 		a = append(a, act(AddrShopOffers, v.Ref).Named("item.sell_shop"))
 		for _, f := range v.GiveTo {
 			a = append(a, act(AddrItemGive, v.Ref, v.Nonce, f.Code).Named("item.give").About(f.Code))
+		}
+	}
+	if v.Bag != nil {
+		if v.Bag.Worn {
+			a = append(a, act(AddrBagOff, v.Bag.Slot).Named("bag.off").About(v.Item.Code))
+		} else {
+			a = append(a, act(AddrBagWear, v.Ref).Named("bag.wear").About(v.Item.Code))
 		}
 	}
 	a = append(a, act(AddrItemDrop, v.Ref).Named("item.drop").As(presentation.RoleDanger),

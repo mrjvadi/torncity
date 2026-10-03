@@ -49,6 +49,21 @@ version: 1
 #     checked by internal/content/settlementbuilding.go. ADR 0028 section 7's
 #     illustrative "steel N" entries are dropped: no "steel" component is
 #     shipped yet, and inventing one is production economy (ADR 0021) scope.
+# BUILD CATEGORIES (ADR 0046 phase M0). The groups the build menu is drawn in. A
+# building lands in the group holding its role, or in its own `build_category`
+# when the role does not say; an unmapped role falls into "other". The web used
+# to keep this table itself (buildCategories.ts); the content owns it now and the
+# build menu lines carry the code. Locale: build_category.<code>.
+build_categories:
+  - {code: housing, roles: [housing]}
+  - {code: shops, roles: [market, finance]}
+  - {code: construction, roles: [infrastructure, forestry, extraction, storage]}
+  - {code: production, roles: [craft]}
+  - {code: farming, roles: [food, water_infra]}
+  - {code: public, roles: [governance, health, education, recreation, transport]}
+  - {code: security, roles: [security, military]}
+  - {code: other, roles: []}
+
 settlement_buildings:
   # ---------------------------------------------------------------------
   # No role: the universal founding kit and the existing city-tier systems
@@ -548,6 +563,23 @@ settlement_buildings:
     build_time: 40m
     upkeep: 15
     effects: [{target: job_coverage_bps, op: add, value: 80}]
+
+  # The village shop building (ADR 0046 5.1, «دکان»). The founding stall already
+  # sells the basics from day one (a counter, not a building); this is the shop
+  # that grows out of it: a bigger daily delivery, the lines that need a
+  # building (the small rucksack), and a mending counter for bags. It runs on a
+  # shopkeeper and does nothing without one. Its research is the barter ring
+  # every settlement is founded with, so it is within reach from the start.
+  - code: general_store
+    name: "دکان"
+    role: market
+    tier: 1
+    footprint: [2, 1]
+    requires_knowledge: [barter_ring]
+    cost_money: 600
+    cost_materials: {timber: 4}
+    build_time: 90m
+    upkeep: 12
 
   - code: market
     name: "بازار"

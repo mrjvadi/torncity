@@ -45,13 +45,14 @@ component_categories: [alloy, composite, rare_earth, energetic,
 
 components:
   # --- Strategic materials: bought from the strategic materials supplier ---
-  - {code: titanium,     name: Titanium,          category: alloy,      base_price: 150, attributes: {quality: 60}}
-  - {code: carbon_fibre, name: Carbon fibre,      category: composite,  base_price: 120, attributes: {quality: 60}}
-  - {code: rare_earths,  name: Rare earth metals, category: rare_earth, base_price: 200, attributes: {quality: 55}}
-  - {code: explosive,    name: Explosive,         category: energetic,  base_price: 40,  attributes: {quality: 55}}
+  - {code: titanium, shelf: materials.metal,     name: Titanium,          category: alloy,      base_price: 150, attributes: {quality: 60}}
+  - {code: carbon_fibre, shelf: materials.fibre, name: Carbon fibre,      category: composite,  base_price: 120, attributes: {quality: 60}}
+  - {code: rare_earths, shelf: materials.mineral,  name: Rare earth metals, category: rare_earth, base_price: 200, attributes: {quality: 55}}
+  - {code: explosive, shelf: military,    name: Explosive,         category: energetic,  base_price: 40,  attributes: {quality: 55}}
 
   # --- Air ------------------------------------------------------------------
   - code: fighter_airframe
+    shelf: military
     name: Fighter airframe
     category: airframe
     base_price: 7000
@@ -59,6 +60,7 @@ components:
     requires_technology: [aerospace_engineering]
     production: {method: assemble, by: [aerospace], inputs: [{component: titanium, quantity: 30}, {component: tool_steel, quantity: 20}, {component: carbon_fibre, quantity: 15}], batch: 1, skill: engineering}
   - code: stealth_airframe
+    shelf: military
     name: Stealth airframe
     category: stealth_airframe
     base_price: 16000
@@ -66,6 +68,7 @@ components:
     requires_technology: [stealth_shaping]
     production: {method: assemble, by: [aerospace], inputs: [{component: titanium, quantity: 50}, {component: carbon_fibre, quantity: 50}, {component: rare_earths, quantity: 4}], batch: 1, skill: engineering}
   - code: bomber_airframe
+    shelf: military
     name: Bomber airframe
     category: heavy_airframe
     base_price: 16000
@@ -73,6 +76,7 @@ components:
     requires_technology: [aerospace_engineering]
     production: {method: assemble, by: [aerospace], inputs: [{component: titanium, quantity: 60}, {component: tool_steel, quantity: 60}, {component: carbon_fibre, quantity: 20}], batch: 1, skill: engineering}
   - code: drone_airframe
+    shelf: military
     name: Drone airframe
     category: drone_airframe
     base_price: 1500
@@ -80,6 +84,7 @@ components:
     requires_technology: [aerospace_engineering]
     production: {method: assemble, by: [aerospace], inputs: [{component: carbon_fibre, quantity: 8}, {component: plastic_case, quantity: 4}, {component: chipset, quantity: 2}], batch: 1, skill: engineering}
   - code: transport_airframe
+    shelf: military
     name: Transport airframe
     category: transport_airframe
     base_price: 9000
@@ -87,6 +92,7 @@ components:
     requires_technology: [aerospace_engineering]
     production: {method: assemble, by: [aerospace], inputs: [{component: titanium, quantity: 20}, {component: tool_steel, quantity: 80}], batch: 1, skill: engineering}
   - code: turbofan
+    shelf: military
     name: Afterburning turbofan
     category: jet_engine
     base_price: 4000
@@ -94,6 +100,7 @@ components:
     requires_technology: [jet_propulsion]
     production: {method: assemble, by: [aerospace], inputs: [{component: titanium, quantity: 15}, {component: rare_earths, quantity: 5}], batch: 1, skill: engineering}
   - code: turbojet
+    shelf: military
     name: Small turbojet
     category: jet_engine
     base_price: 900
@@ -101,6 +108,7 @@ components:
     requires_technology: [jet_propulsion]
     production: {method: assemble, by: [aerospace, missile_works], inputs: [{component: titanium, quantity: 3}, {component: tool_steel, quantity: 3}], batch: 1, skill: engineering}
   - code: turboprop
+    shelf: military
     name: Turboprop
     category: jet_engine
     base_price: 1200
@@ -108,6 +116,7 @@ components:
     requires_technology: [jet_propulsion]
     production: {method: assemble, by: [aerospace], inputs: [{component: titanium, quantity: 4}, {component: tool_steel, quantity: 8}], batch: 1, skill: engineering}
   - code: ram_coating
+    shelf: military
     name: Radar-absorbent coating
     category: ram_coating
     base_price: 7000
@@ -117,6 +126,7 @@ components:
 
   # --- Radar ----------------------------------------------------------------
   - code: fire_control_radar
+    shelf: military
     name: Fire-control radar
     category: radar_set
     base_price: 1500
@@ -124,6 +134,7 @@ components:
     requires_technology: [radar_systems]
     production: {method: assemble, by: [defence_electronics, aerospace], inputs: [{component: rare_earths, quantity: 6}, {component: titanium, quantity: 2}], batch: 1, skill: engineering}
   - code: aesa_radar
+    shelf: military
     name: AESA radar
     category: radar_set
     base_price: 5000
@@ -131,6 +142,7 @@ components:
     requires_technology: [aesa_radar]
     production: {method: assemble, by: [defence_electronics], inputs: [{component: chipset, quantity: 10}, {component: rare_earths, quantity: 10}], batch: 1, skill: engineering}
   - code: vhf_array
+    shelf: military
     name: VHF early-warning array
     category: radar_set
     base_price: 3500
@@ -140,6 +152,7 @@ components:
 
   # --- Ground ---------------------------------------------------------------
   - code: tank_hull
+    shelf: military
     name: Armoured tank hull
     category: armour_hull
     base_price: 4000
@@ -147,6 +160,7 @@ components:
     requires_technology: [armour_systems]
     production: {method: assemble, by: [land_systems], inputs: [{component: tool_steel, quantity: 50}, {component: titanium, quantity: 5}], batch: 1, skill: engineering}
   - code: light_hull
+    shelf: military
     name: Light armoured hull
     category: light_hull
     base_price: 1200
@@ -154,6 +168,7 @@ components:
     requires_technology: [armour_systems]
     production: {method: assemble, by: [land_systems, missile_works, defence_electronics], inputs: [{component: tool_steel, quantity: 18}], batch: 1, skill: engineering}
   - code: tank_gun
+    shelf: military
     name: Smoothbore tank gun
     category: cannon
     base_price: 1500
@@ -161,12 +176,14 @@ components:
     requires_technology: [armour_systems]
     production: {method: assemble, by: [land_systems], inputs: [{component: tool_steel, quantity: 20}], batch: 1, skill: engineering}
   - code: autocannon
+    shelf: military
     name: Autocannon
     category: cannon
     base_price: 700
     attributes: {quality: 55, firepower: 250, range: 3}
     production: {method: assemble, by: [land_systems], inputs: [{component: tool_steel, quantity: 10}], batch: 1, skill: engineering}
   - code: howitzer_barrel
+    shelf: military
     name: Howitzer
     category: howitzer
     base_price: 1800
@@ -174,12 +191,14 @@ components:
     requires_technology: [armour_systems]
     production: {method: assemble, by: [land_systems], inputs: [{component: tool_steel, quantity: 25}, {component: explosive, quantity: 5}], batch: 1, skill: engineering}
   - code: powerpack
+    shelf: military
     name: Diesel powerpack
     category: powerpack
     base_price: 800
     attributes: {quality: 55, speed: 65}
     production: {method: assemble, by: [land_systems, defence_electronics, missile_works], inputs: [{component: tool_steel, quantity: 10}, {component: diesel, quantity: 20}], batch: 1, skill: mechanics}
   - code: fire_control_computer
+    shelf: military
     name: Fire-control computer
     category: fire_control
     base_price: 900
@@ -189,6 +208,7 @@ components:
 
   # --- Air defence and missiles --------------------------------------------
   - code: short_interceptor
+    shelf: military
     name: Short-range interceptor
     category: interceptor_short
     base_price: 700
@@ -196,6 +216,7 @@ components:
     requires_technology: [missile_guidance]
     production: {method: assemble, by: [missile_works], inputs: [{component: explosive, quantity: 2}, {component: chipset, quantity: 1}, {component: carbon_fibre, quantity: 1}], batch: 1, skill: engineering}
   - code: medium_interceptor
+    shelf: military
     name: Medium-range interceptor
     category: interceptor_medium
     base_price: 1800
@@ -203,6 +224,7 @@ components:
     requires_technology: [missile_guidance, rocketry]
     production: {method: assemble, by: [missile_works], inputs: [{component: explosive, quantity: 5}, {component: chipset, quantity: 2}, {component: carbon_fibre, quantity: 3}], batch: 1, skill: engineering}
   - code: long_interceptor
+    shelf: military
     name: Long-range interceptor
     category: interceptor_long
     base_price: 4500
@@ -210,6 +232,7 @@ components:
     requires_technology: [missile_guidance, rocketry]
     production: {method: assemble, by: [missile_works], inputs: [{component: explosive, quantity: 12}, {component: chipset, quantity: 4}, {component: carbon_fibre, quantity: 8}, {component: titanium, quantity: 4}], batch: 1, skill: engineering}
   - code: solid_rocket_motor
+    shelf: military
     name: Solid rocket motor
     category: rocket_motor
     base_price: 1500
@@ -217,6 +240,7 @@ components:
     requires_technology: [rocketry]
     production: {method: assemble, by: [missile_works], inputs: [{component: explosive, quantity: 15}, {component: carbon_fibre, quantity: 3}, {component: tool_steel, quantity: 5}], batch: 1, skill: engineering}
   - code: two_stage_motor
+    shelf: military
     name: Two-stage rocket motor
     category: rocket_motor
     base_price: 4000
@@ -224,18 +248,21 @@ components:
     requires_technology: [rocketry]
     production: {method: assemble, by: [missile_works], inputs: [{component: explosive, quantity: 40}, {component: carbon_fibre, quantity: 8}, {component: titanium, quantity: 5}], batch: 1, skill: engineering}
   - code: missile_body
+    shelf: military
     name: Cruise missile body
     category: missile_body
     base_price: 600
     attributes: {quality: 55, rcs: 100, range: 1500}
     production: {method: assemble, by: [missile_works], inputs: [{component: carbon_fibre, quantity: 3}, {component: tool_steel, quantity: 3}], batch: 1, skill: engineering}
   - code: blast_warhead
+    shelf: military
     name: High-explosive warhead
     category: warhead
     base_price: 500
     attributes: {quality: 55, firepower: 500, payload: 450}
     production: {method: assemble, by: [missile_works], inputs: [{component: explosive, quantity: 10}, {component: tool_steel, quantity: 2}], batch: 1, skill: engineering}
   - code: inertial_guidance
+    shelf: military
     name: Inertial guidance
     category: guidance
     base_price: 900
@@ -243,6 +270,7 @@ components:
     requires_technology: [missile_guidance]
     production: {method: assemble, by: [missile_works, defence_electronics], inputs: [{component: chipset, quantity: 3}], batch: 1, skill: engineering}
   - code: precision_guidance
+    shelf: military
     name: Precision guidance
     category: guidance
     base_price: 2200
@@ -250,6 +278,7 @@ components:
     requires_technology: [missile_guidance]
     production: {method: assemble, by: [missile_works, defence_electronics], inputs: [{component: chipset, quantity: 6}, {component: rare_earths, quantity: 3}], batch: 1, skill: engineering}
   - code: radar_seeker
+    shelf: military
     name: Active radar seeker
     category: seeker
     base_price: 1800
@@ -259,6 +288,7 @@ components:
 
   # --- Naval ----------------------------------------------------------------
   - code: frigate_hull
+    shelf: military
     name: Frigate hull
     category: ship_hull
     base_price: 20000
@@ -266,6 +296,7 @@ components:
     requires_technology: [naval_architecture]
     production: {method: assemble, by: [shipyard], inputs: [{component: tool_steel, quantity: 300}, {component: titanium, quantity: 10}], batch: 1, skill: engineering}
   - code: pressure_hull
+    shelf: military
     name: Submarine pressure hull
     category: pressure_hull
     base_price: 30000
@@ -273,6 +304,7 @@ components:
     requires_technology: [submarine_technology]
     production: {method: assemble, by: [shipyard], inputs: [{component: titanium, quantity: 120}, {component: tool_steel, quantity: 100}], batch: 1, skill: engineering}
   - code: gas_turbine
+    shelf: military
     name: Marine gas turbine
     category: marine_engine
     base_price: 5000
@@ -280,6 +312,7 @@ components:
     requires_technology: [naval_architecture]
     production: {method: assemble, by: [shipyard], inputs: [{component: tool_steel, quantity: 40}, {component: titanium, quantity: 5}, {component: diesel, quantity: 40}], batch: 1, skill: mechanics}
   - code: diesel_electric
+    shelf: military
     name: Diesel-electric drive
     category: marine_engine
     base_price: 4000
@@ -287,6 +320,7 @@ components:
     requires_technology: [naval_architecture]
     production: {method: assemble, by: [shipyard], inputs: [{component: tool_steel, quantity: 30}, {component: cell, quantity: 20}], batch: 1, skill: mechanics}
   - code: hull_sonar
+    shelf: military
     name: Hull sonar
     category: sonar
     base_price: 2500
@@ -294,6 +328,7 @@ components:
     requires_technology: [submarine_technology]
     production: {method: assemble, by: [shipyard, defence_electronics], inputs: [{component: chipset, quantity: 6}, {component: rare_earths, quantity: 4}], batch: 1, skill: engineering}
   - code: missile_cells
+    shelf: military
     name: Vertical launch cells
     category: weapon_system
     base_price: 3500
@@ -630,24 +665,24 @@ archetypes:
 items:
   # Every military good is a unique piece (a serial, a quality, a design) and
   # goes to states only.
-  - {code: fighter_jet,         name: Fighter jet,          category: military, archetype: fighter,            form: unique, base_price: 30000,  quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
-  - {code: stealth_fighter_jet, name: Stealth fighter,      category: military, archetype: stealth_fighter,    form: unique, base_price: 80000,  quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
-  - {code: strategic_bomber,    name: Strategic bomber,     category: military, archetype: bomber,             form: unique, base_price: 60000,  quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
-  - {code: attack_drone,        name: Combat drone,         category: military, archetype: combat_drone,       form: unique, base_price: 6000,   quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
-  - {code: airlifter,           name: Military transport,   category: military, archetype: transport_aircraft, form: unique, base_price: 25000,  quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
-  - {code: main_battle_tank,    name: Main battle tank,     category: military, archetype: battle_tank,        form: unique, base_price: 12000,  quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
-  - {code: ifv,                 name: Infantry fighting vehicle, category: military, archetype: fighting_vehicle, form: unique, base_price: 5000, quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
-  - {code: sp_artillery,        name: Self-propelled howitzer, category: military, archetype: artillery,       form: unique, base_price: 8000,   quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
-  - {code: early_warning_radar, name: Early-warning radar,  category: military, archetype: radar_station,      form: unique, base_price: 10000,  quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
-  - {code: short_range_sam,     name: Short-range air defence system,  category: military, archetype: air_defence_short,  form: unique, base_price: 5000,  quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
-  - {code: medium_range_sam,    name: Medium-range air defence system, category: military, archetype: air_defence_medium, form: unique, base_price: 12000, quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
-  - {code: long_range_sam,      name: Long-range air defence system,   category: military, archetype: air_defence_long,   form: unique, base_price: 30000, quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
-  - {code: ballistic_missile,   name: Ballistic missile,    category: military, archetype: ballistic_missile,  form: unique, base_price: 9000,   quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
-  - {code: cruise_missile,      name: Cruise missile,       category: military, archetype: cruise_missile,     form: unique, base_price: 5000,   quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
-  - {code: guided_bomb,         name: Guided bomb,          category: military, archetype: guided_bomb,        form: unique, base_price: 1500,   quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
-  - {code: anti_ship_missile,   name: Anti-ship missile,    category: military, archetype: anti_ship_missile,  form: unique, base_price: 6000,   quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
-  - {code: frigate,             name: Frigate,              category: military, archetype: frigate,            form: unique, base_price: 90000,  quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
-  - {code: attack_submarine,    name: Attack submarine,     category: military, archetype: submarine,          form: unique, base_price: 110000, quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
+  - {code: fighter_jet, shelf: military,         name: Fighter jet,          category: military, archetype: fighter,            form: unique, base_price: 30000,  quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
+  - {code: stealth_fighter_jet, shelf: military, name: Stealth fighter,      category: military, archetype: stealth_fighter,    form: unique, base_price: 80000,  quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
+  - {code: strategic_bomber, shelf: military,    name: Strategic bomber,     category: military, archetype: bomber,             form: unique, base_price: 60000,  quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
+  - {code: attack_drone, shelf: military,        name: Combat drone,         category: military, archetype: combat_drone,       form: unique, base_price: 6000,   quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
+  - {code: airlifter, shelf: military,           name: Military transport,   category: military, archetype: transport_aircraft, form: unique, base_price: 25000,  quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
+  - {code: main_battle_tank, shelf: military,    name: Main battle tank,     category: military, archetype: battle_tank,        form: unique, base_price: 12000,  quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
+  - {code: ifv, shelf: military,                 name: Infantry fighting vehicle, category: military, archetype: fighting_vehicle, form: unique, base_price: 5000, quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
+  - {code: sp_artillery, shelf: military,        name: Self-propelled howitzer, category: military, archetype: artillery,       form: unique, base_price: 8000,   quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
+  - {code: early_warning_radar, shelf: military, name: Early-warning radar,  category: military, archetype: radar_station,      form: unique, base_price: 10000,  quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
+  - {code: short_range_sam, shelf: military,     name: Short-range air defence system,  category: military, archetype: air_defence_short,  form: unique, base_price: 5000,  quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
+  - {code: medium_range_sam, shelf: military,    name: Medium-range air defence system, category: military, archetype: air_defence_medium, form: unique, base_price: 12000, quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
+  - {code: long_range_sam, shelf: military,      name: Long-range air defence system,   category: military, archetype: air_defence_long,   form: unique, base_price: 30000, quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
+  - {code: ballistic_missile, shelf: military,   name: Ballistic missile,    category: military, archetype: ballistic_missile,  form: unique, base_price: 9000,   quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
+  - {code: cruise_missile, shelf: military,      name: Cruise missile,       category: military, archetype: cruise_missile,     form: unique, base_price: 5000,   quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
+  - {code: guided_bomb, shelf: military,         name: Guided bomb,          category: military, archetype: guided_bomb,        form: unique, base_price: 1500,   quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
+  - {code: anti_ship_missile, shelf: military,   name: Anti-ship missile,    category: military, archetype: anti_ship_missile,  form: unique, base_price: 6000,   quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
+  - {code: frigate, shelf: military,             name: Frigate,              category: military, archetype: frigate,            form: unique, base_price: 90000,  quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
+  - {code: attack_submarine, shelf: military,    name: Attack submarine,     category: military, archetype: submarine,          form: unique, base_price: 110000, quality: {min: 40, max: 90}, export_control: {restricted: true, buyer_classes: [state]}}
 
 technologies:
   # The defence tree. Every one is export-controlled: only a defence-sector

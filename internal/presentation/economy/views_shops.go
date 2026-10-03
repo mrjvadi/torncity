@@ -32,7 +32,9 @@ type ShopsView struct {
 
 // ShelfLine is one good on a shelf, priced now.
 type ShelfLine struct {
-	Item  Named
+	Item Named
+	// Shelf is where the good sits in the item tree (a filter for a client).
+	Shelf ShelfRef
 	Price int64
 	Stock int64
 	// Busy: demand has raised the price.

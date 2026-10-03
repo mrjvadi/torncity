@@ -12,7 +12,13 @@
             "code": "bread",
             "name": "Bread"
           },
-          "last": 40
+          "last": 40,
+          "shelf": {
+            "code": "",
+            "group": "",
+            "group_label": "",
+            "label": ""
+          }
         },
         {
           "best_ask": 90,
@@ -21,7 +27,13 @@
             "code": "bandage",
             "name": "Bandage"
           },
-          "last": 0
+          "last": 0,
+          "shelf": {
+            "code": "",
+            "group": "",
+            "group_label": "",
+            "label": ""
+          }
         }
       ],
       "city": "Ostmarch",
