@@ -632,6 +632,22 @@ settlement:
   citizen_home_rest_cooldown: 7h
   citizen_home_rest_health: 11
   citizen_home_rest_happiness: 6
+education:
+  teacher_wage_bps: 7001
+  teacher_min_wage: 41
+  teacher_max_students: 13
+training:
+  energy_cost: 11
+  stamina_gain: 7
+  strength_xp: 31
+  diminish_stamina: 401
+  stamina_per_max_energy: 51
+  max_energy_bonus_cap: 31
+  yard_bps: 4001
+  ground_bps: 6001
+  gym_bps: 10001
+  ground_fee: 21
+  gym_fee: 61
 labor:
   shift_minutes: 61
   reference_crew: 5
@@ -1075,6 +1091,20 @@ var envOverrides = map[string]string{
 	"TORN_SETTLEMENT_CITIZEN_HOME_REST_COOLDOWN":    "8h",
 	"TORN_SETTLEMENT_CITIZEN_HOME_REST_HEALTH":      "12",
 	"TORN_SETTLEMENT_CITIZEN_HOME_REST_HAPPINESS":   "7",
+	"TORN_EDUCATION_TEACHER_WAGE_BPS":               "7002",
+	"TORN_EDUCATION_TEACHER_MIN_WAGE":               "42",
+	"TORN_EDUCATION_TEACHER_MAX_STUDENTS":           "14",
+	"TORN_TRAINING_ENERGY_COST":                     "12",
+	"TORN_TRAINING_STAMINA_GAIN":                    "8",
+	"TORN_TRAINING_STRENGTH_XP":                     "32",
+	"TORN_TRAINING_DIMINISH_STAMINA":                "402",
+	"TORN_TRAINING_STAMINA_PER_MAX_ENERGY":          "52",
+	"TORN_TRAINING_MAX_ENERGY_BONUS_CAP":            "32",
+	"TORN_TRAINING_YARD_BPS":                        "4002",
+	"TORN_TRAINING_GROUND_BPS":                      "6002",
+	"TORN_TRAINING_GYM_BPS":                         "10002",
+	"TORN_TRAINING_GROUND_FEE":                      "22",
+	"TORN_TRAINING_GYM_FEE":                         "62",
 	"TORN_LABOR_SHIFT_MINUTES":                      "62",
 	"TORN_LABOR_REFERENCE_CREW":                     "6",
 	"TORN_LABOR_BASE_WAGE":                          "32",

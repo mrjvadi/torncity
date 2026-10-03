@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/mrjvadi/torncity/internal/domain/player"
 	"github.com/mrjvadi/torncity/internal/domain/world"
 )
 
@@ -309,25 +308,6 @@ func (p *Pack) validateRoutes(known map[string]struct{}, problems *[]error) {
 			*problems = append(*problems, fmt.Errorf("%w and at most %d: %s (%q -> %q) has %d",
 				ErrInvalidDistance, world.MaxEdgeDistance, where, r.From, r.To, r.Distance))
 		}
-	}
-}
-
-// validateSkills checks every skill entry against the domain's closed set.
-func (p *Pack) validateSkills(problems *[]error) {
-	seen := make(map[string]struct{}, len(p.Skills))
-	for i, s := range p.Skills {
-		where := fmt.Sprintf("skills[%d]", i)
-
-		if err := player.Validate(s.SkillCode()); err != nil {
-			*problems = append(*problems, fmt.Errorf("%w: %s %q is not one of the codes internal/domain/player declares",
-				ErrUnknownSkillCode, where, s.Code))
-			continue
-		}
-		if _, dup := seen[s.Code]; dup {
-			*problems = append(*problems, fmt.Errorf("%w: %q (%s)", ErrDuplicateSkillCode, s.Code, where))
-			continue
-		}
-		seen[s.Code] = struct{}{}
 	}
 }
 

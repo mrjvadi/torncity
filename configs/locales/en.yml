@@ -43,6 +43,12 @@ skill:
   lockpicking: Lockpicking
   deception: Deception
   streetwise: Streetwise
+  carpentry: Carpentry
+  masonry: Masonry
+  smithing: Smithing
+  farming: Farming
+  strength: Strength
+  herbalism: Herbal medicine
 
 # City display names, keyed on the city's content code (configs/content/cities.yml).
 # The code never changes after a city ships; the name here may. A city with no
@@ -325,6 +331,7 @@ settlement_building:
   clinic: Clinic
   teaching_circle: City classroom
   school: School
+  training_ground: Training ground
   barter_post: City market
   general_store: "General store"
   market: Market
@@ -466,6 +473,7 @@ course:
   software_engineering: Software Engineering Degree
   evening_accounting: Evening Class in Accounting
   literacy_class: Reading and Writing Class
+  herbal_medicine: Herbal Medicine
   carpentry_craft: Carpentry Journeyman
   masonry_craft: Masonry Journeyman
   smithing_craft: Smithing Journeyman
@@ -1427,6 +1435,7 @@ climate_band:
   severe: "Severe cold"
 staff_role:
   teacher: "Teacher"
+  trainer: "Trainer"
   health_worker: "Health worker"
   nurse: "Nurse"
   watchman: "Watchman"

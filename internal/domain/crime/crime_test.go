@@ -107,7 +107,7 @@ func TestValidateRefusesEachMistake(t *testing.T) {
 		"no nerve":          {func(c *Crime) { c.NerveCost = 0 }, ErrInvalidCrime},
 		"too long":          {func(c *Crime) { c.Targets = []TargetKind{TargetNPC}; c.Duration = MaxDuration + 1 }, ErrInvalidCrime},
 		"base above 100%":   {func(c *Crime) { c.Success.BaseChanceBPS = BPSWhole + 1 }, ErrInvalidCrime},
-		"bad skill":         {func(c *Crime) { c.Success.SkillWeights[0].Skill = "juggling" }, ErrInvalidCrime},
+		"bad skill":         {func(c *Crime) { c.Success.SkillWeights[0].Skill = "Juggling" }, ErrInvalidCrime},
 		"inverted cash":     {func(c *Crime) { c.Reward.MinCash = amt(100) }, ErrInvalidCrime},
 		"no share":          {func(c *Crime) { c.Reward.ShareBPS = 0 }, ErrInvalidCrime},
 		"no victim model":   {func(c *Crime) { c.Victims = VictimModel{} }, ErrInvalidCrime},

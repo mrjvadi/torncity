@@ -177,7 +177,9 @@ func (h *RecruitHandler) evaluate(ctx context.Context, tx application.Tx, m jobM
 		}
 		move := m.moveCost(o)
 		for level := camp.MinLevel; level <= m.def.MaxLevel(); level++ {
-			if m.capacity(home, camp.Skill, level) == 0 {
+			if c, err := m.capacityAt(ctx, tx, home, camp.Skill, level); err != nil {
+				return nil, err
+			} else if c == 0 {
 				continue
 			}
 			pool, capacity, err := m.pool(ctx, tx, home, camp.Skill, level, true)

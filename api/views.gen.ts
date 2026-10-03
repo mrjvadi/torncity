@@ -958,6 +958,8 @@ export interface CourseDetailView {
   requirements: Requirement[] | null
   can_enrol: boolean
   payment: PaymentChoice | null
+  staff: TeacherLine[] | null
+  teaching: TeachingView | null
 }
 
 export interface CourseGap {
@@ -965,6 +967,7 @@ export interface CourseGap {
   fee: number
   duration_seconds: number
   nearest: Named | null
+  nearest_trip: TripHint | null
   needs: CourseNeed[] | null
 }
 
@@ -1113,6 +1116,7 @@ export interface CrimeRequirement {
   city_code: string
   city: string
   wait_seconds: number
+  trip: TripHint | null
   tier: Named
   have_tier: Named
   venues: Named[] | null
@@ -2350,6 +2354,7 @@ export interface JobDetailView {
 export interface JobGap {
   job: JobRef
   nearest: Named | null
+  nearest_trip: TripHint | null
   needs: CourseNeed[] | null
 }
 
@@ -4200,6 +4205,7 @@ export interface Requirement {
   city_code: string
   city: string
   wait_seconds: number
+  trip: TripHint | null
 }
 
 export interface ResearchLine {
@@ -4842,6 +4848,26 @@ export interface SupplyOffer {
   stock: number
 }
 
+export interface TeacherLine {
+  id: string
+  kind: string
+  name: string
+  students: number
+  max: number
+  mine: boolean
+  can_end: boolean
+}
+
+export interface TeachingView {
+  can_hire: boolean
+  hire_wage: number
+  no_pool: boolean
+  can_school: boolean
+  can_home: boolean
+  school_wage: number
+  tax_bps: number
+}
+
 export interface TechLine {
   tech: Named
   state: string
@@ -4926,6 +4952,36 @@ export interface TradeLine {
   qty: number
   price: number
   at: string | null
+}
+
+export interface TrainedView {
+  venue: string
+  stamina: number
+  max_energy_added: number
+  strength_level: number
+  strength_xp: number
+  fee: number
+  energy: number
+  max_energy: number
+}
+
+export interface TrainingHomeView {
+  place: Named
+  energy: number
+  max_energy: number
+  stamina: number
+  strength_level: number
+  energy_cost: number
+  max_energy_cap: number
+  venues: TrainingVenue[] | null
+}
+
+export interface TrainingVenue {
+  code: string
+  efficiency_bps: number
+  fee: number
+  available: boolean
+  missing: Named | null
 }
 
 export interface TravelArrivedView {
@@ -5049,6 +5105,13 @@ export interface TreatyView {
   kind: Named
   no: number
   ttl_seconds: number
+}
+
+export interface TripHint {
+  mode: string
+  mode_name: string
+  fare: number
+  wait_seconds: number
 }
 
 export interface Unavailable {
@@ -5754,6 +5817,8 @@ export interface ScreenViews {
   studio: StudioView
   suppliers: SuppliersView
   tech: TechView
+  trained: TrainedView
+  training_home: TrainingHomeView
   travel_arrived: TravelArrivedView
   travel_checkout: TravelCheckoutView
   travel_here: TravelHereView

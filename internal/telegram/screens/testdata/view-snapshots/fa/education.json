@@ -218,7 +218,9 @@
           "skill": "medicine",
           "xp": 120
         }
-      ]
+      ],
+      "staff": null,
+      "teaching": null
     }
   },
   {
@@ -249,6 +251,7 @@
           "met": false,
           "need": 7,
           "skill": "",
+          "trip": null,
           "wait_seconds": 0
         },
         {
@@ -261,6 +264,7 @@
           "met": true,
           "need": 0,
           "skill": "",
+          "trip": null,
           "wait_seconds": 0
         }
       ],
@@ -276,7 +280,9 @@
           "skill": "engineering",
           "xp": 300
         }
-      ]
+      ],
+      "staff": null,
+      "teaching": null
     }
   },
   {
@@ -307,6 +313,7 @@
           "met": false,
           "need": 0,
           "skill": "",
+          "trip": null,
           "wait_seconds": 0
         },
         {
@@ -319,6 +326,7 @@
           "met": false,
           "need": 0,
           "skill": "",
+          "trip": null,
           "wait_seconds": 0
         }
       ],
@@ -329,7 +337,9 @@
           "skill": "medicine",
           "xp": 600
         }
-      ]
+      ],
+      "staff": null,
+      "teaching": null
     }
   },
   {
@@ -360,6 +370,7 @@
           "met": false,
           "need": 0,
           "skill": "",
+          "trip": null,
           "wait_seconds": 0
         },
         {
@@ -372,6 +383,7 @@
           "met": false,
           "need": 0,
           "skill": "",
+          "trip": null,
           "wait_seconds": 0
         }
       ],
@@ -382,7 +394,9 @@
           "skill": "medicine",
           "xp": 120
         }
-      ]
+      ],
+      "staff": null,
+      "teaching": null
     }
   },
   {
@@ -456,6 +470,7 @@
           "met": false,
           "need": 4,
           "skill": "",
+          "trip": null,
           "wait_seconds": 0
         },
         {
@@ -468,6 +483,7 @@
           "met": false,
           "need": 0,
           "skill": "",
+          "trip": null,
           "wait_seconds": 0
         }
       ],

@@ -75,7 +75,7 @@ func TestShippedSchemaOpenItemsOnlyShrink(t *testing.T) {
 	const (
 		maxNeedsResearch = 240
 		maxPlannedItems  = 27
-		maxPlannedSkills = 16
+		maxPlannedSkills = 12
 		maxDeferred      = 5
 	)
 	if open.NeedsResearch > maxNeedsResearch || open.PlannedItems > maxPlannedItems ||

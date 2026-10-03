@@ -5,8 +5,8 @@ import "github.com/mrjvadi/torncity/internal/presentation/life"
 // The life area's crime, health, work, study and mission views (docs/adr/0039):
 // they live in internal/presentation/life; the Telegram renderers keep these names.
 type (
-	CaseFiledView = life.CaseFiledView
-	JobQuitView = life.JobQuitView
+	CaseFiledView       = life.CaseFiledView
+	JobQuitView         = life.JobQuitView
 	BailedView          = life.BailedView
 	CaseLine            = life.CaseLine
 	CasesView           = life.CasesView
@@ -62,6 +62,7 @@ type (
 	SkillGain           = life.SkillGain
 	SkillLine           = life.SkillLine
 	SkillsView          = life.SkillsView
+	TeacherLine         = life.TeacherLine
 	TierView            = life.TierView
 	TreatConfirmView    = life.TreatConfirmView
 	TreatOption         = life.TreatOption
@@ -70,6 +71,11 @@ type (
 
 const (
 	AddrCourseEnrol                = life.AddrCourseEnrol
+	AddrCourseHire                 = life.AddrCourseHire
+	TeachModeSchool                = life.TeachModeSchool
+	TeachModeHome                  = life.TeachModeHome
+	AddrCourseTeach                = life.AddrCourseTeach
+	AddrCourseLeave                = life.AddrCourseLeave
 	AddrCourseView                 = life.AddrCourseView
 	AddrCrimeBail                  = life.AddrCrimeBail
 	AddrCrimeCases                 = life.AddrCrimeCases

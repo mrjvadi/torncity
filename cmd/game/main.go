@@ -483,7 +483,15 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	h.jobs, h.education = newWorkHandlers(uow, messages, registry, cities,
 		postgres.NewPolicyReader(pool, nil), gametime.Scale(cfg.Game.TimeScale), cfg.Game.IdempotencyTTL)
 	h.education.WithHomeCity(cfg.Settlement.HomeCityCode)
+	h.training = handlers.NewTrainingHandler(uow, uuidGenerator{}, messages, registry, cities, trainingRules(cfg.Training),
+		cfg.Settlement.HomeCityCode, cfg.Game.IdempotencyTTL, nil)
 	h.jobs.WithHomeCity(cfg.Settlement.HomeCityCode)
+	// The «not here» cards carry the way to the nearest place (fare and wait).
+	h.education.WithTrips(h.travel)
+	h.education.WithTeaching(handlers.TeachRules{
+		WageBPS: cfg.Education.TeacherWageBPS, MinWage: cfg.Education.TeacherMinWage, MaxStudents: cfg.Education.TeacherMaxStudents,
+	}, postgres.NewPolicyReader(pool, nil), h.village.LaborAvailable)
+	h.jobs.WithTrips(h.travel)
 
 	// Crime reads crimes from the live registry and a city's justice levers
 	// only through the resolver (ADR 0015), on the game clock.

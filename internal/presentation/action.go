@@ -1,6 +1,9 @@
 package presentation
 
-import "strings"
+import (
+	"strings"
+	"time"
+)
 
 // Action roles. A role says what an action means to the player, so an edge can
 // colour and place it; configs/actions.yml gives each command a default, and a
@@ -123,6 +126,16 @@ func RefOfAddress(addr string) Ref {
 type Named struct {
 	Code string
 	Name string
+}
+
+// TripHint is how far the nearest place is, on a «not available here» card: the
+// cheapest journey from where the player stands, from the travel quote: the mode,
+// its fare in minor units and the real wait on the game clock.
+type TripHint struct {
+	Mode     string
+	ModeName string
+	Fare     int64
+	Wait     time.Duration
 }
 
 // ShelfRef is the shelf a good sits on (configs/content/item_categories.yml,

@@ -222,7 +222,7 @@ crimes:
     duration: 0s
     success:
       base_chance_bps: 6000
-      skill_weights: [{skill: streetwise, bps_per_level: 100}, {skill: stealth, bps_per_level: 60}]
+      skill_weights: [{skill: streetwise, bps_per_level: 100}, {skill: stealth, bps_per_level: 60}, {skill: strength, bps_per_level: 80}]
       awareness_weight_bps: 100
       target_awareness: 8
       heat_penalty_bps: 50

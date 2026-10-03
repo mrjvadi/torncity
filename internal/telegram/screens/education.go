@@ -95,6 +95,7 @@ func renderEducation(c Context, v EducationView) *presenter.Response {
 	if v.Pages > 1 {
 		indicator = c.T("page.indicator", map[string]any{"page": v.Page, "pages": v.Pages})
 	}
+	offer = paragraphs(offer, c.courseGaps(v.Elsewhere))
 
 	kb := keyboards.New()
 	kb.Grid(1, buttons...)
@@ -164,12 +165,41 @@ func renderCourseDetail(c Context, v CourseDetailView) *presenter.Response {
 			AddrCourseEnrol, v.Course.Code)
 		kb.Row(enrol)
 	}
+	staff := c.staffText(v.Staff)
+	if t := v.Teaching; t != nil {
+		if t.CanHire && !t.NoPool {
+			if btn, ok := keyboards.Button(c.T("education.button.hire", map[string]any{"wage": FormatMoney(c, t.HireWage)}),
+				AddrCourseHire, v.Course.Code); ok {
+				kb.Row(btn)
+			}
+		}
+		if t.CanSchool {
+			if btn, ok := keyboards.Button(c.T("education.button.teach_school", map[string]any{"wage": FormatMoney(c, t.SchoolWage)}),
+				AddrCourseTeach, v.Course.Code, TeachModeSchool); ok {
+				kb.Row(btn)
+			}
+		}
+		if t.CanHome {
+			if btn, ok := keyboards.Button(c.T("education.button.teach_home", map[string]any{"tax": FormatNumber(c, int64(t.TaxBPS/100))}),
+				AddrCourseTeach, v.Course.Code, TeachModeHome); ok {
+				kb.Row(btn)
+			}
+		}
+	}
+	for _, s := range v.Staff {
+		if s.CanEnd {
+			if btn, ok := keyboards.Button(c.T("education.button.unteach", nil), AddrCourseLeave, v.Course.Code, s.ID); ok {
+				kb.Row(btn)
+			}
+		}
+	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrEducation, RefreshData: keyboards.Data(AddrCourseView, v.Course.Code)}))
 
 	return c.respond(paragraphs(
 		c.T("education.view_title", map[string]any{"course": c.course(v.Course)}),
 		body(facts...),
 		body(rewards...),
+		staff,
 		reqs,
 		pay,
 	), kb.Build())
@@ -224,4 +254,44 @@ func renderCourseCompleted(c Context, v CourseCompletedView) *presenter.Response
 	jobs, _ := keyboards.Button(c.T("job.button.openings", nil), AddrJobList)
 	kb.Row(edu, jobs)
 	return presenter.Message(body(lines...), kb.Build())
+}
+
+// courseGaps lists the courses this place does not teach: where they are taught
+// (with the way there), and what this place lacks to teach them itself.
+func (c Context) courseGaps(gaps []CourseGap) string {
+	if len(gaps) == 0 {
+		return ""
+	}
+	lines := []string{c.T("education.not_here", nil)}
+	for _, g := range gaps {
+		key := "education.not_here_line"
+		args := map[string]any{
+			"course":   c.course(g.Course),
+			"fee":      FormatMoney(c, g.Fee),
+			"duration": FormatDuration(c, g.Duration),
+			"needs":    c.needsText(g.Needs),
+		}
+		if g.Nearest != nil {
+			key = "education.not_here_line_near"
+			args["city"] = c.CityName(g.Nearest.Code, g.Nearest.Name)
+			args["trip"] = c.tripText(g.NearestTrip)
+		}
+		lines = append(lines, c.T(key, args))
+	}
+	return body(lines...)
+}
+
+// staffText lists who teaches the course here: the school's NPC teacher, a player on the
+// school's post, a player teaching at home.
+func (c Context) staffText(staff []TeacherLine) string {
+	if len(staff) == 0 {
+		return ""
+	}
+	lines := []string{c.T("education.staff", nil)}
+	for _, s := range staff {
+		lines = append(lines, c.T("education.teacher."+s.Kind, map[string]any{
+			"name": s.Name, "students": FormatNumber(c, int64(s.Students)), "max": FormatNumber(c, int64(s.Max)),
+		}))
+	}
+	return body(lines...)
 }

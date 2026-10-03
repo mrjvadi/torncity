@@ -84,6 +84,8 @@ func (h *VillageHandler) ActivitiesHub(ctx context.Context, meta envelope.Metada
 			{Code: plife.ActivityWork, Command: "work.home"},
 			{Code: plife.ActivityLearn, Command: "education.list"},
 			{Code: plife.ActivityHealth, Command: "health.home"},
+			// bodyweight exercise needs nothing; the screen says what a training ground adds
+			{Code: plife.ActivityTraining, Command: "training.home"},
 		}
 		rules := h.activity
 		rules.NeutralCity = h.homeCityCode

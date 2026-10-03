@@ -551,7 +551,7 @@ job:
   openings_none: "فعلاً هیچ کارفرمایی در این شهر نیرو نمی‌گیرد."
   not_here: "اینجا نیست:"
   not_here_line: "• {career} - برای این کار اینجا هنوز لازم است: {needs}"
-  not_here_line_near: "• {career} - در {city} هست. برای اینجا هنوز لازم است: {needs}"
+  not_here_line_near: "• {career} - در {city} هست{trip}. برای اینجا هنوز لازم است: {needs}"
   openings_hint: "✅ یعنی شرایط را دارید و می‌توانید درخواست بدهید؛ 🔒 یعنی هنوز چیزی کم است. برای دیدن جزئیات، شغل را بزنید."
   opening_line: "✅ {career} - {title} - {pay} برای هر شیفت"
   opening_line_locked: "🔒 {career} - {title} - {pay} برای هر شیفت"
@@ -631,10 +631,22 @@ requirement:
   course_full: "ظرفیت این دوره پر شده است."
   already_certified: این مدرک را از قبل دارید.
   already_enrolled: "همین حالا دورهٔ {course} را می‌گذرانید؛ هر بار یک دوره."
+  course_teacher: "برای این درس اینجا هنوز معلمی نیست (شهردار معلم استخدام می‌کند یا کسی که مدرکش را دارد درس می‌دهد)."
+  not_head: "فقط شهردار می‌تواند برای مدرسه معلم بگیرد یا کنار بگذارد."
+  teacher_no_pool: "در شهر کسی بیکار نیست که معلم شود؛ خانه‌ها که بیشتر شود آدم بیشتری پیدا می‌شود."
+  already_teaching: "برای این درس همین حالا معلمی هست."
+  not_teaching: "چنین معلمی در این شهر نیست یا جایگاهش از آنِ شما نیست."
+  teacher_full: "کلاس این معلم پر شده است."
 
 # آموزش (internal/domain/education، configs/content/education.yml). واژه‌ها:
 # آموزش 🎓، دوره، مدرک 📜، شهریه، ثبت‌نام. نام هر دوره course.<code> است.
+trip:
+  hint: " (کرایه {fare}، {wait} راه)"
+
 education:
+  not_here: "اینجا نیست:"
+  not_here_line: "• {course} ({fee}، {duration}) - برای اینجا هنوز لازم است: {needs}"
+  not_here_line_near: "• {course} ({fee}، {duration}) - در {city} درس داده می‌شود{trip}. برای اینجا هنوز لازم است: {needs}"
   title: "🎓 آموزش"
   current: "📖 در حال گذراندن: {course}"
   progress: "⏳ {percent}٪ انجام شده - {remaining} مانده"
@@ -668,6 +680,11 @@ education:
   completed_certificate: "📜 مدرک {course} به نام شما صادر شد."
   refused: "هنوز نمی‌توانید در این دوره ثبت‌نام کنید:"
   not_found: "این دوره اینجا ارائه نمی‌شود. دوره‌های موجود را در «آموزش» ببینید."
+  staff: "👩‍🏫 معلم‌ها:"
+  teacher:
+    npc: "• معلم مدرسه ({students} از {max} شاگرد)"
+    school: "• {name}، معلم مدرسه ({students} از {max} شاگرد)"
+    home: "• {name}، معلم خصوصی ({students} از {max} شاگرد)"
   cannot_afford: |-
     💵 پول نقدتان برای این دوره کافی نیست.
     شهریه: {fee} - پول نقد شما: {cash}
@@ -676,6 +693,10 @@ education:
     course: "📖 {course}"
     enrol: "✅ ثبت‌نام - {fee}"
     back_to_course: "📖 بازگشت به دوره"
+    hire: "🧑‍🏫 استخدام معلم (مزد هر شاگرد {wage})"
+    teach_school: "🧑‍🏫 معلم مدرسه شدن (مزد هر شاگرد {wage})"
+    teach_home: "🏠 درس دادن در خانه (مالیات {tax}٪)"
+    unteach: "🚪 کنار گذاشتن معلم"
 
 # موتور جرم (docs/adr/0019-crime-engine.md). واژه‌ها و نشانه‌ها:
 #   جسارت 🔥 (منبعی که هر اقدام خلاف مصرف می‌کند)، حساسیت پلیس 🚨 و
@@ -924,3 +945,28 @@ need:
     finance: "بانک"
     military: "پادگان"
     extraction: "معدن"
+
+# تمرین (docs/research/2026-10-03-activities-audit.md بخش ۷)
+training:
+  title: "💪 تمرین"
+  energy: "⚡ انرژی: {energy} از {max} (هر جلسه {cost})"
+  stamina: "🫁 استقامت: {stamina}"
+  strength: "💪 قدرت بدنی: سطح {level}"
+  venues: "جاهای تمرین:"
+  venue:
+    yard: "زمین باز"
+    ground: "زمین تمرین"
+    gym: "باشگاه"
+  venue_line: "• {venue} - {percent}٪ بازده - رایگان"
+  venue_line_fee: "• {venue} - {percent}٪ بازده - هر جلسه {fee}"
+  venue_missing: "• {venue} - اینجا نیست؛ شهردار باید «{building}» بسازد"
+  done: "✅ در {venue} تمرین کردی."
+  gain_stamina: "🫁 استقامت +{stamina}"
+  gain_strength: "💪 قدرت بدنی +{xp} امتیاز"
+  gain_max_energy: "⚡ سقف انرژی +{added}"
+  level_up: "⬆️ قدرت بدنی به سطح {level} رسید."
+  paid: "💰 هزینهٔ جلسه: {fee}"
+  energy_left: "⚡ انرژی مانده: {energy} از {max}"
+  button:
+    start: "💪 تمرین در {venue}"
+    again: "💪 تمرین دوباره"

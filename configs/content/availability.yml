@@ -50,6 +50,7 @@ legacy_stage_only: []
 # People who make a service run. Support always has an NPC for the role.
 staff_roles:
   - {code: teacher, building: {role: education, tier: 1}, personal: [{kind: literacy}], support_npc: true, note: "a qualified citizen or the building's staff; ADR 0038 owner decision 6 point 3"}
+  - {code: trainer, building: {code: training_ground}, skill: strength, wage_bps: 11000, personal: [{kind: level, min: 2}], support_npc: true, note: "2026-10-03: the trainer of the training ground; upkeep pays the wage, the session fee goes to the treasury"}
   - {code: health_worker, building: {role: health, tier: 1}, personal: [{kind: certificate, code: first_aid}], support_npc: true, note: "village health worker (Iran: behvarz), ADR 0038 section 2"}
   - {code: nurse, building: {role: health, tier: 2}, personal: [{kind: certificate, code: nursing}], support_npc: true}
   - {code: watchman, wage_bps: 10000, building: {role: security, tier: 1}, personal: [{kind: level, min: 2}], support_npc: true, note: "village watch warden, ADR 0036 section 9.4"}
@@ -108,6 +109,7 @@ availability:
   - {kind: building, code: retainer_hall, stage: village}
   - {kind: building, code: constable_post, stage: village}
   - {kind: building, code: police_post, stage: town, elsewhere: [{where: support}]}
+  - {kind: building, code: training_ground, stage: village}
   - {kind: building, code: carpentry_workshop, stage: village}
   - {kind: building, code: masonry_workshop, stage: village}
   - {kind: building, code: smithy, stage: village}
@@ -210,6 +212,7 @@ availability:
   - {kind: course, code: evening_accounting, stage: town, requires: {knowledge: [record_keeping], buildings: [{role: education, tier: 2}], staff: [teacher], personal: [{kind: literacy}]}, elsewhere: [{where: support}]}
   # 2026-10-03 audit: the first lessons of a settlement and the craft and clerk certificates (education.yml)
   - {kind: course, code: literacy_class, requires: {knowledge: [basic_literacy], buildings: [{role: education, tier: 1}], staff: [teacher]}, elsewhere: [{where: support}], note: "the literacy lesson of ADR 0038 owner decision 4; every personal «literacy» requirement means this certificate"}
+  - {kind: course, code: herbal_medicine, requires: {knowledge: [basic_medicine], buildings: [{role: health, tier: 1}], staff: [health_worker]}, elsewhere: [{where: support}], note: "2026-10-03: the village healer's craft; the health worker teaches it"}
   - {kind: course, code: carpentry_craft, requires: {knowledge: [carpentry], buildings: [{code: carpentry_workshop}], staff: [carpenter]}, elsewhere: [{where: support}]}
   - {kind: course, code: masonry_craft, requires: {knowledge: [masonry], buildings: [{code: masonry_workshop}], staff: [mason]}, elsewhere: [{where: support}]}
   - {kind: course, code: smithing_craft, requires: {knowledge: [smithing], buildings: [{code: smithy}], staff: [smith]}, elsewhere: [{where: support}]}
@@ -424,7 +427,7 @@ availability:
   - {kind: transport_facility, code: airport, stage: city, requires: {buildings: [{code: airport}]}, elsewhere: [{where: support}]}
   - {kind: transport_facility, code: village_road, stage: village, requires: {buildings: [{code: road}]}}
 
-  # ---- skills: the village skills (farming, carpentry...) do not exist yet (audit M-04); these are the city-era ones
+  # ---- skills: the city-era ones, then the village crafts and farming (2026-10-03 follow-up, audit F-6)
   - {kind: skill, code: programming, stage: city, growth: {open: true, row: 273}, requires: {knowledge: [computing]}, elsewhere: [{where: support}]}
   - {kind: skill, code: engineering, stage: city, growth: {open: true, row: 274}, requires: {knowledge: [applied_mechanics]}, elsewhere: [{where: support}]}
   - {kind: skill, code: mechanics, stage: town, growth: {open: true, row: 275}, requires: {knowledge: [applied_mechanics]}, elsewhere: [{where: support}]}
@@ -438,6 +441,12 @@ availability:
   - {kind: skill, code: lockpicking, stage: village, growth: {open: true, founding: true, row: 283}, requires: {}, elsewhere: [{where: support}]}
   - {kind: skill, code: deception, stage: village, growth: {open: true, founding: true, row: 284}, requires: {}, elsewhere: [{where: support}]}
   - {kind: skill, code: streetwise, stage: village, growth: {open: true, founding: true, row: 285}, requires: {}, elsewhere: [{where: support}]}
+  - {kind: skill, code: carpentry, stage: village, growth: {open: true}, requires: {knowledge: [carpentry]}, elsewhere: [{where: support}]}
+  - {kind: skill, code: masonry, stage: village, growth: {open: true}, requires: {knowledge: [masonry]}, elsewhere: [{where: support}]}
+  - {kind: skill, code: smithing, stage: village, growth: {open: true}, requires: {knowledge: [smithing]}, elsewhere: [{where: support}]}
+  - {kind: skill, code: strength, stage: village, growth: {open: true, founding: true}, requires: {}, elsewhere: [{where: support}], note: "trained by training.start: bodyweight exercise needs no building"}
+  - {kind: skill, code: farming, stage: village, growth: {open: true, founding: true}, requires: {}, elsewhere: [{where: support}]}
+  - {kind: skill, code: herbalism, stage: village, growth: {open: true}, requires: {knowledge: [basic_medicine]}, elsewhere: [{where: support}]}
 
   # ---- company types (player businesses)
   - {kind: company_type, code: grocery, stage: village, requires: {buildings: [{role: market, tier: 1}]}, elsewhere: [{where: support}]}

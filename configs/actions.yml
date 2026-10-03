@@ -76,6 +76,9 @@ commands:
   education.list: {kind: navigation, icon: "action:education"}
   education.view: {kind: navigation, icon: "action:education"}
   education.enroll: {kind: primary, icon: "action:enroll"}
+  education.hire: {kind: primary, icon: "action:enroll"}
+  education.teach: {kind: primary, icon: "action:enroll"}
+  education.unteach: {kind: danger, icon: "action:quit"}
   crime.hub: {kind: navigation, icon: "action:crime"}
   crime.list: {kind: navigation, icon: "action:crime"}
   crime.view: {kind: navigation, icon: "action:crime"}
@@ -205,6 +208,8 @@ commands:
   war.launch: {kind: primary, icon: "action:launch"}
   health.hospital: {kind: navigation, icon: "action:health"}
   health.home: {kind: navigation, icon: "action:health"}
+  training.home: {kind: navigation, icon: "action:player"}
+  training.start: {kind: primary, icon: "action:use"}
   work.home: {kind: navigation, icon: "action:work"}
   activities.hub: {kind: navigation, icon: "action:player"}
   economy.hub: {kind: navigation, icon: "action:player"}

@@ -12,6 +12,7 @@ import (
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
+	"github.com/mrjvadi/torncity/internal/domain/player"
 	"github.com/mrjvadi/torncity/internal/domain/item"
 	"github.com/mrjvadi/torncity/internal/domain/settlementbuilding"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
@@ -849,6 +850,12 @@ func (h *VillageHandler) Worked(ctx context.Context, meta envelope.Metadata, req
 				return err
 			}
 		}
+		// The trade is learned by doing it: a workplace that trains a skill gives
+		// the worker its experience once, in the same transaction that finished
+		// the shift (FinishShift above returned fresh only once).
+		if err := h.trainOnShift(ctx, tx, snap, buildings, sh, now); err != nil {
+			return err
+		}
 		s, err := tx.Settlements().ByID(ctx, sh.SettlementID)
 		if err != nil {
 			return err
@@ -858,4 +865,33 @@ func (h *VillageHandler) Worked(ctx context.Context, meta envelope.Metadata, req
 			"produced": made, "wage": pay,
 		})
 	})
+}
+
+// trainOnShift gives the worker the experience the workplace trains (content:
+// settlement building `trains`). A building that trains nothing, or a shift
+// with no player, changes nothing.
+func (h *VillageHandler) trainOnShift(ctx context.Context, tx application.Tx, snap *content.Snapshot,
+	buildings []application.SettlementBuildingInstance, sh *application.SettlementShift, now time.Time,
+) error {
+	if sh.PlayerID == "" {
+		return nil
+	}
+	var typeCode string
+	for _, b := range buildings {
+		if b.ID == sh.BuildingID {
+			typeCode = b.TypeCode
+			break
+		}
+	}
+	d, ok := snap.SettlementBuildingDef(typeCode)
+	if !ok || d.Trains == nil || d.Trains.XP <= 0 {
+		return nil
+	}
+	skills, err := tx.Skills().List(ctx, sh.PlayerID)
+	if err != nil {
+		return err
+	}
+	_, err = awardSkillXP(ctx, tx, snap, sh.PlayerID, skills,
+		[]skillAward{{Skill: player.SkillCode(d.Trains.Skill), XP: d.Trains.XP}}, now)
+	return err
 }

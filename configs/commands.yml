@@ -157,6 +157,9 @@ commands:
   education.list: {channel: private}
   education.view: {channel: private}
   education.enroll: {channel: private}
+  education.hire: {channel: private}
+  education.teach: {channel: private}
+  education.unteach: {channel: private}
 
   # Crime happens in the city's group, where the victims are. The jail is
   # public knowledge; bail, the record and a victim's reports are private.
@@ -343,6 +346,8 @@ commands:
   # what the player is offered where they stand. Web screens; Telegram opens
   # the same places through its own menus.
   health.home: {channel: private, client: true}
+  training.home: {channel: private, client: true}
+  training.start: {channel: private, client: true}
   work.home: {channel: private, client: true}
   activities.hub: {channel: private, client: true}
   economy.hub: {channel: private, client: true}

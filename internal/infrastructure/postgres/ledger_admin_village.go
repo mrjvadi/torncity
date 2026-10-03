@@ -65,6 +65,26 @@ type VillageInvariants struct {
 	LaborEscrowRows                int64
 	LaborBuiltWithoutWork          int64
 	LaborWorkUnbacked              int64
+
+	// Teaching (migration 0120, docs/research/2026-10-03-activities-audit.md section 7).
+	// Teaching is whether the tables exist. CourseFeeLedger is what the ledger says
+	// students paid school treasuries, CourseFeeRows the fees of the enrolments seated
+	// with a school teacher; TuitionLedger and TuitionRows the same for home teachers
+	// (teacher and tax legs together); TeacherWageLedger what treasuries paid teachers
+	// (player and NPC), TeacherWageRows the wages the seats record as paid.
+	// TeachMismatched counts seats whose paid wage has no two-leg transaction, seats of a
+	// completed class still unpaid, and seats paid more than they owed.
+	Teaching                           bool
+	CourseFeeLedger, CourseFeeRows     int64
+	TuitionLedger, TuitionRows         int64
+	TeacherWageLedger, TeacherWageRows int64
+	TeachMismatched                    int64
+}
+
+// TeachingOK reports whether the teaching checks hold.
+func (v VillageInvariants) TeachingOK() bool {
+	return !v.Teaching || (v.CourseFeeLedger == v.CourseFeeRows && v.TuitionLedger == v.TuitionRows &&
+		v.TeacherWageLedger == v.TeacherWageRows && v.TeachMismatched == 0)
 }
 
 func (v VillageInvariants) ok() bool {
@@ -74,7 +94,7 @@ func (v VillageInvariants) ok() bool {
 		v.MaterialLedger == v.MaterialRows && v.MaterialMismatched == 0 && v.MaterialItems == v.MaterialItemRows &&
 		v.WageLedger == v.WageRows && v.WageMismatched == 0 && v.ShiftItems == v.ShiftItemRows &&
 		v.LaborWageLedger == v.LaborWageRows && v.LaborMismatched == 0 && v.LaborEscrowLedger == v.LaborEscrowRows &&
-		v.LaborBuiltWithoutWork == 0 && v.LaborWorkUnbacked == 0
+		v.LaborBuiltWithoutWork == 0 && v.LaborWorkUnbacked == 0 && v.TeachingOK()
 }
 
 // verifyVillage runs the village treasury's invariants.
@@ -179,6 +199,44 @@ func (a *EconomyAdmin) verifyVillage(ctx context.Context, v *LedgerVerification)
 			                       WHERE s.building_id = b.id AND s.status = 'done' AND s.kind = 'construction')`, nil},
 	}
 	for _, c := range checks {
+		if err := a.q.QueryRow(ctx, c.sql, c.args...).Scan(c.into); err != nil {
+			return fmt.Errorf("postgres: checking %s: %w", c.what, err)
+		}
+	}
+	return nil
+}
+
+// verifyTeaching runs the teaching checks when migration 0120 is applied.
+func (a *EconomyAdmin) verifyTeaching(ctx context.Context, v *LedgerVerification) error {
+	if err := a.q.QueryRow(ctx, `SELECT to_regclass('public.class_seats') IS NOT NULL`).Scan(&v.VillageInvariants.Teaching); err != nil {
+		return fmt.Errorf("postgres: looking for teaching: %w", err)
+	}
+	if !v.VillageInvariants.Teaching {
+		return nil
+	}
+	s := &v.VillageInvariants
+	fees := `SELECT COALESCE(SUM(e.fee), 0)::bigint FROM enrollments e
+	           JOIN class_seats c ON c.enrollment_id = e.id JOIN course_teachers t ON t.id = c.teacher_id WHERE t.employer = $1`
+	for _, c := range []struct {
+		into *int64
+		what string
+		sql  string
+		args []any
+	}{
+		{&s.CourseFeeLedger, "school course fees", `SELECT COALESCE(SUM(amount), 0)::bigint FROM ledger_entries WHERE reason = 'course_fee' AND amount > 0`, nil},
+		{&s.CourseFeeRows, "school course fee rows", fees, []any{"settlement"}},
+		{&s.TuitionLedger, "home tuition", `SELECT COALESCE(SUM(amount), 0)::bigint FROM ledger_entries WHERE reason = 'tuition' AND amount > 0`, nil},
+		{&s.TuitionRows, "home tuition rows", fees, []any{"self"}},
+		{&s.TeacherWageLedger, "teacher wages", `SELECT COALESCE(SUM(amount), 0)::bigint FROM ledger_entries WHERE reason IN ('teacher_wage', 'teacher_wage_npc') AND amount > 0`, nil},
+		{&s.TeacherWageRows, "teacher wage rows", `SELECT COALESCE(SUM(wage_paid), 0)::bigint FROM class_seats`, nil},
+		{&s.TeachMismatched, "teaching seats", `
+			SELECT count(*) FROM class_seats c JOIN enrollments e ON e.id = c.enrollment_id
+			 WHERE c.wage_paid > c.wage
+			    OR (c.wage_paid > 0 AND (SELECT count(*) FROM ledger_entries l
+			         WHERE l.reference_type = 'class_seats' AND l.reference_id = c.enrollment_id
+			           AND l.reason IN ('teacher_wage', 'teacher_wage_npc')) <> 2)
+			    OR (e.status = 'completed' AND c.wage_paid_at IS NULL)`, nil},
+	} {
 		if err := a.q.QueryRow(ctx, c.sql, c.args...).Scan(c.into); err != nil {
 			return fmt.Errorf("postgres: checking %s: %w", c.what, err)
 		}

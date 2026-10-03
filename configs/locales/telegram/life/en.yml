@@ -535,7 +535,7 @@ job:
   openings_none: No employer in this city is hiring right now.
   not_here: "Not here:"
   not_here_line: "• {career} - this place still needs: {needs}"
-  not_here_line_near: "• {career} - available in {city}. This place still needs: {needs}"
+  not_here_line_near: "• {career} - available in {city}{trip}. This place still needs: {needs}"
   openings_hint: "✅ means you qualify and can apply; 🔒 means something is still missing. Tap a job to see the details."
   opening_line: "✅ {career} - {title} - {pay} per shift"
   opening_line_locked: "🔒 {career} - {title} - {pay} per shift"
@@ -615,11 +615,23 @@ requirement:
   course_full: Every seat on this course is taken.
   already_certified: You already hold this certificate.
   already_enrolled: You are already studying {course}. You can take one course at a time.
+  course_teacher: "Nobody teaches this course here yet (the head hires a teacher, or someone holding its certificate teaches)."
+  not_head: "Only the head can hire or dismiss a school teacher."
+  teacher_no_pool: "Nobody in town is free to become a teacher; more homes bring more people."
+  already_teaching: "This course already has that teacher."
+  not_teaching: "No such teacher in this city, or the post is not yours."
+  teacher_full: "This teacher's class is full."
 
 # Study (internal/domain/education, configs/content/education.yml). Terms:
 # education 🎓, course, certificate 📜, fee, enrol. A course's name is
 # course.<code>.
+trip:
+  hint: " (fare {fare}, {wait} away)"
+
 education:
+  not_here: "Not here:"
+  not_here_line: "• {course} ({fee}, {duration}) - this place still needs: {needs}"
+  not_here_line_near: "• {course} ({fee}, {duration}) - taught in {city}{trip}. This place still needs: {needs}"
   title: "🎓 Education"
   current: "📖 Studying: {course}"
   progress: "⏳ {percent}% done - {remaining} to go"
@@ -652,6 +664,11 @@ education:
   completed_certificate: "📜 Certificate earned: {course}"
   refused: "You cannot enrol in this course yet:"
   not_found: That course is not on offer here. See “Education” for the courses you can take.
+  staff: "👩‍🏫 Teachers:"
+  teacher:
+    npc: "• School teacher ({students} of {max} students)"
+    school: "• {name}, school teacher ({students} of {max} students)"
+    home: "• {name}, private teacher ({students} of {max} students)"
   cannot_afford: |-
     💵 Not enough cash for this course.
     Fee: {fee} - Your cash: {cash}
@@ -660,6 +677,10 @@ education:
     course: "📖 {course}"
     enrol: "✅ Enrol - {fee}"
     back_to_course: "📖 Back to the course"
+    hire: "🧑‍🏫 Hire a teacher (wage {wage} per student)"
+    teach_school: "🧑‍🏫 Take the school's post (wage {wage} per student)"
+    teach_home: "🏠 Teach at home ({tax}% tax)"
+    unteach: "🚪 Stop this teacher"
 
 # The crime engine (docs/adr/0019-crime-engine.md). Nerve 🔥, Heat 🚨,
 # criminal rank 🎖, Jail ⛓, Bail, Fine, Report 🚔, Case 🗂. A player victim is
@@ -906,3 +927,28 @@ need:
     finance: bank
     military: barracks
     extraction: mine
+
+# Training (docs/research/2026-10-03-activities-audit.md section 7)
+training:
+  title: "💪 Training"
+  energy: "⚡ Energy: {energy} of {max} (a session costs {cost})"
+  stamina: "🫁 Stamina: {stamina}"
+  strength: "💪 Strength: level {level}"
+  venues: "Places to train:"
+  venue:
+    yard: "Open ground"
+    ground: "Training ground"
+    gym: "Gym"
+  venue_line: "• {venue} - {percent}% efficiency - free"
+  venue_line_fee: "• {venue} - {percent}% efficiency - {fee} a session"
+  venue_missing: "• {venue} - not here; the head must build a {building}"
+  done: "✅ You trained at the {venue}."
+  gain_stamina: "🫁 Stamina +{stamina}"
+  gain_strength: "💪 Strength +{xp} experience"
+  gain_max_energy: "⚡ Most energy +{added}"
+  level_up: "⬆️ Strength reached level {level}."
+  paid: "💰 Session fee: {fee}"
+  energy_left: "⚡ Energy left: {energy} of {max}"
+  button:
+    start: "💪 Train at the {venue}"
+    again: "💪 Train again"

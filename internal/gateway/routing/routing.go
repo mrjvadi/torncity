@@ -526,6 +526,11 @@ var argNames = map[string][]string{
 	"education.list":   {"page"},
 	"education.view":   {"course"},
 	"education.enroll": {"course", "method"},
+	// Teaching: the head hires the school's teacher; a certificate holder takes the
+	// school's post or teaches at home (mode school|home); a post is ended by id.
+	"education.hire":    {"course"},
+	"education.teach":   {"course", "mode"},
+	"education.unteach": {"course", "id"},
 
 	// Crime. A crime, a category are named by their content code
 	// (crimes.yml); nonce is a button's one-time token, so a second press
@@ -712,6 +717,8 @@ var argNames = map[string][]string{
 	// code; a price is typed.
 	"health.hospital": {},
 	"health.home":     {},
+	"training.home":   {},
+	"training.start":  {"venue"},
 	"activities.hub":  {},
 	"economy.hub":     {},
 	"society.hub":     {},

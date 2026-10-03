@@ -3,7 +3,6 @@ package content
 import (
 	"fmt"
 
-	"github.com/mrjvadi/torncity/internal/domain/player"
 	"github.com/mrjvadi/torncity/internal/domain/recruit"
 )
 
@@ -107,8 +106,8 @@ func (p *Pack) validateRecruitment(problems *[]error) {
 		bad("reach_per_check %d (1..100)", d.Reach)
 	}
 	skills := map[string]bool{}
-	for _, c := range player.SkillCodes() {
-		skills[string(c)] = true
+	for _, c := range p.knownSkillCodes() {
+		skills[c] = true
 	}
 	seen := map[string]bool{}
 	for i, s := range d.Skills {

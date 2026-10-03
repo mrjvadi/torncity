@@ -113,6 +113,9 @@ type SettlementBuildingDef struct {
 	Workers  int              `yaml:"workers,omitempty" json:"workers,omitempty"`
 	Shift    string           `yaml:"shift,omitempty" json:"shift,omitempty"`
 	Wage     int64            `yaml:"wage,omitempty" json:"wage,omitempty"`
+	// Trains is the skill (and the experience) a finished shift here gives the
+	// worker: the trade is learned by doing it. The skill is in skills.yml.
+	Trains *SkillXPDef `yaml:"trains,omitempty" json:"trains,omitempty"`
 }
 
 // The owners a settlement building may have.

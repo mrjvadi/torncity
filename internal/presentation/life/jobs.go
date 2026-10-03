@@ -15,6 +15,10 @@ const (
 	AddrJobQuit     = "job:quit"
 	AddrCourseView  = "education:view"
 	AddrCourseEnrol = "education:enroll"
+	// Teaching (education.hire, education.teach, education.unteach).
+	AddrCourseHire  = "education:hire"
+	AddrCourseTeach = "education:teach"
+	AddrCourseLeave = "education:unteach"
 )
 
 // QuitConfirmation is the argument that turns job.quit from "are you sure"
@@ -114,6 +118,8 @@ type JobGap struct {
 	Job JobRef
 	// Nearest is the place that has it; nil when none is known.
 	Nearest *presentation.Named
+	// NearestTrip is the way to Nearest (fare and wait); nil when unknown.
+	NearestTrip *presentation.TripHint
 	// Needs is what this place lacks: research, buildings.
 	Needs []presentation.CourseNeed
 }

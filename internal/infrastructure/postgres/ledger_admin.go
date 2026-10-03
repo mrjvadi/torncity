@@ -378,6 +378,9 @@ func (a *EconomyAdmin) VerifyLedger(ctx context.Context, limit int) (LedgerVerif
 			return v, err
 		}
 	}
+	if err := a.verifyTeaching(ctx, &v); err != nil {
+		return v, err
+	}
 	if err := a.q.QueryRow(ctx, `SELECT to_regclass('public.village_shop_days') IS NOT NULL
 	   AND to_regclass('public.player_bags') IS NOT NULL AND to_regclass('public.starting_bag_grants') IS NOT NULL`).Scan(&v.Shop); err != nil {
 		return v, fmt.Errorf("postgres: looking for the village shop: %w", err)

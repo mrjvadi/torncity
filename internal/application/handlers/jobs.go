@@ -73,6 +73,7 @@ type JobsHandler struct {
 	// and the fatigue window are game time, and the player waits them
 	// through it (config game.time_scale).
 	scale gametime.Scale
+	trips TripHinter
 
 	pageSize       int
 	idempotencyTTL time.Duration
@@ -330,7 +331,7 @@ func (h *JobsHandler) List(ctx context.Context, meta envelope.Metadata, req Page
 				if err != nil {
 					return err
 				}
-				view.Gaps = append(view.Gaps, plife.JobGap{Job: jobRef(def, 0), Nearest: near, Needs: needs})
+				view.Gaps = append(view.Gaps, plife.JobGap{Job: jobRef(def, 0), Nearest: near, NearestTrip: tripTo(ctx, tx, h.trips, p, near), Needs: needs})
 				continue
 			}
 			career, ok := snap.Career(def.Code)

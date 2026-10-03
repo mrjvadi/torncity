@@ -441,6 +441,7 @@
             "code": "",
             "name": ""
           },
+          "trip": null,
           "venues": [
             {
               "code": "city_centre",
@@ -534,6 +535,7 @@
             "code": "",
             "name": ""
           },
+          "trip": null,
           "venues": null,
           "wait_seconds": 0
         },
@@ -564,6 +566,7 @@
             "code": "",
             "name": ""
           },
+          "trip": null,
           "venues": null,
           "wait_seconds": 0
         },
@@ -594,6 +597,7 @@
             "code": "",
             "name": ""
           },
+          "trip": null,
           "venues": null,
           "wait_seconds": 0
         },
@@ -624,6 +628,7 @@
             "code": "",
             "name": ""
           },
+          "trip": null,
           "venues": null,
           "wait_seconds": 0
         },
@@ -654,6 +659,7 @@
             "code": "",
             "name": ""
           },
+          "trip": null,
           "venues": [
             {
               "code": "city_centre",
@@ -735,6 +741,7 @@
             "code": "",
             "name": ""
           },
+          "trip": null,
           "venues": null,
           "wait_seconds": 0
         }
@@ -856,6 +863,7 @@
             "code": "lockpick_set",
             "name": "Lockpick set"
           },
+          "trip": null,
           "venues": null,
           "wait_seconds": 0
         }
@@ -932,6 +940,7 @@
             "code": "lockpick_set",
             "name": "Lockpick set"
           },
+          "trip": null,
           "venues": null,
           "wait_seconds": 0
         }
@@ -2012,6 +2021,7 @@
             "code": "",
             "name": ""
           },
+          "trip": null,
           "venues": null,
           "wait_seconds": 0
         },
@@ -2042,6 +2052,7 @@
             "code": "",
             "name": ""
           },
+          "trip": null,
           "venues": null,
           "wait_seconds": 0
         }

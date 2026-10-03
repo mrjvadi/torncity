@@ -83,9 +83,21 @@ func (c Context) requirementLine(r Requirement) string {
 	case ReqTopTier:
 		text = c.T("requirement.top", nil)
 	case ReqCourseCity:
-		text = c.T("requirement.course_city", map[string]any{"city": c.CityName(r.CityCode, r.City)})
+		text = c.T("requirement.course_city", map[string]any{"city": c.CityName(r.CityCode, r.City)}) + c.tripText(r.Trip)
 	case ReqCourseFull:
 		text = c.T("requirement.course_full", nil)
+	case ReqCourseTeacher:
+		text = c.T("requirement.course_teacher", nil) + c.tripText(r.Trip)
+	case ReqNotHead:
+		text = c.T("requirement.not_head", nil)
+	case ReqTeacherNoPool:
+		text = c.T("requirement.teacher_no_pool", nil)
+	case ReqAlreadyTeaching:
+		text = c.T("requirement.already_teaching", nil)
+	case ReqNotTeaching:
+		text = c.T("requirement.not_teaching", nil)
+	case ReqTeacherFull:
+		text = c.T("requirement.teacher_full", nil)
 	case ReqAlreadyCertified:
 		text = c.T("requirement.already_certified", nil)
 	case ReqAlreadyEnrolled:
@@ -350,6 +362,7 @@ func (c Context) jobGaps(gaps []JobGap) string {
 		if g.Nearest != nil {
 			key = "job.not_here_line_near"
 			args["city"] = c.CityName(g.Nearest.Code, g.Nearest.Name)
+			args["trip"] = c.tripText(g.NearestTrip)
 		}
 		lines = append(lines, c.T(key, args))
 	}
@@ -607,4 +620,13 @@ func renderRefusal(c Context, v RefusalView) *presenter.Response {
 		resp.MarkPrivate()
 	}
 	return resp
+}
+
+// tripText is the way to the nearest place as a short suffix: the cheapest
+// fare and the wait (the travel screen's own quote); empty when unknown.
+func (c Context) tripText(t *presentation.TripHint) string {
+	if t == nil {
+		return ""
+	}
+	return c.T("trip.hint", map[string]any{"fare": FormatMoney(c, t.Fare), "wait": FormatDuration(c, t.Wait)})
 }

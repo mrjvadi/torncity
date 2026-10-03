@@ -130,6 +130,17 @@ func (h *VillageHandler) laborMarket(ctx context.Context, tx application.Tx, sna
 	case tight >= h.labor.Curve[2].TightnessBPS:
 		level = village.MarketTight
 	}
+	// An NPC teacher of the school is a person of the pool who is not free for hire
+	// (docs/research/2026-10-03-activities-audit.md section 7).
+	teachers, err := tx.Education().SettlementTeachers(ctx, s.CityID)
+	if err != nil {
+		return laborMarket{}, err
+	}
+	for _, t := range teachers {
+		if t.Kind == application.TeacherNPC {
+			npc++
+		}
+	}
 	available := pool - npc
 	if available < 0 {
 		available = 0
@@ -1101,4 +1112,22 @@ func (h *VillageHandler) workedSite(ctx context.Context, tx application.Tx, meta
 		}
 	}
 	return nil
+}
+
+// LaborAvailable is how many labourers of the settlement are free to hire now (the
+// school's NPC teacher is hired from them).
+func (h *VillageHandler) LaborAvailable(ctx context.Context, tx application.Tx, settlementID string) (int64, error) {
+	s, err := tx.Settlements().ByID(ctx, settlementID)
+	if err != nil {
+		return 0, err
+	}
+	buildings, err := tx.SettlementBuildings().List(ctx, settlementID)
+	if err != nil {
+		return 0, err
+	}
+	m, err := h.laborMarket(ctx, tx, h.content.Current(), s, buildings)
+	if err != nil {
+		return 0, err
+	}
+	return m.line.Available, nil
 }

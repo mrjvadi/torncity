@@ -44,11 +44,71 @@ func (m jobMarket) capacity(city world.City, skill string, level int) int64 {
 	return recruit.Capacity(population, sk.PerHundredK, m.def.EducationBPS(city.Code), m.def.LevelShare(level))
 }
 
+// capacityAt is capacity for a city as it stands now: a pool exists only for a skill the
+// city can actually train. The neutral city and any content city keep the pools of their
+// population; a founded settlement has a pool of a skill only while one of its courses
+// that trains it is taught (its research and buildings stand) and somebody teaches it.
+// Specialists who arrive by migration from a place that has them are not modelled
+// here: they come through a campaign's relocation (move), which reads the home city's pool.
+// (docs/research/2026-10-03-activities-audit.md section 7, F-3.)
+func (m jobMarket) capacityAt(ctx context.Context, tx application.Tx, city world.City, skill string, level int) (int64, error) {
+	base := m.capacity(city, skill, level)
+	if base == 0 {
+		return 0, nil
+	}
+	// A content city (the neutral one included) keeps the pools of its population; only a
+	// city the content does not list can be a founded settlement.
+	if _, content := m.snap.CityByID(city.ID); content {
+		return base, nil
+	}
+	ok, err := cityTeaches(ctx, tx, m.snap, city.ID, skill)
+	if err != nil || !ok {
+		return 0, err
+	}
+	return base, nil
+}
+
+// cityTeaches says whether the settlement of cityID can train skill now; a city that
+// is not a founded settlement always can (its pools are the population's).
+func cityTeaches(ctx context.Context, tx application.Tx, snap *content.Snapshot, cityID, skill string) (bool, error) {
+	here, err := courseHereFor(ctx, tx, snap, cityID)
+	if err != nil {
+		return false, err
+	}
+	if here.all {
+		return true, nil
+	}
+	for _, def := range snap.Courses() {
+		trains := false
+		for _, r := range def.SkillRewards {
+			trains = trains || r.Skill == skill
+		}
+		if !trains {
+			continue
+		}
+		tag, tagged := snap.AvailabilityTag("course", def.Code)
+		if taught, _, _ := here.judge(snap, tag, tagged); !taught {
+			continue
+		}
+		teachers, err := tx.Education().Teachers(ctx, cityID, def.Code)
+		if err != nil {
+			return false, err
+		}
+		if len(teachers) > 0 {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
 // pool reads a city's pool refilled to now, and its capacity. With lock it
 // is locked, created when never counted, and saved as refilled.
 func (m jobMarket) pool(ctx context.Context, tx application.Tx, city world.City, skill string, level int, lock bool,
 ) (application.SpecialistPool, int64, error) {
-	capacity := m.capacity(city, skill, level)
+	capacity, err := m.capacityAt(ctx, tx, city, skill, level)
+	if err != nil {
+		return application.SpecialistPool{}, 0, err
+	}
 	repo := tx.Recruitment()
 	if lock {
 		if err := repo.EnsurePool(ctx, application.SpecialistPool{CityID: city.ID, Skill: skill, Level: level,

@@ -68,6 +68,7 @@
           "met": false,
           "need": 55,
           "skill": "",
+          "trip": null,
           "wait_seconds": 0
         },
         {
@@ -80,6 +81,7 @@
           "met": false,
           "need": 0,
           "skill": "",
+          "trip": null,
           "wait_seconds": 25200
         },
         {
@@ -92,6 +94,7 @@
           "met": false,
           "need": 6,
           "skill": "",
+          "trip": null,
           "wait_seconds": 0
         },
         {
@@ -104,6 +107,7 @@
           "met": false,
           "need": 3,
           "skill": "",
+          "trip": null,
           "wait_seconds": 0
         },
         {
@@ -116,6 +120,7 @@
           "met": false,
           "need": 2,
           "skill": "management",
+          "trip": null,
           "wait_seconds": 0
         }
       ],
@@ -209,6 +214,7 @@
           "met": false,
           "need": 55,
           "skill": "",
+          "trip": null,
           "wait_seconds": 0
         },
         {
@@ -221,6 +227,7 @@
           "met": false,
           "need": 0,
           "skill": "",
+          "trip": null,
           "wait_seconds": 25200
         },
         {
@@ -233,6 +240,7 @@
           "met": false,
           "need": 6,
           "skill": "",
+          "trip": null,
           "wait_seconds": 0
         },
         {
@@ -245,6 +253,7 @@
           "met": false,
           "need": 3,
           "skill": "",
+          "trip": null,
           "wait_seconds": 0
         },
         {
@@ -257,6 +266,7 @@
           "met": false,
           "need": 2,
           "skill": "management",
+          "trip": null,
           "wait_seconds": 0
         }
       ],
@@ -310,6 +320,7 @@
           "met": false,
           "need": 55,
           "skill": "",
+          "trip": null,
           "wait_seconds": 0
         },
         {
@@ -322,6 +333,7 @@
           "met": false,
           "need": 0,
           "skill": "",
+          "trip": null,
           "wait_seconds": 25200
         },
         {
@@ -334,6 +346,7 @@
           "met": false,
           "need": 6,
           "skill": "",
+          "trip": null,
           "wait_seconds": 0
         },
         {
@@ -346,6 +359,7 @@
           "met": false,
           "need": 3,
           "skill": "",
+          "trip": null,
           "wait_seconds": 0
         },
         {
@@ -358,6 +372,7 @@
           "met": false,
           "need": 2,
           "skill": "management",
+          "trip": null,
           "wait_seconds": 0
         }
       ],
@@ -414,6 +429,7 @@
           "met": false,
           "need": 55,
           "skill": "",
+          "trip": null,
           "wait_seconds": 0
         },
         {
@@ -426,6 +442,7 @@
           "met": false,
           "need": 0,
           "skill": "",
+          "trip": null,
           "wait_seconds": 25200
         },
         {
@@ -438,6 +455,7 @@
           "met": false,
           "need": 6,
           "skill": "",
+          "trip": null,
           "wait_seconds": 0
         },
         {
@@ -450,6 +468,7 @@
           "met": false,
           "need": 3,
           "skill": "",
+          "trip": null,
           "wait_seconds": 0
         },
         {
@@ -462,6 +481,7 @@
           "met": false,
           "need": 2,
           "skill": "management",
+          "trip": null,
           "wait_seconds": 0
         }
       ],
@@ -736,6 +756,7 @@
           "met": true,
           "need": 0,
           "skill": "",
+          "trip": null,
           "wait_seconds": 0
         }
       ]
@@ -768,6 +789,7 @@
           "met": true,
           "need": 0,
           "skill": "",
+          "trip": null,
           "wait_seconds": 0
         },
         {
@@ -780,6 +802,7 @@
           "met": false,
           "need": 3,
           "skill": "",
+          "trip": null,
           "wait_seconds": 0
         },
         {
@@ -792,6 +815,7 @@
           "met": true,
           "need": 1,
           "skill": "programming",
+          "trip": null,
           "wait_seconds": 0
         },
         {
@@ -804,6 +828,7 @@
           "met": false,
           "need": 0,
           "skill": "",
+          "trip": null,
           "wait_seconds": 0
         }
       ]
@@ -836,6 +861,7 @@
           "met": false,
           "need": 0,
           "skill": "",
+          "trip": null,
           "wait_seconds": 0
         }
       ]
@@ -976,6 +1002,7 @@
           "met": false,
           "need": 3,
           "skill": "",
+          "trip": null,
           "wait_seconds": 0
         },
         {
@@ -988,6 +1015,7 @@
           "met": false,
           "need": 0,
           "skill": "",
+          "trip": null,
           "wait_seconds": 0
         },
         {
@@ -1000,6 +1028,7 @@
           "met": false,
           "need": 0,
           "skill": "",
+          "trip": null,
           "wait_seconds": 0
         }
       ],
@@ -1027,6 +1056,7 @@
           "met": false,
           "need": 55,
           "skill": "",
+          "trip": null,
           "wait_seconds": 0
         },
         {
@@ -1039,6 +1069,7 @@
           "met": false,
           "need": 0,
           "skill": "",
+          "trip": null,
           "wait_seconds": 25200
         },
         {
@@ -1051,6 +1082,7 @@
           "met": false,
           "need": 6,
           "skill": "",
+          "trip": null,
           "wait_seconds": 0
         }
       ],
@@ -1078,6 +1110,7 @@
           "met": false,
           "need": 0,
           "skill": "",
+          "trip": null,
           "wait_seconds": 0
         }
       ],

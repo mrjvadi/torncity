@@ -149,6 +149,9 @@ var all = []Subscription{
 	{Domain: "education", Action: "list", Origin: FromPlayer},
 	{Domain: "education", Action: "view", Origin: FromPlayer},
 	{Domain: "education", Action: "enroll", Origin: FromPlayer},
+	{Domain: "education", Action: "hire", Origin: FromPlayer},
+	{Domain: "education", Action: "teach", Origin: FromPlayer},
+	{Domain: "education", Action: "unteach", Origin: FromPlayer},
 	{Domain: "education", Action: "complete", Origin: FromScheduler},
 
 	// Crime (docs/adr/0019-crime-engine.md): the hub, a category's crimes,
@@ -371,6 +374,9 @@ var all = []Subscription{
 	{Domain: "society", Action: "hub", Origin: FromPlayer},
 	{Domain: "work", Action: "home", Origin: FromPlayer},
 	{Domain: "health", Action: "home", Origin: FromPlayer},
+	// Training (docs/research/2026-10-03-activities-audit.md section 7).
+	{Domain: "training", Action: "home", Origin: FromPlayer},
+	{Domain: "training", Action: "start", Origin: FromPlayer},
 	{Domain: "health", Action: "treat", Origin: FromPlayer},
 	{Domain: "health", Action: "clinic", Origin: FromPlayer},
 	{Domain: "health", Action: "price", Origin: FromPlayer},

@@ -19,4 +19,10 @@ const (
 	ReqCourseFull       = presentation.ReqCourseFull
 	ReqAlreadyCertified = presentation.ReqAlreadyCertified
 	ReqAlreadyEnrolled  = presentation.ReqAlreadyEnrolled
+	ReqCourseTeacher    = presentation.ReqCourseTeacher
+	ReqNotHead          = presentation.ReqNotHead
+	ReqTeacherNoPool    = presentation.ReqTeacherNoPool
+	ReqAlreadyTeaching  = presentation.ReqAlreadyTeaching
+	ReqNotTeaching      = presentation.ReqNotTeaching
+	ReqTeacherFull      = presentation.ReqTeacherFull
 )

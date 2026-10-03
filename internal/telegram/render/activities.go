@@ -50,4 +50,6 @@ func init() {
 	Register(life.ScreenMissionsMine, screens.MissionsMine)
 	Register(life.ScreenMissionRefusal, screens.MissionRefusal)
 	Register(life.ScreenSkills, screens.Skills)
+	Register(life.ScreenTrainingHome, screens.TrainingHome)
+	Register(life.ScreenTrained, screens.Trained)
 }
