@@ -4605,6 +4605,7 @@ export interface SkillLine {
   code: string
   level: number
   xp: number
+  from: number
   next: number
   percent: number
   max: boolean

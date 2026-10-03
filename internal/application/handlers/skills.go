@@ -127,6 +127,7 @@ func (h *SkillsHandler) List(ctx context.Context, meta envelope.Metadata) (*pres
 				Code:    string(code),
 				Level:   row.Level,
 				XP:      row.XP,
+				From:    player.SkillXPForLevel(row.Level),
 				Next:    next,
 				Percent: percent,
 			})
