@@ -500,7 +500,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	h.goods = newGoodsHandlers(uow, messages, registry, cities, postgres.NewPolicyReader(pool, nil),
 		gametime.Scale(cfg.Game.TimeScale), cfg.Crime, cfg.Trade, cfg.CarryRules(), gameClock, cfg.Game.IdempotencyTTL)
 	// The watch checks every market trade (docs/adr/0023).
-	h.goods.market.WithWatch(watchThresholds(cfg.AntiCheat))
+	h.goods.market.WithWatch(watchThresholds(cfg.AntiCheat)).WithHome(cfg.Settlement.HomeCityCode)
 	// A service the settlement a player stands in does not offer is said so
 	// (availability.yml): the auction house and the national bank's counters.
 	serviceGate := handlers.NewServiceGate(cities, cfg.Settlement.HomeCityCode)

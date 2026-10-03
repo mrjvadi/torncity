@@ -76,7 +76,7 @@ func renderVillageRefusal(c Context, v VillageRefusalView) *presenter.Response {
 	kb.Nav(c.nav(keyboards.Nav{BackData: back}))
 	return c.respond(c.T("village.refusal."+kind, map[string]any{
 		"time": FormatDuration(c, v.Remaining), "min": FormatMoney(c, v.Min), "max": FormatMoney(c, v.Max),
-		"lots": batchFailureList(c, v.Lots),
+		"lots": batchFailureList(c, v.Lots), "missing": FormatNumber(c, v.Missing),
 	}), kb.Build())
 }
 

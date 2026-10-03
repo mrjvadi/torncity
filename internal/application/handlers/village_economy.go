@@ -59,13 +59,28 @@ type villageStock struct {
 	Units    map[string]int64
 	Used     int64
 	Capacity int64
+	// Reserved is the room the goods of shifts in progress will take when they
+	// end: a shift reserves its output when it starts, so nothing it makes is
+	// ever lost to a full stock (audit F1).
+	Reserved int64
 }
 
+// free is the room nobody has a claim on: the capacity less what is in the
+// stock and less what the running shifts will bring.
 func (s villageStock) free() int64 {
-	if f := s.Capacity - s.Used; f > 0 {
+	if f := s.Capacity - s.Used - s.Reserved; f > 0 {
 		return f
 	}
 	return 0
+}
+
+// sumQty adds up a shift's goods, component code -> quantity.
+func sumQty(m map[string]int64) int64 {
+	var n int64
+	for _, q := range m {
+		n += q
+	}
+	return n
 }
 
 // stockOf reads a settlement's stock (org_stacks, OrgSettlement) and its
@@ -88,6 +103,15 @@ func (h *VillageHandler) stockOf(ctx context.Context, tx application.Tx, snap *c
 		}
 		if d, ok := snap.SettlementBuildingDef(b.TypeCode); ok {
 			out.Capacity += d.Storage
+		}
+	}
+	shifts, err := tx.SettlementTreasury().WorkingShifts(ctx, settlementID)
+	if err != nil {
+		return villageStock{}, err
+	}
+	for _, sh := range shifts {
+		if sh.Kind != application.LaborKindConstruction {
+			out.Reserved += sumQty(sh.Produced)
 		}
 	}
 	return out, nil
@@ -450,7 +474,9 @@ func (h *VillageHandler) MaterialsBuy(ctx context.Context, meta envelope.Metadat
 			return err
 		}
 		if qty > stock.free() {
-			return refuseVillage(village.VillageStorageFull, village.AddrMaterials)
+			r := refuseVillage(village.VillageStorageFull, village.AddrMaterials)
+			r.missing = qty - stock.free()
+			return r
 		}
 		treasury, err := treasuryBalance(ctx, tx, s.CityID)
 		if err != nil {
@@ -688,13 +714,13 @@ func (h *VillageHandler) startShiftAt(ctx context.Context, tx application.Tx, me
 	if needs := pc.materialNeeds(d.Consumes); len(needs) > 0 {
 		return needsRefusal(village.VillageMaterials, village.NeedsForWork, named(d.Code, d.Name), needs, village.AddrWork)
 	}
-	var in int64
-	for _, q := range d.Consumes {
-		in += q
-	}
-	if stock.free()+in <= 0 {
-		// Not even the room the inputs free up: the shift's goods would all be lost.
-		return refuseVillage(village.VillageStorageFull, village.AddrWork)
+	// The shift's goods must have room waiting when it ends: the inputs leave
+	// the stock at once, so only the net growth needs free room. Without it
+	// nothing starts, nothing is consumed and no wage is promised (audit F1).
+	if out, in := sumQty(d.Produces), sumQty(d.Consumes); out > stock.free()+in {
+		r := refuseVillage(village.VillageStorageFull, village.AddrWork)
+		r.missing = out - in - stock.free()
+		return r
 	}
 	wage := d.Wage
 	if wageOverride >= 0 {
@@ -804,7 +830,10 @@ func (h *VillageHandler) Worked(ctx context.Context, meta envelope.Metadata, req
 		if err != nil {
 			return err
 		}
-		room := stock.free()
+		// The shift's own goods are already reserved, so they fit; room is only
+		// short when the stock shrank meanwhile, and then the wage is paid on
+		// what was delivered, never on lost work.
+		room := stock.free() + sumQty(sh.Produced)
 		made := map[string]int64{}
 		for _, c := range materialCodes(sh.Produced) {
 			q := sh.Produced[c]
@@ -822,6 +851,9 @@ func (h *VillageHandler) Worked(ctx context.Context, meta envelope.Metadata, req
 			return err
 		}
 		pay := sh.Wage
+		if want := sumQty(sh.Produced); want > 0 && sumQty(made) < want {
+			pay = sh.Wage * sumQty(made) / want
+		}
 		if treasury < pay {
 			pay = treasury
 		}

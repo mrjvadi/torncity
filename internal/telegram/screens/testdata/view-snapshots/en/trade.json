@@ -38,6 +38,7 @@
       ],
       "city": "Ostmarch",
       "city_code": "ostmarch",
+      "unavailable": null,
       "way": null,
       "yours": [
         {
@@ -55,6 +56,7 @@
       "books": null,
       "city": "Ostmarch",
       "city_code": "ostmarch",
+      "unavailable": null,
       "way": null,
       "yours": null
     }
@@ -96,6 +98,7 @@
           "qty": 2
         }
       ],
+      "unavailable": null,
       "way": null
     }
   },
@@ -116,6 +119,7 @@
       "nonce": "0a1b2c3d4e62",
       "reference": 40,
       "trades": null,
+      "unavailable": null,
       "way": null
     }
   },
@@ -318,7 +322,8 @@
         "code": "lockpick_set",
         "name": "Lockpick set"
       },
-      "kind": "not_traded"
+      "kind": "not_traded",
+      "unavailable": null
     }
   },
   {
@@ -330,7 +335,8 @@
         "code": "bread",
         "name": "Bread"
       },
-      "kind": "too_big"
+      "kind": "too_big",
+      "unavailable": null
     }
   },
   {
@@ -342,7 +348,8 @@
         "code": "",
         "name": ""
       },
-      "kind": "too_many"
+      "kind": "too_many",
+      "unavailable": null
     }
   },
   {
@@ -354,7 +361,8 @@
         "code": "bread",
         "name": "Bread"
       },
-      "kind": "not_enough"
+      "kind": "not_enough",
+      "unavailable": null
     }
   },
   {
@@ -366,7 +374,8 @@
         "code": "",
         "name": ""
       },
-      "kind": "no_order"
+      "kind": "no_order",
+      "unavailable": null
     }
   },
   {
@@ -378,7 +387,8 @@
         "code": "",
         "name": ""
       },
-      "kind": "closed"
+      "kind": "closed",
+      "unavailable": null
     }
   },
   {

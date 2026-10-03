@@ -36,6 +36,7 @@ hubs:
     entry:
       inventory: "🎒 Backpack"
       market: "🛒 Market"
+      storehouse: "📦 Storehouse"
       bank: "🏦 Bank"
       companies: "💼 My companies"
       property: "🏠 Property"

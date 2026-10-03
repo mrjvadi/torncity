@@ -36,6 +36,9 @@ type MarketView struct {
 	AtMarket bool
 	// Way is the walk to the market when the player is elsewhere.
 	Way *Way
+	// Unavailable is set when the settlement has no market standing: the
+	// view has no other facts.
+	Unavailable *Unavailable
 }
 
 // BookLevel is one price on a side of a book and how much rests there.
@@ -64,6 +67,8 @@ type BookView struct {
 	Way *Way
 	// Nonce binds the sell buttons: one press is one order.
 	Nonce string
+	// Unavailable is set when the settlement has no market standing.
+	Unavailable *Unavailable
 }
 
 // MarketCheckoutView is a buy order's escrow and the ways to pay it.
@@ -126,6 +131,8 @@ const (
 	MarketRefusedNotEnough = "not_enough"
 	MarketRefusedNoOrder   = "no_order"
 	MarketRefusedClosed    = "closed"
+	// MarketRefusedUnavailable: the settlement has no market standing.
+	MarketRefusedUnavailable = "unavailable"
 )
 
 // MarketRefusalView is a refused market request.
@@ -133,4 +140,6 @@ type MarketRefusalView struct {
 	Kind  string
 	Item  Named
 	Count int
+	// Unavailable is set on kind "unavailable": what the settlement lacks.
+	Unavailable *Unavailable
 }

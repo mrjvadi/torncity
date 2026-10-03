@@ -324,7 +324,7 @@ village:
       🚧 The batch was not built and nothing was paid. These lots have a problem:
       {lots}
     promotion_top: "🏙 This settlement has reached the highest tier; there is no step beyond."
-    storage_full: "📦 The city stock has no room. A granary adds room."
+    storage_full: "📦 The city stock has no room; this needs {missing} more units of free space. A granary adds room."
     already_working: "⚒ You are already working a shift. Wait for it to end."
     workplace_full: "⚒ Every place at this workplace is taken. Try again later or work somewhere else."
     not_workplace: "🔒 Nobody works in this building."

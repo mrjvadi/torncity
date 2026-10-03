@@ -76,6 +76,25 @@ type MarketHandler struct {
 
 	// watch is the watch's tuning (docs/adr/0023); nil checks nothing.
 	watch *watch.Thresholds
+
+	// home is the neutral city's code (settlement.home_city_code): the
+	// nearest place with a market when the settlement has none.
+	home string
+}
+
+// WithHome names the neutral city, which has a market of its own and is where
+// a settlement without a market post is sent.
+func (h *MarketHandler) WithHome(code string) *MarketHandler {
+	h.home = code
+	return h
+}
+
+// closed says the settlement the player stands in has no market standing
+// (storage and market audit F4): the answer names what to build and the
+// nearest place that has one.
+func (h *MarketHandler) closed(ctx context.Context, tx application.Tx, snap *content.Snapshot, w whereabouts) (*economy.Unavailable, error) {
+	un, err := closedIn(ctx, tx, snap, w.city, h.home, marketNeed)
+	return withNearest(ctx, h.cities, h.home, un), err
 }
 
 // WithWatch has every trade checked against its good's reference price.
@@ -203,6 +222,9 @@ func (h *MarketHandler) Books(ctx context.Context, meta envelope.Metadata, req M
 			return err
 		}
 		view.CityCode, view.City = w.city.Code, w.city.Name
+		if view.Unavailable, err = h.closed(ctx, tx, snap, w); err != nil || view.Unavailable != nil {
+			return err
+		}
 		books, err := tx.Market().Books(ctx, w.city.ID)
 		if err != nil {
 			return err
@@ -264,6 +286,10 @@ func (h *MarketHandler) Book(ctx context.Context, meta envelope.Metadata, req Ma
 		}
 		w, err := h.city(ctx, tx, snap, p)
 		if err != nil {
+			return err
+		}
+		if un, err := h.closed(ctx, tx, snap, w); err != nil || un != nil {
+			view = economy.BookView{Item: named(def.Code, def.Name), CityCode: w.city.Code, City: w.city.Name, Unavailable: un}
 			return err
 		}
 		view, err = h.bookView(ctx, tx, snap, w, p, def)
@@ -402,6 +428,13 @@ func (h *MarketHandler) Order(ctx context.Context, meta envelope.Metadata, req M
 		w, err := h.city(ctx, tx, snap, p)
 		if err != nil {
 			return err
+		}
+		if un, err := h.closed(ctx, tx, snap, w); err != nil {
+			return err
+		} else if un != nil {
+			r := refuseMarket(economy.MarketRefusedUnavailable)
+			r.view.Item, r.view.Unavailable = it, un
+			return r
 		}
 		if err := needService(w, snap, place.ServiceMarket, h.scale, now); err != nil {
 			return thenFor(err, "market.book", def.Code)

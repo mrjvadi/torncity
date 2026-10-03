@@ -26,6 +26,9 @@ func Market(c Context, v MarketView) *presenter.Response {
 }
 
 func renderMarket(c Context, v MarketView) *presenter.Response {
+	if v.Unavailable != nil {
+		return renderUnavailable(c, v.Unavailable, AddrHome)
+	}
 	kb := keyboards.New()
 	lines := []string{}
 	if len(v.Books) == 0 {
@@ -70,6 +73,9 @@ func Book(c Context, v BookView) *presenter.Response {
 }
 
 func renderBook(c Context, v BookView) *presenter.Response {
+	if v.Unavailable != nil {
+		return renderUnavailable(c, v.Unavailable, AddrHome)
+	}
 	name := c.ItemName(v.Item)
 	var asks, bids, trades []string
 	asks = append(asks, c.T("market.asks", nil))
@@ -321,6 +327,9 @@ func MarketRefusal(c Context, v MarketRefusalView) *presenter.Response {
 }
 
 func renderMarketRefusal(c Context, v MarketRefusalView) *presenter.Response {
+	if v.Unavailable != nil {
+		return renderUnavailable(c, v.Unavailable, AddrHome)
+	}
 	kb := keyboards.New()
 	market, _ := keyboards.Button(c.T("market.button.market", nil), AddrMarket)
 	kb.Row(market)

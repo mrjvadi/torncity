@@ -362,6 +362,7 @@ export interface BookView {
   at_market: boolean
   way: Way | null
   nonce: string
+  unavailable: Unavailable | null
 }
 
 export interface BoughtView {
@@ -2968,6 +2969,7 @@ export interface MarketRefusalView {
   kind: string
   item: Named
   count: number
+  unavailable: Unavailable | null
 }
 
 export interface MarketView {
@@ -2977,6 +2979,7 @@ export interface MarketView {
   yours: Named[] | null
   at_market: boolean
   way: Way | null
+  unavailable: Unavailable | null
 }
 
 export interface MaterialBought {
@@ -5074,6 +5077,7 @@ export interface VillageRefusalView {
   min: number
   max: number
   lots: BatchLotFailure[] | null
+  missing: number
   action: string
   subject: Named
   needs: VillageNeed[] | null

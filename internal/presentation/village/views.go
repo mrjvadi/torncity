@@ -60,6 +60,8 @@ type VillageRefusalView struct {
 	Min, Max int64
 	// Lots are the lots of a refused batch, with their reasons.
 	Lots []BatchLotFailure
+	// Missing is the room a refused shift or purchase lacks, in units.
+	Missing int64 `json:"missing,omitempty"`
 	// Action, Subject and Needs name what the refused command was about and
 	// exactly what it is missing, each with where it comes from
 	// (village_economy.go); empty for a refusal that has nothing to fetch.
