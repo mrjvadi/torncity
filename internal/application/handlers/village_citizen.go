@@ -65,6 +65,10 @@ type CitizenRules struct {
 	MaxCrossing       int
 	StreetPitch       int
 	StreetPlanMinGrid int
+	// Roads that open land (ADR 0044 5.5): config settlement.road_*.
+	RoadFrontageDepth, RoadPlanMaxLots, RoadOpenLotsMax int
+	RoadForeignBufferTiles, RoadSteepSlopeM             int
+	RoadCorridorRing, RoadTrackCostBPS                  int
 }
 
 func (r CitizenRules) enabled() bool { return r.LotPrice > 0 && r.TaxPeriod > 0 }
