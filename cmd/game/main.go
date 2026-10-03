@@ -354,7 +354,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			nil,
 		// A journey departs from, and lands at, the place of its mode.
 		).WithPlaces(registry).WithWorld(worldTravel),
-		skills: handlers.NewSkillsHandler(uow, messages, postgres.NewSkillRepository(pool), nil),
+		skills: handlers.NewSkillsHandler(uow, messages, postgres.NewSkillRepository(pool), nil).WithPlace(registry, cities, cfg.Settlement.HomeCityCode),
 		social: handlers.NewSocialHandler(
 			uow,
 			uuidGenerator{},
@@ -448,14 +448,13 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 				ScarcityFloorBPS:      cfg.Settlement.ScarcityFloorBPS,
 				ScarcityCapBPS:        cfg.Settlement.ScarcityCapBPS,
 				SellerBandBPS:         cfg.Settlement.SellerBandBPS,
-				GridMaxLots:           cfg.Settlement.GridMaxLots, GridLotPrice: cfg.Settlement.GridLotPrice,
-				GridPriceStepBPS: cfg.Settlement.GridPriceStepBPS, AutoRoadCost: cfg.Settlement.AutoRoadCost,
-				MaterialMarkupBPS:  cfg.Settlement.MaterialMarkupBPS,
-				StockBaseCapacity:  cfg.Settlement.StockBaseCapacity,
-				MaterialBuyMax:     cfg.Settlement.MaterialBuyMax,
-				MaterialBuyPresets: cfg.Settlement.MaterialBuyPresets,
-				ResidenceCooldown:  cfg.Settlement.ResidenceCooldown,
-				HomeCityCode:       cfg.Settlement.HomeCityCode,
+				AutoRoadCost:          cfg.Settlement.AutoRoadCost,
+				MaterialMarkupBPS:     cfg.Settlement.MaterialMarkupBPS,
+				StockBaseCapacity:     cfg.Settlement.StockBaseCapacity,
+				MaterialBuyMax:        cfg.Settlement.MaterialBuyMax,
+				MaterialBuyPresets:    cfg.Settlement.MaterialBuyPresets,
+				ResidenceCooldown:     cfg.Settlement.ResidenceCooldown,
+				HomeCityCode:          cfg.Settlement.HomeCityCode,
 			},
 			cfg.Game.IdempotencyTTL,
 			nil,
@@ -469,6 +468,10 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 				HomeRestHealth: cfg.Settlement.CitizenHomeRestHealth, HomeRestHappiness: cfg.Settlement.CitizenHomeRestHappiness,
 				CrossingLotCost: cfg.Settlement.LotAccessCrossingCost, MaxCrossing: cfg.Settlement.LotAccessMaxCrossing,
 				StreetPitch: cfg.Settlement.StreetPitch, StreetPlanMinGrid: cfg.Settlement.StreetPlanMinGrid,
+				RoadFrontageDepth: cfg.Settlement.RoadFrontageDepthLots, RoadPlanMaxLots: cfg.Settlement.RoadPlanMaxLots,
+				RoadOpenLotsMax: cfg.Settlement.RoadOpenLotsMax, RoadForeignBufferTiles: cfg.Settlement.RoadForeignBufferTiles,
+				RoadSteepSlopeM: cfg.Settlement.RoadSteepSlopeM, RoadCorridorRing: cfg.Settlement.RoadCorridorRingTiles,
+				RoadTrackCostBPS: cfg.Settlement.RoadTrackCostBPS,
 			}).
 			WithLabor(laborRules(cfg.Labor), cfg.Labor.HirePresets, cfg.Labor.WagePresets).
 			WithActivities(activityRules(cfg)).
@@ -480,6 +483,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	h.jobs, h.education = newWorkHandlers(uow, messages, registry, cities,
 		postgres.NewPolicyReader(pool, nil), gametime.Scale(cfg.Game.TimeScale), cfg.Game.IdempotencyTTL)
 	h.education.WithHomeCity(cfg.Settlement.HomeCityCode)
+	h.jobs.WithHomeCity(cfg.Settlement.HomeCityCode)
 
 	// Crime reads crimes from the live registry and a city's justice levers
 	// only through the resolver (ADR 0015), on the game clock.

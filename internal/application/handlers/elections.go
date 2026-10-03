@@ -18,12 +18,12 @@ import (
 	"github.com/mrjvadi/torncity/internal/domain/place"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/subjects"
+	"github.com/mrjvadi/torncity/internal/presentation/society"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/shared/events"
 	"github.com/mrjvadi/torncity/internal/shared/idempotency"
 	"github.com/mrjvadi/torncity/internal/shared/money"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
-	"github.com/mrjvadi/torncity/internal/presentation/society"
 )
 
 // ElectionsHandler serves elections (internal/domain/election): the

@@ -14,11 +14,11 @@ import (
 	"github.com/mrjvadi/torncity/internal/domain/health"
 	"github.com/mrjvadi/torncity/internal/domain/player"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/society"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/shared/idempotency"
 	"github.com/mrjvadi/torncity/internal/shared/money"
-	"github.com/mrjvadi/torncity/internal/presentation"
-	"github.com/mrjvadi/torncity/internal/presentation/society"
 )
 
 // This file holds a faction's organised crimes: one of the organised crimes

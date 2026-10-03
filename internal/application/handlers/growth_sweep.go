@@ -42,7 +42,7 @@ type SweepRow struct {
 	Kind, Code       string
 	Stage, Class     string
 	// Row is the Appendix A row number (0 for a tag the appendix does not number).
-	Row                         int
+	Row                          int
 	TierAnswer, CapabilityAnswer bool
 	// Compared is false for a deferred or Support-only tag.
 	Compared bool
@@ -82,6 +82,10 @@ func Sweep(snap *content.Snapshot, s SweepSettlement, ruinedBPS int) []SweepRow 
 	here := hubSettlement{
 		stageRank: content.StageRank(tierStage(s.Tier)),
 		stands:    standsIn(snap, s.Standing.Buildings),
+		owned:     map[string]bool{},
+	}
+	for _, k := range s.Standing.Knowledge {
+		here.owned[k.Code] = true
 	}
 	tags := snap.AllAvailabilityTags()
 	out := make([]SweepRow, 0, len(tags))

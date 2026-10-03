@@ -549,6 +549,9 @@ job:
   openings_employed: "شما اکنون {title} هستید. برای گرفتن شغل دیگر، ابتدا از شغل فعلی کناره بگیرید."
   openings_employed_short: "شما اکنون شغل دارید. برای گرفتن این شغل، ابتدا از شغل فعلی کناره بگیرید."
   openings_none: "فعلاً هیچ کارفرمایی در این شهر نیرو نمی‌گیرد."
+  not_here: "اینجا نیست:"
+  not_here_line: "• {career} - برای این کار اینجا هنوز لازم است: {needs}"
+  not_here_line_near: "• {career} - در {city} هست. برای اینجا هنوز لازم است: {needs}"
   openings_hint: "✅ یعنی شرایط را دارید و می‌توانید درخواست بدهید؛ 🔒 یعنی هنوز چیزی کم است. برای دیدن جزئیات، شغل را بزنید."
   opening_line: "✅ {career} - {title} - {pay} برای هر شیفت"
   opening_line_locked: "🔒 {career} - {title} - {pay} برای هر شیفت"
@@ -905,3 +908,19 @@ health:
   error:
     hospitalised: "🏥 تا {remaining} دیگر در بیمارستان بستری هستید. درمان در بیمارستان، بستری را کوتاه می‌کند."
     hospitalised_later: "🏥 در بیمارستان بستری هستید. از صفحهٔ بیمارستان درمان بگیرید یا صبر کنید."
+
+need:
+  teacher: "معلم"
+  role:
+    education: "کلاس درس یا مدرسه"
+    health: "خانهٔ بهداشت یا درمانگاه"
+    market: "بازارچه"
+    craft: "کارگاه"
+    food: "مزرعه"
+    storage: "انبار"
+    security: "پاسگاه یا نگهبانی"
+    housing: "خانه"
+    transport: "بندر یا فرودگاه"
+    finance: "بانک"
+    military: "پادگان"
+    extraction: "معدن"

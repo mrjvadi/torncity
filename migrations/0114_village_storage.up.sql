@@ -1,4 +1,4 @@
--- 0116_village_storage: the working storehouse (storage and market audit
+-- 0114_village_storage: the working storehouse (storage and market audit
 -- 2026-10-03, phase P2; docs/adr/0041 6.4, building_functions.yml storage rows).
 --
 -- A settlement's stock is kept in three CLASSES (bulk, food, goods) and a

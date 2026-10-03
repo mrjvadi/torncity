@@ -1,4 +1,4 @@
--- 0117_village_market: the village book (storage and market audit 2026-10-03,
+-- 0115_village_market: the village book (storage and market audit 2026-10-03,
 -- phase P3; docs/adr/0040 section 5).
 --
 -- A founded settlement's market is its own: a stall costs a listing fee when an

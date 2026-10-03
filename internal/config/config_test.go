@@ -580,14 +580,18 @@ settlement:
   village_grid_lots: 6
   min_buildable_lot_share_bps: 6500
   grid_shift_max_lots: 4
-  grid_max_lots: 42
-  grid_lot_price: 51
-  grid_price_step_bps: 501
   auto_road_cost: 11
   lot_access_crossing_cost: 61
   lot_access_max_crossing: 3
   street_pitch: 6
   street_plan_min_grid: 13
+  road_frontage_depth_lots: 4
+  road_plan_max_lots: 1501
+  road_open_lots_max: 30001
+  road_foreign_buffer_tiles: 4
+  road_steep_slope_m: 31
+  road_corridor_ring_tiles: 2
+  road_track_cost_bps: 15001
   founding_draft_ttl: 31m
   founding_name_min: 4
   founding_name_max: 25
@@ -1016,14 +1020,18 @@ var envOverrides = map[string]string{
 	"TORN_SETTLEMENT_VILLAGE_GRID_LOTS":             "7",
 	"TORN_SETTLEMENT_MIN_BUILDABLE_LOT_SHARE_BPS":   "6600",
 	"TORN_SETTLEMENT_GRID_SHIFT_MAX_LOTS":           "5",
-	"TORN_SETTLEMENT_GRID_MAX_LOTS":                 "43",
-	"TORN_SETTLEMENT_GRID_LOT_PRICE":                "52",
-	"TORN_SETTLEMENT_GRID_PRICE_STEP_BPS":           "502",
 	"TORN_SETTLEMENT_AUTO_ROAD_COST":                "12",
 	"TORN_SETTLEMENT_LOT_ACCESS_CROSSING_COST":      "62",
 	"TORN_SETTLEMENT_LOT_ACCESS_MAX_CROSSING":       "4",
 	"TORN_SETTLEMENT_STREET_PITCH":                  "7",
 	"TORN_SETTLEMENT_STREET_PLAN_MIN_GRID":          "14",
+	"TORN_SETTLEMENT_ROAD_FRONTAGE_DEPTH_LOTS":      "5",
+	"TORN_SETTLEMENT_ROAD_PLAN_MAX_LOTS":            "1502",
+	"TORN_SETTLEMENT_ROAD_OPEN_LOTS_MAX":            "30002",
+	"TORN_SETTLEMENT_ROAD_FOREIGN_BUFFER_TILES":     "5",
+	"TORN_SETTLEMENT_ROAD_STEEP_SLOPE_M":            "32",
+	"TORN_SETTLEMENT_ROAD_CORRIDOR_RING_TILES":      "3",
+	"TORN_SETTLEMENT_ROAD_TRACK_COST_BPS":           "15002",
 	"TORN_SETTLEMENT_FOUNDING_DRAFT_TTL":            "32m",
 	"TORN_SETTLEMENT_FOUNDING_NAME_MIN":             "5",
 	"TORN_SETTLEMENT_FOUNDING_NAME_MAX":             "26",

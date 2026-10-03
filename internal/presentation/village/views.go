@@ -35,8 +35,26 @@ const (
 	VillageBatch = "batch"
 	// VillageNoRoad is a building no road could ever reach.
 	VillageNoRoad = "no_road"
-	// VillageGridMax is the technical bound on a grid's side.
-	VillageGridMax = "grid_max"
+	// Roads that open land (docs/adr/0044 5.5).
+	// RoadNoNetwork: the village has no road or hall to start a road beside.
+	// RoadEndBlocked: the end of the road is a lot nothing can be laid on.
+	// RoadWater: the end lies in open water. RoadNoRoute: no line reaches it.
+	// RoadNoBridge: the line needs a longer bridge than the class carries.
+	// RoadTooLong: the plan is longer than a plan may be. RoadForeign: the end
+	// is land of another settlement. RoadOpenCap: the village already holds the
+	// most open lots. RoadInUse: a plan with a laid stretch or a sold lot is not
+	// cancelled. RoadSame: the end is where the road already is.
+	RoadNoNetwork   = "road_no_network"
+	RoadEndBlocked  = "road_end_blocked"
+	RoadWater       = "road_water"
+	RoadNoRoute     = "road_no_route"
+	RoadNoBridge    = "road_no_bridge"
+	RoadTooLong     = "road_too_long"
+	RoadForeign     = "road_foreign"
+	RoadOpenCap     = "road_open_cap"
+	RoadInUse       = "road_in_use"
+	RoadSame        = "road_same"
+	RoadClassLocked = "road_class_locked"
 	// Residence (village_residence.go).
 	VillageAlreadyResident = "already_resident"
 	VillageNotResident     = "not_resident"
@@ -280,6 +298,8 @@ const (
 	LotRoad     = "road"
 	LotWater    = "water"
 	LotSteep    = "steep"
+	// LotPlanned is a lot of a drawn road that is not laid yet.
+	LotPlanned = "planned"
 )
 
 // LotCell is one lot of the grid, as the leader sees it choosing where a
@@ -300,6 +320,10 @@ type LotCell struct {
 
 // LotGridView is a settlement's own placement grid for one building type.
 type LotGridView struct {
+	// Outer is the same picture for the land the roads opened beyond the first
+	// grid: absolute lot coordinates, which may be negative; the road cells of
+	// every plan have the state "planned" or "road".
+	Outer          []LotCell
 	SettlementName string
 	Building       presentation.Named
 	// CanRotate says the building's footprint is not square, so a rotate
@@ -492,17 +516,6 @@ type BatchLotFailure struct {
 	Kind string
 }
 
-// GridGrowView is the price and yield of the next expansion.
-type GridGrowView struct {
-	SettlementName string
-	Side, NewSide  int
-	LotsGained     int
-	// BuildableGained is how many of the new lots are dry buildable ground.
-	BuildableGained int
-	Price           int64
-	Treasury        int64
-}
-
 // Refusals of the citizen loop; their text is citizen.refusal.<kind>.
 const (
 	CitizenLotTaken    = "citizen_lot_taken"
@@ -581,6 +594,8 @@ const (
 	LandReserved = "reserved"
 	LandWater    = "water"
 	LandSteep    = "steep"
+	// LandPlanned is a lot of a drawn road that is not laid yet.
+	LandPlanned = "planned"
 )
 
 // LandCell is one lot of the land grid. Owner is who holds a lot that is not
@@ -615,6 +630,70 @@ type LandView struct {
 	// reach (the lots that can really be bought).
 	FreeLots   int
 	ServedLots int
+	// Outer is the land the roads opened, beyond the first grid (and west and
+	// south of it): the road cells of every plan and the lots along them, with
+	// their absolute lot coordinates (X and Y may be negative). Roads lists the
+	// drawn roads; CanDraw says the viewer may draw one.
+	Outer   []LandCell
+	Roads   []RoadPlanLine
+	CanDraw bool
+}
+
+// RoadPlanLine is one drawn road as the land screen lists it.
+type RoadPlanLine struct {
+	ID    string
+	Class presentation.Named
+	// Lots is the road's length in lots, Built how many are laid, Open how many
+	// buildable lots along it are still for sale, Sold how many are bought.
+	Lots, Built, Open, Sold int
+	// To is the lot the road was drawn to; Cancellable says nothing is laid or
+	// sold on it, so the viewer who may draw may take it back.
+	To          LotRef
+	Cancellable bool
+}
+
+// RoadClassOption is a road class the quote offers: its price per lot and
+// whether the village has the research for it.
+type RoadClassOption struct {
+	Class     presentation.Named
+	LotCost   int64
+	Available bool
+	// Missing names the research the class still needs.
+	Missing []presentation.Named
+}
+
+// RoadQuoteView is a road drawn out of the village: its quote (the answer of
+// settlement.road.plan before it is confirmed) and, once confirmed, the plan
+// that was stored. The road is built, and charged, only when a lot it serves is
+// bought (ADR 0044 5.5): the full price here is what the buyers pay between them.
+type RoadQuoteView struct {
+	SettlementName string
+	SettlementID   string
+	PlanID         string
+	From, To       LotRef
+	Class          presentation.Named
+	Options        []RoadClassOption
+	// Lots is the road's length in lots, LengthM in metres; Crossings the lots
+	// that ford, culvert or bridge water; ClimbM the sum of its rises;
+	// MaxGradeBPS its steepest step.
+	Lots, Crossings, LengthM, ClimbM, MaxGradeBPS int
+	// LotCost and CrossingCost are the price of one lot of road and of one lot
+	// of ford or bridge; FullCost the price of laying all of it.
+	LotCost, CrossingCost, FullCost int64
+	// Opens counts the lots along the road: Usable ones can be bought and built
+	// on, Water and Steep ones cannot (and say why).
+	Opens, Usable, Water, Steep int
+	// Path is the line, from the lot beside From to To.
+	Path []LotRef
+	// OpenCells are the lots the road opens, with their state.
+	OpenCells []LandCell
+}
+
+// RoadCancelledView is a road taken back before anything was laid or sold.
+type RoadCancelledView struct {
+	SettlementName string
+	PlanID         string
+	Lots           int
 }
 
 // LotBuyView is the confirm of a purchase and its result.
@@ -714,6 +793,8 @@ type PrivateMenuView struct {
 // PrivateLotsView is the grid a private building's lot is chosen from: a cell
 // fits only where every lot of the footprint is the builder's own and free.
 type PrivateLotsView struct {
+	// Outer: see LotGridView.Outer.
+	Outer     []LotCell
 	Village   string
 	Building  presentation.Named
 	CanRotate bool

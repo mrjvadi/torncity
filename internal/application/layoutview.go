@@ -185,3 +185,33 @@ func LayoutVersionsWithTenure(settlementID, tier, name string, gridLots int, row
 		Public: LayoutVersionOf(settlementID, tier, name, gridLots, false, public),
 	}
 }
+
+// LandMark hashes the drawn roads for the member versions of a layout: which
+// plans stand and which of their cells are laid. Empty while no road has been
+// drawn, so a village without one keeps the version it always had.
+func LandMark(plans []RoadPlanRow, cells []RoadCellRow) string {
+	if len(plans) == 0 {
+		return ""
+	}
+	parts := make([]string, 0, len(plans)+len(cells))
+	for _, p := range plans {
+		parts = append(parts, "p"+p.ID+","+p.Class)
+	}
+	for _, c := range cells {
+		if c.Built() {
+			parts = append(parts, "b"+strconv.Itoa(c.X)+","+strconv.Itoa(c.Y))
+		}
+	}
+	sort.Strings(parts)
+	h := fnv.New64a()
+	_, _ = h.Write([]byte(strings.Join(parts, ";")))
+	return hex.EncodeToString(h.Sum(nil))
+}
+
+// JoinMarks folds the land mark into the tenure mark.
+func JoinMarks(tenure, land string) string {
+	if land == "" {
+		return tenure
+	}
+	return tenure + "|" + land
+}

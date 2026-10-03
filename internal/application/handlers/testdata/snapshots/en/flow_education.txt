@@ -3,20 +3,13 @@
 <b>🎓 Education</b>
 
 Courses you can take here:
+• Reading and Writing Class - 200 SUP - 12m
 • First Aid - 600 SUP - 2m
 • Driving Licence - 900 SUP - 3m
-• Bookkeeping - 1,200 SUP - 4m
-• Programming Fundamentals - 2,000 SUP - 6m
-🔒 Retail Management - 2,800 SUP - 8m - from level 4
-
-Page 1 of 2
   ───
+  [📖 Reading and Writing Class] → education:view:literacy_class
   [📖 First Aid] → education:view:first_aid
   [📖 Driving Licence] → education:view:driving_licence
-  [📖 Bookkeeping] → education:view:bookkeeping
-  [📖 Programming Fundamentals] → education:view:programming_fundamentals
-  [📖 Retail Management] → education:view:retail_management
-  [Next ➡️] → education:list:2
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → education:list:1
 
 ━━━ First Aid ━━━
@@ -76,20 +69,13 @@ The course finishes on its own, and you will be notified.
 ⏳ Finishing any moment now.
 
 Courses you can take here:
+• Reading and Writing Class - 200 SUP - 12m
 • First Aid - 600 SUP - 2m
 • Driving Licence - 900 SUP - 3m
-• Bookkeeping - 1,200 SUP - 4m
-• Programming Fundamentals - 2,000 SUP - 6m
-🔒 Retail Management - 2,800 SUP - 8m - from level 4
-
-Page 1 of 2
   ───
+  [📖 Reading and Writing Class] → education:view:literacy_class
   [📖 First Aid] → education:view:first_aid
   [📖 Driving Licence] → education:view:driving_licence
-  [📖 Bookkeeping] → education:view:bookkeeping
-  [📖 Programming Fundamentals] → education:view:programming_fundamentals
-  [📖 Retail Management] → education:view:retail_management
-  [Next ➡️] → education:list:2
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → education:list:1
 
 ━━━ Profile while studying ━━━
@@ -122,7 +108,7 @@ Page 1 of 2
 ━━━ Enrol in a second course ━━━
 (edits message 42)
 You cannot enrol in this course yet:
-❌ You are already studying First Aid. You can take one course at a time.
+❌ Certificate: Reading and Writing Class
   ───
   [🎓 Education] → education:list
   [🔙 Back] → player:profile.get
@@ -143,8 +129,8 @@ On completion:
 
 Requirements:
 ❌ This course is taught in Fenwick Span.
-❌ Level 4 (you are level 1)
 ❌ Certificate: First Aid
+❌ Certificate: Reading and Writing Class
 ❌ You are already studying First Aid. You can take one course at a time.
   ───
   [🔙 Back] → education:list   │   [🔄 Refresh] → education:view:nursing
@@ -154,6 +140,7 @@ Requirements:
 You cannot enrol in this course yet:
 ❌ This course is taught in Fenwick Span.
 ❌ Certificate: First Aid
+❌ Certificate: Reading and Writing Class
   ───
   [🎓 Education] → education:list
   [🔙 Back] → player:profile.get
@@ -174,20 +161,11 @@ You cannot enrol in this course yet:
 📜 Certificates: First Aid
 
 Courses you can take here:
+• Reading and Writing Class - 200 SUP - 12m
 • Driving Licence - 900 SUP - 3m
-• Bookkeeping - 1,200 SUP - 4m
-• Programming Fundamentals - 2,000 SUP - 6m
-🔒 Retail Management - 2,800 SUP - 8m - from level 4
-🔒 Officer Training - 2,500 SUP - 12m - from level 4
-
-Page 1 of 2
   ───
+  [📖 Reading and Writing Class] → education:view:literacy_class
   [📖 Driving Licence] → education:view:driving_licence
-  [📖 Bookkeeping] → education:view:bookkeeping
-  [📖 Programming Fundamentals] → education:view:programming_fundamentals
-  [📖 Retail Management] → education:view:retail_management
-  [📖 Officer Training] → education:view:officer_training
-  [Next ➡️] → education:list:2
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → education:list:1
 
 ━━━ Profile after the course ━━━
@@ -229,20 +207,17 @@ On completion:
 🛠 Finance: +250 XP
 📜 The Bookkeeping certificate
 
-💸 Neither your cash nor your bank balance covers this.
-💵 Your cash: 100 SUP - Bank: 0 SUP
+Requirements:
+❌ Certificate: Reading and Writing Class
   ───
-  [🏦 Bank] → bank:show
   [🔙 Back] → education:list   │   [🔄 Refresh] → education:view:bookkeeping
 
 ━━━ Enrol without the fee ━━━
-(edits message 42) (private in groups)
-💸 You do not have enough to pay 1,200 SUP.
-💵 Cash: 100 SUP
-🏦 Bank: 0 SUP
-Nothing was charged.
+(edits message 42)
+You cannot enrol in this course yet:
+❌ Certificate: Reading and Writing Class
   ───
-  [📖 Back to the course] → education:view:bookkeeping   │   [🏦 Bank] → bank:show
+  [🎓 Education] → education:list
   [🔙 Back] → player:profile.get
 
 ━━━ A course that does not exist ━━━

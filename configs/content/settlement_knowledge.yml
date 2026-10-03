@@ -401,3 +401,75 @@ knowledge:
     provides: [market_access, formal_market_access]
     cost: 5500
     time: 42h
+
+  # ---------------------------------------------------------------------
+  # The training chain (docs/research/2026-10-03-activities-audit.md). A
+  # course, a career, a skill or a crime that needs a body of know-how names
+  # the research below; a settlement that has not researched it does not
+  # offer it. Order of the chain: literacy -> mathematics -> mechanics ->
+  # electricity -> computing. Codes stay neutral and functional.
+  # ---------------------------------------------------------------------
+  - code: basic_mathematics
+    name: "حساب و هندسه"
+    requires: [basic_literacy]
+    provides: [numeracy]
+    cost: 5000
+    time: 48h
+  - code: applied_mechanics
+    name: "مکانیک کاربردی"
+    requires: [smithing_ii, basic_mathematics]
+    provides: [machine_craft]
+    cost: 9000
+    time: 72h
+  - code: electricity
+    name: "برق"
+    requires: [applied_mechanics]
+    provides: [electrification]
+    cost: 14000
+    time: 96h
+  - code: computing
+    name: "رایانه"
+    requires: [electricity, record_keeping]
+    provides: [computing]
+    family: computing
+    generation: 1
+    cost: 24000
+    time: 120h
+  - code: computing_ii
+    name: "رایانهٔ پیشرفته"
+    requires: [computing]
+    family: computing
+    generation: 2
+    cost: 40000
+    time: 160h
+  - code: culinary_craft
+    name: "آشپزی حرفه‌ای"
+    requires: [milling]
+    provides: [cookery]
+    cost: 2500
+    time: 20h
+  - code: retail_trade
+    name: "فروشندگی و حساب مغازه"
+    requires: [periodic_market, basic_mathematics]
+    provides: [retail_practice]
+    cost: 4000
+    time: 36h
+  - code: road_code
+    name: "قانون راه و رانندگی"
+    requires: [record_keeping, applied_mechanics]
+    provides: [traffic_law]
+    cost: 5000
+    time: 40h
+  - code: military_drill
+    name: "آموزش نظامی"
+    requires: [formal_constabulary]
+    provides: [local_security]
+    restricted: true
+    cost: 6000
+    time: 48h
+  - code: printing
+    name: "چاپ"
+    requires: [basic_literacy, applied_mechanics]
+    provides: [printing]
+    cost: 6000
+    time: 48h

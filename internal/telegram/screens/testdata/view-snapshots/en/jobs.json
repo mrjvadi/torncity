@@ -577,6 +577,7 @@
         "title": ""
       },
       "employed": false,
+      "gaps": null,
       "openings": [
         {
           "eligible": true,
@@ -638,6 +639,7 @@
         "title": "Sales Trainee"
       },
       "employed": true,
+      "gaps": null,
       "openings": [
         {
           "eligible": true,
@@ -679,6 +681,7 @@
         "title": ""
       },
       "employed": false,
+      "gaps": null,
       "openings": null,
       "page": 1,
       "pages": 1,
@@ -699,6 +702,7 @@
         "title": ""
       },
       "employed": false,
+      "gaps": null,
       "openings": null,
       "page": 0,
       "pages": 0,

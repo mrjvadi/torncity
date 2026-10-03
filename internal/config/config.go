@@ -818,18 +818,6 @@ type Settlement struct {
 	// slide from its cell's centre to find a placement that meets the share.
 	GridShiftMaxLots int // settlement.grid_shift_max_lots
 
-	// Land (the grid's growth, docs/adr/0033 section 8.4 as the owner
-	// corrected it): a village owns as much land as it pays for. Growth is
-	// never tied to the tier; it is bounded by the world's terrain and by
-	// this price, and by GridMaxLots, a TECHNICAL bound on a grid's side (so
-	// a layout stays a sane size to sample, send and draw), not a game rule.
-	GridMaxLots int // settlement.grid_max_lots
-	// GridLotPrice is the price, minor units, of one lot of new land;
-	// GridPriceStepBPS makes each earlier expansion dearer: a step's price
-	// is its lots x GridLotPrice x (10000 + GridPriceStepBPS x expansions
-	// so far) / 10000.
-	GridLotPrice     int64 // settlement.grid_lot_price
-	GridPriceStepBPS int64 // settlement.grid_price_step_bps
 	// AutoRoadCost is what the treasury pays for each lot of road the game
 	// lays by itself to connect a new building: a small fee (a road laid by
 	// hand costs 50), so the game never lays roads for nothing yet a road is
@@ -845,6 +833,20 @@ type Settlement struct {
 	LotAccessMaxCrossing  int   // settlement.lot_access_max_crossing
 	StreetPitch           int   // settlement.street_pitch
 	StreetPlanMinGrid     int   // settlement.street_plan_min_grid
+	// How many lots deep a road opens the land along it (the frontage band, ADR 0044 5.5/5.6).
+	RoadFrontageDepthLots int // settlement.road_frontage_depth_lots
+	// The longest single road plan, in lots (a TECHNICAL bound on one plan's size, about 45 km; the real limits are terrain, other settlements' land and the cost of building it when lots are bought).
+	RoadPlanMaxLots int // settlement.road_plan_max_lots
+	// The most unsold lots a settlement's roads may hold open at once (a TECHNICAL bound against claiming a whole continent with free plans; selling lots or cancelling an unbought plan frees room).
+	RoadOpenLotsMax int // settlement.road_open_lots_max
+	// How many tiles round another settlement's first grid are closed to our roads (its land; ADR 0044 5.5 claim rule).
+	RoadForeignBufferTiles int // settlement.road_foreign_buffer_tiles
+	// A lot whose ground differs from a side neighbour by more than this many metres cannot be built on (shown as steep).
+	RoadSteepSlopeM int // settlement.road_steep_slope_m
+	// How many tiles the lot router may stray from the world router's line.
+	RoadCorridorRingTiles int // settlement.road_corridor_ring_tiles
+	// Price of a lot of the researched track class against a footpath lot, in basis points of auto_road_cost.
+	RoadTrackCostBPS int // settlement.road_track_cost_bps
 
 	// The founding form: a group's «ساخت روستا» opens a draft the founder
 	// completes in the game client (name, currency, emblem) before the
@@ -1608,14 +1610,18 @@ func Defaults() *Config {
 
 			MinBuildableLotShareBps: 7000,
 			GridShiftMaxLots:        3,
-			GridMaxLots:             41,
-			GridLotPrice:            50,
-			GridPriceStepBPS:        500,
 			AutoRoadCost:            10,
 			LotAccessCrossingCost:   60,
 			LotAccessMaxCrossing:    2,
 			StreetPitch:             5,
 			StreetPlanMinGrid:       12,
+			RoadFrontageDepthLots:   3,
+			RoadPlanMaxLots:         1500,
+			RoadOpenLotsMax:         30000,
+			RoadForeignBufferTiles:  3,
+			RoadSteepSlopeM:         30,
+			RoadCorridorRingTiles:   1,
+			RoadTrackCostBPS:        15000,
 
 			FoundingDraftTTL:          30 * time.Minute,
 			FoundingNameMin:           3,
@@ -2013,9 +2019,6 @@ func (c *Config) Validate() error {
 
 	if v := c.Settlement.MinBuildableLotShareBps; v > 10_000 {
 		return fmt.Errorf("%w: settlement.min_buildable_lot_share_bps is %d, want 1 to 10000", ErrBPSTooLarge, v)
-	}
-	if v := c.Settlement.GridMaxLots; v < c.Settlement.VillageGridLots || v > 101 {
-		return fmt.Errorf("%w: settlement.grid_max_lots is %d, want the village grid (%d) to 101", ErrInvalidValue, v, c.Settlement.VillageGridLots)
 	}
 	if v := c.Settlement.GridShiftMaxLots; v > 10 {
 		return fmt.Errorf("%w: settlement.grid_shift_max_lots is %d, want 1 to 10", ErrInvalidValue, v)

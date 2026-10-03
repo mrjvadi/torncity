@@ -45,11 +45,7 @@ version: 1
 # tier (the ADR's "the building itself is the gate"), kept readable until their own
 # prerequisites are written. The list may only shrink: gating an entry makes the
 # lint demand its removal, and the shipped-content test pins its size.
-legacy_stage_only:
-  - building/bank
-  - building/barracks
-  - building/port
-  - building/airport
+legacy_stage_only: []
 
 # People who make a service run. Support always has an NPC for the role.
 staff_roles:
@@ -83,17 +79,17 @@ staff_roles:
   - {code: tea_server, building: {code: teahouse_inn}, skill: hospitality, wage_bps: 10000, support_npc: true, note: "RESEARCH 2026-10-03 2.5; ADR 0041 5.1"}
   - {code: housekeeper, building: {code: teahouse_inn}, support_npc: true, note: "RESEARCH 2026-10-03 2.3: hotel level 2; skill and wage not written (needs research)"}
   - {code: hotel_manager, building: {code: teahouse_inn}, personal: [{kind: literacy}], support_npc: true, note: "RESEARCH 2026-10-03 2.5"}
-  - {code: registrar, building: {code: land_registry}, personal: [{kind: literacy}], planned_personal: [{kind: certificate, code: registry_clerk}], support_npc: true, note: "RESEARCH 2026-10-03 5.5; the certificate registry_clerk is ADR 0036's town row, its course is not in education.yml yet"}
-  - {code: surveyor, building: {code: land_registry}, personal: [{kind: literacy}], planned_personal: [{kind: certificate, code: surveyor}], support_npc: true, note: "RESEARCH 2026-10-03 5.5; the course surveyor is not in education.yml yet"}
+  - {code: registrar, building: {code: land_registry}, personal: [{kind: literacy}, {kind: certificate, code: registry_clerk}], support_npc: true, note: "RESEARCH 2026-10-03 5.5; the course registry_clerk is in education.yml"}
+  - {code: surveyor, building: {code: land_registry}, personal: [{kind: literacy}, {kind: certificate, code: surveyor}], support_npc: true, note: "RESEARCH 2026-10-03 5.5; the course surveyor is in education.yml"}
   - {code: moneychanger, building: {code: exchange_house}, personal: [{kind: literacy}], support_npc: true, note: "RESEARCH 2026-10-03 6.5"}
   - {code: teller, building: {code: bank}, personal: [{kind: literacy}, {kind: certificate, code: bookkeeping}], support_npc: true, note: "RESEARCH 2026-10-03 6.5"}
-  - {code: loan_officer, building: {code: bank}, personal: [{kind: skill, code: finance, min: 2}], planned_personal: [{kind: certificate, code: credit_analysis}], support_npc: true, note: "RESEARCH 2026-10-03 6.5; the course credit_analysis is not in education.yml yet"}
+  - {code: loan_officer, building: {code: bank}, personal: [{kind: skill, code: finance, min: 2}, {kind: certificate, code: credit_analysis}], support_npc: true, note: "RESEARCH 2026-10-03 6.5; the course credit_analysis is in education.yml"}
   - {code: bank_manager, building: {code: bank}, personal: [{kind: skill, code: management, min: 3}, {kind: skill, code: finance, min: 3}], support_npc: true, note: "RESEARCH 2026-10-03 6.5"}
   - {code: banksman, skill: "", support_npc: true, note: "ADR 0045 8.3 (the hoist's banksman); prerequisite, skill and wage class not written (needs research)"}
 
 # Personal prerequisites that no certifying course provides yet.
 personal_sources:
-  - {kind: literacy, support: true, buildings: [teaching_circle], status: planned, note: "the literacy lesson (ADR 0038 owner decision 4) is not in education.yml yet: audit M-01"}
+  - {kind: literacy, support: true, buildings: [teaching_circle], note: "the literacy lesson (ADR 0038 owner decision 4) is the course literacy_class (education.yml): audit M-01"}
 
 availability:
   # ---- buildings: stage is the tier (1 village, 2 town, 3+ city); prerequisites are the building's own requires_* fields
@@ -102,10 +98,10 @@ availability:
   - {kind: building, code: housing_block, stage: undecided, growth: {requires: {knowledge: [masonry_ii], buildings: [{role: housing, tier: 1}]}, row: 3}, question: بلوک مسکونی در سطح روستا تعریف شده است، اما در واقعیت آپارتمان‌سازی از شهرک به بالا است. آیا باید به سطح دو (شهرک) برود؟}
   - {kind: building, code: cottage, stage: village, growth: {open: true, founding: true, row: 4}}
   - {kind: building, code: park, stage: village, growth: {open: true, founding: true, row: 5}}
-  - {kind: building, code: bank, stage: city, elsewhere: [{where: support}]}
-  - {kind: building, code: barracks, stage: town, elsewhere: [{where: support}]}
-  - {kind: building, code: port, stage: city, elsewhere: [{where: support}]}
-  - {kind: building, code: airport, stage: city, elsewhere: [{where: support}]}
+  - {kind: building, code: bank, stage: city, growth: {requires: {knowledge: [double_entry_bookkeeping, masonry_iii], buildings: [{role: market, tier: 2}, {code: civic_hall}]}, note: "2026-10-03 audit: a ledger tradition, a vault of dressed stone, a market with volume and the hall that holds the treasury; the teller is staffed after it stands"}, elsewhere: [{where: support}]}
+  - {kind: building, code: barracks, stage: town, growth: {requires: {knowledge: [military_drill, masonry_ii], buildings: [{role: security, tier: 1}, {role: storage, tier: 1}]}, note: "2026-10-03 audit: drilled men need a watch to recruit from and a granary to feed them"}, elsewhere: [{where: support}]}
+  - {kind: building, code: port, stage: city, growth: {requires: {knowledge: [trading_post, masonry_iii, carpentry_iii], buildings: [{role: market, tier: 2}, {code: road}]}, note: "2026-10-03 audit: a trading post for the harbour trade, quay masonry, ship carpentry, a market and a road to carry cargo"}, elsewhere: [{where: support}]}
+  - {kind: building, code: airport, stage: city, growth: {requires: {knowledge: [electricity, masonry_iii], buildings: [{code: road}, {role: craft, tier: 3}, {role: extraction, tier: 2}]}, note: "2026-10-03 audit: lighting and radio need electricity, fuel needs a mine, aircraft need a large workshop, the runway needs a road and dressed stone"}, elsewhere: [{where: support}]}
   - {kind: building, code: woodcutter_camp, stage: village, growth: {open: true, founding: true, row: 10}}
   - {kind: building, code: watch_hut, stage: village}
   - {kind: building, code: militia_camp, stage: village}
@@ -133,7 +129,7 @@ availability:
   - {kind: building, code: health_house, stage: village, growth: {open: true, founding: true, row: 34}, elsewhere: [{where: support}]}
   - {kind: building, code: clinic, stage: town, elsewhere: [{where: support}]}
   - {kind: building, code: teaching_circle, stage: village, growth: {open: true, founding: true, row: 36}, elsewhere: [{where: support}]}
-  - {kind: building, code: school, stage: town, elsewhere: [{where: support}], note: "gated by min_literacy_share_bps 5000 in the building itself; it names no teacher knowledge (state_school) yet, see audit M-09"}
+  - {kind: building, code: school, stage: town, growth: {requires: {knowledge: [temple_school]}, note: "2026-10-03 audit M-09: a teaching tradition (the building itself asks for a teaching circle and half the people literate)"}, elsewhere: [{where: support}], note: "gated by min_literacy_share_bps 5000 in the building itself; it names no teacher knowledge (state_school) yet, see audit M-09"}
   - {kind: building, code: barter_post, stage: village, growth: {open: true, founding: true, row: 38}, elsewhere: [{where: support}]}
   - {kind: building, code: market, stage: town, elsewhere: [{where: support}]}
   - {kind: building, code: granary, stage: village, growth: {open: true, founding: true, row: 40}}
@@ -188,39 +184,58 @@ availability:
   - {kind: knowledge, code: periodic_market, stage: town, elsewhere: [{where: support}]}
   - {kind: knowledge, code: endowed_market_hall, stage: town, elsewhere: [{where: support}]}
   - {kind: knowledge, code: trading_post, stage: town, elsewhere: [{where: support}]}
+  # the training chain (research 2026-10-03): no stage, the item's own requires is the gate
+  - {kind: knowledge, code: basic_mathematics, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: applied_mechanics}
+  - {kind: knowledge, code: electricity}
+  - {kind: knowledge, code: computing}
+  - {kind: knowledge, code: computing_ii}
+  - {kind: knowledge, code: culinary_craft}
+  - {kind: knowledge, code: retail_trade}
+  - {kind: knowledge, code: road_code}
+  - {kind: knowledge, code: military_drill}
+  - {kind: knowledge, code: printing}
 
   # ---- courses and education (ADR 0038 section 5 and owner decisions 4 and 6): a course needs the knowledge, the building and a teacher; Support teaches every one
   - {kind: course, code: first_aid, stage: village, requires: {knowledge: [basic_medicine], buildings: [{role: health, tier: 1}]}, elsewhere: [{where: support}], note: "taught by the health worker, who is trained in Support (no teacher role needed: avoids a circle)"}
-  - {kind: course, code: driving_licence, stage: town, growth: {requires: {buildings: [{role: education, tier: 1}, {code: road}]}, row: 86, note: "App. A row 86: the driving-skill teacher is not a staff role yet"}, elsewhere: [{where: support}], note: "owner decision 2026-10-01: from town"}
-  - {kind: course, code: bookkeeping, stage: town, requires: {knowledge: [record_keeping], buildings: [{role: education, tier: 2}], staff: [teacher], personal: [{kind: literacy}]}, elsewhere: [{where: support}]}
-  - {kind: course, code: programming_fundamentals, stage: city, requires: {buildings: [{role: education, tier: 2}], staff: [teacher], personal: [{kind: literacy}]}, elsewhere: [{where: support}]}
-  - {kind: course, code: retail_management, stage: town, requires: {buildings: [{role: education, tier: 2}], staff: [teacher], personal: [{kind: literacy}]}, elsewhere: [{where: support}]}
-  - {kind: course, code: culinary_arts, stage: town, requires: {buildings: [{role: education, tier: 2}], staff: [teacher], personal: [{kind: literacy}]}, elsewhere: [{where: support}]}
-  - {kind: course, code: automotive_repair, stage: city, requires: {buildings: [{role: education, tier: 2}], staff: [teacher], personal: [{kind: literacy}]}, elsewhere: [{where: support}]}
+  - {kind: course, code: driving_licence, stage: town, growth: {requires: {knowledge: [road_code], buildings: [{role: education, tier: 1}, {code: road}]}, row: 86, note: "App. A row 86 and the 2026-10-03 audit: traffic law is researched; the driving-skill teacher is not a staff role yet"}, elsewhere: [{where: support}], note: "owner decision 2026-10-01: from town"}
+  - {kind: course, code: bookkeeping, stage: town, requires: {knowledge: [record_keeping], buildings: [{role: education, tier: 1}], staff: [teacher], personal: [{kind: literacy}]}, elsewhere: [{where: support}]}
+  - {kind: course, code: programming_fundamentals, stage: city, requires: {knowledge: [computing], buildings: [{role: education, tier: 2}, {role: craft, tier: 3}], staff: [teacher], personal: [{kind: literacy}]}, elsewhere: [{where: support}]}
+  - {kind: course, code: retail_management, stage: town, requires: {knowledge: [retail_trade], buildings: [{role: education, tier: 2}, {role: market, tier: 1}], staff: [teacher], personal: [{kind: literacy}]}, elsewhere: [{where: support}]}
+  - {kind: course, code: culinary_arts, stage: town, requires: {knowledge: [culinary_craft], buildings: [{role: education, tier: 2}, {role: food, tier: 1}], staff: [teacher], personal: [{kind: literacy}]}, elsewhere: [{where: support}]}
+  - {kind: course, code: automotive_repair, stage: city, requires: {knowledge: [applied_mechanics], buildings: [{role: education, tier: 2}, {role: craft, tier: 1}], staff: [teacher], personal: [{kind: literacy}]}, elsewhere: [{where: support}]}
   - {kind: course, code: nursing, stage: city, requires: {knowledge: [basic_medicine_ii], buildings: [{role: education, tier: 2}, {role: health, tier: 2}], staff: [teacher], personal: [{kind: literacy}]}, elsewhere: [{where: support}]}
-  - {kind: course, code: software_engineering, stage: city, requires: {buildings: [{role: education, tier: 2}], staff: [teacher], personal: [{kind: literacy}]}, elsewhere: [{where: support}]}
-  - {kind: course, code: officer_training, stage: city, requires: {buildings: [{code: barracks}], staff: [teacher], personal: [{kind: literacy}]}, elsewhere: [{where: support}]}
+  - {kind: course, code: software_engineering, stage: city, requires: {knowledge: [computing_ii], buildings: [{role: education, tier: 2}, {role: craft, tier: 3}], staff: [teacher], personal: [{kind: literacy}]}, elsewhere: [{where: support}]}
+  - {kind: course, code: officer_training, stage: city, requires: {knowledge: [military_drill], buildings: [{code: barracks}], staff: [teacher], personal: [{kind: literacy}]}, elsewhere: [{where: support}]}
   - {kind: course, code: evening_accounting, stage: town, requires: {knowledge: [record_keeping], buildings: [{role: education, tier: 2}], staff: [teacher], personal: [{kind: literacy}]}, elsewhere: [{where: support}]}
+  # 2026-10-03 audit: the first lessons of a settlement and the craft and clerk certificates (education.yml)
+  - {kind: course, code: literacy_class, requires: {knowledge: [basic_literacy], buildings: [{role: education, tier: 1}], staff: [teacher]}, elsewhere: [{where: support}], note: "the literacy lesson of ADR 0038 owner decision 4; every personal «literacy» requirement means this certificate"}
+  - {kind: course, code: carpentry_craft, requires: {knowledge: [carpentry], buildings: [{code: carpentry_workshop}], staff: [carpenter]}, elsewhere: [{where: support}]}
+  - {kind: course, code: masonry_craft, requires: {knowledge: [masonry], buildings: [{code: masonry_workshop}], staff: [mason]}, elsewhere: [{where: support}]}
+  - {kind: course, code: smithing_craft, requires: {knowledge: [smithing], buildings: [{code: smithy}], staff: [smith]}, elsewhere: [{where: support}]}
+  - {kind: course, code: registry_clerk, requires: {knowledge: [record_keeping], buildings: [{role: education, tier: 1}], staff: [teacher]}, elsewhere: [{where: support}]}
+  - {kind: course, code: surveyor, requires: {knowledge: [land_survey], buildings: [{role: education, tier: 1}], staff: [teacher]}, elsewhere: [{where: support}]}
+  - {kind: course, code: credit_analysis, requires: {knowledge: [double_entry_bookkeeping], buildings: [{role: education, tier: 2}], staff: [teacher]}, elsewhere: [{where: support}]}
 
   # ---- careers (jobs.yml): village work is the labour board (ADR 0037); these ladders start at town; certificates come from the career's own required_certifications
-  - {kind: career, code: retail, stage: town, requires: {buildings: [{role: market, tier: 1}]}, elsewhere: [{where: support}]}
+  - {kind: career, code: retail, stage: town, requires: {knowledge: [barter_ring], buildings: [{role: market, tier: 1}]}, elsewhere: [{where: support}]}
   - {kind: career, code: hospitality, stage: undecided, growth: {deferred: building_missing, row: 97, note: "App. A: an inn building (housing role); the catalogue has none"}, requires: {}, elsewhere: [{where: support}], question: آیا مسافرخانه/چایخانه ساختمانِ تازه‌ای است؟ بدون آن این شغل جایگاهی ندارد و ساختمانی در فهرست نیست.}
-  - {kind: career, code: logistics, stage: city, requires: {buildings: [{role: transport, tier: 3}]}, elsewhere: [{where: support}]}
-  - {kind: career, code: workshop, stage: town, requires: {buildings: [{role: craft, tier: 1}]}, elsewhere: [{where: support}]}
-  - {kind: career, code: technology, stage: city, requires: {buildings: [{role: craft, tier: 3}]}, elsewhere: [{where: support}]}
-  - {kind: career, code: healthcare, stage: town, requires: {buildings: [{role: health, tier: 1}]}, elsewhere: [{where: support}]}
-  - {kind: career, code: finance, stage: city, requires: {buildings: [{code: bank}]}, elsewhere: [{where: support}]}
-  - {kind: career, code: armed_forces, stage: town, requires: {buildings: [{code: barracks}]}, elsewhere: [{where: support}]}
+  - {kind: career, code: logistics, stage: city, requires: {knowledge: [basic_mathematics], buildings: [{code: road}, {role: storage, tier: 1}]}, elsewhere: [{where: support}]}
+  - {kind: career, code: workshop, stage: town, requires: {knowledge: [smithing], buildings: [{role: craft, tier: 1}]}, elsewhere: [{where: support}]}
+  - {kind: career, code: technology, stage: city, requires: {knowledge: [computing], buildings: [{role: craft, tier: 3}]}, elsewhere: [{where: support}]}
+  - {kind: career, code: healthcare, stage: town, requires: {knowledge: [basic_medicine], buildings: [{role: health, tier: 1}]}, elsewhere: [{where: support}]}
+  - {kind: career, code: finance, stage: city, requires: {knowledge: [double_entry_bookkeeping], buildings: [{code: bank}]}, elsewhere: [{where: support}]}
+  - {kind: career, code: armed_forces, stage: town, requires: {knowledge: [military_drill], buildings: [{code: barracks}]}, elsewhere: [{where: support}]}
 
   # ---- crimes (ADR 0038 4.4): village petty crime, town burglary and scams, city counterfeit and smuggling; Support refuses crime by policy
   - {kind: crime, code: pickpocketing, stage: village, requires: {buildings: [{role: market, tier: 1}], personal: [{kind: level, min: 1}]}}
   - {kind: crime, code: shoplifting, stage: village, requires: {buildings: [{role: market, tier: 1}], personal: [{kind: level, min: 1}]}}
-  - {kind: crime, code: bag_snatching, stage: town, requires: {personal: [{kind: level, min: 2}]}, note: "owner decision 2026-10-01: from town"}
-  - {kind: crime, code: street_scam, stage: town, requires: {buildings: [{role: market, tier: 2}], personal: [{kind: level, min: 2}]}}
-  - {kind: crime, code: car_break_in, stage: town, requires: {buildings: [{role: housing, tier: 1}], personal: [{kind: level, min: 3}]}, note: "owner decision 2026-10-01: from town"}
+  - {kind: crime, code: bag_snatching, stage: town, requires: {buildings: [{role: market, tier: 1}], personal: [{kind: level, min: 2}]}, note: "owner decision 2026-10-01: from town"}
+  - {kind: crime, code: street_scam, stage: town, requires: {knowledge: [periodic_market], buildings: [{role: market, tier: 2}], personal: [{kind: level, min: 2}]}}
+  - {kind: crime, code: car_break_in, stage: town, requires: {knowledge: [applied_mechanics], buildings: [{role: housing, tier: 1}], personal: [{kind: level, min: 3}]}, note: "owner decision 2026-10-01: from town"}
   - {kind: crime, code: home_burglary, stage: town, requires: {buildings: [{role: housing, tier: 1}], personal: [{kind: level, min: 5}]}}
-  - {kind: crime, code: counterfeit_selling, stage: city, requires: {buildings: [{role: market, tier: 2}], personal: [{kind: level, min: 4}]}}
-  - {kind: crime, code: goods_smuggling, stage: city, requires: {buildings: [{role: transport, tier: 3}], personal: [{kind: level, min: 6}]}}
+  - {kind: crime, code: counterfeit_selling, stage: city, requires: {knowledge: [printing], buildings: [{role: market, tier: 2}], personal: [{kind: level, min: 4}]}}
+  - {kind: crime, code: goods_smuggling, stage: city, requires: {knowledge: [trading_post], buildings: [{role: transport, tier: 3}], personal: [{kind: level, min: 6}]}}
 
   # ---- places: the venues crimes and shops name (places.yml); derived village places (ADR 0033 3.2) are not built yet
   - {kind: place, code: city_centre, stage: city, growth: {requires: {buildings: [{role: market, tier: 2}, {code: civic_hall}]}, row: 112}, elsewhere: [{where: support}]}
@@ -410,15 +425,15 @@ availability:
   - {kind: transport_facility, code: village_road, stage: village, requires: {buildings: [{code: road}]}}
 
   # ---- skills: the village skills (farming, carpentry...) do not exist yet (audit M-04); these are the city-era ones
-  - {kind: skill, code: programming, stage: city, growth: {open: true, row: 273}, requires: {}, elsewhere: [{where: support}]}
-  - {kind: skill, code: engineering, stage: city, growth: {open: true, row: 274}, requires: {}, elsewhere: [{where: support}]}
-  - {kind: skill, code: mechanics, stage: town, growth: {open: true, row: 275}, requires: {}, elsewhere: [{where: support}]}
+  - {kind: skill, code: programming, stage: city, growth: {open: true, row: 273}, requires: {knowledge: [computing]}, elsewhere: [{where: support}]}
+  - {kind: skill, code: engineering, stage: city, growth: {open: true, row: 274}, requires: {knowledge: [applied_mechanics]}, elsewhere: [{where: support}]}
+  - {kind: skill, code: mechanics, stage: town, growth: {open: true, row: 275}, requires: {knowledge: [applied_mechanics]}, elsewhere: [{where: support}]}
   - {kind: skill, code: cooking, stage: village, growth: {open: true, founding: true, row: 276}, requires: {}, elsewhere: [{where: support}]}
   - {kind: skill, code: logistics, stage: village, growth: {open: true, founding: true, row: 277}, requires: {}, elsewhere: [{where: support}]}
-  - {kind: skill, code: driving, stage: town, growth: {open: true, row: 278}, requires: {}, elsewhere: [{where: support}]}
+  - {kind: skill, code: driving, stage: town, growth: {open: true, row: 278}, requires: {knowledge: [road_code]}, elsewhere: [{where: support}]}
   - {kind: skill, code: medicine, stage: village, growth: {open: true, founding: true, row: 279}, requires: {}, elsewhere: [{where: support}]}
-  - {kind: skill, code: management, stage: town, growth: {open: true, row: 280}, requires: {}, elsewhere: [{where: support}]}
-  - {kind: skill, code: finance, stage: town, growth: {open: true, row: 281}, requires: {}, elsewhere: [{where: support}]}
+  - {kind: skill, code: management, stage: town, growth: {open: true, row: 280}, requires: {knowledge: [record_keeping]}, elsewhere: [{where: support}]}
+  - {kind: skill, code: finance, stage: town, growth: {open: true, row: 281}, requires: {knowledge: [record_keeping]}, elsewhere: [{where: support}]}
   - {kind: skill, code: stealth, stage: village, growth: {open: true, founding: true, row: 282}, requires: {}, elsewhere: [{where: support}]}
   - {kind: skill, code: lockpicking, stage: village, growth: {open: true, founding: true, row: 283}, requires: {}, elsewhere: [{where: support}]}
   - {kind: skill, code: deception, stage: village, growth: {open: true, founding: true, row: 284}, requires: {}, elsewhere: [{where: support}]}

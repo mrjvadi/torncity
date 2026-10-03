@@ -66,6 +66,11 @@ type CitizenReader interface {
 	Terms(ctx context.Context, settlementID string) (application.LotTerms, error)
 	// Names maps player ids to the names they go by; an unknown id is left out.
 	Names(ctx context.Context, playerIDs []string) (map[string]string, error)
+	// Plans, Cells and OpenLots are the roads drawn out of the first grid and
+	// the lots they opened (docs/adr/0044 5.5, migration 0110).
+	Plans(ctx context.Context, settlementID string) ([]application.RoadPlanRow, error)
+	Cells(ctx context.Context, settlementID string) ([]application.RoadCellRow, error)
+	OpenLots(ctx context.Context, settlementID string) ([]application.OpenLotRow, error)
 }
 
 // VillageService assembles the settlement views.
@@ -212,6 +217,53 @@ type VillageLayout struct {
 	Tenure []LayoutTenure `json:"tenure,omitempty"`
 	// Terms are the land and permit terms in force, for a member only.
 	Terms *LayoutTerms `json:"terms,omitempty"`
+	// Land is the land the roads opened beyond the first grid, for a member
+	// only: the drawn road cells and the lots along them, in absolute lot
+	// coordinates (negative west and south of the grid). A laid road is also in
+	// Buildings and Roads like any road.
+	Land *LayoutLand `json:"land,omitempty"`
+}
+
+// LayoutLand is the land the roads opened.
+type LayoutLand struct {
+	// Plans are the drawn roads, Cells their lots (laid or not), Open the lots
+	// along them.
+	Plans []LayoutRoadPlan `json:"plans"`
+	Cells []LayoutRoadCell `json:"cells"`
+	Open  []LayoutOpenLot  `json:"open"`
+}
+
+// LayoutRoadPlan is one drawn road.
+type LayoutRoadPlan struct {
+	ID    string `json:"id"`
+	Class string `json:"class"`
+	Lots  int    `json:"lots"`
+	ToX   int    `json:"to_x"`
+	ToY   int    `json:"to_y"`
+}
+
+// LayoutRoadCell is one lot of a drawn road. Water is "", "stream" or "river".
+type LayoutRoadCell struct {
+	X       int     `json:"x"`
+	Y       int     `json:"y"`
+	Plan    string  `json:"plan"`
+	Built   bool    `json:"built"`
+	Water   string  `json:"water,omitempty"`
+	HeightM float64 `json:"height_m"`
+}
+
+// LayoutOpenLot is a lot a road opened, with the ground it stands on. Reason is
+// "" (it can be bought and built on), "water" or "steep".
+type LayoutOpenLot struct {
+	X         int      `json:"x"`
+	Y         int      `json:"y"`
+	Buildable bool     `json:"buildable"`
+	Reason    string   `json:"reason,omitempty"`
+	HeightM   float64  `json:"height_m"`
+	SlopeM    float64  `json:"slope_m"`
+	Biome     string   `json:"biome,omitempty"`
+	Water     string   `json:"water,omitempty"`
+	Tags      []string `json:"tags,omitempty"`
 }
 
 // LayoutTenure is one owned lot. Owner names the holder; Mine is set when the
@@ -404,9 +456,53 @@ func (v *VillageService) Layout(ctx context.Context, viewerID, settlementID stri
 		if mark, err = v.addTenure(ctx, &out, viewerID, s.CityID); err != nil {
 			return VillageLayout{}, err
 		}
+		landMark, err := v.addLand(ctx, &out, s.CityID)
+		if err != nil {
+			return VillageLayout{}, err
+		}
+		mark = application.JoinMarks(mark, landMark)
 	}
 	out.Version = layoutVersion(out, mark)
 	return out, nil
+}
+
+// addLand adds the roads drawn out of the first grid to a member's layout and
+// returns the mark the version folds in (application.LandMark).
+func (v *VillageService) addLand(ctx context.Context, out *VillageLayout, settlementID string) (string, error) {
+	plans, err := v.Citizens.Plans(ctx, settlementID)
+	if err != nil || len(plans) == 0 {
+		return "", err
+	}
+	cells, err := v.Citizens.Cells(ctx, settlementID)
+	if err != nil {
+		return "", err
+	}
+	open, err := v.Citizens.OpenLots(ctx, settlementID)
+	if err != nil {
+		return "", err
+	}
+	land := &LayoutLand{Plans: []LayoutRoadPlan{}, Cells: []LayoutRoadCell{}, Open: []LayoutOpenLot{}}
+	count := map[string]int{}
+	for _, c := range cells {
+		count[c.PlanID]++
+		water := ""
+		switch c.Water {
+		case application.RoadWaterStream:
+			water = "stream"
+		case application.RoadWaterRiver:
+			water = "river"
+		}
+		land.Cells = append(land.Cells, LayoutRoadCell{X: c.X, Y: c.Y, Plan: c.PlanID, Built: c.Built(), Water: water, HeightM: round2(c.ElevationM)})
+	}
+	for _, p := range plans {
+		land.Plans = append(land.Plans, LayoutRoadPlan{ID: p.ID, Class: p.Class, Lots: count[p.ID], ToX: p.ToX, ToY: p.ToY})
+	}
+	for _, o := range open {
+		land.Open = append(land.Open, LayoutOpenLot{X: o.X, Y: o.Y, Buildable: o.Buildable, Reason: o.Reason,
+			HeightM: round2(o.HeightM), SlopeM: round2(o.SlopeM), Biome: o.Biome, Water: o.Water, Tags: o.Tags})
+	}
+	out.Land = land
+	return application.LandMark(plans, cells), nil
 }
 
 // addTenure adds who owns which lot and building to a member's layout and
@@ -515,6 +611,15 @@ func (v *VillageService) LayoutVersions(ctx context.Context, settlementID string
 			return application.LayoutVersions{}, 0, err
 		}
 		mark = application.TenureMark(lots, priv)
+		if plans, err := v.Citizens.Plans(ctx, s.CityID); err != nil {
+			return application.LayoutVersions{}, 0, err
+		} else if len(plans) > 0 {
+			cells, err := v.Citizens.Cells(ctx, s.CityID)
+			if err != nil {
+				return application.LayoutVersions{}, 0, err
+			}
+			mark = application.JoinMarks(mark, application.LandMark(plans, cells))
+		}
 	}
 	lots := v.gridLots(s.Tier, s.GridGrowth)
 	return application.LayoutVersionsWithTenure(s.CityID, s.Tier, s.Name, lots, rows, footprint, mark), lots, nil

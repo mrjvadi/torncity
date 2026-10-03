@@ -542,6 +542,13 @@ course:
   nursing: دیپلم پرستاری
   software_engineering: کارشناسی مهندسی نرم‌افزار
   evening_accounting: کلاس شبانهٔ حسابداری
+  literacy_class: کلاس خواندن و نوشتن
+  carpentry_craft: گواهی شاگردی نجاری
+  masonry_craft: گواهی شاگردی بنایی
+  smithing_craft: گواهی شاگردی آهنگری
+  registry_clerk: منشی ثبت املاک
+  surveyor: نقشه‌بردار زمین
+  credit_analysis: بررسی اعتبار وام
 
 # نام جرم‌ها، بر اساس کد محتوایی (configs/content/crimes.yml).
 crime_name:

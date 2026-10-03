@@ -1,11 +1,11 @@
 package handlers
 
 import (
-	plife "github.com/mrjvadi/torncity/internal/presentation/life"
-	"github.com/mrjvadi/torncity/internal/presentation"
 	"context"
 	"encoding/json"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	plife "github.com/mrjvadi/torncity/internal/presentation/life"
 	"strconv"
 	"strings"
 	"time"

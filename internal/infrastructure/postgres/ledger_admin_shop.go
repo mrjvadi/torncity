@@ -63,7 +63,7 @@ type ShopInvariants struct {
 	// NilMovements the ledger entries on an account of the premium currency NIL.
 	MixedCurrency, NilMovements int64
 	// StoreWageLedger and StoreWageRows: the storekeepers' wages in the ledger and
-	// in the storage-day rows (migration 0116); StoreWageMismatched the paid days
+	// in the storage-day rows (migration 0114); StoreWageMismatched the paid days
 	// whose transaction is not exactly treasury to sink for the wage.
 	StoreWageLedger, StoreWageRows, StoreWageMismatched int64
 	// SpoilJournal and SpoilRows: the units the item journal says spoiled and the
@@ -72,7 +72,7 @@ type ShopInvariants struct {
 	// MarketDuesLedger and MarketDuesRows: the dues the village books paid the
 	// treasuries in the ledger and the fee column of the trades in founded
 	// settlements; ListingLedger and ListingRows the listing fees in the ledger
-	// and on the orders (migration 0117).
+	// and on the orders (migration 0115).
 	MarketDuesLedger, MarketDuesRows, ListingLedger, ListingRows int64
 }
 

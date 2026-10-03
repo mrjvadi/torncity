@@ -16,12 +16,12 @@ import (
 	"github.com/mrjvadi/torncity/internal/domain/gametime"
 	"github.com/mrjvadi/torncity/internal/domain/place"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
+	"github.com/mrjvadi/torncity/internal/presentation/society"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/shared/idempotency"
 	"github.com/mrjvadi/torncity/internal/shared/money"
 	"github.com/mrjvadi/torncity/internal/shared/playercode"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
-	"github.com/mrjvadi/torncity/internal/presentation/society"
 )
 
 // FactionRules is the tuning of factions (config factions.*, and the bank's
@@ -34,7 +34,7 @@ type FactionRules struct {
 	// may be founded in it; 0 means none.
 	MinFounders int
 	ListSize    int
-	Limits           bank.Limits
+	Limits      bank.Limits
 }
 
 // FactionsHandler serves factions (docs/adr/0023-health-missions-factions.md):

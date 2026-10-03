@@ -83,7 +83,6 @@
 🔒 کلانتری - اول باید دفترداری را داشته باشید
   ───
   [🏗 ساخت شهرداری] → settlement:build.lots:civic_hall
-  [🗺 گسترش زمین] → settlement:grid.grow
   [🔙 بازگشت] → settlement:overview   │   [🔄 به‌روزرسانی] → settlement:build
 
 ━━━ Construction progress · one queued, one building ━━━
@@ -347,25 +346,6 @@
   [◀️] → settlement:build.lots:cottage:0:-:0-2   │   [🔼] → settlement:build.lots:cottage:0:-:2-0   │   [🔽] → settlement:build.lots:cottage:0:-:2-6   │   [▶️] → settlement:build.lots:cottage:0:-:6-2
   [🔙 بازگشت] → settlement:build   │   [🔄 به‌روزرسانی] → settlement:build.lots:cottage
 
-━━━ Land · the price of the next expansion ━━━
-(edits message 42)
-🗺 گسترش زمین کورندال
-
-زمین از ⁨5⁩×⁨5⁩ به ⁨6⁩×⁨6⁩ می‌رسد و ⁨11⁩ قطعهٔ تازه به شهر اضافه می‌شود؛ ⁨9⁩ قطعه‌اش خشکیِ قابل‌ساخت است.
-هزینه: ⁨⁨550⁩ ساپ⁩
-خزانه: ⁨⁨12,400⁩ ساپ⁩
-
-بناهای فعلی سر جایشان می‌مانند. آب و شیب تند همان‌جا که هست ساخت‌ناپذیر می‌ماند. هر گسترشِ بعدی گران‌تر است.
-  ───
-  [✅ تأیید و گسترش] → settlement:grid.grow:confirm
-  [🔙 بازگشت] → settlement:build
-
-━━━ Land · the technical bound ━━━
-(edits message 42)
-🗺 زمین شهر به بیشینهٔ فنیِ اندازهٔ نقشه رسیده است و بیشتر گسترش نمی‌یابد.
-  ───
-  [🔙 بازگشت] → settlement:overview
-
 ━━━ Lot grid · a mix of states, rotatable building ━━━
 (edits message 42)
 🗺 انتخاب محل ساخت در کورندال
@@ -568,6 +548,127 @@
   [🏡] → settlement:private   │   [🟩] → settlement:lot.buy:1-3   │   [🟩] → settlement:lot.buy:2-3   │   [🟩] → settlement:lot.buy:3-3   │   [⛰] → settlement:land
   [🟩] → settlement:lot.buy:0-4   │   [🟩] → settlement:lot.buy:1-4   │   [🟩] → settlement:lot.buy:2-4   │   [🔒] → settlement:land   │   [🟩] → settlement:lot.buy:4-4
   [🔙 بازگشت] → settlement:overview   │   [🔄 به‌روزرسانی] → settlement:land
+
+━━━ Land grid · roads opened land beyond the first grid ━━━
+(edits message 42)
+🏡 زمین‌های کورندال
+
+هر زمین آزاد را می‌توانی بخری؛ پولش به خزانهٔ شهر می‌رود و زمین مال خودت می‌شود.
+💵 قیمت هر زمین: ⁨⁨400⁩ ساپ⁩
+📌 زمین‌های تو: ⁨1⁩ از ⁨6⁩
+
+🟩 آزاد و کنار جاده - 🟨 آزاد، باید راهش را کشید - 🟦 آزاد، راهش از روی آب می‌گذرد - 🟥 آزاد ولی راه ندارد - 🏡 زمین تو - 🔒 زمین دیگران - 🏠 ساختمان - 🛣 جاده - 🚧 حریم جاده، فروشی نیست - 💧 آب - ⛰ شیب
+
+🛤 راه‌های شهر
+
+راه مالرو: ⁨38⁩ قطعه - ساخته‌شده ⁨12⁩ - آمادهٔ خرید ⁨150⁩ - فروخته‌شده ⁨5⁩
+  ───
+  [🟩] → settlement:lot.buy:0-0   │   [🛣] → settlement:land   │   [🟩] → settlement:lot.buy:2-0   │   [🟩] → settlement:lot.buy:3-0   │   [💧] → settlement:land
+  [🟩] → settlement:lot.buy:0-1   │   [🏠] → settlement:land   │   [🏠] → settlement:land   │   [🔒] → settlement:land   │   [🟩] → settlement:lot.buy:4-1
+  [🟩] → settlement:lot.buy:0-2   │   [🏠] → settlement:land   │   [🏠] → settlement:land   │   [🟩] → settlement:lot.buy:3-2   │   [🟩] → settlement:lot.buy:4-2
+  [🏡] → settlement:private   │   [🟩] → settlement:lot.buy:1-3   │   [🟩] → settlement:lot.buy:2-3   │   [🟩] → settlement:lot.buy:3-3   │   [⛰] → settlement:land
+  [🟩] → settlement:lot.buy:0-4   │   [🟩] → settlement:lot.buy:1-4   │   [🟩] → settlement:lot.buy:2-4   │   [🔒] → settlement:land   │   [🟩] → settlement:lot.buy:4-4
+  [🟩 ردیف ⁨4⁩، ستون ⁨8⁩ - ⁨⁨0⁩ ساپ⁩] → settlement:lot.buy:7-3   │   [🟩 ردیف ⁨4⁩، ستون ⁨9⁩ - ⁨⁨20⁩ ساپ⁩] → settlement:lot.buy:8-3
+  [🟩 ردیف ⁨2⁩، ستون ⁨9⁩ - ⁨⁨80⁩ ساپ⁩] → settlement:lot.buy:8-1
+  [🔙 بازگشت] → settlement:overview   │   [🔄 به‌روزرسانی] → settlement:land
+
+━━━ Road · the quote of a road drawn out of the first grid ━━━
+(edits message 42)
+🛤 راه تازه برای کورندال
+
+جنس راه: راه مالرو
+طول: ⁨38⁩ قطعه، حدود ⁨1,160⁩ متر
+بالا رفتن: ⁨22⁩ متر - تندترین شیب: ⁨6⁩٪
+قیمت ساخت: هر قطعه ⁨⁨10⁩ ساپ⁩، همهٔ راه ⁨⁨430⁩ ساپ⁩
+
+🌊 ⁨1⁩ قطعه از راه از آب می‌گذرد (گذرگاه یا پل)؛ قیمتشان بالاتر است.
+
+🏡 کنار راه ⁨190⁩ قطعه باز می‌شود: ⁨171⁩ قطعه قابل‌خرید، ⁨9⁩ قطعه آب، ⁨10⁩ قطعه شیب تند.
+
+با تأیید فقط نقشهٔ راه ثبت می‌شود و خرجی ندارد. راه وقتی ساخته و پولش گرفته می‌شود که کسی قطعه‌ای کنارش بخرد؛ خریدار هزینهٔ راهِ تا قطعهٔ خودش را همراه قیمت زمین می‌دهد.
+  ───
+  [✅ ثبت نقشهٔ راه] → settlement:road.plan:m14-19:2-4:path:confirm
+  [🔙 بازگشت] → settlement:land
+
+━━━ Road · the plan is stored ━━━
+(edits message 42)
+🛤 نقشهٔ راه ثبت شد
+
+⁨38⁩ قطعه راه کشیده شد و ⁨171⁩ قطعه کنارش برای خرید باز است. خریدارِ هر قطعه راهِ تا قطعهٔ خودش را می‌سازد.
+  ───
+  [🔙 بازگشت] → settlement:land
+
+━━━ Road · a plan taken back ━━━
+(edits message 42)
+🗑 نقشهٔ راهِ ⁨38⁩ قطعه‌ای برداشته شد.
+  ───
+  [🔙 بازگشت] → settlement:land
+
+━━━ Road refusal · road_no_network ━━━
+(edits message 42)
+🛤 هنوز جاده یا شهرداری‌ای نیست که راه تازه از کنارش شروع شود.
+  ───
+  [🔙 بازگشت] → settlement:overview
+
+━━━ Road refusal · road_end_blocked ━━━
+(edits message 42)
+🛤 انتهای راه روی جایی است که نمی‌شود جاده کشید؛ ساختمان یا زمین کسی است.
+  ───
+  [🔙 بازگشت] → settlement:overview
+
+━━━ Road refusal · road_water ━━━
+(edits message 42)
+🛤 انتهای راه توی آب افتاده.
+  ───
+  [🔙 بازگشت] → settlement:overview
+
+━━━ Road refusal · road_no_route ━━━
+(edits message 42)
+🛤 راهی به آن‌جا پیدا نشد؛ آب، شیب تند یا زمین دیگران جلوی راه است.
+  ───
+  [🔙 بازگشت] → settlement:overview
+
+━━━ Road refusal · road_no_bridge ━━━
+(edits message 42)
+🛤 مسیر از آبی می‌گذرد که پلِ این جنس راه به آن نمی‌رسد؛ پژوهش جادهٔ بهتر یا پل بلندتر لازم است.
+  ───
+  [🔙 بازگشت] → settlement:overview
+
+━━━ Road refusal · road_too_long ━━━
+(edits message 42)
+🛤 یک نقشهٔ راه از این بلندتر نمی‌شود؛ راه را در چند تکه بکشید.
+  ───
+  [🔙 بازگشت] → settlement:overview
+
+━━━ Road refusal · road_foreign ━━━
+(edits message 42)
+🛤 آن‌جا زمین شهر دیگری است.
+  ───
+  [🔙 بازگشت] → settlement:overview
+
+━━━ Road refusal · road_open_cap ━━━
+(edits message 42)
+🛤 قطعه‌های فروشیِ شهر به سقف رسیده؛ اول چند قطعه بفروشید یا نقشهٔ بی‌خریدار را بردارید.
+  ───
+  [🔙 بازگشت] → settlement:overview
+
+━━━ Road refusal · road_in_use ━━━
+(edits message 42)
+🛤 روی این راه چیزی ساخته یا قطعه‌ای کنارش فروخته شده؛ برداشتنش ممکن نیست.
+  ───
+  [🔙 بازگشت] → settlement:overview
+
+━━━ Road refusal · road_same ━━━
+(edits message 42)
+🛤 همین‌جا راه هست؛ جای دیگری را نشان بدهید.
+  ───
+  [🔙 بازگشت] → settlement:overview
+
+━━━ Road refusal · road_class_locked ━━━
+(edits message 42)
+🛤 شهر هنوز پژوهشِ این جنس راه را ندارد.
+  ───
+  [🔙 بازگشت] → settlement:overview
 
 ━━━ Land purchase · confirm ━━━
 (edits message 42)

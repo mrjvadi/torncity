@@ -1,9 +1,9 @@
 package handlers
 
 import (
-	plife "github.com/mrjvadi/torncity/internal/presentation/life"
-	"github.com/mrjvadi/torncity/internal/presentation"
 	"context"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	plife "github.com/mrjvadi/torncity/internal/presentation/life"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
@@ -19,6 +19,20 @@ type SkillsHandler struct {
 	msgs   Translator
 	skills application.SkillRepository
 	now    func() time.Time
+	// content, cities and home are set by WithPlace: with them a skill the
+	// player has not trained is listed only where the settlement they stand
+	// in can teach or use it (CLAUDE.md section 2).
+	content ContentSource
+	cities  application.CityRepository
+	home    string
+}
+
+// WithPlace makes the list follow the place: a skill is shown when the player
+// holds it or the settlement they stand in has what the skill's availability
+// tag asks for (research, buildings).
+func (h *SkillsHandler) WithPlace(c ContentSource, cities application.CityRepository, homeCityCode string) *SkillsHandler {
+	h.content, h.cities, h.home = c, cities, homeCityCode
+	return h
 }
 
 // NewSkillsHandler wires the handler.
@@ -76,9 +90,28 @@ func (h *SkillsHandler) List(ctx context.Context, meta envelope.Metadata) (*pres
 		}
 
 		codes := player.SkillCodes()
+		var teaches func(code string) bool
+		if h.content != nil && h.cities != nil {
+			if snap := h.content.Current(); snap != nil {
+				var city *application.City
+				if p.CityID != nil {
+					if c, err := h.cities.ByID(ctx, *p.CityID); err == nil {
+						city = c
+					}
+				}
+				here, err := judgeSettlementOf(ctx, tx, snap, city, h.home)
+				if err != nil {
+					return err
+				}
+				teaches = func(code string) bool { return here.offered(snap, "skill", code) }
+			}
+		}
 		lines := make([]plife.SkillLine, 0, len(codes))
 		for _, code := range codes {
 			row := stored[string(code)]
+			if teaches != nil && row.Level == 0 && row.XP == 0 && !teaches(string(code)) {
+				continue // not trained and not taught here: not mentioned
+			}
 			next, percent := skillProgress(row.Level, row.XP)
 			lines = append(lines, plife.SkillLine{
 				Code:    string(code),

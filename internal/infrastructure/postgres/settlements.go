@@ -343,19 +343,6 @@ func scanSettlement(row pgx.Row, out *application.FoundedSettlement, extra ...an
 		&out.Currency.Code, &out.Currency.Name, &out.Currency.Symbol}, extra...)...)
 }
 
-// GrowGrid is a compare-and-set on the village's grid growth.
-func (r *SettlementRepository) GrowGrid(ctx context.Context, id string, from, to int) error {
-	tag, err := r.q.Exec(ctx,
-		`UPDATE cities SET grid_growth = $3 WHERE id = $1::uuid AND grid_growth = $2`, id, from, to)
-	if err != nil {
-		return fmt.Errorf("postgres: growing the grid of %s: %w", id, err)
-	}
-	if tag.RowsAffected() == 0 {
-		return application.ErrGridGrowthConflict
-	}
-	return nil
-}
-
 // ByFoundingGroup returns the settlement this chat already founded, or
 // application.ErrCityNotFound.
 func (r *SettlementRepository) ByFoundingGroup(ctx context.Context, chatID int64) (application.FoundedSettlement, error) {

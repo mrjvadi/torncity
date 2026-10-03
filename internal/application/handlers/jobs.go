@@ -77,6 +77,8 @@ type JobsHandler struct {
 	pageSize       int
 	idempotencyTTL time.Duration
 	now            func() time.Time
+	// home is the neutral city's code (WithHomeCity).
+	home string
 }
 
 // NewJobsHandler wires the handler. idempotencyTTL is rejected at zero for
@@ -321,6 +323,16 @@ func (h *JobsHandler) List(ctx context.Context, meta envelope.Metadata, req Page
 			if !def.OfferedIn(city.Code) {
 				continue
 			}
+			if offered, needs, err := h.careerHere(ctx, tx, snap, city, def.Code); err != nil {
+				return err
+			} else if !offered {
+				near, err := h.careerNearest(ctx, snap, def.Code)
+				if err != nil {
+					return err
+				}
+				view.Gaps = append(view.Gaps, plife.JobGap{Job: jobRef(def, 0), Nearest: near, Needs: needs})
+				continue
+			}
 			career, ok := snap.Career(def.Code)
 			if !ok {
 				continue
@@ -381,7 +393,7 @@ func (h *JobsHandler) View(ctx context.Context, meta envelope.Metadata, req JobR
 		if err != nil {
 			return err
 		}
-		city, def, career, err := h.opening(ctx, snap, s, req.Role)
+		city, def, career, err := h.opening(ctx, tx, snap, s, req.Role)
 		if err != nil {
 			return err
 		}
@@ -414,7 +426,7 @@ func (h *JobsHandler) View(ctx context.Context, meta envelope.Metadata, req JobR
 }
 
 // opening finds a career the base employer of the player's city hires into.
-func (h *JobsHandler) opening(ctx context.Context, snap *content.Snapshot, s standing, code string) (*application.City, content.CareerDef, job.Career, error) {
+func (h *JobsHandler) opening(ctx context.Context, tx application.Tx, snap *content.Snapshot, s standing, code string) (*application.City, content.CareerDef, job.Career, error) {
 	if s.travelling || s.here() == "" {
 		return nil, content.CareerDef{}, job.Career{}, refuse(plife.RefusalJobNotOffered, nil)
 	}
@@ -428,6 +440,11 @@ func (h *JobsHandler) opening(ctx context.Context, snap *content.Snapshot, s sta
 	}
 	career, ok := snap.Career(code)
 	if !ok {
+		return nil, content.CareerDef{}, job.Career{}, refuse(plife.RefusalJobNotOffered, nil)
+	}
+	if offered, _, err := h.careerHere(ctx, tx, snap, city, code); err != nil {
+		return nil, content.CareerDef{}, job.Career{}, err
+	} else if !offered {
 		return nil, content.CareerDef{}, job.Career{}, refuse(plife.RefusalJobNotOffered, nil)
 	}
 	return city, def, career, nil
@@ -479,7 +496,7 @@ func (h *JobsHandler) Apply(ctx context.Context, meta envelope.Metadata, req Job
 		if err != nil {
 			return err
 		}
-		city, def, career, err := h.opening(ctx, snap, s, req.Role)
+		city, def, career, err := h.opening(ctx, tx, snap, s, req.Role)
 		if err != nil {
 			return err
 		}

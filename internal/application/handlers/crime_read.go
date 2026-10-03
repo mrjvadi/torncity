@@ -1,9 +1,9 @@
 package handlers
 
 import (
-	plife "github.com/mrjvadi/torncity/internal/presentation/life"
-	"github.com/mrjvadi/torncity/internal/presentation"
 	"context"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	plife "github.com/mrjvadi/torncity/internal/presentation/life"
 	"slices"
 	"time"
 

@@ -330,7 +330,9 @@ func (h *VillageHandler) SettleShopDay(ctx context.Context, tx application.Tx, s
 		}
 		after, added, trimmed := vshop.Deliver(row.Stock, p.Units, p.Cap)
 		row.Stock, row.DeliveredDay, row.SoldToday = after, day, 0
-		row.DeliveredTotal += added
+		// what arrived is delivered, whether it fit or the cap turned it away, so
+		// the shelf adds up: stock = delivered - sold - trimmed
+		row.DeliveredTotal += added + trimmed
 		row.TrimmedTotal += trimmed
 		if err := repo.SaveLine(ctx, *row); err != nil {
 			return nil, err

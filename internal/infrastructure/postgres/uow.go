@@ -233,7 +233,7 @@ func (t *tx) Bags() application.BagRepository { return &BagRepository{q: t.q} }
 // VillageShop returns a village's shop (migration 0109).
 func (t *tx) VillageShop() application.VillageShopRepository { return &VillageShopRepository{q: t.q} }
 
-// VillageStorage returns the days of a village's stores (migration 0116).
+// VillageStorage returns the days of a village's stores (migration 0114).
 func (t *tx) VillageStorage() application.VillageStorageRepository {
 	return &VillageStorageRepository{q: t.q}
 }

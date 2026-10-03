@@ -10,10 +10,10 @@ import (
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/faction"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
-	"github.com/mrjvadi/torncity/internal/shared/money"
-	"github.com/mrjvadi/torncity/internal/shared/playercode"
 	"github.com/mrjvadi/torncity/internal/presentation"
 	"github.com/mrjvadi/torncity/internal/presentation/society"
+	"github.com/mrjvadi/torncity/internal/shared/money"
+	"github.com/mrjvadi/torncity/internal/shared/playercode"
 )
 
 // This file holds a faction's people: its members and their ranks,

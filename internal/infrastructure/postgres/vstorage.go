@@ -10,7 +10,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/application"
 )
 
-// VillageStorageRepository is the stores' days (migration 0116).
+// VillageStorageRepository is the stores' days (migration 0114).
 type VillageStorageRepository struct{ q querier }
 
 const storageDayColumns = `settlement_id::text, day, buildings, kept, wage, COALESCE(ledger_transaction_id::text, ''),

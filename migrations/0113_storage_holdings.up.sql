@@ -1,4 +1,4 @@
--- 0115_storage_holdings: the holding slot and the home store (storage and market
+-- 0113_storage_holdings: the holding slot and the home store (storage and market
 -- audit 2026-10-03, phase P1; docs/adr/0040 section 6).
 --
 -- Until now a player's goods sat in two holdings, 'carried' and 'escrow'. Two

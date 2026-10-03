@@ -428,8 +428,9 @@ commands:
   # One placed building's own panel: a group screen for the village, and the
   # private chat shows the village the player lives in.
   settlement.building.view: {channel: both, client: true}
-  # Buying more land (the grid grows by a column east and a row north).
-  settlement.grid.grow: {channel: group, client: true}
+  # A road drawn out of the first grid opens the land it reaches (ADR 0044 5.5).
+  settlement.road.plan: {channel: group, client: true}
+  settlement.road.cancel: {channel: group, client: true}
   settlement.build.progress: {channel: group, client: true}
   settlement.build.demolish: {channel: group, client: true}
   settlement.build.cancel: {channel: group, client: true}

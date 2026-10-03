@@ -6,7 +6,7 @@ import (
 )
 
 // This file holds the port of the working storehouse (migrations/
-// 0116_village_storage; storage and market audit P2): the game day on which a
+// 0114_village_storage; storage and market audit P2): the game day on which a
 // settlement's storage buildings had a keeper, what the keeper was paid and how
 // much food spoiled. The rules are handlers/village_storage.go; the classes and
 // what each building provides are content (building_functions.yml).

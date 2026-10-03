@@ -83,7 +83,6 @@ No knowledge to show.
 🔒 Police post - needs Record keeping first
   ───
   [🏗 Build Civic hall] → settlement:build.lots:civic_hall
-  [🗺 Expand the land] → settlement:grid.grow
   [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:build
 
 ━━━ Construction progress · one queued, one building ━━━
@@ -347,25 +346,6 @@ Building: Cottage
   [◀️] → settlement:build.lots:cottage:0:-:0-2   │   [🔼] → settlement:build.lots:cottage:0:-:2-0   │   [🔽] → settlement:build.lots:cottage:0:-:2-6   │   [▶️] → settlement:build.lots:cottage:0:-:6-2
   [🔙 Back] → settlement:build   │   [🔄 Refresh] → settlement:build.lots:cottage
 
-━━━ Land · the price of the next expansion ━━━
-(edits message 42)
-🗺 Expand the land of Korendal
-
-The land grows from 5x5 to 6x6: 11 new lots, 9 of them dry buildable ground.
-Price: 550 SUP
-Treasury: 12,400 SUP
-
-Standing buildings stay where they are. Water and steep ground stay unbuildable. Each expansion costs more than the last.
-  ───
-  [✅ Confirm and expand] → settlement:grid.grow:confirm
-  [🔙 Back] → settlement:build
-
-━━━ Land · the technical bound ━━━
-(edits message 42)
-🗺 The city's land has reached the technical limit of the map size and cannot grow further.
-  ───
-  [🔙 Back] → settlement:overview
-
 ━━━ Lot grid · a mix of states, rotatable building ━━━
 (edits message 42)
 🗺 Choose where to build in Korendal
@@ -568,6 +548,127 @@ Any free lot can be yours: the price goes to the city treasury and the lot is yo
   [🏡] → settlement:private   │   [🟩] → settlement:lot.buy:1-3   │   [🟩] → settlement:lot.buy:2-3   │   [🟩] → settlement:lot.buy:3-3   │   [⛰] → settlement:land
   [🟩] → settlement:lot.buy:0-4   │   [🟩] → settlement:lot.buy:1-4   │   [🟩] → settlement:lot.buy:2-4   │   [🔒] → settlement:land   │   [🟩] → settlement:lot.buy:4-4
   [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:land
+
+━━━ Land grid · roads opened land beyond the first grid ━━━
+(edits message 42)
+🏡 Land in Korendal
+
+Any free lot can be yours: the price goes to the city treasury and the lot is yours for good.
+💵 Price per lot: 400 SUP
+📌 Your lots: 1 of 6
+
+🟩 free, on the road - 🟨 free, road to lay - 🟦 free, road crosses water - 🟥 free, no road possible - 🏡 yours - 🔒 someone else's - 🏠 building - 🛣 road - 🚧 road reserve, not for sale - 💧 water - ⛰ steep
+
+🛤 The city's roads
+
+Footpath: 38 lots - built 12 - for sale 150 - sold 5
+  ───
+  [🟩] → settlement:lot.buy:0-0   │   [🛣] → settlement:land   │   [🟩] → settlement:lot.buy:2-0   │   [🟩] → settlement:lot.buy:3-0   │   [💧] → settlement:land
+  [🟩] → settlement:lot.buy:0-1   │   [🏠] → settlement:land   │   [🏠] → settlement:land   │   [🔒] → settlement:land   │   [🟩] → settlement:lot.buy:4-1
+  [🟩] → settlement:lot.buy:0-2   │   [🏠] → settlement:land   │   [🏠] → settlement:land   │   [🟩] → settlement:lot.buy:3-2   │   [🟩] → settlement:lot.buy:4-2
+  [🏡] → settlement:private   │   [🟩] → settlement:lot.buy:1-3   │   [🟩] → settlement:lot.buy:2-3   │   [🟩] → settlement:lot.buy:3-3   │   [⛰] → settlement:land
+  [🟩] → settlement:lot.buy:0-4   │   [🟩] → settlement:lot.buy:1-4   │   [🟩] → settlement:lot.buy:2-4   │   [🔒] → settlement:land   │   [🟩] → settlement:lot.buy:4-4
+  [🟩 row 4, column 8 - 0 SUP] → settlement:lot.buy:7-3   │   [🟩 row 4, column 9 - 20 SUP] → settlement:lot.buy:8-3
+  [🟩 row 2, column 9 - 80 SUP] → settlement:lot.buy:8-1
+  [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:land
+
+━━━ Road · the quote of a road drawn out of the first grid ━━━
+(edits message 42)
+🛤 A new road for Korendal
+
+Kind of road: Footpath
+Length: 38 lots, about 1,160 m
+Climb: 22 m - steepest grade: 6%
+Price to build: 10 SUP a lot, 430 SUP for all of it
+
+🌊 1 lots of the road cross water (a ford or a bridge) and cost more.
+
+🏡 190 lots open beside the road: 171 can be bought, 9 are water, 10 are too steep.
+
+Confirming only stores the plan, at no cost. The road is built, and paid for, when somebody buys a lot beside it; the buyer pays for the road up to their lot together with the price of the land.
+  ───
+  [✅ Store the road plan] → settlement:road.plan:m14-19:2-4:path:confirm
+  [🔙 Back] → settlement:land
+
+━━━ Road · the plan is stored ━━━
+(edits message 42)
+🛤 The road plan is stored
+
+38 lots of road were drawn and 171 lots beside it are open for sale. Whoever buys a lot builds the road up to it.
+  ───
+  [🔙 Back] → settlement:land
+
+━━━ Road · a plan taken back ━━━
+(edits message 42)
+🗑 The road plan of 38 lots was taken back.
+  ───
+  [🔙 Back] → settlement:land
+
+━━━ Road refusal · road_no_network ━━━
+(edits message 42)
+🛤 The city has no road or town hall yet for a new road to start beside.
+  ───
+  [🔙 Back] → settlement:overview
+
+━━━ Road refusal · road_end_blocked ━━━
+(edits message 42)
+🛤 The end of the road is a place a road cannot go: a building or somebody's land.
+  ───
+  [🔙 Back] → settlement:overview
+
+━━━ Road refusal · road_water ━━━
+(edits message 42)
+🛤 The end of the road lies in water.
+  ───
+  [🔙 Back] → settlement:overview
+
+━━━ Road refusal · road_no_route ━━━
+(edits message 42)
+🛤 No way there was found: water, steep ground or other people's land is in the way.
+  ───
+  [🔙 Back] → settlement:overview
+
+━━━ Road refusal · road_no_bridge ━━━
+(edits message 42)
+🛤 The way crosses water further than this kind of road can bridge; better roads or a longer bridge need research.
+  ───
+  [🔙 Back] → settlement:overview
+
+━━━ Road refusal · road_too_long ━━━
+(edits message 42)
+🛤 A single road plan cannot be longer than this; draw the road in several pieces.
+  ───
+  [🔙 Back] → settlement:overview
+
+━━━ Road refusal · road_foreign ━━━
+(edits message 42)
+🛤 That is another city's land.
+  ───
+  [🔙 Back] → settlement:overview
+
+━━━ Road refusal · road_open_cap ━━━
+(edits message 42)
+🛤 The city already holds the most lots open for sale; sell some first or take back a plan with no buyers.
+  ───
+  [🔙 Back] → settlement:overview
+
+━━━ Road refusal · road_in_use ━━━
+(edits message 42)
+🛤 Something is built on this road or a lot beside it is sold; it cannot be taken back.
+  ───
+  [🔙 Back] → settlement:overview
+
+━━━ Road refusal · road_same ━━━
+(edits message 42)
+🛤 There is a road right here; point somewhere else.
+  ───
+  [🔙 Back] → settlement:overview
+
+━━━ Road refusal · road_class_locked ━━━
+(edits message 42)
+🛤 The city has not researched this kind of road yet.
+  ───
+  [🔙 Back] → settlement:overview
 
 ━━━ Land purchase · confirm ━━━
 (edits message 42)
