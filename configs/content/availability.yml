@@ -78,17 +78,17 @@ staff_roles:
   - {code: tea_server, building: {code: teahouse_inn}, skill: hospitality, wage_bps: 10000, support_npc: true, note: "RESEARCH 2026-10-03 2.5; ADR 0041 5.1"}
   - {code: housekeeper, building: {code: teahouse_inn}, support_npc: true, note: "RESEARCH 2026-10-03 2.3: hotel level 2; skill and wage not written (needs research)"}
   - {code: hotel_manager, building: {code: teahouse_inn}, personal: [{kind: literacy}], support_npc: true, note: "RESEARCH 2026-10-03 2.5"}
-  - {code: registrar, building: {code: land_registry}, personal: [{kind: literacy}], planned_personal: [{kind: certificate, code: registry_clerk}], support_npc: true, note: "RESEARCH 2026-10-03 5.5; the certificate registry_clerk is ADR 0036's town row, its course is not in education.yml yet"}
-  - {code: surveyor, building: {code: land_registry}, personal: [{kind: literacy}], planned_personal: [{kind: certificate, code: surveyor}], support_npc: true, note: "RESEARCH 2026-10-03 5.5; the course surveyor is not in education.yml yet"}
+  - {code: registrar, building: {code: land_registry}, personal: [{kind: literacy}, {kind: certificate, code: registry_clerk}], support_npc: true, note: "RESEARCH 2026-10-03 5.5; the course registry_clerk is in education.yml"}
+  - {code: surveyor, building: {code: land_registry}, personal: [{kind: literacy}, {kind: certificate, code: surveyor}], support_npc: true, note: "RESEARCH 2026-10-03 5.5; the course surveyor is in education.yml"}
   - {code: moneychanger, building: {code: exchange_house}, personal: [{kind: literacy}], support_npc: true, note: "RESEARCH 2026-10-03 6.5"}
   - {code: teller, building: {code: bank}, personal: [{kind: literacy}, {kind: certificate, code: bookkeeping}], support_npc: true, note: "RESEARCH 2026-10-03 6.5"}
-  - {code: loan_officer, building: {code: bank}, personal: [{kind: skill, code: finance, min: 2}], planned_personal: [{kind: certificate, code: credit_analysis}], support_npc: true, note: "RESEARCH 2026-10-03 6.5; the course credit_analysis is not in education.yml yet"}
+  - {code: loan_officer, building: {code: bank}, personal: [{kind: skill, code: finance, min: 2}, {kind: certificate, code: credit_analysis}], support_npc: true, note: "RESEARCH 2026-10-03 6.5; the course credit_analysis is in education.yml"}
   - {code: bank_manager, building: {code: bank}, personal: [{kind: skill, code: management, min: 3}, {kind: skill, code: finance, min: 3}], support_npc: true, note: "RESEARCH 2026-10-03 6.5"}
   - {code: banksman, skill: "", support_npc: true, note: "ADR 0045 8.3 (the hoist's banksman); prerequisite, skill and wage class not written (needs research)"}
 
 # Personal prerequisites that no certifying course provides yet.
 personal_sources:
-  - {kind: literacy, support: true, buildings: [teaching_circle], status: planned, note: "the literacy lesson (ADR 0038 owner decision 4) is not in education.yml yet: audit M-01"}
+  - {kind: literacy, support: true, buildings: [teaching_circle], note: "the literacy lesson (ADR 0038 owner decision 4) is the course literacy_class (education.yml): audit M-01"}
 
 availability:
   # ---- buildings: stage is the tier (1 village, 2 town, 3+ city); prerequisites are the building's own requires_* fields
@@ -195,7 +195,7 @@ availability:
   # ---- courses and education (ADR 0038 section 5 and owner decisions 4 and 6): a course needs the knowledge, the building and a teacher; Support teaches every one
   - {kind: course, code: first_aid, stage: village, requires: {knowledge: [basic_medicine], buildings: [{role: health, tier: 1}]}, elsewhere: [{where: support}], note: "taught by the health worker, who is trained in Support (no teacher role needed: avoids a circle)"}
   - {kind: course, code: driving_licence, stage: town, growth: {requires: {knowledge: [road_code], buildings: [{role: education, tier: 1}, {code: road}]}, row: 86, note: "App. A row 86 and the 2026-10-03 audit: traffic law is researched; the driving-skill teacher is not a staff role yet"}, elsewhere: [{where: support}], note: "owner decision 2026-10-01: from town"}
-  - {kind: course, code: bookkeeping, stage: town, requires: {knowledge: [record_keeping], buildings: [{role: education, tier: 2}], staff: [teacher], personal: [{kind: literacy}]}, elsewhere: [{where: support}]}
+  - {kind: course, code: bookkeeping, stage: town, requires: {knowledge: [record_keeping], buildings: [{role: education, tier: 1}], staff: [teacher], personal: [{kind: literacy}]}, elsewhere: [{where: support}]}
   - {kind: course, code: programming_fundamentals, stage: city, requires: {knowledge: [computing], buildings: [{role: education, tier: 2}, {role: craft, tier: 3}], staff: [teacher], personal: [{kind: literacy}]}, elsewhere: [{where: support}]}
   - {kind: course, code: retail_management, stage: town, requires: {knowledge: [retail_trade], buildings: [{role: education, tier: 2}, {role: market, tier: 1}], staff: [teacher], personal: [{kind: literacy}]}, elsewhere: [{where: support}]}
   - {kind: course, code: culinary_arts, stage: town, requires: {knowledge: [culinary_craft], buildings: [{role: education, tier: 2}, {role: food, tier: 1}], staff: [teacher], personal: [{kind: literacy}]}, elsewhere: [{where: support}]}
@@ -204,6 +204,14 @@ availability:
   - {kind: course, code: software_engineering, stage: city, requires: {knowledge: [computing_ii], buildings: [{role: education, tier: 2}, {role: craft, tier: 3}], staff: [teacher], personal: [{kind: literacy}]}, elsewhere: [{where: support}]}
   - {kind: course, code: officer_training, stage: city, requires: {knowledge: [military_drill], buildings: [{code: barracks}], staff: [teacher], personal: [{kind: literacy}]}, elsewhere: [{where: support}]}
   - {kind: course, code: evening_accounting, stage: town, requires: {knowledge: [record_keeping], buildings: [{role: education, tier: 2}], staff: [teacher], personal: [{kind: literacy}]}, elsewhere: [{where: support}]}
+  # 2026-10-03 audit: the first lessons of a settlement and the craft and clerk certificates (education.yml)
+  - {kind: course, code: literacy_class, requires: {knowledge: [basic_literacy], buildings: [{role: education, tier: 1}], staff: [teacher]}, elsewhere: [{where: support}], note: "the literacy lesson of ADR 0038 owner decision 4; every personal «literacy» requirement means this certificate"}
+  - {kind: course, code: carpentry_craft, requires: {knowledge: [carpentry], buildings: [{code: carpentry_workshop}], staff: [carpenter]}, elsewhere: [{where: support}]}
+  - {kind: course, code: masonry_craft, requires: {knowledge: [masonry], buildings: [{code: masonry_workshop}], staff: [mason]}, elsewhere: [{where: support}]}
+  - {kind: course, code: smithing_craft, requires: {knowledge: [smithing], buildings: [{code: smithy}], staff: [smith]}, elsewhere: [{where: support}]}
+  - {kind: course, code: registry_clerk, requires: {knowledge: [record_keeping], buildings: [{role: education, tier: 1}], staff: [teacher]}, elsewhere: [{where: support}]}
+  - {kind: course, code: surveyor, requires: {knowledge: [land_survey], buildings: [{role: education, tier: 1}], staff: [teacher]}, elsewhere: [{where: support}]}
+  - {kind: course, code: credit_analysis, requires: {knowledge: [double_entry_bookkeeping], buildings: [{role: education, tier: 2}], staff: [teacher]}, elsewhere: [{where: support}]}
 
   # ---- careers (jobs.yml): village work is the labour board (ADR 0037); these ladders start at town; certificates come from the career's own required_certifications
   - {kind: career, code: retail, stage: town, requires: {knowledge: [barter_ring], buildings: [{role: market, tier: 1}]}, elsewhere: [{where: support}]}

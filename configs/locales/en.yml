@@ -451,6 +451,13 @@ course:
   nursing: Nursing Diploma
   software_engineering: Software Engineering Degree
   evening_accounting: Evening Class in Accounting
+  literacy_class: Reading and Writing Class
+  carpentry_craft: Carpentry Journeyman
+  masonry_craft: Masonry Journeyman
+  smithing_craft: Smithing Journeyman
+  registry_clerk: Registry Clerk
+  surveyor: Land Surveyor
+  credit_analysis: Credit Analysis
 
 # Crime names, keyed on the crime's content code (configs/content/crimes.yml).
 crime_name:

@@ -32,6 +32,78 @@
 version: 1
 
 courses:
+  # The first lesson of a settlement: reading and writing, taught in a teaching
+  # circle by someone who can read. Every requirement of «literacy»
+  # (availability.yml personal_sources) means this certificate.
+  - code: literacy_class
+    name: Literacy Class
+    institution: training_center
+    cost: 200
+    duration: 12h
+    min_level: 0
+    certifies: true
+
+  # Journeyman's certificates of the crafts: taught at the workshop that has the
+  # tool and the know-how, by the craft's master.
+  - code: carpentry_craft
+    name: Carpentry Journeyman
+    institution: training_center
+    cost: 800
+    duration: 10h
+    min_level: 0
+    prerequisites: [literacy_class]
+    certifies: true
+
+  - code: masonry_craft
+    name: Masonry Journeyman
+    institution: training_center
+    cost: 900
+    duration: 10h
+    min_level: 0
+    prerequisites: [literacy_class]
+    certifies: true
+
+  - code: smithing_craft
+    name: Smithing Journeyman
+    institution: training_center
+    cost: 1100
+    duration: 12h
+    min_level: 0
+    prerequisites: [literacy_class]
+    certifies: true
+
+  # The clerks of the land registry and the bank (staff roles registrar,
+  # surveyor, loan_officer).
+  - code: registry_clerk
+    name: Registry Clerk
+    institution: training_center
+    cost: 1000
+    duration: 6h
+    min_level: 0
+    prerequisites: [literacy_class]
+    skill_rewards: [{skill: management, xp: 100}]
+    certifies: true
+
+  - code: surveyor
+    name: Land Surveyor
+    institution: training_center
+    cost: 1500
+    duration: 12h
+    min_level: 0
+    prerequisites: [registry_clerk]
+    skill_rewards: [{skill: engineering, xp: 100}]
+    certifies: true
+
+  - code: credit_analysis
+    name: Credit Analysis
+    institution: training_center
+    cost: 2200
+    duration: 10h
+    min_level: 0
+    prerequisites: [bookkeeping]
+    skill_rewards: [{skill: finance, xp: 250}]
+    certifies: true
+
   - code: first_aid
     name: First Aid
     institution: training_center
@@ -56,6 +128,7 @@ courses:
     cost: 1200
     duration: 4h
     min_level: 1
+    prerequisites: [literacy_class]
     skill_rewards: [{skill: finance, xp: 250}]
     certifies: true
 
@@ -65,6 +138,7 @@ courses:
     cost: 2000
     duration: 6h
     min_level: 1
+    prerequisites: [literacy_class]
     skill_rewards: [{skill: programming, xp: 300}]
     certifies: true
 
@@ -73,7 +147,8 @@ courses:
     institution: training_center
     cost: 2800
     duration: 8h
-    min_level: 4
+    min_level: 1
+    prerequisites: [literacy_class, bookkeeping]
     skill_rewards: [{skill: management, xp: 400}]
     certifies: true
 
@@ -82,7 +157,8 @@ courses:
     institution: training_center
     cost: 3200
     duration: 10h
-    min_level: 4
+    min_level: 1
+    prerequisites: [literacy_class]
     skill_rewards: [{skill: cooking, xp: 500}]
     certifies: true
 
@@ -91,7 +167,8 @@ courses:
     institution: training_center
     cost: 3600
     duration: 12h
-    min_level: 4
+    min_level: 1
+    prerequisites: [literacy_class]
     skill_rewards: [{skill: mechanics, xp: 500}, {skill: engineering, xp: 150}]
     certifies: true
 
@@ -101,8 +178,8 @@ courses:
     cost: 6000
     duration: 24h
     capacity: 40
-    min_level: 4
-    prerequisites: [first_aid]
+    min_level: 1
+    prerequisites: [first_aid, literacy_class]
     skill_rewards: [{skill: medicine, xp: 800}]
     certifies: true
 
@@ -112,7 +189,7 @@ courses:
     cost: 9000
     duration: 48h
     capacity: 40
-    min_level: 7
+    min_level: 1
     prerequisites: [programming_fundamentals]
     skill_rewards: [{skill: programming, xp: 1500}, {skill: engineering, xp: 600}]
     certifies: true
@@ -124,7 +201,8 @@ courses:
     institution: training_center
     cost: 2500
     duration: 12h
-    min_level: 4
+    min_level: 1
+    prerequisites: [literacy_class]
     skill_rewards: [{skill: management, xp: 300}, {skill: logistics, xp: 150}]
     certifies: true
 
@@ -135,5 +213,6 @@ courses:
     cost: 400
     duration: 90m
     min_level: 1
+    prerequisites: [literacy_class]
     skill_rewards: [{skill: finance, xp: 120}, {skill: management, xp: 40}]
     certifies: false
