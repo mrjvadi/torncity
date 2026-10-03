@@ -399,3 +399,34 @@
   ───
   [🛒 مغازه‌ها] → shop:list
   [🔙 بازگشت] → player:profile.get
+
+━━━ No room · too bulky ━━━
+(edits message 42)
+🎒 جا ندارید: ⁨12⁩ عدد نان ⁨12⁩ جا می‌خواهد و فقط ⁨5⁩ جا خالی دارید؛ ⁨7⁩ جا کم است. چیزی را بفروشید، در انبار خانه بگذارید یا کولهٔ بزرگ‌تری ببندید.
+  ───
+  [🎒 کوله‌پشتی] → inventory:show
+  [🔙 بازگشت] → player:profile.get
+
+━━━ No room · too heavy ━━━
+(edits message 42)
+🎒 این بار برای شما زیادی سنگین است: ⁨12⁩ عدد نان ⁨6,000⁩ گرم وزن دارد و فقط ⁨2,000⁩ گرم جا دارید.
+  ───
+  [🎒 کوله‌پشتی] → inventory:show
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Inventory · a holding slot and a home store ━━━
+(edits message 42)
+<b>🎒 کوله‌پشتی شما</b>
+
+• نان - ⁨3⁩ عدد
+
+📮 در امانت، منتظر جا (جا باز کنید و بردارید):
+• باند زخم - ⁨2⁩ عدد
+🏠 انبار من: ⁨6⁩ از ⁨40⁩ جا
+• نان - ⁨6⁩ عدد
+  ───
+  [🎒 نان] → inventory:item:bread
+  [📮 برداشتن باند زخم] → inventory:claim:bandage:1000000
+  [🏠 آوردن نان] → inventory:fetch:bread:1000000
+  [🛒 مغازه‌ها] → shop:list   │   [🏪 بازار] → market:list
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → inventory:show:1

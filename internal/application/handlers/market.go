@@ -14,6 +14,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/diplomacy"
+	"github.com/mrjvadi/torncity/internal/domain/carry"
 	"github.com/mrjvadi/torncity/internal/domain/gametime"
 	"github.com/mrjvadi/torncity/internal/domain/market"
 	"github.com/mrjvadi/torncity/internal/domain/payment"
@@ -80,6 +81,15 @@ type MarketHandler struct {
 	// home is the neutral city's code (settlement.home_city_code): the
 	// nearest place with a market when the settlement has none.
 	home string
+	// carry is the room check (room.go); zero checks nothing.
+	carry carryEnv
+}
+
+// WithCarry has a bid refused when its goods would not fit in the bags, and
+// reserves their room until it is filled or ends.
+func (h *MarketHandler) WithCarry(rules carry.Rules, clock gametime.Clock) *MarketHandler {
+	h.carry = carryEnvOf(rules, clock)
+	return h
 }
 
 // WithHome names the neutral city, which has a market of its own and is where
@@ -166,6 +176,9 @@ func (h *MarketHandler) finish(meta envelope.Metadata, lang string, err error) (
 	}
 	if v, ok := asDeclined(err, economy.PaymentDeclinedView{}); ok {
 		return economy.PaymentDeclined(presentation.Ctx{Lang: lang}, v), nil
+	}
+	if resp, ok := noRoomResponse(err, lang, h.content.Current(), economy.AddrMarket); ok {
+		return resp, nil
 	}
 	return nil, err
 }
@@ -446,6 +459,13 @@ func (h *MarketHandler) Order(ctx context.Context, meta envelope.Metadata, req M
 			r := refuseMarket(economy.MarketRefusedTooBig)
 			r.view.Item = it
 			return r
+		}
+		if side == market.Buy {
+			// A bid keeps the room of its goods from now on (ADR 0040 6.3): checked
+			// here, before any money moves, so a fill never fails for space.
+			if err := h.carry.fit(ctx, tx, snap, p.ID, def.Code, qty); err != nil {
+				return err
+			}
 		}
 		reserve, err := market.Reserve(market.Order{Side: side, Quantity: qty, UnitPrice: money.FromMinor(price)})
 		if err != nil {

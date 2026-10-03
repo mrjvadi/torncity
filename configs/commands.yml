@@ -182,6 +182,9 @@ commands:
   inventory.drop: {channel: private}
   inventory.bag.wear: {channel: private}
   inventory.bag.off: {channel: private}
+  inventory.store: {channel: private}
+  inventory.fetch: {channel: private}
+  inventory.claim: {channel: private}
   shop.list: {channel: private}
   shop.view: {channel: private}
   shop.buy: {channel: private}

@@ -92,6 +92,9 @@ commands:
   inventory.drop: {kind: danger, icon: "action:drop"}
   inventory.bag.wear: {kind: primary, icon: "action:bag"}
   inventory.bag.off: {kind: secondary, icon: "action:bag"}
+  inventory.store: {kind: secondary, icon: "action:bag"}
+  inventory.fetch: {kind: secondary, icon: "action:bag"}
+  inventory.claim: {kind: primary, icon: "action:bag"}
   shop.list: {kind: navigation, icon: "action:shop"}
   shop.view: {kind: navigation, icon: "action:shop"}
   shop.buy: {kind: primary, icon: "action:buy"}

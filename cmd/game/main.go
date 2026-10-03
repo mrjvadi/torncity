@@ -499,6 +499,8 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	}
 	h.goods = newGoodsHandlers(uow, messages, registry, cities, postgres.NewPolicyReader(pool, nil),
 		gametime.Scale(cfg.Game.TimeScale), cfg.Crime, cfg.Trade, cfg.CarryRules(), gameClock, cfg.Game.IdempotencyTTL)
+	// Goods that come in are checked against the bags (storage and market audit P1).
+	h.crime.WithCarry(cfg.CarryRules(), gameClock)
 	// The watch checks every market trade (docs/adr/0023).
 	h.goods.market.WithWatch(watchThresholds(cfg.AntiCheat)).WithHome(cfg.Settlement.HomeCityCode)
 	// A service the settlement a player stands in does not offer is said so
@@ -520,7 +522,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	// run on the game clock.
 	h.production = handlers.NewProductionHandler(uow, uuidGenerator{}, messages, registry, cities,
 		postgres.NewPolicyReader(pool, nil), gametime.Scale(cfg.Game.TimeScale), productionRules(cfg.Company, bankLimits),
-		cfg.Game.IdempotencyTTL, nil)
+		cfg.Game.IdempotencyTTL, nil).WithCarry(cfg.CarryRules(), gameClock)
 	// Specialist recruitment (docs/adr/0027): who the specialists are is
 	// content; campaigns check on the game clock.
 	h.recruit = handlers.NewRecruitHandler(uow, uuidGenerator{}, messages, registry, cities,
@@ -558,7 +560,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	h.stageE.missions = handlers.NewMissionsHandler(uow, uuidGenerator{}, messages, registry, cities,
 		gametime.Scale(cfg.Game.TimeScale), handlers.MissionRules{MaxActive: cfg.Missions.MaxActive,
 			PlayerDailyCap: cfg.Missions.PlayerDailyCap, EconomyDailyCap: cfg.Missions.EconomyDailyCap},
-		cfg.Game.IdempotencyTTL, nil)
+		cfg.Game.IdempotencyTTL, nil).WithCarry(cfg.CarryRules(), gameClock)
 	// Stage F (docs/adr/0024): votes of a body on the real clock; a city's
 	// period — its budget, its property — on the game clock. A change that
 	// needs a vote goes to one, and a declaration a parliament must approve

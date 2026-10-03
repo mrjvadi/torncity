@@ -628,9 +628,13 @@ func (h *CrimeHandler) returnGoods(ctx context.Context, tx application.Tx, snap 
 	if err := lockGoods(ctx, tx, thiefID, r.VictimPlayerID); err != nil {
 		return "", 0, err
 	}
+	back, err := h.carry.arrival(ctx, tx, snap, r.VictimPlayerID, a.StolenItem, a.StolenQty)
+	if err != nil {
+		return "", 0, err
+	}
 	err = tx.Items().Move(ctx, application.ItemMove{
 		ID: h.ids.NewID(), Item: a.StolenItem, PieceID: a.StolenPieceID, Qty: a.StolenQty,
-		From: thiefID, FromHolding: application.HoldCarried, To: r.VictimPlayerID, ToHolding: application.HoldCarried,
+		From: thiefID, FromHolding: application.HoldCarried, To: r.VictimPlayerID, ToHolding: back,
 		Reason: application.ItemRestitution, ReferenceType: application.CrimeReferenceReport, ReferenceID: r.ID, At: now,
 	})
 	switch {

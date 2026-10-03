@@ -55,6 +55,7 @@ var (
 	screenSellOffers  = presentation.Define[SellOffersView](ScreenSellOffers, "economy")
 	screenShopSold    = presentation.Define[ShopSoldView](ScreenShopSold, "economy")
 	screenShopNo      = presentation.Define[ShopRefusalView](ScreenShopRefusal, "economy", presentation.Refusal())
+	screenNoRoom      = presentation.Define[NoRoomView](ScreenNoRoom, "economy", presentation.Refusal())
 	screenAuctions    = presentation.Define[AuctionsView](ScreenAuctions, "economy")
 	screenAuction     = presentation.Define[AuctionDetailView](ScreenAuctionDetail, "economy")
 	screenAuctionNew  = presentation.Define[AuctionNewView](ScreenAuctionNew, "economy")
@@ -705,6 +706,17 @@ func SellOffers(c presentation.Ctx, v SellOffersView) *presentation.Response {
 // ShopSold is a good sold back.
 func ShopSold(c presentation.Ctx, v ShopSoldView) *presentation.Response {
 	return screenShopSold.Response(c.Lang, v, act(AddrInventory).Named("item.bag"), back(AddrHome))
+}
+
+// NoRoom is a request refused for lack of room: the way to the bags (to free
+// some room or put a bag on) and the way back.
+func NoRoom(c presentation.Ctx, v NoRoomView) *presentation.Response {
+	backTo := v.Back
+	if backTo == "" {
+		backTo = AddrHome
+	}
+	return screenNoRoom.Response(c.Lang, v, act(AddrInventory).Named("item.bag"), back(backTo)).
+		Refused("no_room", map[string]any{"short": v.Short})
 }
 
 // ShopRefusal is a refused shop request.

@@ -210,6 +210,7 @@ const (
 	ScreenMyOrders           = economy.ScreenMyOrders
 	ScreenMarketFilledNotice = "market_filled_notice"
 	ScreenMarketRefusal      = economy.ScreenMarketRefusal
+	ScreenNoRoom             = economy.ScreenNoRoom
 
 	// Mission boards (missions.go).
 	ScreenMissionBoard           = "mission_board"

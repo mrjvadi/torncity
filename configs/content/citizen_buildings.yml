@@ -32,7 +32,10 @@ settlement_buildings:
     cost_money: 800
     cost_materials: {timber: 3}
     build_time: 2h
-    effects: [{target: housing_capacity, op: add, value: 2}]
+    effects:
+      - {target: housing_capacity, op: add, value: 2}
+      # «انبار من» (ADR 0040 6.2): room to keep goods at home, apart from the bags
+      - {target: personal_storage, op: add, value: 40}
 
   - code: private_house
     role: housing
@@ -49,6 +52,7 @@ settlement_buildings:
     effects:
       - {target: housing_capacity, op: add, value: 4}
       - {target: happiness_bps, op: add, value: 40}
+      - {target: personal_storage, op: add, value: 100}
 
   - code: home_workshop
     role: craft
@@ -73,3 +77,18 @@ settlement_buildings:
     cost_money: 500
     cost_materials: {timber: 2}
     build_time: 1h
+
+  # «انباری» (ADR 0040 6.2): a shed on a lot of one's own. It keeps goods and
+  # nothing else; it needs only the lot, so a trader without a house can still
+  # store. Its room is read by «انبار من» (handlers/room.go homeCapacity).
+  - code: private_shed
+    role: storage
+    tier: 1
+    name: انباری
+    owner: citizen
+    permit_class: residential
+    footprint: [1, 1]
+    cost_money: 600
+    cost_materials: {plank: 4}
+    build_time: 1h
+    effects: [{target: personal_storage, op: add, value: 150}]

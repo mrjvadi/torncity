@@ -44,6 +44,7 @@ const (
 	ScreenSellOffers      = "sell_offers"
 	ScreenShopSold        = "shop_sold"
 	ScreenShopRefusal     = "shop_refusal"
+	ScreenNoRoom          = "no_room"
 	ScreenExchange        = "exchange"
 	ScreenStock           = "stock"
 	ScreenStockOrder      = "stock_order"

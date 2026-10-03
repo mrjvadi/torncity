@@ -357,6 +357,7 @@ settlement_building:
   road: جاده
   civic_hall: "شهرداری"
   private_cottage: "کلبه"
+  private_shed: "انباری"
   private_house: "خانه"
   woodcutter_camp: "کارگاه هیزم‌شکنی"
   cottage: "خانهٔ روستایی"

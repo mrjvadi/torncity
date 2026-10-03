@@ -48,6 +48,7 @@ func init() {
 	Register(economy.ScreenSellOffers, screens.SellOffers)
 	Register(economy.ScreenShopSold, screens.ShopSold)
 	Register(economy.ScreenShopRefusal, screens.ShopRefusal)
+	Register(economy.ScreenNoRoom, screens.NoRoom)
 	Register(economy.ScreenAuctions, screens.Auctions)
 	Register(economy.ScreenAuctionDetail, screens.AuctionDetail)
 	Register(economy.ScreenAuctionNew, screens.AuctionNew)

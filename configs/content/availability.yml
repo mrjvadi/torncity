@@ -139,6 +139,7 @@ availability:
   - {kind: building, code: granary, stage: village, growth: {open: true, founding: true, row: 40}}
   - {kind: building, code: private_cottage, stage: village, growth: {open: true, founding: true, row: 41}}
   - {kind: building, code: private_house, stage: village}
+  - {kind: building, code: private_shed, requires: {buildings: [{code: civic_hall}]}, note: "ADR 0040 6.2: needs only a lot of one's own; keeps goods at home («انبار من»)"}
   - {kind: building, code: general_store, stage: village, note: "ADR 0046 5.1: the shop building; its research is the barter ring every settlement is founded with"}
   - {kind: building, code: home_workshop, stage: village}
   - {kind: building, code: market_stall, stage: village, growth: {open: true, founding: true, row: 44}, elsewhere: [{where: support}]}

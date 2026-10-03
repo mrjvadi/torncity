@@ -19,6 +19,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/bank"
 	"github.com/mrjvadi/torncity/internal/domain/company"
+	"github.com/mrjvadi/torncity/internal/domain/carry"
 	"github.com/mrjvadi/torncity/internal/domain/gametime"
 	"github.com/mrjvadi/torncity/internal/domain/item"
 	"github.com/mrjvadi/torncity/internal/domain/production"
@@ -94,6 +95,15 @@ type ProductionHandler struct {
 
 	idempotencyTTL time.Duration
 	now            func() time.Time
+	// carry is the room check (room.go); zero checks nothing.
+	carry carryEnv
+}
+
+// WithCarry has a purchase from a company's market refused when it does not
+// fit in the bags.
+func (h *ProductionHandler) WithCarry(rules carry.Rules, clock gametime.Clock) *ProductionHandler {
+	h.carry = carryEnvOf(rules, clock)
+	return h
 }
 
 // NewProductionHandler wires the handler.
@@ -199,6 +209,9 @@ func (h *ProductionHandler) finish(meta envelope.Metadata, lang string, err erro
 	}
 	if v, ok := asBlocked(err); ok {
 		return society.SanctionBlocked(c, v), nil
+	}
+	if resp, ok := noRoomResponse(err, lang, h.content.Current(), companies.AddrCompanyGoods); ok {
+		return resp, nil
 	}
 	return nil, err
 }

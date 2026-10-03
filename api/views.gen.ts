@@ -539,6 +539,7 @@ export interface CardView {
 
 export interface CarryLine {
   used: number
+  reserved: number
   capacity: number
   base: number
   load_g: number
@@ -2095,6 +2096,13 @@ export interface HoldingLine {
   listed: boolean
 }
 
+export interface HomeStoreView {
+  capacity: number
+  used: number
+  here: boolean
+  lines: InventoryLine[] | null
+}
+
 export interface HospitalView {
   health: number
   max: number
@@ -2271,6 +2279,8 @@ export interface InventoryView {
   in_escrow: number
   bags: BagSlotLine[] | null
   carry: CarryLine
+  home: HomeStoreView | null
+  claims: InventoryLine[] | null
 }
 
 export interface ItemDetailView {
@@ -2287,6 +2297,7 @@ export interface ItemDetailView {
   gear: GearLine | null
   usable: boolean
   tradeable: boolean
+  can_store: boolean
   cooldown_seconds: number
   cooling_for_seconds: number
   ready_at: string | null
@@ -3307,6 +3318,18 @@ export interface NextStep {
 export interface NilExample {
   amount: number
   nil_micro: number
+}
+
+export interface NoRoomView {
+  item: Named
+  qty: number
+  need_space: number
+  free_space: number
+  short: number
+  need_g: number
+  free_g: number
+  heavy: boolean
+  back: string
 }
 
 export interface NotHereView {
@@ -5501,6 +5524,7 @@ export interface ScreenViews {
   my_auctions: MyAuctionsView
   my_office: MyOfficeView
   my_orders: MyOrdersView
+  no_room: NoRoomView
   not_here: NotHereView
   office_notice: OfficeView
   order_cancelled: OrderCancelledView
@@ -5640,4 +5664,4 @@ export interface ScreenViews {
 }
 
 /** Screens whose response is a refusal: the answer carries an error code instead of ok. */
-export const REFUSAL_SCREENS = ['appoint_refusal', 'auction_refusal', 'bill_refusal', 'company_refusal', 'crime_refusal', 'diplomacy_refusal', 'election_refusal', 'faction_refusal', 'finance_refusal', 'founding_refusal', 'health_refusal', 'item_refusal', 'life_refusal', 'market_refusal', 'military_refusal', 'mission_refusal', 'policy_refused', 'production_refusal', 'property_refusal', 'recruit_refusal', 'refusal', 'sanction_blocked', 'settlement_refusal', 'shop_refusal', 'village_refusal', 'village_shop_refusal', 'war_blocked', 'war_refusal'] as const
+export const REFUSAL_SCREENS = ['appoint_refusal', 'auction_refusal', 'bill_refusal', 'company_refusal', 'crime_refusal', 'diplomacy_refusal', 'election_refusal', 'faction_refusal', 'finance_refusal', 'founding_refusal', 'health_refusal', 'item_refusal', 'life_refusal', 'market_refusal', 'military_refusal', 'mission_refusal', 'no_room', 'policy_refused', 'production_refusal', 'property_refusal', 'recruit_refusal', 'refusal', 'sanction_blocked', 'settlement_refusal', 'shop_refusal', 'village_refusal', 'village_shop_refusal', 'war_blocked', 'war_refusal'] as const

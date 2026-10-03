@@ -214,6 +214,32 @@ func renderShopSold(c Context, v ShopSoldView) *presenter.Response {
 	), kb.Build())
 }
 
+// NoRoom renders a request refused for lack of room.
+func NoRoom(c Context, v NoRoomView) *presenter.Response {
+	return c.withView(renderNoRoom(c, v), ScreenNoRoom, v)
+}
+
+func renderNoRoom(c Context, v NoRoomView) *presenter.Response {
+	key := "no_room.space"
+	if v.Heavy {
+		key = "no_room.heavy"
+	}
+	kb := keyboards.New()
+	if btn, ok := keyboards.Button(c.T("no_room.button.bag", nil), AddrInventory); ok {
+		kb.Row(btn)
+	}
+	back := v.Back
+	if back == "" {
+		back = AddrHome
+	}
+	kb.Nav(c.nav(keyboards.Nav{BackData: back}))
+	return c.respond(c.T(key, map[string]any{
+		"item": c.ItemName(v.Item), "qty": FormatNumber(c, v.Qty), "need": FormatNumber(c, v.NeedSpace),
+		"free": FormatNumber(c, v.FreeSpace), "short": FormatNumber(c, v.Short),
+		"grams": FormatNumber(c, v.NeedG), "freeg": FormatNumber(c, v.FreeG),
+	}), kb.Build())
+}
+
 // ShopRefusal renders a refused shop request.
 func ShopRefusal(c Context, v ShopRefusalView) *presenter.Response {
 	return c.withView(renderShopRefusal(c, v), ScreenShopRefusal, v)

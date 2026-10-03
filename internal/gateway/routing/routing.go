@@ -551,6 +551,10 @@ var argNames = map[string][]string{
 	// A bag piece (its serial) to put on; the slot (belt or back) to empty.
 	"inventory.bag.wear": {"item"},
 	"inventory.bag.off":  {"slot"},
+	// Between the bags, «انبار من» and the holding slot: the good or piece, how many, a token.
+	"inventory.store": {"item", "qty", "nonce"},
+	"inventory.fetch": {"item", "qty", "nonce"},
+	"inventory.claim": {"item", "qty", "nonce"},
 	"shop.list":      {"place"},
 	"shop.view":      {"shop"},
 	"shop.buy":       {"shop", "item", "qty", "method", "nonce"},

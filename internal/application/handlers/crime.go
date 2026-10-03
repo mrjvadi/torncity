@@ -14,6 +14,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/crime"
+	"github.com/mrjvadi/torncity/internal/domain/carry"
 	"github.com/mrjvadi/torncity/internal/domain/gametime"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/subjects"
@@ -103,6 +104,15 @@ type CrimeHandler struct {
 
 	idempotencyTTL time.Duration
 	now            func() time.Time
+	// carry is the room check (room.go): loot and stolen goods that do not
+	// fit wait in the holding slot; zero puts everything in the bags.
+	carry carryEnv
+}
+
+// WithCarry has loot that does not fit wait in the holding slot.
+func (h *CrimeHandler) WithCarry(rules carry.Rules, clock gametime.Clock) *CrimeHandler {
+	h.carry = carryEnvOf(rules, clock)
+	return h
 }
 
 // NewCrimeHandler wires the handler. A missing dependency, invalid rules or

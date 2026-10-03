@@ -60,6 +60,9 @@ type carryState struct {
 	bags                      []wornBag
 	usedSpace, usedG          int64
 	capacity, comfortG, hardG int64
+	// reservedSpace and reservedG are the room goods keep without being in the
+	// bags: a listing in escrow and the open bids (room.go).
+	reservedSpace, reservedG int64
 }
 
 // carryBags is the bags as the rules take them.
@@ -72,7 +75,7 @@ func (s carryState) carryBags() []carry.Bag {
 }
 
 func (s carryState) room(r carry.Rules) carry.Room {
-	return r.RoomLeft(s.carryBags(), s.usedSpace, s.usedG)
+	return r.RoomLeft(s.carryBags(), s.usedSpace+s.reservedSpace, s.usedG+s.reservedG)
 }
 
 // load reads what the player carries. With settle it also charges the wear the
@@ -122,6 +125,11 @@ func (e carryEnv) load(ctx context.Context, tx application.Tx, snap *content.Sna
 		}
 	}
 	st.refresh(e.rules)
+	if e.enabled() {
+		if err := e.reserve(ctx, tx, snap, playerID, &st); err != nil {
+			return carryState{}, err
+		}
+	}
 	if !settle || len(st.bags) == 0 || !e.enabled() {
 		return st, nil
 	}
@@ -169,7 +177,7 @@ func (e carryEnv) carryView(snap *content.Snapshot, st carryState) ([]plife.BagS
 	for _, sl := range carry.Slots() {
 		slots = append(slots, plife.BagSlotLine{Slot: string(sl), Bag: bySlot[string(sl)]})
 	}
-	return slots, plife.CarryLine{Used: st.usedSpace, Capacity: st.capacity, Base: e.rules.Base,
+	return slots, plife.CarryLine{Used: st.usedSpace, Reserved: st.reservedSpace, Capacity: st.capacity, Base: e.rules.Base,
 		LoadG: st.usedG, ComfortG: st.comfortG, HardG: st.hardG}
 }
 

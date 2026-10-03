@@ -236,6 +236,9 @@ item:
   piece: "کیفیت {quality}"
   piece_worn: "کیفیت {quality} - {uses} بار از {durability} بار مصرف مانده"
   in_escrow: "📦 {count} قلم از کالاهایتان در بازار یا حراجی است."
+  claims_title: "📮 در امانت، منتظر جا (جا باز کنید و بردارید):"
+  home_title: "🏠 انبار من: {used} از {capacity} جا"
+  home_away: "برای برداشتن یا گذاشتن باید در شهری باشید که خانه یا انباری دارید."
   carry_space: "🎒 جا: {used} از {capacity}"
   carry_load: "⚖️ بار: {load} کیلو (راحت تا {comfort}، حداکثر {hard})"
   bag_slot:
@@ -272,6 +275,9 @@ item:
   button:
     bag: "🎒 کوله‌پشتی"
     open: "🎒 {item}"
+    claim: "📮 برداشتن {item}"
+    fetch: "🏠 آوردن {item}"
+    store: "🏠 گذاشتن {item} در انبار من"
     use: "✅ مصرف {item}"
     give: "🎁 بده به {player}"
     drop: "🗑 دور انداختن"
@@ -287,6 +293,8 @@ item:
     not_tradeable: "{item} قابل واگذاری نیست."
     not_together: "👥 فقط به دوستی می‌توانید چیزی بدهید که همان‌جایی باشد که شما هستید."
     not_bag: "{item} کوله یا کیسه نیست؛ نمی‌شود به خود آویخت."
+    no_home: "اینجا خانه یا انباری ندارید؛ برای {item} جایی برای نگه‌داشتن نیست."
+    home_full: "انبار خانه‌تان پر است؛ {item} جا نمی‌شود."
 
 # نوع کالاها (configs/content/items.yml).
 property:

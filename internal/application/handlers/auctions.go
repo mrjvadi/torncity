@@ -14,6 +14,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/auction"
 	"github.com/mrjvadi/torncity/internal/domain/diplomacy"
+	"github.com/mrjvadi/torncity/internal/domain/carry"
 	"github.com/mrjvadi/torncity/internal/domain/gametime"
 	"github.com/mrjvadi/torncity/internal/domain/payment"
 	"github.com/mrjvadi/torncity/internal/domain/place"
@@ -70,6 +71,15 @@ type AuctionsHandler struct {
 	// gates says whether the house is offered where the player stands; nil
 	// offers it everywhere.
 	gates *ServiceGate
+	// carry is the room check (room.go): a won piece that does not fit waits
+	// in the holding slot; zero puts it in the bags.
+	carry carryEnv
+}
+
+// WithCarry has a won piece that does not fit wait in the holding slot.
+func (h *AuctionsHandler) WithCarry(rules carry.Rules, clock gametime.Clock) *AuctionsHandler {
+	h.carry = carryEnvOf(rules, clock)
+	return h
 }
 
 // WithServiceGate has the auction list say so when the house is not offered in
@@ -729,8 +739,12 @@ func (h *AuctionsHandler) Close(ctx context.Context, meta envelope.Metadata, req
 				return err
 			}
 		}
+		won, err := h.carry.arrival(ctx, tx, h.content.Current(), a.HighBidder, a.Item, 1)
+		if err != nil {
+			return err
+		}
 		if err := tx.Items().Move(ctx, application.ItemMove{ID: h.ids.NewID(), Item: a.Item, PieceID: a.PieceID, Qty: 1,
-			From: a.SellerID, FromHolding: application.HoldEscrow, To: a.HighBidder, ToHolding: application.HoldCarried,
+			From: a.SellerID, FromHolding: application.HoldEscrow, To: a.HighBidder, ToHolding: won,
 			Reason: application.ItemAuctionSold, ReferenceType: "auctions", ReferenceID: a.ID, At: now}); err != nil {
 			return err
 		}

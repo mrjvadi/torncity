@@ -560,3 +560,10 @@ unavailable:
     gold: "The gold dealer"
     auction_house: "The auction house"
     market: "The market"
+
+# No room: the goods do not fit in the bags.
+no_room:
+  button:
+    bag: "🎒 Backpack"
+  space: "🎒 No room: {qty} x {item} needs {need} space and you have {free} free; {short} short. Sell something, store it at home or put on a bigger bag."
+  heavy: "🎒 Too heavy: {qty} x {item} weighs {grams} g and you can take {freeg} g more."
