@@ -105,7 +105,7 @@ settlement_buildings:
   # A single-lot home: the smallest residential option a village can place
   # (the housing_block below is the 2x2 block of homes).
   - code: cottage
-    name: "خانهٔ روستایی"
+    name: "خانهٔ کوچک"
     role: housing
     tier: 1
     footprint: [1, 1]
