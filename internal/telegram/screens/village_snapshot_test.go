@@ -179,10 +179,6 @@ func villageSnapshots(c Context, who people, add func(string, *presenter.Respons
 		SettlementName: villageNameFor(c), Building: sampleNamed(c.Lang, "cottage", "خانهٔ روستایی", "Village house"),
 		GridLots: 10, Rows: wideLotRows(10), WinX: 4, WinY: 4,
 	}))
-	add("Land · the price of the next expansion", GridGrowConfirm(g, GridGrowView{
-		SettlementName: villageNameFor(c), Side: 5, NewSide: 6, LotsGained: 11, BuildableGained: 9, Price: 550, Treasury: 12_400,
-	}))
-	add("Land · the technical bound", VillageRefusal(g, VillageRefusalView{Kind: VillageGridMax}))
 
 	militiaCamp := sampleNamed(c.Lang, "militia_camp", "اردوگاه میلیشیا", "Militia camp")
 	add("Lot grid · a mix of states, rotatable building", LotGrid(g, LotGridView{
@@ -256,6 +252,30 @@ func villageSnapshots(c Context, who people, add func(string, *presenter.Respons
 		},
 	}
 	add("Land grid · free lots on offer", LandGrid(g, land))
+	// a road drawn out of the first grid opened land beyond it (docs/adr/0044 5.5)
+	pathClass := sampleNamed(c.Lang, "path", "راه مالرو", "Footpath")
+	withRoads := land
+	withRoads.Roads = []RoadPlanLine{{ID: "r1", Class: pathClass, Lots: 38, Built: 12, Open: 150, Sold: 5, To: village.LotRef{X: -14, Y: 19}}}
+	withRoads.Outer = []LandCell{
+		{X: 6, Y: 2, State: LandPlanned}, {X: 7, Y: 2, State: LandRoad, Building: "road"},
+		{X: 7, Y: 3, State: LandFree, Access: "road"}, {X: 8, Y: 3, State: LandFree, Access: "needs_road", Roads: 2, Cost: 20},
+		{X: 8, Y: 1, State: LandFree, Access: "needs_bridge", Roads: 2, Crossings: 1, Cost: 80}, {X: 9, Y: 3, State: LandTaken, Owner: "Sara"},
+		{X: -3, Y: 8, State: LandWater}, {X: -3, Y: 9, State: LandSteep},
+	}
+	withRoads.FreeLots, withRoads.ServedLots, withRoads.CanDraw = 17, 17, true
+	add("Land grid · roads opened land beyond the first grid", LandGrid(g, withRoads))
+	roadQuote := RoadQuoteView{
+		SettlementName: villageNameFor(c), From: village.LotRef{X: 2, Y: 4}, To: village.LotRef{X: -14, Y: 19}, Class: pathClass,
+		Lots: 38, Crossings: 1, LengthM: 1160, ClimbM: 22, MaxGradeBPS: 640, LotCost: 10, CrossingCost: 60, FullCost: 430,
+		Opens: 190, Usable: 171, Water: 9, Steep: 10,
+	}
+	add("Road · the quote of a road drawn out of the first grid", RoadQuote(g, roadQuote))
+	roadQuote.PlanID = "r1"
+	add("Road · the plan is stored", RoadPlanned(g, roadQuote))
+	add("Road · a plan taken back", RoadCancelled(g, RoadCancelledView{SettlementName: villageNameFor(c), PlanID: "r1", Lots: 38}))
+	for _, kind := range []string{RoadNoNetwork, RoadEndBlocked, RoadWater, RoadNoRoute, RoadNoBridge, RoadTooLong, RoadForeign, RoadOpenCap, RoadInUse, RoadSame, RoadClassLocked} {
+		add("Road refusal · "+kind, VillageRefusal(g, VillageRefusalView{Kind: kind}))
+	}
 	buy := LotBuyView{Village: villageNameFor(c), X: 2, Y: 3, Price: 400, Cash: 5_000, Treasury: 10_900, Total: 400, Access: LotAccess{Kind: "road"}}
 	add("Land purchase · confirm", LotBuyConfirm(g, buy))
 	buy.Cash, buy.Treasury = 4_600, 11_300

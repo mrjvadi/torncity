@@ -166,6 +166,19 @@ func (s *Snapshot) RoadClass(code string) (RoadClassDef, bool) {
 	return c, ok
 }
 
+// RoadClasses lists the road classes, by code.
+func (s *Snapshot) RoadClasses() []RoadClassDef {
+	if s.schema == nil {
+		return nil
+	}
+	out := make([]RoadClassDef, 0, len(s.schema.roads))
+	for _, c := range s.schema.roads {
+		out = append(out, c)
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Code < out[j].Code })
+	return out
+}
+
 // RoadPlanner is roads.yml's planner block.
 func (s *Snapshot) RoadPlanner() (RoadPlannerDef, bool) {
 	if s.schema == nil || s.schema.planner == nil {

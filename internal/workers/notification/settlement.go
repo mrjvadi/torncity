@@ -78,7 +78,7 @@ const (
 	SettlementLotBought         = "lot_bought"
 	SettlementLotRepaired       = "lot_repaired"
 	SettlementBuildBatchStarted = "build_batch_started"
-	SettlementGridGrown         = "grid_grown"
+	SettlementLandChanged       = "land_changed"
 	SettlementBuildFinished     = "build_finished"
 	SettlementBuildCancelled    = "build_cancelled"
 	SettlementBuildSalvaged     = "build_salvaged"
@@ -282,19 +282,20 @@ func villageBatchStarted(_ context.Context, _ Deps, env *envelope.Envelope) ([]S
 	return one(ev.SettlementID, SettlementBuildBatchStarted, withLayout(f, ev)), nil
 }
 
-// villageGridGrown: the village bought more land. The picture changes (the
-// grid is bigger), so the publication carries the new side and the layout's
-// version: a client holding a layout fetches it again.
-func villageGridGrown(_ context.Context, _ Deps, env *envelope.Envelope) ([]SettlementPublication, error) {
-	ev, err := decodeVillage(env, "grid_grown")
+// villageLandChanged: a road was drawn, cancelled or built (ADR 0044, a road
+// opens the land it reaches). The picture changes (lots opened or closed), so
+// the publication carries the layout's version: a client holding a layout
+// fetches it again.
+func villageLandChanged(_ context.Context, _ Deps, env *envelope.Envelope) ([]SettlementPublication, error) {
+	ev, err := decodeVillage(env, "land_changed")
 	if err != nil {
 		return nil, err
 	}
-	var grown struct {
-		GridLots int `json:"grid_lots"`
+	var changed struct {
+		Kind string `json:"kind"`
 	}
-	_ = json.Unmarshal(env.Payload, &grown)
-	return one(ev.SettlementID, SettlementGridGrown, withLayout(map[string]any{"grid_lots": grown.GridLots}, ev)), nil
+	_ = json.Unmarshal(env.Payload, &changed)
+	return one(ev.SettlementID, SettlementLandChanged, withLayout(map[string]any{"kind": changed.Kind}, ev)), nil
 }
 
 // villageBuilt: a building finished construction.

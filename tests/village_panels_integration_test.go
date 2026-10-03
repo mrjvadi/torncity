@@ -1,7 +1,7 @@
 //go:build integration
 
 // Integration test of the building panels, batch placement, automatic roads
-// and land growth (village work of 2026-09-30):
+// (village work of 2026-09-30; the paid land growth of that day was retired by ADR 0044, land now opens by roads, see roads_open_land_integration_test.go):
 //
 //   - settlement.build.place_many: one command lays a run of roads; the total
 //     is charged in one spend; a batch with a bad lot is refused as a whole,
@@ -13,10 +13,6 @@
 //   - placing a building lays the road that connects it (finished at once,
 //     small fee), refuses a building no road could reach, and leaves a
 //     building that already touches the network alone.
-//   - settlement.grid.grow: the head buys land; the price rises; every stored
-//     lot coordinate stays valid; a racing second buyer loses the
-//     compare-and-set; the technical bound refuses; the event carries the new
-//     layout version.
 //
 // The village is founded directly on a land cell (no founding kit) so the
 // test lays its own hall and road; every handler exercised runs through the
@@ -26,7 +22,6 @@ package tests
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -135,10 +130,7 @@ func TestVillagePanelsBatchRoadsAndGrowth(t *testing.T) {
 		t.Fatalf("loading the locale catalogue: %v", err)
 	}
 	const (
-		lotPrice   = 50
-		stepBPS    = 500
 		roadFee    = 10
-		maxSide    = 7 // base 5 + 2 expansions: the third is refused
 		startMoney = 100_000
 	)
 	village := handlers.NewVillageHandler(uow, workIDs{t}, catalog, source, worldCache, cities, gametime.Scale(1),
@@ -146,7 +138,7 @@ func TestVillagePanelsBatchRoadsAndGrowth(t *testing.T) {
 			VillageGridLots: 5, TeachPeriod: time.Second, TeachRateBPS: 10_000,
 			BaseSchoolCapacityBPS: 10_000, ScarcityKBPS: 10_000, ScarcityFloorBPS: 3_000, ScarcityCapBPS: 80_000, SellerBandBPS: 500,
 			DemolitionSalvageBPS: 2_000,
-			GridMaxLots:          maxSide, GridLotPrice: lotPrice, GridPriceStepBPS: stepBPS, AutoRoadCost: roadFee,
+			AutoRoadCost: roadFee,
 		}, time.Hour, clk.Now)
 
 	groupChatID := -newTelegramUserID(t)
@@ -566,116 +558,4 @@ func TestVillagePanelsBatchRoadsAndGrowth(t *testing.T) {
 		t.Errorf("a refused house moved money")
 	}
 	assertNoBuildingAt(t, pool, cityID, 4, 4)
-
-	// ---------------------------------------------------------------
-	// 6. Land: the head buys more; existing coordinates stay valid.
-	// ---------------------------------------------------------------
-	growReq := func(p *application.Player, confirm string) *presenter.Response {
-		t.Helper()
-		r, err := rrcm(asPlayer(p, "settlement.grid.grow", "grid.grow"))(village.GrowGrid(testCtx(t), asPlayer(p, "settlement.grid.grow", "grid.grow"), handlers.VillageGrowRequest{Confirm: confirm}))
-		if err != nil {
-			t.Fatalf("GrowGrid: %v", err)
-		}
-		return r
-	}
-	rowsBefore := func() string {
-		var s string
-		_ = pool.Raw().QueryRow(testCtx(t),
-			`SELECT COALESCE(string_agg(type_code || ':' || lot_x || ',' || lot_y, ';' ORDER BY id), '') FROM settlement_buildings WHERE settlement_id = $1::uuid`, cityID).Scan(&s)
-		return s
-	}()
-
-	if r := growReq(stranger, ""); !strings.Contains(r.Text, "شهردار") {
-		t.Errorf("a non-head could ask to grow the land: %q", r.Text)
-	}
-	first := growReq(head, "")
-	if first.Screen != screens.ScreenGridGrow {
-		t.Fatalf("the land preview screen = %q; text %q", first.Screen, first.Text)
-	}
-	fm := viewMap(t, first)
-	if int64(fm["price"].(float64)) != wsettle.GrowthPrice(5, 0, lotPrice, stepBPS) || int(fm["new_side"].(float64)) != 6 {
-		t.Errorf("land preview = %v, want price %d and side 6", fm, wsettle.GrowthPrice(5, 0, lotPrice, stepBPS))
-	}
-	before = treasury()
-	growReq(head, screens.VillageBuildConfirm)
-	if got := before - treasury(); got != wsettle.GrowthPrice(5, 0, lotPrice, stepBPS) {
-		t.Errorf("the first expansion cost %d, want %d", got, wsettle.GrowthPrice(5, 0, lotPrice, stepBPS))
-	}
-	var growth int
-	_ = pool.Raw().QueryRow(testCtx(t), `SELECT grid_growth FROM cities WHERE id = $1::uuid`, cityID).Scan(&growth)
-	if growth != 1 {
-		t.Errorf("grid_growth = %d, want 1", growth)
-	}
-	grown := outboxHas("grid_grown")
-	if len(grown) != 1 || int(grown[0]["grid_lots"].(float64)) != 6 || grown[0]["layout_version"] == nil {
-		t.Errorf("grid_grown events = %v, want one with grid_lots 6 and a layout_version", grown)
-	}
-	var rowsAfter string
-	_ = pool.Raw().QueryRow(testCtx(t),
-		`SELECT COALESCE(string_agg(type_code || ':' || lot_x || ',' || lot_y, ';' ORDER BY id), '') FROM settlement_buildings WHERE settlement_id = $1::uuid`, cityID).Scan(&rowsAfter)
-	if rowsAfter != rowsBefore {
-		t.Errorf("growing the land moved buildings:\n before %s\n after  %s", rowsBefore, rowsAfter)
-	}
-
-	// The lot picker now spans 6x6 and the walled lot is reachable again is not
-	// promised; what is promised: the new strip is offered and old lots unchanged.
-	lotsResp, err := rrcm(headMeta("settlement.build.lots", "build.lots"))(village.Lots(testCtx(t), headMeta("settlement.build.lots", "build.lots"), handlers.VillageLotsRequest{Code: "cottage"}))
-	if err != nil {
-		t.Fatal(err)
-	}
-	g := parseLotGrid(t, lotsResp.View)
-	if len(g.Rows) != 6 || len(g.Rows[0]) != 6 {
-		t.Fatalf("the grid is %dx%d after one expansion, want 6x6", len(g.Rows), len(g.Rows[0]))
-	}
-	for _, at := range [][2]int{{0, 0}, {2, 2}, {4, 0}} {
-		if c := g.Rows[at[1]][at[0]]; c.State == screens.LotFree {
-			t.Errorf("lot (%d,%d) holds a building but reads free after growth", at[0], at[1])
-		}
-	}
-
-	// A racing second buyer of the same step loses (compare-and-set).
-	if err := uow.Do(testCtx(t), func(ctx context.Context, tx application.Tx) error {
-		return tx.Settlements().GrowGrid(ctx, cityID, 0, 1)
-	}); !errors.Is(err, application.ErrGridGrowthConflict) {
-		t.Errorf("a stale growth write returned %v, want the conflict", err)
-	}
-
-	// The second step costs more; the third is past the technical bound.
-	before = treasury()
-	growReq(head, screens.VillageBuildConfirm)
-	if got, want := before-treasury(), wsettle.GrowthPrice(6, 1, lotPrice, stepBPS); got != want {
-		t.Errorf("the second expansion cost %d, want %d", got, want)
-	}
-	if wsettle.GrowthPrice(6, 1, lotPrice, stepBPS) <= wsettle.GrowthPrice(5, 0, lotPrice, stepBPS) {
-		t.Error("the second expansion is not dearer than the first")
-	}
-	third := growReq(head, screens.VillageBuildConfirm)
-	if third.Screen != screens.ScreenVillageRefusal || !strings.Contains(third.Text, "بیشینه") {
-		t.Errorf("an expansion past the bound answered %q: %q", third.Screen, third.Text)
-	}
-
-	// A house on the new land: connected by its own street, at the strip's edge.
-	lotsResp, _ = rrcm(headMeta("settlement.build.lots", "build.lots"))(village.Lots(testCtx(t), headMeta("settlement.build.lots", "build.lots"), handlers.VillageLotsRequest{Code: "cottage"}))
-	g = parseLotGrid(t, lotsResp.View)
-	if len(g.Rows) != 7 {
-		t.Fatalf("the grid is %d rows after two expansions, want 7", len(g.Rows))
-	}
-	placed := false
-	for y := 6; y >= 5 && !placed; y-- {
-		for x := 0; x < 7 && !placed; x++ {
-			if g.Rows[y][x].State == screens.LotFree && g.Rows[y][x].Fits {
-				place("cottage", x, y, true)
-				placed = true
-			}
-		}
-	}
-	if placed {
-		var nHouses int
-		_ = pool.Raw().QueryRow(testCtx(t), `SELECT count(*) FROM settlement_buildings WHERE settlement_id = $1::uuid AND type_code = 'cottage' AND (lot_x >= 5 OR lot_y >= 5)`, cityID).Scan(&nHouses)
-		if nHouses != 1 {
-			t.Errorf("no house stands on the new strip after placing one")
-		}
-	} else {
-		t.Log("the new strip had no free fitting lot in this world; the placement-on-new-land check was skipped")
-	}
 }

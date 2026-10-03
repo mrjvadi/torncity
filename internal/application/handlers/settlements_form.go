@@ -431,8 +431,8 @@ func (h *SettlementsHandler) foundedView(lang string, world *worldgen.World, s a
 	return village.SettlementFoundedView{
 		Name: s.Name, SettlementID: s.CityID, BiomeCode: world.BiomeCode(cell), NearbyFeature: featureName,
 		Buildings: codes, ProtectedUntil: s.ProtectedUntil, Founder: founder,
-		Emblem:     village.FoundingEmblemView{Shape: e.Shape, ColorA: e.ColorA, ColorB: e.ColorB, Icon: e.Icon},
-		Motto: s.Motto,
+		Emblem:       village.FoundingEmblemView{Shape: e.Shape, ColorA: e.ColorA, ColorB: e.ColorB, Icon: e.Icon},
+		Motto:        s.Motto,
 		CurrencyName: s.Currency.Name, CurrencyCode: s.Currency.Code, CurrencySign: s.Currency.Symbol,
 	}
 }

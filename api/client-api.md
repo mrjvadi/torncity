@@ -28,10 +28,12 @@ returned has changed.
 `wait_seconds`), and the `walk` and `cart` transport modes. 1.5 adds the
 building panel, batch placement, automatic roads and land (section 4.3,
 "Building panels, batches, roads and land"): `settlement.building.view`,
-`settlement.build.place_many`, `settlement.grid.grow`, the `village_batch`,
-`village_no_road` and `village_grid_max` error codes, the realtime publications
-`build_batch_started` and `grid_grown`, `auto_roads` on `build_started`, and a
-`grid.lots` that may be larger than the tier's base side. The content
+`settlement.build.place_many`, the `village_batch` and
+`village_no_road` error codes, the realtime publication
+`build_batch_started`, `auto_roads` on `build_started`, and a
+`grid.lots` that may be larger than the tier's base side. (The paid land
+expansion `settlement.grid.grow`, `village_grid_max` and `grid_grown` of 1.5 were
+removed: land now opens by roads, see "Roads that open land" below.) The content
 catalogue's `settlement_building` entries gain `cap_exempt` (roads), which tells
 a client which buildings it may lay many at a time. Nothing that 1.0,
 1.1, 1.2, 1.3 or 1.4 returned has changed. 1.6 adds state sync (section
@@ -661,18 +663,42 @@ that already touches the network gets none; one no road could reach is refused
 `auto_roads` (the number of lots) and the cost already includes them. The
 founding kit already puts a road against the hall, so founding needs nothing.
 
-**Land.** A village owns as much land as it pays for: nothing ties the grid
-to the tier. `settlement.grid.grow` adds a column on the **east** edge and a
-row on the **north** edge, so `grid.lots` grows by one and **every stored lot
-coordinate stays valid** (lot (0,0), the south-west corner, and
-`grid.origin` never move; the new lots are sampled by the same sampler, so
-water and steep ground stay unbuildable). The price is the lots gained
-(`2 × side + 1`) × `settlement.grid_lot_price`, dearer by
-`settlement.grid_price_step_bps` for each expansion already bought; the only
-bound is the technical `settlement.grid_max_lots` (41), not a game rule.
-`bootstrap.settlement.grid_lots` and the layout's `grid.lots` include the
-expansions. After an expansion the client re-reads the layout (the
-`grid_grown` publication carries the new `layout_version`).
+**Land: roads that open it (ADR 0044 5.5, owner decision 2026-10-03).** The grid
+a village is founded with (`grid.lots`, 5 a side; a village that once bought
+expansions keeps the bigger grid) is only its FIRST BLOCK of land. The paid
+expansion is gone. The holder of the top office draws a road out of the grid and
+the lots along it open for sale:
+
+- `settlement.road.plan` `{x, y}` (or `to`: a lot token, `from`?, `class`?
+  (`path` by default), `confirm`?). Without `confirm` it answers
+  `settlement_road_quote` and changes nothing; with it, `settlement_road_planned`
+  (a PLAN is stored: free, idempotent). The view carries `from`, `to`, `class`,
+  `options` (every road class with `available` and the research it `missing`),
+  `lots`, `length_m`, `climb_m`, `max_grade_bps`, `crossings`, `lot_cost`,
+  `crossing_cost`, `full_cost` (the price of building all of it, paid by buyers
+  piece by piece), `opens`/`usable`/`water`/`steep`, `path` and `open_cells`.
+  Refusals: `village_road_no_network`, `_end_blocked`, `_water`, `_no_route`,
+  `_no_bridge`, `_too_long`, `_foreign`, `_open_cap`, `_same`, `_class_locked`.
+- `settlement.road.cancel` `{id}` takes a plan back while nothing is laid and no
+  lot along it is sold or built on (`village_road_in_use` otherwise).
+- Lot coordinates are **absolute from the first grid's south-west corner and may
+  be negative** (land west and south of it). A lot token writes a negative
+  coordinate as `m` and its size: `m3-7`, `5-m2`. `x`/`y` numbers are accepted
+  everywhere a token is.
+- The layout (members) gains `land: {plans, cells, open}`: `cells` are the lots of
+  drawn roads (`built` once a purchase laid them), `open` the lots the roads
+  opened with their ground (`buildable`, `reason` `water` or `steep`, `height_m`,
+  `slope_m`, `biome`, `tags`). A laid road cell is also in `buildings` and
+  `roads` like any road. `settlement.land` gains `outer` (the same lots with
+  their state and `access`/`cost`), `roads` (each drawn road with how many lots
+  are built, for sale and sold) and `can_draw`; `settlement.build.lots` and
+  `settlement.private.lots` gain `outer` (cells with `fits`).
+- `settlement.lot.buy` on an opened lot charges the lot price to the treasury
+  and, in the same purchase, the lane to the road and the unlaid stretch of the
+  drawn road up to it (reason `settlement_lot_road`, one journal row); the cells
+  are laid once, so the next buyer pays only what is still unlaid.
+- The publication `land_changed` (`kind`: `road_planned` or `road_cancelled`,
+  `layout_version`) replaces `grid_grown`: fetch the layout again.
 
 #### Your settlement — `bootstrap.settlement`
 
@@ -759,7 +785,8 @@ needs a group.
 | `settlement.build.place` | `code`, `x`, `y`, `rotated`? (bool), `confirm`? | without `confirm`: `settlement_build_confirm` (cost, materials, build time), nothing changes. With `confirm: "confirm"`: pays, draws the materials, starts the build, answers `settlement_construction_progress` |
 | `settlement.build.place_many` | `code`, `lots` (`[{x, y}]`, or tokens `"3-1"`), or `from`/`to` (two ends of a line, along the row and then down the column), `confirm`? | lays several one-lot buildings **of a cap-exempt type (roads)** in ONE command; see "Building panels, batches, roads and land" |
 | `settlement.building.view` | `building_id`, `mode`? (`up` \| `dm` \| `cx`) | one placed building's own panel (`settlement_building_view`) |
-| `settlement.grid.grow` | `confirm`? | buys one expansion of the village's land; without `confirm`: `settlement_grid_grow` (price, new side, buildable lots gained) |
+| `settlement.road.plan` | `x`, `y` (or `to`), `from`?, `class`?, `confirm`? | draws a road out of the first grid; without `confirm`: `settlement_road_quote`; with it: `settlement_road_planned`; see "Land: roads that open it" |
+| `settlement.road.cancel` | `id` | takes an unlaid, unsold road plan back (`settlement_road_cancelled`) |
 | `settlement.build.cancel` | `id` | calls off a building **under construction**; the spend is forfeited, the lot is free again |
 | `settlement.build.demolish` | `id` | removes a **finished** building; part of its cost returns to the treasury |
 | `settlement.build.progress` | — | what is going up |
@@ -837,7 +864,7 @@ sentence Telegram shows, in the player's language):
 | `village_materials` | the village stock lacks a material |
 | `village_batch` | (1.5) a batch was refused as a whole; `view.lots` is `[{x, y, kind}]`, every offending lot with its own kind (`occupied`, `unbuildable`, `out_of_bounds`, `terrain`, `prerequisite`, `literacy`, `concurrent_cap`, `not_available`, `not_found`); nothing was paid or built |
 | `village_no_road` | (1.5) the building could never be reached by road: no free buildable ground beside it leads to the network |
-| `village_grid_max` | (1.5) the land is at the technical bound of a grid's side (`settlement.grid_max_lots`) |
+| `village_road_no_route` and the other `village_road_*` | (1.6) a road plan was refused; see "Land: roads that open it" |
 | `village_not_found` | unknown building type, id or malformed lot |
 | `village_not_demolishable` / `village_not_cancellable` | wrong state for the action |
 | `village_busy`, `village_already_owned`, `village_not_available` | research / purchase refusals |
@@ -1196,7 +1223,7 @@ pictures:
 | `lot_repaired` | `lot_x`, `lot_y`, `auto_roads`?, `layout_version` | a resident put right a lot no road reached (docs/adr/0043): the road laid, cut through their own land, or the sale rescinded; refetch the layout when yours differs |
 | `build_started` | `building_id`, `type_code`, `lot_x`, `lot_y`, `rotated`, `finish_at`, `auto_roads`? (1.5: `[{building_id, lot_x, lot_y}]`, roads the game laid with it, already finished), `layout_version` | the head placed a building and paid for it |
 | `build_batch_started` | `type_code`, `count`, `buildings` (`[{building_id, lot_x, lot_y}]`), `finish_at`, `layout_version` | (1.5) the head placed several buildings with one command |
-| `grid_grown` | `grid_lots`, `layout_version` | (1.5) the village bought land: the grid is bigger, fetch the layout |
+| `land_changed` | `kind` (`road_planned` \| `road_cancelled`), `layout_version` | (1.6) a road was drawn or taken back: the land that is open changed, fetch the layout |
 | `build_finished` | `building_id`, `type_code`, `layout_version` | construction reached its end |
 | `build_cancelled` | `building_id`, `type_code`, `layout_version` | the head called off a building still going up |
 | `build_salvaged` | `building_id`, `type_code`, `layout_version` | a building was pulled down and its scrap credited |

@@ -208,10 +208,20 @@ func TestTheMorningDeliveryHappensOncePerGameDayWhoeverTries(t *testing.T) {
 	if _, _, rows := e.day(t); rows != 2 {
 		t.Fatalf("days after a second morning = %d, want 2", rows)
 	}
+	// a shelf holds two days: the third morning with nothing sold is turned away in part,
+	// and what was turned away still counts as delivered (the shelf adds up)
+	e.clock.Advance(24 * time.Minute)
+	e.view(t, p)
+	if _, _, rows := e.day(t); rows != 3 {
+		t.Fatalf("days after a third morning = %d, want 3", rows)
+	}
 	var stock, delivered, trimmed, sold int64
 	if err := e.pool.Raw().QueryRow(ctx, `SELECT stock, delivered_total, trimmed_total, sold_total FROM village_shop_lines WHERE settlement_id = $1::uuid AND line = 'bread'`,
 		e.cityID).Scan(&stock, &delivered, &trimmed, &sold); err != nil {
 		t.Fatal(err)
+	}
+	if trimmed < 1 {
+		t.Errorf("bread: nothing was trimmed after three mornings with no sale (stock %d, delivered %d)", stock, delivered)
 	}
 	if stock != delivered-sold-trimmed || stock < 1 {
 		t.Errorf("bread: stock %d, delivered %d, sold %d, trimmed %d: the shelf does not add up", stock, delivered, sold, trimmed)

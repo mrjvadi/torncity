@@ -11,10 +11,10 @@ import (
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/diplomacy"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
-	"github.com/mrjvadi/torncity/internal/shared/errors"
-	"github.com/mrjvadi/torncity/internal/shared/idempotency"
 	"github.com/mrjvadi/torncity/internal/presentation"
 	"github.com/mrjvadi/torncity/internal/presentation/society"
+	"github.com/mrjvadi/torncity/internal/shared/errors"
+	"github.com/mrjvadi/torncity/internal/shared/idempotency"
 )
 
 // DiplomacyRules is the tuning of sanctions and treaties (config

@@ -80,11 +80,7 @@ type VillageHandler struct {
 	scarcityCapBPS        int64
 	sellerBandBPS         int64
 	demolitionSalvageBPS  int64
-	// Land and roads (config.Settlement): the technical bound on a grid's
-	// side, the lot price and its step, and the fee per automatic road lot.
-	gridMaxLots        int
-	gridLotPrice       int64
-	gridPriceStepBPS   int64
+	// Roads (config.Settlement): the fee per automatic road lot.
 	autoRoadCost       int64
 	materialMarkupBPS  int64
 	stockBaseCapacity  int64
@@ -136,13 +132,8 @@ type VillageRules struct {
 	ScarcityCapBPS        int64
 	SellerBandBPS         int64
 	DemolitionSalvageBPS  int64
-	// GridMaxLots, GridLotPrice, GridPriceStepBPS and AutoRoadCost are
-	// settlement.grid_max_lots, .grid_lot_price, .grid_price_step_bps and
-	// .auto_road_cost.
-	GridMaxLots      int
-	GridLotPrice     int64
-	GridPriceStepBPS int64
-	AutoRoadCost     int64
+	// AutoRoadCost is settlement.auto_road_cost.
+	AutoRoadCost int64
 	// MaterialMarkupBPS, StockBaseCapacity and MaterialBuyMax are
 	// settlement.material_markup_bps, .stock_base_capacity and
 	// .material_buy_max (village_economy.go).
@@ -184,9 +175,6 @@ func NewVillageHandler(uow application.UnitOfWork, ids IDGenerator, msgs Transla
 		scarcityCapBPS:        rules.ScarcityCapBPS,
 		sellerBandBPS:         rules.SellerBandBPS,
 		demolitionSalvageBPS:  rules.DemolitionSalvageBPS,
-		gridMaxLots:           rules.GridMaxLots,
-		gridLotPrice:          rules.GridLotPrice,
-		gridPriceStepBPS:      rules.GridPriceStepBPS,
 		autoRoadCost:          rules.AutoRoadCost,
 		materialMarkupBPS:     rules.MaterialMarkupBPS,
 		stockBaseCapacity:     rules.StockBaseCapacity,

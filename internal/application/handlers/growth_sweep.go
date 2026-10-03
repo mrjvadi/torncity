@@ -42,7 +42,7 @@ type SweepRow struct {
 	Kind, Code       string
 	Stage, Class     string
 	// Row is the Appendix A row number (0 for a tag the appendix does not number).
-	Row                         int
+	Row                          int
 	TierAnswer, CapabilityAnswer bool
 	// Compared is false for a deferred or Support-only tag.
 	Compared bool

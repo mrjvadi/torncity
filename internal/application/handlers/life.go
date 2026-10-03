@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	stderrors "errors"
 	"github.com/mrjvadi/torncity/internal/presentation"
-	plife "github.com/mrjvadi/torncity/internal/presentation/life"
 	"github.com/mrjvadi/torncity/internal/presentation/economy"
+	plife "github.com/mrjvadi/torncity/internal/presentation/life"
 	"sort"
 	"strconv"
 	"strings"
@@ -17,11 +17,11 @@ import (
 	"github.com/mrjvadi/torncity/internal/domain/gametime"
 	"github.com/mrjvadi/torncity/internal/domain/life"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
+	"github.com/mrjvadi/torncity/internal/presentation/society"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/shared/idempotency"
 	"github.com/mrjvadi/torncity/internal/shared/money"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
-	"github.com/mrjvadi/torncity/internal/presentation/society"
 )
 
 // LifeHandler serves a character's life (docs/adr/0025-life-and-legacy.md):

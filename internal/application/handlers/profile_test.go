@@ -539,7 +539,9 @@ func TestProfileTextComesFromTheCatalogue(t *testing.T) {
 }
 
 // noSettlements is the settlement port of a world made only of content cities: no city is a founded settlement.
-type noSettlements struct{ application.SettlementRepository }
+type noSettlements struct {
+	application.SettlementRepository
+}
 
 func (noSettlements) ByID(context.Context, string) (application.FoundedSettlement, error) {
 	return application.FoundedSettlement{}, application.ErrCityNotFound

@@ -82,8 +82,16 @@ func renderLand(c Context, v LandView) *presenter.Response {
 		}
 		kb.Row(buttons...)
 	}
+	// the land the roads opened: a keyboard cannot hold their map, so the
+	// cheapest lots are offered as buttons and the roads are listed
+	for _, row := range outerBuyRows(c, v) {
+		kb.Row(row...)
+	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrVillageOverview, RefreshData: AddrLand}))
 	blocks := []string{head, info, c.T("citizen.land.legend", nil)}
+	if b := roadLinesBlock(c, v); b != "" {
+		blocks = append(blocks, b)
+	}
 	if !v.CanBuy && v.FreeLots > 0 {
 		blocks = append(blocks, c.T("citizen.land.cannot_buy", nil))
 	}

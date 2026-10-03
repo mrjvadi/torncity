@@ -93,5 +93,9 @@ const (
 	AddrTravelOptions = "travel:options"
 )
 
-// AddrGridGrow addresses the land purchase.
-const AddrGridGrow = "settlement:grid.grow"
+// AddrRoadPlan and AddrRoadCancel address drawing a road out of the first
+// grid and taking an unlaid one back (docs/adr/0044 5.5).
+const (
+	AddrRoadPlan   = "settlement:road.plan"
+	AddrRoadCancel = "settlement:road.cancel"
+)

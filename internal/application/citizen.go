@@ -199,6 +199,10 @@ type VillageHolding struct {
 
 // CitizenRepository is the transactional port of the citizen loop.
 type CitizenRepository interface {
+	// LandRoadRepository holds the road plans that open land beyond the first
+	// grid (migration 0110).
+	LandRoadRepository
+
 	// HeldBy lists what a player holds in every settlement: their lots and
 	// their private buildings that still hold their lot, settlement by
 	// settlement in name order.

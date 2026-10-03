@@ -65,6 +65,10 @@ type CitizenRules struct {
 	MaxCrossing       int
 	StreetPitch       int
 	StreetPlanMinGrid int
+	// Roads that open land (ADR 0044 5.5): config settlement.road_*.
+	RoadFrontageDepth, RoadPlanMaxLots, RoadOpenLotsMax int
+	RoadForeignBufferTiles, RoadSteepSlopeM             int
+	RoadCorridorRing, RoadTrackCostBPS                  int
 }
 
 func (r CitizenRules) enabled() bool { return r.LotPrice > 0 && r.TaxPeriod > 0 }
@@ -353,7 +357,23 @@ func (h *VillageHandler) landView(ctx context.Context, tx application.Tx, sc *ci
 		}
 		v.Rows = append(v.Rows, row)
 	}
-	v.CanBuy = v.FreeLots > 0 && (!priced || v.ServedLots > 0) && owned < h.citizen.MaxLotsPerPlayer && cash >= sc.price && h.zoningAllows(grid, len(sc.lots))
+	// the land the roads opened beyond the first grid
+	canBuyOuter := false
+	if la.pic.hasOuter() {
+		cells, free, served := h.outerCells(la.pic, sc, names)
+		v.Outer = cells
+		v.Roads = la.pic.roadLines(h.roadClassName, la.pic.heldSet())
+		canBuyOuter = served > 0
+		v.FreeLots += free
+		v.ServedLots += served
+	}
+	draw, err := h.mayDrawRoads(ctx, tx, sc.s, sc.p.ID)
+	if err != nil {
+		return village.LandView{}, err
+	}
+	v.CanDraw = draw
+	roomInside := v.FreeLots > 0 && (!priced || v.ServedLots > 0) && h.zoningAllows(grid, la.pic.innerHeld())
+	v.CanBuy = (roomInside || canBuyOuter) && owned < h.citizen.MaxLotsPerPlayer && cash >= sc.price
 	return v, nil
 }
 
@@ -401,8 +421,12 @@ func (h *VillageHandler) appendTenureEvent(ctx context.Context, tx application.T
 		}
 		return 1, 1
 	}
+	mark, err := h.layoutMark(ctx, tx, s.CityID, lots, priv)
+	if err != nil {
+		return err
+	}
 	payload["layout_version"] = application.LayoutVersionsWithTenure(s.CityID, s.Tier, s.Name,
-		gridLotsFor(h, s), rows, footprint, application.TenureMark(lots, priv))
+		gridLotsFor(h, s), rows, footprint, mark)
 	return appendVillageEvent(ctx, tx, meta, name, s.CityID, payload)
 }
 
@@ -655,6 +679,19 @@ func (h *VillageHandler) PrivateLots(ctx context.Context, meta envelope.Metadata
 			}
 			view.Rows = append(view.Rows, row)
 		}
+		// the land the roads opened beyond the first grid
+		pic, perr := h.pictureOf(ctx, tx, sc.s)
+		if perr != nil {
+			return perr
+		}
+		if pic.hasOuter() {
+			view.Outer = h.outerLotCells(pic, func(x, y int) bool {
+				return pic.canPlaceOn(def, x, y, st) == nil && footprintFitsOwn(sc, def, x, y)
+			}, func(x, y int) bool {
+				l, ok := sc.lotAt(x, y)
+				return ok && l.OwnerID == sc.p.ID
+			})
+		}
 		return nil
 	})
 	if resp, err := h.villageFinish(meta, lang, err); resp != nil || err != nil {
@@ -681,7 +718,7 @@ func (h *VillageHandler) PrivatePlace(ctx context.Context, meta envelope.Metadat
 		if !ok || !d.Private() {
 			return refuseVillage(village.VillageNotFound, village.AddrPrivateMenu)
 		}
-		x, y, rotated, ok := village.ParseLotToken(req.Lot)
+		x, y, rotated, ok := village.ParseLotTokenAny(req.Lot)
 		if !ok {
 			return refuseVillage(village.VillageNotFound, village.AddrPrivateMenu)
 		}
@@ -705,7 +742,10 @@ func (h *VillageHandler) PrivatePlace(ctx context.Context, meta envelope.Metadat
 		if err != nil {
 			return err
 		}
-		if cerr := settlementbuilding.CanPlace(def, grid, x, y, st); cerr != nil {
+		if cerr := h.canPlaceAnywhere(ctx, tx, sc.s, def, grid, x, y, st); cerr != nil {
+			if r, ok := cerr.(*villageRefusal); ok {
+				return r
+			}
 			return buildingRefusalTo(cerr, village.AddrPrivateMenu)
 		}
 		if !footprintFitsOwn(sc, def, x, y) {
@@ -722,7 +762,7 @@ func (h *VillageHandler) PrivatePlace(ctx context.Context, meta envelope.Metadat
 			}
 			return perr
 		}
-		roadFee := int64(len(autoRoads)) * h.autoRoadCost
+		roadFee := autoRoads.Fee
 
 		if !strings.EqualFold(strings.TrimSpace(req.Confirm), village.VillageBuildConfirm) {
 			bill, err := h.planMaterials(ctx, tx, snap, sc.p.ID, def)
@@ -847,7 +887,7 @@ func (h *VillageHandler) PrivatePlace(ctx context.Context, meta envelope.Metadat
 		if err := pay("", application.ReasonCitizenMaterials, application.SystemSinkAccountID, bill.boughtCost); err != nil {
 			return err
 		}
-		laid, err := h.layAutoRoads(ctx, tx, sc.s.CityID, autoRoads, now)
+		laid, err := h.layAutoRoads(ctx, tx, sc.s.CityID, autoRoads.Path, now)
 		if err != nil {
 			return err
 		}
@@ -869,12 +909,16 @@ func (h *VillageHandler) PrivatePlace(ctx context.Context, meta envelope.Metadat
 			}
 			return 1, 1
 		}
+		mark, err := h.layoutMark(ctx, tx, sc.s.CityID, sc.lots, priv)
+		if err != nil {
+			return err
+		}
 		payload := map[string]any{
 			"settlement_id": sc.s.CityID, "building_id": id, "type_code": d.Code, "name": d.Name, "lot_x": x, "lot_y": y,
 			"rotated": rotated, "finish_at": finish.UTC().Format(time.RFC3339), "private": true, "owner_id": sc.p.ID,
 			"auto_roads": laid,
 			"layout_version": application.LayoutVersionsWithTenure(sc.s.CityID, sc.s.Tier, sc.s.Name, gridLotsFor(h, sc.s), rows,
-				footprint, application.TenureMark(sc.lots, priv)),
+				footprint, mark),
 		}
 		return appendVillageEvent(ctx, tx, meta, "build_started", sc.s.CityID, payload)
 	})
