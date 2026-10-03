@@ -394,20 +394,22 @@ type settlementSettings struct {
 	FoundingCurrencyCodeLen   *int    `yaml:"founding_currency_code_len"`
 	FoundingCurrencySymbolMax *int    `yaml:"founding_currency_symbol_max"`
 
-	TeachPeriod           *string `yaml:"teach_period"`
-	TeachRateBPS          *int64  `yaml:"teach_rate_bps"`
-	BaseSchoolCapacityBPS *int64  `yaml:"base_school_capacity_bps"`
-	ScarcityKBPS          *int64  `yaml:"scarcity_k_bps"`
-	ScarcityFloorBPS      *int64  `yaml:"scarcity_floor_bps"`
-	ScarcityCapBPS        *int64  `yaml:"scarcity_cap_bps"`
-	SellerBandBPS         *int64  `yaml:"seller_band_bps"`
-	DemolitionSalvageBPS  *int64  `yaml:"demolition_salvage_bps"`
-	MaterialMarkupBPS     *int64  `yaml:"material_markup_bps"`
-	StockBaseCapacity     *int64  `yaml:"stock_base_capacity"`
-	StorageSpoilKeptBPS   *int64  `yaml:"storage_spoil_kept_bps"`
-	StorageSpoilUnkeptBPS *int64  `yaml:"storage_spoil_unkept_bps"`
-	MaterialBuyMax        *int64  `yaml:"material_buy_max"`
-	MaterialBuyPresets    []int64 `yaml:"material_buy_presets"`
+	TeachPeriod            *string `yaml:"teach_period"`
+	TeachRateBPS           *int64  `yaml:"teach_rate_bps"`
+	BaseSchoolCapacityBPS  *int64  `yaml:"base_school_capacity_bps"`
+	ScarcityKBPS           *int64  `yaml:"scarcity_k_bps"`
+	ScarcityFloorBPS       *int64  `yaml:"scarcity_floor_bps"`
+	ScarcityCapBPS         *int64  `yaml:"scarcity_cap_bps"`
+	SellerBandBPS          *int64  `yaml:"seller_band_bps"`
+	DemolitionSalvageBPS   *int64  `yaml:"demolition_salvage_bps"`
+	MaterialMarkupBPS      *int64  `yaml:"material_markup_bps"`
+	StockBaseCapacity      *int64  `yaml:"stock_base_capacity"`
+	StorageSpoilKeptBPS    *int64  `yaml:"storage_spoil_kept_bps"`
+	StorageSpoilUnkeptBPS  *int64  `yaml:"storage_spoil_unkept_bps"`
+	StorageKeeperRuleAt    *string `yaml:"storage_keeper_rule_at"`
+	StorageKeeperGraceDays *int64  `yaml:"storage_keeper_grace_days"`
+	MaterialBuyMax         *int64  `yaml:"material_buy_max"`
+	MaterialBuyPresets     []int64 `yaml:"material_buy_presets"`
 
 	FoundingGrant   *int64  `yaml:"founding_grant"`
 	DonationMin     *int64  `yaml:"donation_min"`
@@ -458,21 +460,21 @@ type crimeSettings struct {
 }
 
 type tradeSettings struct {
-	MarketOrderTTL      *string  `yaml:"market_order_ttl"`
-	MarketMaxOpenOrders *int     `yaml:"market_max_open_orders"`
-	VillageStallsPost          *int `yaml:"village_stalls_post"`
-	VillageStallsHall          *int `yaml:"village_stalls_hall"`
-	VillageStallsPerPlayerPost *int `yaml:"village_stalls_per_player_post"`
-	VillageStallsPerPlayerHall *int `yaml:"village_stalls_per_player_hall"`
-	MarketDayEveryDays         *int `yaml:"market_day_every_days"`
-	MarketMaxQuantity   *int     `yaml:"market_max_quantity"`
-	MarketMaxPrice      *int64   `yaml:"market_max_price"`
-	AuctionDurations    []string `yaml:"auction_durations"`
-	AuctionMaxReserve   *int64   `yaml:"auction_max_reserve"`
-	AuctionStepBPS      *int     `yaml:"auction_step_bps"`
-	AuctionMinStep      *int64   `yaml:"auction_min_step"`
-	AuctionMaxOpen      *int     `yaml:"auction_max_open"`
-	AuctionReservesBPS  []int64  `yaml:"auction_reserves_bps"`
+	MarketOrderTTL             *string  `yaml:"market_order_ttl"`
+	MarketMaxOpenOrders        *int     `yaml:"market_max_open_orders"`
+	VillageStallsPost          *int     `yaml:"village_stalls_post"`
+	VillageStallsHall          *int     `yaml:"village_stalls_hall"`
+	VillageStallsPerPlayerPost *int     `yaml:"village_stalls_per_player_post"`
+	VillageStallsPerPlayerHall *int     `yaml:"village_stalls_per_player_hall"`
+	MarketDayEveryDays         *int     `yaml:"market_day_every_days"`
+	MarketMaxQuantity          *int     `yaml:"market_max_quantity"`
+	MarketMaxPrice             *int64   `yaml:"market_max_price"`
+	AuctionDurations           []string `yaml:"auction_durations"`
+	AuctionMaxReserve          *int64   `yaml:"auction_max_reserve"`
+	AuctionStepBPS             *int     `yaml:"auction_step_bps"`
+	AuctionMinStep             *int64   `yaml:"auction_min_step"`
+	AuctionMaxOpen             *int     `yaml:"auction_max_open"`
+	AuctionReservesBPS         []int64  `yaml:"auction_reserves_bps"`
 }
 
 type companySettings struct {
@@ -1371,6 +1373,12 @@ var coreSettings = []setting{
 	moneySetting("settlement", "storage_spoil_unkept_bps",
 		func(c *Config) *int64 { return &c.Settlement.StorageSpoilUnkeptBPS },
 		func(f *fileConfig) *int64 { return f.Settlement.StorageSpoilUnkeptBPS }),
+	stringSetting("settlement", "storage_keeper_rule_at",
+		func(c *Config) *string { return &c.Settlement.StorageKeeperRuleAt },
+		func(f *fileConfig) *string { return f.Settlement.StorageKeeperRuleAt }),
+	moneySetting("settlement", "storage_keeper_grace_days",
+		func(c *Config) *int64 { return &c.Settlement.StorageKeeperGraceDays },
+		func(f *fileConfig) *int64 { return f.Settlement.StorageKeeperGraceDays }),
 	moneySetting("settlement", "material_buy_max",
 		func(c *Config) *int64 { return &c.Settlement.MaterialBuyMax },
 		func(f *fileConfig) *int64 { return f.Settlement.MaterialBuyMax }),

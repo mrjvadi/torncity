@@ -8,9 +8,12 @@ package life
 // function is a second answer waiting to disagree with the first.
 type SkillLine struct {
 	// Code is the domain skill code; the label is looked up from it.
-	Code    string
-	Level   int
-	XP      int64
+	Code  string
+	Level int
+	XP    int64
+	// From is the experience at which the current level began and Next the one
+	// the next level asks: the bar and its figures are (XP-From) of (Next-From).
+	From    int64
 	Next    int64
 	Percent int
 	// Max says the skill is at the top of its curve and has no next level.

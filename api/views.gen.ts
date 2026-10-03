@@ -1352,8 +1352,6 @@ export interface DonateView {
 
 export interface EducationLiteracy {
   share_bps: number
-  next_bps: number
-  next_stage: string
 }
 
 export interface EducationView {
@@ -2503,6 +2501,8 @@ export interface LaborJobLine {
   can_take: boolean
   mine: boolean
   points: number
+  lot_x: number
+  lot_y: number
 }
 
 export interface LaborMarketLine {
@@ -4605,6 +4605,7 @@ export interface SkillLine {
   code: string
   level: number
   xp: number
+  from: number
   next: number
   percent: number
   max: boolean
@@ -4755,6 +4756,7 @@ export interface StockPageView {
 export interface StockStoreLine {
   building: Named
   kept: boolean
+  grace_until: string | null
 }
 
 export interface StockView {

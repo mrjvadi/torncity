@@ -774,7 +774,7 @@ offices:
 
   # Settlements (docs/adr/0028, section 4). A village is founded, never
   # elected into being: the player who founds it (or whoever the founding
-  # mayor names, section 5.4) takes the seat as دهیار, acquired_by: founding.
+  # mayor names, section 5.4) takes the seat as the mayor, acquired_by: founding.
   # Re-election once the settlement meets an election's own minimums is a
   # later phase (ADR 0028 section 10, W7) — not built here, so no elections
   # entry names this office yet; while nobody is re-elected into it, the

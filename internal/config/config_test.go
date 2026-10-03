@@ -612,6 +612,8 @@ settlement:
   stock_base_capacity: 61
   storage_spoil_kept_bps: 6
   storage_spoil_unkept_bps: 31
+  storage_keeper_rule_at: "2026-11-01T00:00:00Z"
+  storage_keeper_grace_days: 21
   material_buy_max: 201
   material_buy_presets: [6, 21, 51]
   founding_grant: 10001
@@ -1072,6 +1074,8 @@ var envOverrides = map[string]string{
 	"TORN_SETTLEMENT_STOCK_BASE_CAPACITY":           "62",
 	"TORN_SETTLEMENT_STORAGE_SPOIL_KEPT_BPS":        "7",
 	"TORN_SETTLEMENT_STORAGE_SPOIL_UNKEPT_BPS":      "32",
+	"TORN_SETTLEMENT_STORAGE_KEEPER_RULE_AT":        "2026-12-01T00:00:00Z",
+	"TORN_SETTLEMENT_STORAGE_KEEPER_GRACE_DAYS":     "22",
 	"TORN_SETTLEMENT_MATERIAL_BUY_MAX":              "202",
 	"TORN_SETTLEMENT_MATERIAL_BUY_PRESETS":          "7,22,52",
 	"TORN_SETTLEMENT_DONATION_MIN":                  "102",

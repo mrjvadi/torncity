@@ -95,7 +95,7 @@ func TestStoresGiveRoomByClass(t *testing.T) {
 		{ID: "a", TypeCode: "granary", Status: "complete"},
 		{ID: "c", TypeCode: "storehouse", Status: "building"},
 		{ID: "d", TypeCode: "woodcutter_camp", Status: "complete"},
-	})
+	}, StorageRules{})
 	if len(stores) != 2 || stores[0].Type != "granary" || stores[1].Type != "storehouse" {
 		t.Fatalf("stores = %+v, want the granary then the storehouse (a building under construction and a camp give no room)", stores)
 	}

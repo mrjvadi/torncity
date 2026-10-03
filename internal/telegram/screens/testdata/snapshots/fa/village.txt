@@ -313,7 +313,7 @@
 
 ━━━ Placement · the preview names the roads laid with the building ━━━
 (edits message 42)
-🏗 ساخت خانهٔ روستایی
+🏗 ساخت خانهٔ کوچک
 
 هزینه: ⁨⁨720⁩ ساپ⁩
 زمان ساخت: ⁨45 دقیقه⁩
@@ -329,7 +329,7 @@
 ━━━ Land · a grid wider than a keyboard row is a window over the land ━━━
 (edits message 42)
 🗺 انتخاب محل ساخت در کورندال
-بنا: خانهٔ روستایی
+بنا: خانهٔ کوچک
 
 ✅ آزاد و مناسب - ⬜ آزاد ولی نامناسب - 🏠 اشغال‌شده - 🛣 جاده - 💧 آب - ⛰ شیب‌دار
 

@@ -434,6 +434,7 @@ func (h *VillageHandler) jobLine(ctx context.Context, tx application.Tx, snap *c
 		ID: j.ID, BuildingID: b.ID, Building: named(d.Code, d.Name), Kind: j.Kind, EmployerKind: j.EmployerKind, Wage: j.Wage,
 		Left: j.Left(), Total: j.ShiftsTotal, NPCCrew: j.NPCCrew, Workers: len(shifts), Points: myPoints,
 		ProgressBPS: labor.ProgressBPS(b.WorkDone, b.WorkRequired), LeftMinutes: b.WorkRequired - b.WorkDone,
+		LotX: b.LotX, LotY: b.LotY,
 	}
 	if j.EmployerKind == application.LaborEmployerPlayer {
 		line.Employer = h.playerName(ctx, tx, j.EmployerID)

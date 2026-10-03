@@ -1,6 +1,8 @@
 package main
 
 import (
+	"time"
+
 	"github.com/mrjvadi/torncity/internal/application/handlers"
 	"github.com/mrjvadi/torncity/internal/config"
 	"github.com/mrjvadi/torncity/internal/domain/vshop"
@@ -37,6 +39,8 @@ func shopRules(cfg *config.Config) handlers.ShopRules {
 // spoils per day, kept and unkept.
 func storageRules(cfg *config.Config) handlers.StorageRules {
 	clock, _ := cfg.GameClock()
+	from, _ := time.Parse(time.RFC3339, cfg.Settlement.StorageKeeperRuleAt) // not an instant: no grace
 	return handlers.StorageRules{Clock: clock,
-		SpoilKeptBPS: cfg.Settlement.StorageSpoilKeptBPS, SpoilUnkeptBPS: cfg.Settlement.StorageSpoilUnkeptBPS}
+		SpoilKeptBPS: cfg.Settlement.StorageSpoilKeptBPS, SpoilUnkeptBPS: cfg.Settlement.StorageSpoilUnkeptBPS,
+		GraceFrom: from, GraceDays: cfg.Settlement.StorageKeeperGraceDays}
 }

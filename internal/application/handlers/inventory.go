@@ -160,7 +160,18 @@ func (h *InventoryHandler) Show(ctx context.Context, meta envelope.Metadata, req
 		if err != nil {
 			return err
 		}
-		lines := inventoryLines(snap, stacks, pieces, names)
+		// a bag that is worn is in its slot, not a good that is carried: it is not listed twice
+		worn := map[string]bool{}
+		for _, b := range cst.bags {
+			worn[b.piece.ID] = true
+		}
+		listed := make([]application.Piece, 0, len(pieces))
+		for _, pc := range pieces {
+			if !worn[pc.ID] {
+				listed = append(listed, pc)
+			}
+		}
+		lines := inventoryLines(snap, stacks, listed, names)
 		start, end, pages := pageWindow(len(lines), page, h.pageSize)
 		view = plife.InventoryView{Lines: lines[start:end], Page: min(page, pages), Pages: pages, Total: len(lines)}
 		if h.carry.enabled() {

@@ -6,6 +6,7 @@
       "lines": [
         {
           "code": "management",
+          "from": 0,
           "level": 2,
           "max": false,
           "next": 600,
@@ -14,6 +15,7 @@
         },
         {
           "code": "programming",
+          "from": 0,
           "level": 1,
           "max": false,
           "next": 300,
@@ -22,6 +24,7 @@
         },
         {
           "code": "cooking",
+          "from": 0,
           "level": 10,
           "max": true,
           "next": 0,
@@ -30,6 +33,7 @@
         },
         {
           "code": "driving",
+          "from": 0,
           "level": 0,
           "max": false,
           "next": 0,

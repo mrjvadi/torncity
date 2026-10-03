@@ -280,8 +280,8 @@ office:
   mayor: شهردار
   deputy_mayor: معاون شهردار
   market_warden: ناظر بازار
-  village_market_warden: ناظر بازار روستا
-  town_market_warden: ناظر بازار شهرک
+  village_market_warden: ناظر بازارچه
+  town_market_warden: ناظر بازار شهر
   city_council: شورای شهر
   police_chief: رئیس پلیس
   deputy_police_chief: معاون رئیس پلیس
@@ -375,7 +375,7 @@ settlement_building:
   private_shed: "انباری"
   private_house: "خانه"
   woodcutter_camp: "کارگاه هیزم‌شکنی"
-  cottage: "خانهٔ روستایی"
+  cottage: "خانهٔ کوچک"
   granary: "انبار غله"
   storehouse: "انبار"
   housing_block: "آپارتمان"
