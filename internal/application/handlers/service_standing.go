@@ -33,8 +33,8 @@ var marketNeed = serviceBuilding{service: "market", any: []string{"barter_post",
 func closedIn(ctx context.Context, tx application.Tx, snap *content.Snapshot, city *application.City,
 	homeCityCode string, sb serviceBuilding,
 ) (*economy.Unavailable, error) {
-	if city == nil {
-		return nil, nil
+	if city == nil || city.Tier == "" {
+		return nil, nil // a content city has its own places, not a settlement's buildings
 	}
 	here, err := judgeSettlementOf(ctx, tx, snap, city, homeCityCode)
 	if err != nil {
