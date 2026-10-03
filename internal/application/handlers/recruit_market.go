@@ -56,6 +56,11 @@ func (m jobMarket) capacityAt(ctx context.Context, tx application.Tx, city world
 	if base == 0 {
 		return 0, nil
 	}
+	// A content city (the neutral one included) keeps the pools of its population; only a
+	// city the content does not list can be a founded settlement.
+	if _, content := m.snap.CityByID(city.ID); content {
+		return base, nil
+	}
 	ok, err := cityTeaches(ctx, tx, m.snap, city.ID, skill)
 	if err != nil || !ok {
 		return 0, err
