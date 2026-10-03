@@ -159,6 +159,13 @@ func VerifyChecks(v postgres.LedgerVerification, cfg *config.Config) []Check {
 		out.add(t.TopupLedger == t.TopupRows && t.TopupMismatched == 0, fmt.Sprintf("operator top-ups of village treasuries in the ledger match the top-up rows (%d = %d), each the transaction its row names (%d mismatched)", t.TopupLedger, t.TopupRows, t.TopupMismatched))
 	}
 
+	if v.Village && v.Teaching {
+		t := v.VillageInvariants
+		out.add(t.CourseFeeLedger == t.CourseFeeRows, fmt.Sprintf("course fees paid to school treasuries in the ledger match the enrolments seated with a school teacher (%d = %d)", t.CourseFeeLedger, t.CourseFeeRows))
+		out.add(t.TuitionLedger == t.TuitionRows, fmt.Sprintf("tuition paid to home teachers (and the tax on it) in the ledger matches the enrolments seated with them (%d = %d)", t.TuitionLedger, t.TuitionRows))
+		out.add(t.TeacherWageLedger == t.TeacherWageRows && t.TeachMismatched == 0, fmt.Sprintf("teacher wages in the ledger match the seats (%d = %d), each paid once by a two-leg transaction and every finished class settled (%d mismatched)", t.TeacherWageLedger, t.TeacherWageRows, t.TeachMismatched))
+	}
+
 	if v.Shop {
 		shopChecks(&out, v.ShopCheck, cfg)
 	}
