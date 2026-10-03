@@ -580,6 +580,19 @@ func TestSoldierRisesAndFoundsADefenceCompany(t *testing.T) {
 		soldier.ID); err != nil {
 		t.Fatal(err)
 	}
+	// the officer school asks for the reading and writing certificate first (education.yml prerequisites)
+	resp, err = w.edu.Enroll(ctx, w.meta(soldier, "education.enroll"), handlers.CourseRequest{Course: "literacy_class", Method: "cash"})
+	said(t, "literacy class", resp, err)
+	var literacyID string
+	if err := w.pool.Raw().QueryRow(ctx, `SELECT id::text FROM enrollments WHERE player_id = $1::uuid AND status = 'in_progress'`,
+		soldier.ID).Scan(&literacyID); err != nil {
+		t.Fatalf("no literacy enrolment: %v (%s)", err, resp.Text)
+	}
+	w.clock.Advance(13 * time.Hour)
+	if _, err := w.edu.Complete(ctx, w.scheduler("education.complete"), handlers.CompleteCourseRequest{ActorID: soldier.ID,
+		ReferenceType: "enrollments", ReferenceID: literacyID}); err != nil {
+		t.Fatal(err)
+	}
 	resp, err = w.edu.Enroll(ctx, w.meta(soldier, "education.enroll"), handlers.CourseRequest{Course: "officer_training", Method: "cash"})
 	said(t, "officer training", resp, err)
 	var enrollmentID string
