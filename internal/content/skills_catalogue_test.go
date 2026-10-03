@@ -27,6 +27,21 @@ func TestShippedSkillCatalogueHasTheEngineCodes(t *testing.T) {
 	}
 }
 
+// A workplace says which trade its shift teaches; the farms teach farming, the
+// carpenter's and mason's workshops their crafts.
+func TestWorkplacesTrainTheirTrade(t *testing.T) {
+	snap, err := BuildSnapshot(1, shippedPack(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for code, skill := range map[string]string{"carpentry_workshop": "carpentry", "masonry_workshop": "masonry", "farm_canal": "farming", "farm_paddy": "farming"} {
+		d, ok := snap.SettlementBuildingDef(code)
+		if !ok || d.Trains == nil || d.Trains.Skill != skill || d.Trains.XP < 1 {
+			t.Errorf("%s should train %s, has %+v", code, skill, d.Trains)
+		}
+	}
+}
+
 // TestSkillReferencesMustBeListed: a course naming a skill the catalogue does
 // not list is refused.
 func TestSkillReferencesMustBeListed(t *testing.T) {
