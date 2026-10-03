@@ -227,6 +227,9 @@ func (t *tx) Places() application.PlaceRepository { return &PlaceRepository{q: t
 // move with the money that paid for them.
 func (t *tx) Items() application.ItemRepository { return &ItemRepository{q: t.q} }
 
+// Bags returns the worn bags (migration 0108) and the starting grant (0110).
+func (t *tx) Bags() application.BagRepository { return &BagRepository{q: t.q} }
+
 // Shops returns the shelves and sales of the city shops.
 func (t *tx) Shops() application.ShopRepository { return &ShopRepository{q: t.q} }
 

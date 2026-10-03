@@ -44,6 +44,8 @@ func purgeGoodsFor(t *testing.T, pool *postgres.Pool, playerID string) {
 	for _, stmt := range []string{
 		`ALTER TABLE item_movements DISABLE TRIGGER item_movements_append_only`,
 		`ALTER TABLE market_trades DISABLE TRIGGER market_trades_append_only`,
+		`DELETE FROM player_bags WHERE player_id = $1::uuid`,
+		`DELETE FROM starting_bag_grants WHERE player_id = $1::uuid`,
 		`DELETE FROM market_trades WHERE buyer_id = $1::uuid OR seller_id = $1::uuid`,
 		`DELETE FROM market_orders WHERE owner_id = $1::uuid`,
 		`CREATE TEMP TABLE purge_pieces ON COMMIT DROP AS

@@ -67,6 +67,10 @@ func renderInventory(c Context, v InventoryView) *presenter.Response {
 		content = paragraphs(body(lines...), pageIndicator(c, v.Page, v.Pages))
 		kb.Grid(2, buttons...)
 	}
+	carryText, carryButtons := c.carryHeader(v)
+	for _, b := range carryButtons {
+		kb.Row(b)
+	}
 	var escrow string
 	if v.InEscrow > 0 {
 		escrow = c.T("item.in_escrow", map[string]any{"count": FormatNumber(c, int64(v.InEscrow))})
@@ -79,7 +83,44 @@ func renderInventory(c Context, v InventoryView) *presenter.Response {
 		BackData: AddrHome,
 	}))
 	title := htmlBold(htmlEscape(c.T("item.bag_title", nil)))
-	return c.respond(paragraphs(title, htmlEscape(content), htmlEscape(escrow)), kb.Build()).AsHTML()
+	return c.respond(paragraphs(title, htmlEscape(carryText), htmlEscape(content), htmlEscape(escrow)), kb.Build()).AsHTML()
+}
+
+// kilos is a weight in grams as whole kilograms, rounded up: a player is told
+// "3 kg", never "2.4".
+func kilos(c Context, grams int64) string { return FormatNumber(c, (grams+999)/1000) }
+
+// carryHeader is the space and load line and one line per bag slot, and a
+// button to take off each bag that is on (ADR 0046 section 4).
+func (c Context) carryHeader(v InventoryView) (string, []presenter.Button) {
+	if len(v.Bags) == 0 {
+		return "", nil
+	}
+	lines := []string{c.T("item.carry_space", map[string]any{
+		"used": FormatNumber(c, v.Carry.Used), "capacity": FormatNumber(c, v.Carry.Capacity)}),
+		c.T("item.carry_load", map[string]any{
+			"load": kilos(c, v.Carry.LoadG), "comfort": kilos(c, v.Carry.ComfortG), "hard": kilos(c, v.Carry.HardG)})}
+	var buttons []presenter.Button
+	for _, s := range v.Bags {
+		slot := c.T("item.bag_slot."+s.Slot, nil)
+		switch b := s.Bag; {
+		case b == nil:
+			lines = append(lines, c.T("item.bag_slot_empty", map[string]any{"slot": slot}))
+		default:
+			key := "item.bag_slot_line"
+			if b.Torn {
+				key = "item.bag_slot_torn"
+			}
+			lines = append(lines, c.T(key, map[string]any{
+				"slot": slot, "bag": c.ItemName(b.Item), "space": FormatNumber(c, b.Space), "full": FormatNumber(c, b.FullSpace),
+				"wear": FormatNumber(c, int64(b.Wear)), "max": FormatNumber(c, int64(b.WearMax)),
+			}))
+			if btn, ok := keyboards.Button(c.T("item.button.bag_off", map[string]any{"bag": c.ItemName(b.Item)}), AddrBagOff, s.Slot); ok {
+				buttons = append(buttons, btn)
+			}
+		}
+	}
+	return body(lines...), buttons
 }
 
 // effectLine renders one effect.
@@ -173,6 +214,16 @@ func renderItemDetail(c Context, v ItemDetailView) *presenter.Response {
 	if v.Gear != nil {
 		gear = c.gearLines(*v.Gear)
 	}
+	if b := v.Bag; b != nil {
+		gear = append(gear, c.T("item.bag_detail", map[string]any{
+			"slot": c.T("item.bag_slot."+b.Slot, nil), "space": FormatNumber(c, b.Space),
+			"comfort": FormatNumber(c, b.ComfortKg), "hard": FormatNumber(c, b.HardKg)}))
+		if b.Torn {
+			gear = append(gear, c.T("item.bag_torn", map[string]any{"cost": FormatMoney(c, b.RepairCost)}))
+		} else if b.RepairCost > 0 {
+			gear = append(gear, c.T("item.bag_worn_out", map[string]any{"cost": FormatMoney(c, b.RepairCost)}))
+		}
+	}
 	var cooling string
 	if v.CoolingFor > 0 {
 		cooling = body(c.T("item.cooling", map[string]any{"duration": FormatDuration(c, v.CoolingFor)}),
@@ -182,6 +233,15 @@ func renderItemDetail(c Context, v ItemDetailView) *presenter.Response {
 	kb := keyboards.New()
 	if v.Usable && v.CoolingFor <= 0 {
 		if btn, ok := keyboards.Button(c.T("item.button.use", map[string]any{"item": name}), AddrItemUse, v.Ref, v.Nonce); ok {
+			kb.Row(btn)
+		}
+	}
+	if b := v.Bag; b != nil {
+		addr, arg, label := AddrBagWear, v.Ref, "item.button.bag_wear"
+		if b.Worn {
+			addr, arg, label = AddrBagOff, b.Slot, "item.button.bag_off_this"
+		}
+		if btn, ok := keyboards.Button(c.T(label, nil), addr, arg); ok {
 			kb.Row(btn)
 		}
 	}

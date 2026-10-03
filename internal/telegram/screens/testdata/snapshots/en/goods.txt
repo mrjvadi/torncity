@@ -23,6 +23,74 @@ Your bag is empty. The city's shops sell food, medicine and tools.
   [🛒 Shops] → shop:list   │   [🏪 Market] → market:list
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → inventory:show:1
 
+━━━ Bag · a sack on the back, a torn pouch on the belt ━━━
+(edits message 42)
+<b>🎒 Your bag</b>
+
+🎒 Room: 9 of 22
+⚖️ Load: 2 kg (comfortable to 17, at most 50)
+• Belt: Belt pouch - torn; only 2 of 4 room
+• Back: Shoulder sack - 12 room, 31 of 40 left
+
+• Bread - 3
+  ───
+  [🎒 Bread] → inventory:item:bread
+  [🎒 Take off Belt pouch] → inventory:bag.off:belt
+  [🎒 Take off Shoulder sack] → inventory:bag.off:back
+  [🛒 Shops] → shop:list   │   [🏪 Market] → market:list
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → inventory:show:1
+
+━━━ Bag · hands only ━━━
+(edits message 42)
+<b>🎒 Your bag</b>
+
+🎒 Room: 3 of 8
+⚖️ Load: 1 kg (comfortable to 7, at most 20)
+• Belt: empty
+• Back: empty
+
+• Bread - 3
+  ───
+  [🎒 Bread] → inventory:item:bread
+  [🛒 Shops] → shop:list   │   [🏪 Market] → market:list
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → inventory:show:1
+
+━━━ Item · a sack in the pack ━━━
+(edits message 42)
+🎒 Shoulder sack
+
+Kind: Tools
+quality 50 - 31 of 40 uses left
+💰 Worth about 80 SUP
+
+🎒 Worn on the Back: gives 12 room, comfortable to 10 kg and at most 30 kg.
+🪡 It is worn. Mending it at the shop costs 5 SUP.
+
+👥 To give it away, stand with a friend at the same place.
+  ───
+  [🎒 Put on] → inventory:bag.wear:SACK000001
+  [🔨 Auction it] → auction:new:SACK000001   │   [💰 Sell to a shop] → shop:offers:SACK000001
+  [🗑 Throw away] → inventory:drop:SACK000001
+  [🔙 Back] → inventory:show   │   [🔄 Refresh] → inventory:item:SACK000001
+
+━━━ Item · a torn pouch, worn ━━━
+(edits message 42)
+🎒 Belt pouch
+
+Kind: Tools
+quality 50 - 0 of 60 uses left
+💰 Worth about 25 SUP
+
+🎒 Worn on the Belt: gives 4 room, comfortable to 10 kg and at most 25 kg.
+🪡 It is torn and has lost half its room. Mending it at the shop costs 7 SUP.
+
+👥 To give it away, stand with a friend at the same place.
+  ───
+  [🎒 Take off] → inventory:bag.off:belt
+  [🔨 Auction it] → auction:new:P0UCH00001   │   [💰 Sell to a shop] → shop:offers:P0UCH00001
+  [🗑 Throw away] → inventory:drop:P0UCH00001
+  [🔙 Back] → inventory:show   │   [🔄 Refresh] → inventory:item:P0UCH00001
+
 ━━━ Item · bread, a friend here ━━━
 (edits message 42)
 🎒 Bread
@@ -159,6 +227,13 @@ Lockpick set cannot change hands.
 ━━━ Item refused · not together ━━━
 (edits message 42)
 👥 You can only hand something to a friend who stands at the same place as you.
+  ───
+  [🎒 Bag] → inventory:show
+  [🔙 Back] → player:profile.get
+
+━━━ Item refused · not a bag ━━━
+(edits message 42)
+Bread is not a bag; it cannot be worn.
   ───
   [🎒 Bag] → inventory:show
   [🔙 Back] → player:profile.get

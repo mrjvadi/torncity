@@ -8,6 +8,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/application/handlers"
 	"github.com/mrjvadi/torncity/internal/config"
 	"github.com/mrjvadi/torncity/internal/content"
+	"github.com/mrjvadi/torncity/internal/domain/carry"
 	"github.com/mrjvadi/torncity/internal/domain/gametime"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
@@ -35,6 +36,8 @@ func newGoodsHandlers(
 	scale gametime.Scale,
 	crimeCfg config.Crime,
 	trade config.Trade,
+	carryRules carry.Rules,
+	clock gametime.Clock,
 	idempotencyTTL time.Duration,
 ) goodsHandlers {
 	reserves := make([]int, 0, len(trade.AuctionReservesBPS))
@@ -43,7 +46,7 @@ func newGoodsHandlers(
 	}
 	return goodsHandlers{
 		inventory: handlers.NewInventoryHandler(uow, uuidGenerator{}, msgs, registry, cities, scale,
-			crimeRules(crimeCfg).Nerve, handlers.DefaultPageSize, idempotencyTTL, nil),
+			crimeRules(crimeCfg).Nerve, handlers.DefaultPageSize, idempotencyTTL, nil).WithCarry(carryRules, clock),
 		shops: handlers.NewShopsHandler(uow, uuidGenerator{}, msgs, registry, cities, policy, scale,
 			cryptoDice{}, idempotencyTTL, nil),
 		market: handlers.NewMarketHandler(uow, uuidGenerator{}, msgs, registry, cities, policy, scale,
@@ -90,6 +93,9 @@ func (h phaseHandlers) bindGoods() map[string]commandFunc {
 		"inventory.use":  decoded(g.inventory.Use),
 		"inventory.give": decoded(g.inventory.Give),
 		"inventory.drop": decoded(g.inventory.Drop),
+		// Bags (docs/adr/0046 section 4): put one on, take one off.
+		"inventory.bag.wear": decoded(g.inventory.Wear),
+		"inventory.bag.off":  decoded(g.inventory.TakeOff),
 
 		"shop.list":   decoded(g.shops.List),
 		"shop.view":   decoded(g.shops.View),

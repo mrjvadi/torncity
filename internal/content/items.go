@@ -6,6 +6,7 @@ import (
 	"sort"
 	"time"
 
+	"github.com/mrjvadi/torncity/internal/domain/carry"
 	"github.com/mrjvadi/torncity/internal/domain/crime"
 	"github.com/mrjvadi/torncity/internal/domain/inventory"
 	"github.com/mrjvadi/torncity/internal/domain/item"
@@ -174,6 +175,16 @@ type ItemDef struct {
 	// Tags are optional labels that cross shelves: crime_tool, crime_gear,
 	// black_market.
 	Tags []string `yaml:"tags,omitempty" json:"tags,omitempty"`
+	// Bulk is the room one unit takes in a player's bags (ADR 0046 section 4);
+	// omitted, 1. WeightG is what a unit weighs in grams; omitted,
+	// DefaultWeightG. Parked marks a vehicle: its owner drives it, they do not
+	// carry it, so it takes no room and has no weight.
+	Bulk    int  `yaml:"bulk,omitempty" json:"bulk,omitempty"`
+	WeightG int  `yaml:"weight_g,omitempty" json:"weight_g,omitempty"`
+	Parked  bool `yaml:"parked,omitempty" json:"parked,omitempty"`
+	// Bag makes the good a bag a player wears for space (ADR 0046 section 4):
+	// a unique piece whose durability is its wear.
+	Bag *BagDef `yaml:"bag,omitempty" json:"bag,omitempty"`
 	// Archetype is the ADR 0005 archetype the good is a kind of.
 	Archetype string `yaml:"archetype" json:"archetype"`
 	// Form is stack (counted units) or unique (pieces with a serial).
@@ -210,6 +221,51 @@ type ItemDef struct {
 	// gates making a design a company already holds, nor buying or using
 	// one (docs/adr/0021, section 14).
 	RequiresTechnology []string `yaml:"requires_technology,omitempty" json:"requires_technology,omitempty"`
+}
+
+// DefaultWeightG is what a unit weighs when the good says nothing: a quarter
+// of a kilogram.
+const DefaultWeightG = 250
+
+// BagDef is what makes a good a bag: the slot it is worn in, the space it
+// adds, and the load it carries comfortably and at most, in kilograms.
+type BagDef struct {
+	Slot      string `yaml:"slot" json:"slot"`
+	Space     int64  `yaml:"space" json:"space"`
+	ComfortKg int64  `yaml:"comfort_kg" json:"comfort_kg"`
+	HardKg    int64  `yaml:"hard_kg" json:"hard_kg"`
+}
+
+// BulkUnits is the room one unit of the good takes in the bags.
+func (d ItemDef) BulkUnits() int64 {
+	switch {
+	case d.Parked:
+		return 0
+	case d.Bulk > 0:
+		return int64(d.Bulk)
+	}
+	return 1
+}
+
+// WeightGrams is what one unit weighs.
+func (d ItemDef) WeightGrams() int64 {
+	switch {
+	case d.Parked:
+		return 0
+	case d.WeightG > 0:
+		return int64(d.WeightG)
+	}
+	return DefaultWeightG
+}
+
+// CarryBag converts a bag good to the carry rules' bag with `wear` points
+// left (the piece's uses). ok is false for a good that is not a bag.
+func (d ItemDef) CarryBag(wear int) (carry.Bag, bool) {
+	if d.Bag == nil {
+		return carry.Bag{}, false
+	}
+	return carry.Bag{Slot: carry.Slot(d.Bag.Slot), Space: d.Bag.Space,
+		ComfortG: d.Bag.ComfortKg * 1000, HardG: d.Bag.HardKg * 1000, Wear: wear, WearMax: d.Durability}, true
 }
 
 func boolOr(p *bool, def bool) bool {
@@ -404,6 +460,7 @@ func (p *Pack) validateItems(problems *[]error) {
 		if err := inventory.Validate(d.Item()); err != nil {
 			add(fmt.Errorf("%w: %w", ErrInvalidItemContent, err))
 		}
+		validateItemCarry(d, where, add)
 	}
 	// Crimes' tools and loot are items.
 	for _, c := range p.Crimes {
@@ -607,4 +664,44 @@ func (s *Snapshot) ItemCategories() []string {
 	}
 	sort.Strings(out)
 	return out
+}
+
+// validateItemCarry checks a good's room and weight, and a bag's figures.
+func validateItemCarry(d ItemDef, where string, add func(error)) {
+	bad := func(format string, args ...any) {
+		add(fmt.Errorf("%w: %s %s", ErrInvalidItemContent, where, fmt.Sprintf(format, args...)))
+	}
+	if d.Bulk < 0 || d.Bulk > 100 || d.WeightG < 0 || d.WeightG > 1_000_000 {
+		bad("bulk %d or weight %d g is out of range", d.Bulk, d.WeightG)
+	}
+	if d.Parked && (d.Bulk != 0 || d.WeightG != 0) {
+		bad("is parked and so has no bulk or weight of its own")
+	}
+	b := d.Bag
+	if b == nil {
+		return
+	}
+	switch {
+	case !carry.Slot(b.Slot).Valid():
+		bad("bag slot %q is not belt or back", b.Slot)
+	case b.Space < 1 || b.Space > 200:
+		bad("bag space %d is outside 1..200", b.Space)
+	case b.ComfortKg < 1 || b.HardKg < b.ComfortKg:
+		bad("bag load %d..%d kg", b.ComfortKg, b.HardKg)
+	}
+	if d.Form != string(inventory.Unique) {
+		bad("is a bag and must be a unique piece (it wears)")
+	}
+	if d.Durability < 1 {
+		bad("is a bag and needs durability (its wear points)")
+	}
+	if want := "bags." + b.Slot; d.Shelf != want {
+		bad("is a %s bag and must sit on the shelf %q, not %q", b.Slot, want, d.Shelf)
+	}
+	if d.Parked || d.Gear != nil || len(d.Effects) > 0 {
+		bad("is a bag and has no vehicle, gear or effect")
+	}
+	if !boolOr(d.Tradeable, true) {
+		bad("is a bag and is bought and sold")
+	}
 }

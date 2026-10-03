@@ -542,6 +542,9 @@ var argNames = map[string][]string{
 	"inventory.use":  {"item", "nonce"},
 	"inventory.give": {"item", "nonce", "to"},
 	"inventory.drop": {"item", "confirm", "nonce"},
+	// A bag piece (its serial) to put on; the slot (belt or back) to empty.
+	"inventory.bag.wear": {"item"},
+	"inventory.bag.off":  {"slot"},
 	"shop.list":      {"place"},
 	"shop.view":      {"shop"},
 	"shop.buy":       {"shop", "item", "qty", "method", "nonce"},

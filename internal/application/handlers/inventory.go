@@ -53,6 +53,8 @@ type InventoryHandler struct {
 	// notifications.hunger_alert_cooldown; zero still notices a hunger
 	// crossing, just with no cooldown between repeats.
 	hungerAlertCooldown time.Duration
+	// carry is the bag rules and the game clock (bags.go); zero shows no bags.
+	carry carryEnv
 }
 
 // WithHungerAlert sets the real-time cooldown between two "you are hungry"
@@ -140,6 +142,16 @@ func (h *InventoryHandler) Show(ctx context.Context, meta envelope.Metadata, req
 			return err
 		}
 		lang = RenderLanguage(meta, p)
+		var cst carryState
+		if h.carry.enabled() {
+			// Reading the bags settles their wear, a write: queue behind the owner's other changes.
+			if err := tx.Items().LockOwner(ctx, p.ID); err != nil {
+				return err
+			}
+			if cst, err = h.carry.load(ctx, tx, snap, p.ID, h.now(), true); err != nil {
+				return err
+			}
+		}
 		stacks, pieces, _, err := carried(ctx, tx, p.ID)
 		if err != nil {
 			return err
@@ -151,6 +163,9 @@ func (h *InventoryHandler) Show(ctx context.Context, meta envelope.Metadata, req
 		lines := inventoryLines(snap, stacks, pieces, names)
 		start, end, pages := pageWindow(len(lines), page, h.pageSize)
 		view = plife.InventoryView{Lines: lines[start:end], Page: min(page, pages), Pages: pages, Total: len(lines)}
+		if h.carry.enabled() {
+			view.Bags, view.Carry = h.carry.carryView(snap, cst)
+		}
 		esc, escPieces, err := tx.Items().Holdings(ctx, p.ID, application.HoldEscrow)
 		if err != nil {
 			return err
@@ -265,6 +280,13 @@ func (h *InventoryHandler) detail(ctx context.Context, tx application.Tx, snap *
 	if piece != nil {
 		v.Ref, v.Piece = piece.Serial, true
 		v.Quality, v.UsesLeft, v.Durability = piece.Quality, piece.UsesLeft, def.Durability
+		if def.Bag != nil && h.carry.enabled() {
+			st, err := h.carry.load(ctx, tx, snap, p.ID, h.now(), false)
+			if err != nil {
+				return v, err
+			}
+			v.Bag = h.bagDetail(snap, def, st, piece)
+		}
 	}
 	for _, e := range def.Effects {
 		v.Effects = append(v.Effects, plife.EffectLine{Target: e.Target, Op: e.Op, Value: e.Value})

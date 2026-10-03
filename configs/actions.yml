@@ -90,6 +90,8 @@ commands:
   inventory.use: {kind: primary, icon: "action:use"}
   inventory.give: {kind: primary, icon: "action:give"}
   inventory.drop: {kind: danger, icon: "action:drop"}
+  inventory.bag.wear: {kind: primary, icon: "action:bag"}
+  inventory.bag.off: {kind: secondary, icon: "action:bag"}
   shop.list: {kind: navigation, icon: "action:shop"}
   shop.view: {kind: navigation, icon: "action:shop"}
   shop.buy: {kind: primary, icon: "action:buy"}

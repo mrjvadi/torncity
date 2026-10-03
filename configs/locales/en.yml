@@ -313,6 +313,7 @@ settlement_building:
   teaching_circle: City classroom
   school: School
   barter_post: City market
+  general_store: "General store"
   market: Market
   bank: Bank
   barracks: Barracks
@@ -731,6 +732,11 @@ item_shelf:
 
 # Goods, keyed on their content code (configs/content/items.yml).
 item_name:
+  bag_pouch: Belt pouch
+  bag_sack: Shoulder sack
+  bag_daypack: Small rucksack
+  bag_hiking: Travel rucksack
+  bag_frame: Frame rucksack
   led_torch: LED torch
   pocket_radio: Pocket radio
   car: Car
@@ -1411,6 +1417,7 @@ staff_role:
   storekeeper: "Storekeeper"
   beacon_keeper: "Beacon keeper"
   stall_keeper: "Stall keeper"
+  shopkeeper: "Shopkeeper"
   miner: "Miner"
   mine_hauler: "Mine hauler"
   timberman: "Mine timberman"
@@ -1428,6 +1435,7 @@ staff_role:
 building_function:
   dwelling: "House"
   stall: "Market stall"
+  general_store: "General store"
   home_workshop: "Home workshop"
   woodcutter_yard: "Woodcutter camp"
   charcoal_clamp: "Charcoal clamp"

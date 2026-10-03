@@ -3,6 +3,15 @@
     "title": "Bag",
     "screen": "inventory",
     "view": {
+      "bags": null,
+      "carry": {
+        "base": 0,
+        "capacity": 0,
+        "comfort_g": 0,
+        "hard_g": 0,
+        "load_g": 0,
+        "used": 0
+      },
       "in_escrow": 2,
       "lines": [
         {
@@ -91,6 +100,15 @@
     "title": "Bag · empty",
     "screen": "inventory",
     "view": {
+      "bags": null,
+      "carry": {
+        "base": 0,
+        "capacity": 0,
+        "comfort_g": 0,
+        "hard_g": 0,
+        "load_g": 0,
+        "used": 0
+      },
       "in_escrow": 0,
       "lines": null,
       "page": 1,
@@ -99,9 +117,206 @@
     }
   },
   {
+    "title": "Bag · a sack on the back, a torn pouch on the belt",
+    "screen": "inventory",
+    "view": {
+      "bags": [
+        {
+          "bag": {
+            "comfort_kg": 10,
+            "full_space": 4,
+            "hard_kg": 25,
+            "item": {
+              "code": "bag_pouch",
+              "name": "Belt pouch"
+            },
+            "serial": "P0UCH00001",
+            "space": 2,
+            "torn": true,
+            "wear": 0,
+            "wear_max": 60
+          },
+          "slot": "belt"
+        },
+        {
+          "bag": {
+            "comfort_kg": 10,
+            "full_space": 12,
+            "hard_kg": 30,
+            "item": {
+              "code": "bag_sack",
+              "name": "Shoulder sack"
+            },
+            "serial": "SACK000001",
+            "space": 12,
+            "torn": false,
+            "wear": 31,
+            "wear_max": 40
+          },
+          "slot": "back"
+        }
+      ],
+      "carry": {
+        "base": 8,
+        "capacity": 22,
+        "comfort_g": 17000,
+        "hard_g": 50000,
+        "load_g": 1100,
+        "used": 9
+      },
+      "in_escrow": 0,
+      "lines": [
+        {
+          "category": "food",
+          "design": "",
+          "durability": 0,
+          "item": {
+            "code": "bread",
+            "name": "Bread"
+          },
+          "qty": 3,
+          "quality": 0,
+          "serial": "",
+          "shelf": {
+            "code": "",
+            "group": "",
+            "group_label": "",
+            "label": ""
+          },
+          "uses_left": 0
+        }
+      ],
+      "page": 1,
+      "pages": 1,
+      "total": 1
+    }
+  },
+  {
+    "title": "Bag · hands only",
+    "screen": "inventory",
+    "view": {
+      "bags": [
+        {
+          "bag": null,
+          "slot": "belt"
+        },
+        {
+          "bag": null,
+          "slot": "back"
+        }
+      ],
+      "carry": {
+        "base": 8,
+        "capacity": 8,
+        "comfort_g": 7000,
+        "hard_g": 20000,
+        "load_g": 900,
+        "used": 3
+      },
+      "in_escrow": 0,
+      "lines": [
+        {
+          "category": "food",
+          "design": "",
+          "durability": 0,
+          "item": {
+            "code": "bread",
+            "name": "Bread"
+          },
+          "qty": 3,
+          "quality": 0,
+          "serial": "",
+          "shelf": {
+            "code": "",
+            "group": "",
+            "group_label": "",
+            "label": ""
+          },
+          "uses_left": 0
+        }
+      ],
+      "page": 1,
+      "pages": 1,
+      "total": 1
+    }
+  },
+  {
+    "title": "Item · a sack in the pack",
+    "screen": "item_detail",
+    "view": {
+      "bag": {
+        "comfort_kg": 10,
+        "hard_kg": 30,
+        "repair_cost": 5,
+        "slot": "back",
+        "space": 12,
+        "torn": false,
+        "worn": false
+      },
+      "category": "gear",
+      "cooldown_seconds": 0,
+      "cooling_for_seconds": 0,
+      "durability": 40,
+      "effects": null,
+      "gear": null,
+      "give_to": null,
+      "item": {
+        "code": "bag_sack",
+        "name": "Shoulder sack"
+      },
+      "nonce": "",
+      "piece": true,
+      "qty": 0,
+      "quality": 50,
+      "ready_at": null,
+      "ref": "SACK000001",
+      "tradeable": true,
+      "usable": false,
+      "uses_left": 31,
+      "worth": 80
+    }
+  },
+  {
+    "title": "Item · a torn pouch, worn",
+    "screen": "item_detail",
+    "view": {
+      "bag": {
+        "comfort_kg": 10,
+        "hard_kg": 25,
+        "repair_cost": 7,
+        "slot": "belt",
+        "space": 4,
+        "torn": true,
+        "worn": true
+      },
+      "category": "gear",
+      "cooldown_seconds": 0,
+      "cooling_for_seconds": 0,
+      "durability": 60,
+      "effects": null,
+      "gear": null,
+      "give_to": null,
+      "item": {
+        "code": "bag_pouch",
+        "name": "Belt pouch"
+      },
+      "nonce": "",
+      "piece": true,
+      "qty": 0,
+      "quality": 50,
+      "ready_at": null,
+      "ref": "P0UCH00001",
+      "tradeable": true,
+      "usable": false,
+      "uses_left": 0,
+      "worth": 25
+    }
+  },
+  {
     "title": "Item · bread, a friend here",
     "screen": "item_detail",
     "view": {
+      "bag": null,
       "category": "food",
       "cooldown_seconds": 1800,
       "cooling_for_seconds": 0,
@@ -145,6 +360,7 @@
     "title": "Item · bandage, still cooling",
     "screen": "item_detail",
     "view": {
+      "bag": null,
       "category": "medicine",
       "cooldown_seconds": 3600,
       "cooling_for_seconds": 720,
@@ -178,6 +394,7 @@
     "title": "Item · a lockpick set",
     "screen": "item_detail",
     "view": {
+      "bag": null,
       "category": "gear",
       "cooldown_seconds": 0,
       "cooling_for_seconds": 0,
@@ -353,6 +570,19 @@
         "name": "Bread"
       },
       "kind": "not_together",
+      "ready_at": null,
+      "wait_seconds": 0
+    }
+  },
+  {
+    "title": "Item refused · not a bag",
+    "screen": "item_refusal",
+    "view": {
+      "item": {
+        "code": "bread",
+        "name": "Bread"
+      },
+      "kind": "not_bag",
       "ready_at": null,
       "wait_seconds": 0
     }

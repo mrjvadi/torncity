@@ -179,6 +179,8 @@ var all = []Subscription{
 	{Domain: "inventory", Action: "use", Origin: FromPlayer},
 	{Domain: "inventory", Action: "give", Origin: FromPlayer},
 	{Domain: "inventory", Action: "drop", Origin: FromPlayer},
+	{Domain: "inventory", Action: "bag.wear", Origin: FromPlayer},
+	{Domain: "inventory", Action: "bag.off", Origin: FromPlayer},
 	{Domain: "shop", Action: "list", Origin: FromPlayer},
 	{Domain: "shop", Action: "view", Origin: FromPlayer},
 	{Domain: "shop", Action: "buy", Origin: FromPlayer},

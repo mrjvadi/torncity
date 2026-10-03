@@ -154,6 +154,9 @@ type Tx interface {
 	// Items, Shops, Market and Auctions hold goods and their trade, so an
 	// item moves with the money that paid for it; see ports_items.go.
 	Items() ItemRepository
+	// Bags holds the bags a player wears (docs/adr/0046 section 4); see
+	// ports_bags.go.
+	Bags() BagRepository
 	Shops() ShopRepository
 	Market() MarketRepository
 	Auctions() AuctionRepository

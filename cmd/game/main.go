@@ -492,8 +492,12 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 
 	// Goods: the inventory, the city shops, the player market and the
 	// auction house, on the game clock.
+	gameClock, err := cfg.GameClock()
+	if err != nil {
+		return err
+	}
 	h.goods = newGoodsHandlers(uow, messages, registry, cities, postgres.NewPolicyReader(pool, nil),
-		gametime.Scale(cfg.Game.TimeScale), cfg.Crime, cfg.Trade, cfg.Game.IdempotencyTTL)
+		gametime.Scale(cfg.Game.TimeScale), cfg.Crime, cfg.Trade, cfg.CarryRules(), gameClock, cfg.Game.IdempotencyTTL)
 	// The watch checks every market trade (docs/adr/0023).
 	h.goods.market.WithWatch(watchThresholds(cfg.AntiCheat))
 	// A service the settlement a player stands in does not offer is said so

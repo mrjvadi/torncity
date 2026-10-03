@@ -179,6 +179,28 @@ building_functions:
     replaces: [market_stall]
     needs_research: [wage_bps, food_points, slot_limits, decay_bps_per_day]
     note: "the owner tends it himself or hires a stall_keeper (ADR 0040 16.4); open only while a village market stands (market_access capability, legacy requires_knowledge_capability). A leased stall is a lease on this function (commercial_leases), not another function."
+  - code: general_store
+    source: "ADR 0046 5.1"
+    evidence: adr
+    name: "دکان"
+    requires: {knowledge: [barter_ring]}
+    kind: service
+    family: commerce
+    permit: commerce
+    zones: [core]
+    footprint: [2, 1, 2, 1]
+    owners: [treasury]
+    levels:
+      - {level: 1, requires: {knowledge: [barter_ring]}, cost_money: 600, cost_materials: {timber: 4}, build_hours: 2}
+    staff: [{role: shopkeeper, slots: 1, shift_hours: 24}]
+    if_unstaffed: idle
+    consumes: {food_points: 1}
+    produces: {service: shop_sales}
+    links: {from: [granary, woodcutter_yard, weaving_shed]}
+    ledger_reasons: [shop_purchase, labor_wage_npc, sales_tax, bag_repair]
+    replaces: [general_store]
+    needs_research: [slot_limits, decay_bps_per_day]
+    note: "ADR 0046 5.1: the founding stall (a counter, not a placed building) sells the basics from day one; this building raises the delivery, stocks the lines that need a building and mends bags. The shopkeeper is an NPC citizen from the labour pool, paid a day's NPC wage from the treasury at each morning delivery; no shopkeeper or an empty treasury, no delivery and no sales. Money for a sale goes to the sink (shop_purchase), the goods enter the buyer's bags (no room, no sale); the shelf is limited and refilled once per game day at 06:00."
   - code: home_workshop
     source: "ADR 0040 15, 17, 0045 4.1, 3.2"
     evidence: adr

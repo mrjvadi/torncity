@@ -78,6 +78,8 @@ func main() {
 		err = growthCommand(ctx, os.Args[2:])
 	case "switch":
 		err = switchCommand(ctx, os.Args[2:])
+	case "bags":
+		err = bagsCommand(ctx, os.Args[2:])
 	default:
 		usage()
 		os.Exit(2)
@@ -112,6 +114,7 @@ func usage() {
   panel         the web panel's operator accounts (see: admin panel user)
   switch        runtime switches: telegram_play, telegram_notices (see: admin switch)
   growth        where capabilities and tiers disagree: report, sweep (see: admin growth)
+  bags          the free starting sack of the bag rollout (see: admin bags)
 
 DATABASE_URL must be set, except for `+"`admin content validate`"+`, which
 reads files only.

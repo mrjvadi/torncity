@@ -342,34 +342,35 @@ archetypes:
 items:
   # --- Food and drink: energy and hunger, one group resting between meals ---
   # (life.yml: hunger is 0..100 and higher is worse, so food takes it away.)
-  - {code: bread, shelf: food.cooked,        name: Bread,        category: food,  archetype: food,  form: stack, base_price: 40,
+  - {code: bread, shelf: food.cooked, weight_g: 300,        name: Bread,        category: food,  archetype: food,  form: stack, base_price: 40,
      effects: [{target: energy, op: add, value: 10}, {target: hunger, op: add, value: -25}], cooldown: 30m, cooldown_group: food}
-  - {code: sandwich, shelf: food.cooked,     name: Sandwich,     category: food,  archetype: food,  form: stack, base_price: 90,
+  - {code: sandwich, shelf: food.cooked, weight_g: 250,     name: Sandwich,     category: food,  archetype: food,  form: stack, base_price: 90,
      effects: [{target: energy, op: add, value: 20}, {target: hunger, op: add, value: -40}], cooldown: 30m, cooldown_group: food}
-  - {code: hot_meal, shelf: food.cooked,     name: Hot meal,     category: food,  archetype: food,  form: stack, base_price: 180,
+  - {code: hot_meal, shelf: food.cooked, weight_g: 500,     name: Hot meal,     category: food,  archetype: food,  form: stack, base_price: 180,
      effects: [{target: energy, op: add, value: 35}, {target: happiness, op: add, value: 5}, {target: hunger, op: add, value: -70},
                {target: stress, op: add, value: -5}], cooldown: 1h, cooldown_group: food}
-  - {code: water_bottle, shelf: drink.cold, name: Bottle of water, category: drink, archetype: drink, form: stack, base_price: 20,
+  - {code: water_bottle, shelf: drink.cold, weight_g: 500, name: Bottle of water, category: drink, archetype: drink, form: stack, base_price: 20,
      effects: [{target: energy, op: add, value: 5}, {target: hunger, op: add, value: -5}], cooldown: 20m, cooldown_group: drink}
-  - {code: coffee, shelf: drink.hot,       name: Coffee,       category: drink, archetype: drink, form: stack, base_price: 60,
+  - {code: coffee, shelf: drink.hot, weight_g: 350,       name: Coffee,       category: drink, archetype: drink, form: stack, base_price: 60,
      effects: [{target: energy, op: add, value: 8}, {target: nerve, op: add, value: 1}, {target: sleep, op: add, value: -10}],
      cooldown: 45m, cooldown_group: drink}
-  - {code: energy_drink, shelf: drink.energy, name: Energy drink, category: drink, archetype: drink, form: stack, base_price: 150,
+  - {code: energy_drink, shelf: drink.energy, weight_g: 330, name: Energy drink, category: drink, archetype: drink, form: stack, base_price: 150,
      effects: [{target: energy, op: add, value: 25}, {target: sleep, op: add, value: -15}, {target: stress, op: add, value: 3}],
      cooldown: 2h, cooldown_group: energy_drink}
 
   # --- Medicine: health ---------------------------------------------------
-  - {code: bandage, shelf: medicine.first_aid,       name: Bandage,       category: medicine, archetype: medicine, form: stack, base_price: 80,
+  - {code: bandage, shelf: medicine.first_aid, weight_g: 50,       name: Bandage,       category: medicine, archetype: medicine, form: stack, base_price: 80,
      effects: [{target: health, op: add, value: 10}], cooldown: 15m, cooldown_group: medical}
-  - {code: painkillers, shelf: medicine.drugs,   name: Painkillers,   category: medicine, archetype: medicine, form: stack, base_price: 150,
+  - {code: painkillers, shelf: medicine.drugs, weight_g: 40,   name: Painkillers,   category: medicine, archetype: medicine, form: stack, base_price: 150,
      effects: [{target: health, op: add, value: 20}], cooldown: 30m, cooldown_group: medical}
-  - {code: first_aid_kit, shelf: medicine.first_aid, name: First aid kit, category: medicine, archetype: medicine, form: stack, base_price: 400,
+  - {code: first_aid_kit, shelf: medicine.first_aid, weight_g: 600, name: First aid kit, category: medicine, archetype: medicine, form: stack, base_price: 400,
      effects: [{target: health, op: add, value: 50}], cooldown: 1h, cooldown_group: medical}
 
   # --- Tools of the trade: gear while carried ------------------------------
   # A lockpick set is what a burglary needs at all (crimes.yml
   # required_tools), and what makes it likelier. It wears with every job.
   - code: lockpick_set
+    weight_g: 300
     shelf: tools.locks
     tags: [crime_tool]
     name: Lockpick set
@@ -382,6 +383,8 @@ items:
     gear: {categories: [burglary], success_bps: 1200, wear: 1, confiscated: true}
   # Forces a car door or a window: quicker, but loud.
   - code: crowbar
+    weight_g: 1500
+    bulk: 2
     shelf: tools.hand
     tags: [crime_tool]
     name: Crowbar
@@ -394,6 +397,7 @@ items:
     gear: {crimes: [car_break_in, home_burglary], success_bps: 800, catch_bps: 300, wear: 1, confiscated: true}
   # A pair per job; fewer prints for the police to find.
   - code: gloves
+    weight_g: 150
     shelf: clothing.hands
     tags: [crime_gear]
     name: Pair of gloves
@@ -403,6 +407,7 @@ items:
     base_price: 50
     gear: {categories: [burglary, petty_theft], solve_bps: -1500, wear: 1, confiscated: true}
   - code: ski_mask
+    weight_g: 100
     shelf: clothing.head
     tags: [crime_gear]
     name: Ski mask
@@ -415,6 +420,7 @@ items:
     gear: {categories: [street_crime, burglary], witness_bps: -1500, catch_bps: -500, wear: 1, confiscated: true}
   # Not evidence of anything: the police leave a runner's shoes alone.
   - code: running_shoes
+    weight_g: 800
     shelf: clothing.foot
     tags: [crime_gear]
     name: Running shoes
@@ -426,6 +432,7 @@ items:
     quality: {min: 40, max: 80}
     gear: {categories: [petty_theft, street_crime], catch_bps: -1000, wear: 1}
   - code: fake_documents
+    weight_g: 50
     shelf: documents.forged
     tags: [black_market]
     name: Forged documents
@@ -438,6 +445,7 @@ items:
     black_market: true
     gear: {categories: [fraud, smuggling], success_bps: 1500, solve_bps: -1000, wear: 1, confiscated: true}
   - code: card_skimmer
+    weight_g: 200
     shelf: tools.locks
     tags: [crime_tool, black_market]
     name: Card skimmer
@@ -451,17 +459,18 @@ items:
     gear: {crimes: [street_scam], success_bps: 1000, reward_bps: 1500, wear: 1, confiscated: true}
 
   # --- Things worth stealing ---------------------------------------------
-  - {code: phone, shelf: electronics.phones,      name: Phone,       category: electronics, archetype: device, form: unique, base_price: 2500, quality: {min: 40, max: 80}}
-  - {code: watch, shelf: valuables.watches,      name: Wristwatch,  category: valuables,   archetype: jewel,  form: unique, base_price: 800,  quality: {min: 30, max: 80}}
-  - {code: car_stereo, shelf: electronics.parts, name: Car stereo,  category: electronics, archetype: device, form: unique, base_price: 700,  quality: {min: 20, max: 60}}
-  - {code: jewellery, shelf: valuables.jewellery,  name: Jewellery,   category: valuables,   archetype: jewel,  form: stack,  base_price: 500}
+  - {code: phone, shelf: electronics.phones, weight_g: 200,      name: Phone,       category: electronics, archetype: device, form: unique, base_price: 2500, quality: {min: 40, max: 80}}
+  - {code: watch, shelf: valuables.watches, weight_g: 100,      name: Wristwatch,  category: valuables,   archetype: jewel,  form: unique, base_price: 800,  quality: {min: 30, max: 80}}
+  - {code: car_stereo, shelf: electronics.parts, weight_g: 1500, bulk: 2, name: Car stereo,  category: electronics, archetype: device, form: unique, base_price: 700,  quality: {min: 20, max: 60}}
+  - {code: jewellery, shelf: valuables.jewellery, weight_g: 50,  name: Jewellery,   category: valuables,   archetype: jewel,  form: stack,  base_price: 500}
 
   # --- Basic electronics: what a tech studio designs first ------------------
-  - {code: led_torch, shelf: electronics.lights,    name: LED torch,    category: electronics, archetype: gadget, form: unique, base_price: 250, quality: {min: 30, max: 70}}
-  - {code: pocket_radio, shelf: electronics.phones, name: Pocket radio, category: electronics, archetype: gadget, form: unique, base_price: 450, quality: {min: 30, max: 75}}
+  - {code: led_torch, shelf: electronics.lights, weight_g: 250,    name: LED torch,    category: electronics, archetype: gadget, form: unique, base_price: 250, quality: {min: 30, max: 70}}
+  - {code: pocket_radio, shelf: electronics.phones, weight_g: 300, name: Pocket radio, category: electronics, archetype: gadget, form: unique, base_price: 450, quality: {min: 30, max: 75}}
 
   # --- Vehicles (docs/adr/0024): driven on the car mode without its fare -----
   - code: car
+    parked: true
     shelf: vehicles.cars
     name: Car
     category: vehicles
@@ -474,6 +483,7 @@ items:
     requires_technology: [vehicle_engineering]
     vehicle: {mode: car, fuel_per_distance: 2, repair_per_journey: 60}
   - code: motorbike
+    parked: true
     shelf: vehicles.bikes
     name: Motorbike
     category: vehicles
@@ -485,3 +495,22 @@ items:
     stealable: false
     requires_technology: [vehicle_engineering]
     vehicle: {mode: car, fuel_per_distance: 1, repair_per_journey: 30}
+
+  # --- Bags (docs/adr/0046 section 4): worn in one of two slots, for space ---
+  # A bag is a unique piece; its durability is its wear points (a game day carried
+  # at least half full costs one; at zero it is torn and gives half its space
+  # until mended). space is in «جا», comfort_kg and hard_kg the load it carries
+  # comfortably and at most. The more a bag costs the better it is, and the price
+  # per «جا» rises with every step from the daypack up, so the biggest is not
+  # simply the best buy. Nil never buys any of it: a bag's look may be bought,
+  # never its space or its life (ADR 0029 10.2). base_price is on this file's scale.
+  - {code: bag_pouch,   shelf: bags.belt, name: Belt pouch,  category: gear, archetype: apparel, form: unique, base_price: 25,
+     durability: 60, weight_g: 150, bag: {slot: belt, space: 4, comfort_kg: 10, hard_kg: 25}}
+  - {code: bag_sack,    shelf: bags.back, name: Shoulder sack, category: gear, archetype: apparel, form: unique, base_price: 80,
+     durability: 40, weight_g: 400, bag: {slot: back, space: 12, comfort_kg: 10, hard_kg: 30}}
+  - {code: bag_daypack, shelf: bags.back, name: Small rucksack, category: gear, archetype: apparel, form: unique, base_price: 180,
+     durability: 100, weight_g: 700, bag: {slot: back, space: 16, comfort_kg: 14, hard_kg: 35}}
+  - {code: bag_hiking,  shelf: bags.back, name: Travel rucksack, category: gear, archetype: apparel, form: unique, base_price: 600,
+     durability: 150, weight_g: 1500, bag: {slot: back, space: 24, comfort_kg: 22, hard_kg: 45}}
+  - {code: bag_frame,   shelf: bags.back, name: Frame rucksack, category: gear, archetype: apparel, form: unique, base_price: 1500,
+     durability: 300, weight_g: 2500, bag: {slot: back, space: 36, comfort_kg: 30, hard_kg: 60}}

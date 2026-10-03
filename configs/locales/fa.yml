@@ -389,6 +389,7 @@ settlement_building:
   teaching_circle: "کلاس درس"
   school: "مدرسه"
   barter_post: "بازارچه"
+  general_store: "دکان"
   market: "بازار"
   bank: "بانک"
   barracks: "پادگان"
@@ -825,6 +826,11 @@ item_shelf:
 
 # نام کالاها بر اساس کد محتوایی (configs/content/items.yml).
 item_name:
+  bag_pouch: کیسهٔ کمری
+  bag_sack: گونی دوشی
+  bag_daypack: کولهٔ کوچک
+  bag_hiking: کولهٔ سفر
+  bag_frame: کولهٔ قاب‌دار
   led_torch: چراغ‌قوه
   pocket_radio: رادیو جیبی
   car: خودرو
@@ -1515,6 +1521,7 @@ staff_role:
   storekeeper: "انباردار"
   beacon_keeper: "آتشبان"
   stall_keeper: "دکه‌دار"
+  shopkeeper: "دکان‌دار"
   miner: "معدنچی"
   mine_hauler: "باربر معدن"
   timberman: "چوب‌بند معدن"
@@ -1532,6 +1539,7 @@ staff_role:
 building_function:
   dwelling: "خانه"
   stall: "دکهٔ بازار"
+  general_store: "دکان"
   home_workshop: "کارگاه خانگی"
   woodcutter_yard: "کارگاه هیزم‌شکنی"
   charcoal_clamp: "کورهٔ زغال"

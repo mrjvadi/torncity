@@ -250,6 +250,50 @@ type Config struct {
 	// 0044-organic-growth-alliances-countries.md, phases G0 and G1): the
 	// capability computation that replaces the tier label, run beside it.
 	Growth Growth
+
+	// Bag, Merchant and Premium are the tuning of ADR 0046: what a player can
+	// carry and how a bag wears, the village shop's daily delivery and prices,
+	// and the constant a village currency is quoted in Nil by.
+	Bag      Bag
+	Merchant Merchant
+	Premium  Premium
+}
+
+// Bag is what a player can carry (docs/adr/0046 section 4; internal/domain/
+// carry). Space is in «جا», loads in kilograms.
+type Bag struct {
+	CarryBase      int64 // bag.carry_base: the space hands and pockets give
+	BaseComfortKG  int64 // bag.base_comfort_kg: the comfortable load with no bag
+	BaseHardKG     int64 // bag.base_hard_kg: the most a player with no bag can carry
+	FullShareBPS   int64 // bag.full_share_bps: how full counts as "carried half full" for wear
+	TornSpaceBPS   int64 // bag.torn_space_bps: the share of its space a torn bag still gives
+	RepairShareBPS int64 // bag.repair_share_bps: a full repair costs this share of the price
+	WearPerDay     int64 // bag.wear_per_day: points a bag loses per game day carried half full
+}
+
+// Merchant is the village shop's tuning (docs/adr/0046 section 5.2; internal/
+// domain/vshop). What it sells, at what reference price and how fast is
+// CONTENT (configs/content/village_shop.yml); these are the coefficients that
+// content is run with.
+type Merchant struct {
+	RestockHour      int64   // merchant.restock_hour: the game hour of the morning delivery
+	MarkupMinBPS     int64   // merchant.markup_min_bps: no price under this share of the reference
+	MarkupMaxBPS     int64   // merchant.markup_max_bps: no price over this share of the reference
+	StockDays        int64   // merchant.stock_days: a shelf holds this many days of delivery
+	FoodShareBPS     int64   // merchant.food_share_bps: the share of a resident's daily food need the shop covers
+	OtherShareBPS    int64   // merchant.other_share_bps: the same for every other line
+	PlayerDayFood    int64   // merchant.player_day_food: a player's daily cap on a food line, in multiples of a head's daily need
+	PlayerDayOther   int64   // merchant.player_day_other: a player's daily cap on any other line, in units
+	SupplyValueFood  int64   // merchant.supply_value_per_resident_day: the most goods value a resident's day draws, reference minor units
+	BuildingBoostBPS int64   // merchant.building_boost_bps: the delivery of a village with a shop building, over the stall's
+	CapPresets       []int64 // merchant.cap_presets: the price caps the head's buttons offer
+}
+
+// Premium is the display constant of the Nil quote (docs/adr/0046 section 7.4).
+// Nothing converts at it: it only says how many neutral-currency units one Nil
+// stands for.
+type Premium struct {
+	NilUnitSup int64 // premium.nil_unit_sup
 }
 
 // The values of growth.capabilities (ADR 0044 section 11, flag
@@ -459,6 +503,12 @@ type Game struct {
 	// fills it, from before the clock was the whole game's; game.time_scale
 	// wins where both are set.
 	TimeScale int // game.time_scale
+
+	// ClockEpoch is the real instant (RFC 3339) at which game day 0 began at
+	// 00:00: with the time scale it makes the game's day and hour (gametime.
+	// Clock), so "once per game day at 06:00" means the same on every replica.
+	// Changing it, or the scale, renumbers the days.
+	ClockEpoch string // game.clock_epoch
 
 	// CommandTimeout is the most one command may run: its context is
 	// cancelled after it, the transaction rolled back and the message
@@ -1362,6 +1412,7 @@ func Defaults() *Config {
 
 			ContentReloadInterval: 30 * time.Second,
 			TimeScale:             60,
+			ClockEpoch:            "2026-01-01T00:00:00Z",
 			CommandTimeout:        30 * time.Second,
 		},
 		Travel: Travel{
@@ -1579,6 +1630,12 @@ func Defaults() *Config {
 			CoarseStepDivisor: 10,
 			AllocationStepBPS: 500,
 		},
+		Bag: Bag{CarryBase: 8, BaseComfortKG: 7, BaseHardKG: 20, FullShareBPS: 5000, TornSpaceBPS: 5000,
+			RepairShareBPS: 2500, WearPerDay: 1},
+		Merchant: Merchant{RestockHour: 6, MarkupMinBPS: 10000, MarkupMaxBPS: 15000, StockDays: 2,
+			FoodShareBPS: 4000, OtherShareBPS: 3000, PlayerDayFood: 3, PlayerDayOther: 2, SupplyValueFood: 60,
+			BuildingBoostBPS: 15000, CapPresets: []int64{10000, 11000, 12500, 15000}},
+		Premium:     Premium{NilUnitSup: 100},
 		Legislature: Legislature{VoteWindow: 48 * time.Hour, ListSize: 8},
 		Labor: Labor{
 			ShiftMinutes:       60,
@@ -1858,6 +1915,10 @@ func (c *Config) Validate() error {
 	}
 	if c.Company.DesignMinSkill > 100 {
 		return fmt.Errorf("%w: company.design_min_skill is %d, above the skill scale", ErrNotPositive, c.Company.DesignMinSkill)
+	}
+
+	if err := c.validateCarry(); err != nil {
+		return err
 	}
 
 	// The idempotency key has to outlive the last redelivery, or the last

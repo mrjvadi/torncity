@@ -202,6 +202,21 @@ export interface AvatarsView {
   avatars: AvatarChoice[] | null
 }
 
+export interface BagDetail {
+  slot: string
+  space: number
+  comfort_kg: number
+  hard_kg: number
+  worn: boolean
+  torn: boolean
+  repair_cost: number
+}
+
+export interface BagSlotLine {
+  slot: string
+  bag: WornBagLine | null
+}
+
 export interface BailedView {
   player: string
   bail: number
@@ -518,6 +533,15 @@ export interface CardView {
   self: boolean
   photo: Photo | null
   notice: string
+}
+
+export interface CarryLine {
+  used: number
+  capacity: number
+  base: number
+  load_g: number
+  comfort_g: number
+  hard_g: number
 }
 
 export interface CaseFiledView {
@@ -2243,6 +2267,8 @@ export interface InventoryView {
   pages: number
   total: number
   in_escrow: number
+  bags: BagSlotLine[] | null
+  carry: CarryLine
 }
 
 export interface ItemDetailView {
@@ -2264,6 +2290,7 @@ export interface ItemDetailView {
   ready_at: string | null
   nonce: string
   give_to: Named[] | null
+  bag: BagDetail | null
 }
 
 export interface ItemDroppedView {
@@ -5173,6 +5200,18 @@ export interface WorkplaceLine {
   workers: number
   busy: number
   ready: boolean
+}
+
+export interface WornBagLine {
+  item: Named
+  serial: string
+  full_space: number
+  space: number
+  wear: number
+  wear_max: number
+  torn: boolean
+  comfort_kg: number
+  hard_kg: number
 }
 
 export interface WorthView {

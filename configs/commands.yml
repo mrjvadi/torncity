@@ -180,6 +180,8 @@ commands:
   inventory.use: {channel: private}
   inventory.give: {channel: private}
   inventory.drop: {channel: private}
+  inventory.bag.wear: {channel: private}
+  inventory.bag.off: {channel: private}
   shop.list: {channel: private}
   shop.view: {channel: private}
   shop.buy: {channel: private}

@@ -57,6 +57,9 @@ type fileConfig struct {
 	WorldGen      worldgenSettings      `yaml:"worldgen"`
 	Settlement    settlementSettings    `yaml:"settlement"`
 	Growth        growthSettings        `yaml:"growth"`
+	Bag           bagSettings           `yaml:"bag"`
+	Merchant      merchantSettings      `yaml:"merchant"`
+	Premium       premiumSettings       `yaml:"premium"`
 
 	Legislature  legislatureSettings  `yaml:"legislature"`
 	Labor        laborSettings        `yaml:"labor"`
@@ -207,7 +210,36 @@ type gameSettings struct {
 
 	ContentReloadInterval *string `yaml:"content_reload_interval"`
 	TimeScale             *int    `yaml:"time_scale"`
+	ClockEpoch            *string `yaml:"clock_epoch"`
 	CommandTimeout        *string `yaml:"command_timeout"`
+}
+
+type bagSettings struct {
+	CarryBase      *int64 `yaml:"carry_base"`
+	BaseComfortKG  *int64 `yaml:"base_comfort_kg"`
+	BaseHardKG     *int64 `yaml:"base_hard_kg"`
+	FullShareBPS   *int64 `yaml:"full_share_bps"`
+	TornSpaceBPS   *int64 `yaml:"torn_space_bps"`
+	RepairShareBPS *int64 `yaml:"repair_share_bps"`
+	WearPerDay     *int64 `yaml:"wear_per_day"`
+}
+
+type merchantSettings struct {
+	RestockHour      *int64  `yaml:"restock_hour"`
+	MarkupMinBPS     *int64  `yaml:"markup_min_bps"`
+	MarkupMaxBPS     *int64  `yaml:"markup_max_bps"`
+	StockDays        *int64  `yaml:"stock_days"`
+	FoodShareBPS     *int64  `yaml:"food_share_bps"`
+	OtherShareBPS    *int64  `yaml:"other_share_bps"`
+	PlayerDayFood    *int64  `yaml:"player_day_food"`
+	PlayerDayOther   *int64  `yaml:"player_day_other"`
+	SupplyValueFood  *int64  `yaml:"supply_value_per_resident_day"`
+	BuildingBoostBPS *int64  `yaml:"building_boost_bps"`
+	CapPresets       []int64 `yaml:"cap_presets"`
+}
+
+type premiumSettings struct {
+	NilUnitSup *int64 `yaml:"nil_unit_sup"`
 }
 
 type travelSettings struct {
@@ -1084,6 +1116,66 @@ var coreSettings = []setting{
 	durationSetting("growth", "flush_interval",
 		func(c *Config) *time.Duration { return &c.Growth.FlushInterval },
 		func(f *fileConfig) *string { return f.Growth.FlushInterval }),
+	stringSetting("game", "clock_epoch",
+		func(c *Config) *string { return &c.Game.ClockEpoch },
+		func(f *fileConfig) *string { return f.Game.ClockEpoch }),
+	moneySetting("bag", "carry_base",
+		func(c *Config) *int64 { return &c.Bag.CarryBase },
+		func(f *fileConfig) *int64 { return f.Bag.CarryBase }),
+	moneySetting("bag", "base_comfort_kg",
+		func(c *Config) *int64 { return &c.Bag.BaseComfortKG },
+		func(f *fileConfig) *int64 { return f.Bag.BaseComfortKG }),
+	moneySetting("bag", "base_hard_kg",
+		func(c *Config) *int64 { return &c.Bag.BaseHardKG },
+		func(f *fileConfig) *int64 { return f.Bag.BaseHardKG }),
+	moneySetting("bag", "full_share_bps",
+		func(c *Config) *int64 { return &c.Bag.FullShareBPS },
+		func(f *fileConfig) *int64 { return f.Bag.FullShareBPS }),
+	moneySetting("bag", "torn_space_bps",
+		func(c *Config) *int64 { return &c.Bag.TornSpaceBPS },
+		func(f *fileConfig) *int64 { return f.Bag.TornSpaceBPS }),
+	moneySetting("bag", "repair_share_bps",
+		func(c *Config) *int64 { return &c.Bag.RepairShareBPS },
+		func(f *fileConfig) *int64 { return f.Bag.RepairShareBPS }),
+	moneySetting("bag", "wear_per_day",
+		func(c *Config) *int64 { return &c.Bag.WearPerDay },
+		func(f *fileConfig) *int64 { return f.Bag.WearPerDay }),
+	moneySetting("merchant", "restock_hour",
+		func(c *Config) *int64 { return &c.Merchant.RestockHour },
+		func(f *fileConfig) *int64 { return f.Merchant.RestockHour }),
+	moneySetting("merchant", "markup_min_bps",
+		func(c *Config) *int64 { return &c.Merchant.MarkupMinBPS },
+		func(f *fileConfig) *int64 { return f.Merchant.MarkupMinBPS }),
+	moneySetting("merchant", "markup_max_bps",
+		func(c *Config) *int64 { return &c.Merchant.MarkupMaxBPS },
+		func(f *fileConfig) *int64 { return f.Merchant.MarkupMaxBPS }),
+	moneySetting("merchant", "stock_days",
+		func(c *Config) *int64 { return &c.Merchant.StockDays },
+		func(f *fileConfig) *int64 { return f.Merchant.StockDays }),
+	moneySetting("merchant", "food_share_bps",
+		func(c *Config) *int64 { return &c.Merchant.FoodShareBPS },
+		func(f *fileConfig) *int64 { return f.Merchant.FoodShareBPS }),
+	moneySetting("merchant", "other_share_bps",
+		func(c *Config) *int64 { return &c.Merchant.OtherShareBPS },
+		func(f *fileConfig) *int64 { return f.Merchant.OtherShareBPS }),
+	moneySetting("merchant", "player_day_food",
+		func(c *Config) *int64 { return &c.Merchant.PlayerDayFood },
+		func(f *fileConfig) *int64 { return f.Merchant.PlayerDayFood }),
+	moneySetting("merchant", "player_day_other",
+		func(c *Config) *int64 { return &c.Merchant.PlayerDayOther },
+		func(f *fileConfig) *int64 { return f.Merchant.PlayerDayOther }),
+	moneySetting("merchant", "supply_value_per_resident_day",
+		func(c *Config) *int64 { return &c.Merchant.SupplyValueFood },
+		func(f *fileConfig) *int64 { return f.Merchant.SupplyValueFood }),
+	moneySetting("merchant", "building_boost_bps",
+		func(c *Config) *int64 { return &c.Merchant.BuildingBoostBPS },
+		func(f *fileConfig) *int64 { return f.Merchant.BuildingBoostBPS }),
+	moneyListSetting("merchant", "cap_presets",
+		func(c *Config) *[]int64 { return &c.Merchant.CapPresets },
+		func(f *fileConfig) []int64 { return f.Merchant.CapPresets }),
+	moneySetting("premium", "nil_unit_sup",
+		func(c *Config) *int64 { return &c.Premium.NilUnitSup },
+		func(f *fileConfig) *int64 { return f.Premium.NilUnitSup }),
 	durationSetting("settlement", "protection_window",
 		func(c *Config) *time.Duration { return &c.Settlement.ProtectionWindow },
 		func(f *fileConfig) *string { return f.Settlement.ProtectionWindow }),
