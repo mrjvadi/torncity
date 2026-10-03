@@ -1,6 +1,7 @@
 package screens
 
 import (
+	"github.com/mrjvadi/torncity/internal/presentation/society"
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 )
@@ -135,6 +136,9 @@ func renderFriends(c Context, v FriendsView) *presenter.Response {
 			if f.Incoming {
 				kb.Add(c.T("button.accept", map[string]any{"player": c.playerName(f.Name)}), AddrFriendAccept, f.ID)
 			}
+			if f.Status == "accepted" && !f.Incoming {
+				kb.Add(c.T("social.friend.button_view", map[string]any{"player": c.playerName(f.Name)}), AddrFriendView, f.ID)
+			}
 		}
 		content = paragraphs(body(lines...), pageIndicator(c, v.Page, v.Pages))
 	}
@@ -148,6 +152,49 @@ func renderFriends(c Context, v FriendsView) *presenter.Response {
 
 	title := htmlBold(htmlEscape(c.T("social.friends.title", nil)))
 	return c.respond(paragraphs(title, htmlEscape(content)), kb.Build()).AsHTML()
+}
+
+// FriendDetail renders one friend with the four things to do: pay, invite to
+// the viewer's faction (only when they may), remove, and back.
+func FriendDetail(c Context, v FriendDetailView) *presenter.Response {
+	return c.withView(renderFriendDetail(c, v), society.ScreenFriendDetail, v)
+}
+
+func renderFriendDetail(c Context, v FriendDetailView) *presenter.Response {
+	name := c.playerName(v.Name)
+	lines := []string{c.T("social.friend.detail_title", map[string]any{"player": name})}
+	if v.Code != "" {
+		lines = append(lines, c.T("profile.code", map[string]any{"code": v.Code}))
+	}
+	if v.Faction != "" {
+		lines = append(lines, c.T("social.friend.detail_faction", map[string]any{"faction": v.Faction}))
+	}
+	kb := keyboards.New()
+	if v.Code != "" {
+		kb.Add(c.T("button.pay", map[string]any{"player": name}), AddrPay, v.Code)
+		if v.CanInvite {
+			kb.Add(c.T("social.friend.button_invite", nil), AddrFactionInvite, v.Code)
+		}
+	}
+	kb.Add(c.T("social.friend.button_remove", nil), AddrFriendRemove, v.ID)
+	kb.Nav(c.nav(keyboards.Nav{BackData: AddrFriendList, RefreshData: keyboards.Data(AddrFriendView, v.ID)}))
+	return c.respond(body(lines...), kb.Build()).MarkPrivate()
+}
+
+// FriendRemoveAsk renders the question before a friend is removed.
+func FriendRemoveAsk(c Context, v FriendRemoveAskView) *presenter.Response {
+	kb := keyboards.New()
+	kb.Add(c.T("social.friend.button_remove_yes", nil), AddrFriendRemove, v.ID, "yes")
+	kb.Nav(c.nav(keyboards.Nav{BackData: keyboards.Data(AddrFriendView, v.ID)}))
+	return c.withView(c.respond(c.T("social.friend.ask_remove", map[string]any{"player": c.playerName(v.Name)}), kb.Build()).MarkPrivate(),
+		society.ScreenFriendRemoveAsk, v)
+}
+
+// FriendRemoved renders a removed friend.
+func FriendRemoved(c Context, v FriendRemovedView) *presenter.Response {
+	kb := keyboards.New().Nav(c.nav(keyboards.Nav{BackData: AddrFriendList, RefreshData: AddrFriendList}))
+	return c.withView(c.respond(c.T("social.friend.removed", map[string]any{"player": c.playerName(v.Name)}), kb.Build()).MarkPrivate(),
+		society.ScreenFriendRemoved, v)
 }
 
 // FriendRequested renders the confirmation of a sent request.

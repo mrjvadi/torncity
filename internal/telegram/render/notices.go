@@ -74,6 +74,7 @@ func init() {
 		s := screens.InboxCategoryView{Category: v.Category, Page: v.Page, TotalPages: v.TotalPages}
 		for _, it := range v.Items {
 			s.Items = append(s.Items, screens.InboxItemLine{
+				ID: it.ID, Read: it.Read,
 				Text: storedText(c, it.Notice), Ago: it.Ago, LinkAddr: it.Link.Address(),
 			})
 		}

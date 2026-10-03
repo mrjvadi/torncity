@@ -62,6 +62,8 @@ type SocialHandler struct {
 	ids    IDGenerator
 	msgs   Translator
 	search application.PlayerSearch
+	// content is set by WithFactions; nil means no faction offers.
+	content ContentSource
 
 	pageSize       int
 	idempotencyTTL time.Duration
@@ -502,6 +504,18 @@ func (h *SocialHandler) nameOf(ctx context.Context, tx application.Tx, playerID 
 	return shownName(p), nil
 }
 
+// nameCodeOf is nameOf with the public code, for the friend list.
+func (h *SocialHandler) nameCodeOf(ctx context.Context, tx application.Tx, playerID string) (string, string, error) {
+	p, err := tx.Players().GetByID(ctx, playerID)
+	if isSentinel(err, application.ErrPlayerNotFound) {
+		return "", "", nil
+	}
+	if err != nil {
+		return "", "", err
+	}
+	return shownName(p), p.PublicCode, nil
+}
+
 // FriendList handles social.friend.list.
 //
 // The whole list is read and then paged in memory. That is the right trade
@@ -534,13 +548,14 @@ func (h *SocialHandler) FriendList(ctx context.Context, meta envelope.Metadata, 
 		start, end, pages := pageWindow(len(edges), page, h.pageSize)
 		lines := make([]society.FriendLine, 0, end-start)
 		for _, e := range edges[start:end] {
-			name, err := h.nameOf(ctx, tx, e.FriendPlayerID)
+			name, code, err := h.nameCodeOf(ctx, tx, e.FriendPlayerID)
 			if err != nil {
 				return err
 			}
 			lines = append(lines, society.FriendLine{
 				ID:     e.FriendPlayerID,
 				Name:   name,
+				Code:   code,
 				Status: e.Status,
 				// Only a request the other player sent can be accepted; one
 				// this player sent waits for the other one's answer.

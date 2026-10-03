@@ -3,6 +3,7 @@
     "title": "My office · the president appoints",
     "screen": "my_office",
     "view": {
+      "military_open": false,
       "seats": [
         {
           "acting_for": "",

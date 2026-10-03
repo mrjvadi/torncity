@@ -63,6 +63,7 @@
 
 • کاوه
   ───
+  [👤 کاوه] → social:friend.view:7a2e9b4c-1d53-4f8a-a6e2-3c9b8d7e6f22
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → social:friend.list:1
 
 ━━━ /find K7Q2M9A (yourself) ━━━

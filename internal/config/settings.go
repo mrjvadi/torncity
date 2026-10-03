@@ -465,6 +465,7 @@ type factionsSettings struct {
 	NameMaxLength *int `yaml:"name_max_length"`
 	MaxMembers    *int `yaml:"max_members"`
 	MaxPending    *int `yaml:"max_pending"`
+	MinFounders   *int `yaml:"min_founders"`
 	ListSize      *int `yaml:"list_size"`
 }
 
@@ -1651,6 +1652,9 @@ var coreSettings = []setting{
 	limitSetting("factions", "max_pending",
 		func(c *Config) *int { return &c.Factions.MaxPending },
 		func(f *fileConfig) *int { return f.Factions.MaxPending }),
+	limitSetting("factions", "min_founders",
+		func(c *Config) *int { return &c.Factions.MinFounders },
+		func(f *fileConfig) *int { return f.Factions.MinFounders }),
 	limitSetting("factions", "list_size",
 		func(c *Config) *int { return &c.Factions.ListSize },
 		func(f *fileConfig) *int { return f.Factions.ListSize }),

@@ -414,6 +414,16 @@ type FactionListView struct {
 	Factions       []FactionLine
 	// Mine is the viewer's faction, nil for none.
 	Mine *FactionRef
+	// Founding is how close the settlement is to being allowed to found one:
+	// nil when the viewer is in a faction already.
+	Founding *FactionFounding
+}
+
+// FactionFounding is the founding rule's progress: Have of Need residents.
+// Open is true once Have reaches Need.
+type FactionFounding struct {
+	Have, Need int
+	Open       bool
 }
 
 // FactionMemberLine is one member, or one crew member.
@@ -613,6 +623,7 @@ const (
 	FactionRefusedCrewFull      = "crew_full"
 	FactionRefusedElsewhere     = "elsewhere"
 	FactionRefusedCrewShort     = "crew_short"
+	FactionRefusedTooFew        = "too_few"
 )
 
 // FactionRefusalView is a refused faction request.
@@ -725,6 +736,10 @@ type CityGovView struct {
 	// city): the budget and the city council's bills belong to a city alone,
 	// so a village's screen does not offer them.
 	Tier string
+	// MilitaryOpen is true when a barracks stands where the viewer is: only
+	// then does the screen point at the ministry of defence. Otherwise the
+	// army is not mentioned at all.
+	MilitaryOpen bool
 }
 
 // GovSeat is one seat the viewer holds, and what it lets them change.
@@ -746,6 +761,8 @@ type GovSeat struct {
 // MyOfficeView is the office holder's screen.
 type MyOfficeView struct {
 	Seats []GovSeat
+	// MilitaryOpen: see CityGovView.
+	MilitaryOpen bool
 }
 
 // LeverEditView is one policy the viewer can change, with a proposed value.
@@ -990,6 +1007,8 @@ type SearchView struct {
 type FriendLine struct {
 	ID   string
 	Name string
+	// Code is the friend's public code, what a payment or an invitation names.
+	Code string
 	// Status is the stored edge status. It is never shown as it stands: it
 	// only chooses which line the friend gets.
 	Status string

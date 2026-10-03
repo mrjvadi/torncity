@@ -186,6 +186,7 @@ func (h *GovernanceHandler) City(ctx context.Context, meta envelope.Metadata, re
 		return nil, err
 	}
 	view.HoldsOffice = len(held) > 0
+	view.MilitaryOpen = h.militaryOpen(ctx, p.ID)
 	return society.CityGovernance(c, view), nil
 }
 
@@ -474,7 +475,15 @@ func (h *GovernanceHandler) Office(ctx context.Context, meta envelope.Metadata) 
 		}
 		view.Seats = append(view.Seats, seat)
 	}
+	view.MilitaryOpen = h.militaryOpen(ctx, p.ID)
 	return society.MyOffice(c, view), nil
+}
+
+// militaryOpen says the ministry of defence may be pointed at: a barracks
+// stands where the player is. Any doubt hides it.
+func (h *GovernanceHandler) militaryOpen(ctx context.Context, playerID string) bool {
+	open, err := militaryOpenAt(ctx, h.uow, h.cities, h.content, "", playerID)
+	return err == nil && open
 }
 
 // appointees lists, for each seat held, the seats of the same place whose

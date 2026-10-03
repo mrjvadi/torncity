@@ -17,5 +17,6 @@ func (h phaseHandlers) bindInbox() map[string]commandFunc {
 		"inbox.show":     bare(ih.Show),
 		"inbox.read_all": bare(ih.ReadAll),
 		"inbox.category": decoded(ih.Category),
+		"inbox.read":     decoded(ih.Read),
 	}
 }

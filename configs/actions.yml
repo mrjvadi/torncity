@@ -49,6 +49,8 @@ commands:
   social.friend.add: {kind: primary, icon: "action:social"}
   social.friend.accept: {kind: primary, icon: "action:accept"}
   social.friend.list: {kind: navigation, icon: "action:social"}
+  social.friend.view: {kind: navigation, icon: "action:social"}
+  social.friend.remove: {kind: secondary, icon: "action:social"}
   bank.show: {kind: navigation, icon: "action:bank"}
   bank.deposit: {kind: primary, icon: "action:deposit"}
   bank.withdraw: {kind: primary, icon: "action:withdraw"}
@@ -288,6 +290,7 @@ commands:
   inbox.show: {kind: navigation, icon: "action:inbox"}
   inbox.category: {kind: navigation, icon: "action:inbox"}
   inbox.read_all: {kind: secondary, icon: "action:mark_read"}
+  inbox.read: {kind: secondary, icon: "action:mark_read"}
   settlement.found: {kind: primary, icon: "action:found"}
   settlement.home: {kind: navigation, icon: "action:village"}
   settlement.overview: {kind: navigation, icon: "action:village"}

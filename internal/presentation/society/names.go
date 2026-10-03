@@ -67,6 +67,9 @@ const (
 	ScreenFriends         = "friends"
 	ScreenFriendRequested = "friend_requested"
 	ScreenFriendAccepted  = "friend_accepted"
+	ScreenFriendDetail    = "friend_detail"
+	ScreenFriendRemoveAsk = "friend_remove_ask"
+	ScreenFriendRemoved   = "friend_removed"
 )
 
 // Refusal codes: the screen's refusal kind under the area it belongs to. The
@@ -120,3 +123,25 @@ type FriendRequestedView struct{ Name string }
 
 // FriendAcceptedView is a friend request accepted.
 type FriendAcceptedView struct{ Name string }
+
+// FriendDetailView is one friend: who they are and what the viewer can do.
+// The viewer's own rights decide the invite: it is true only when they are in
+// a faction whose rank may invite and the friend is in none.
+type FriendDetailView struct {
+	ID   string
+	Name string
+	Code string
+	// Faction is the friend's faction name, empty for none.
+	Faction string
+	// CanInvite is true when the viewer may invite this friend to their faction.
+	CanInvite bool
+}
+
+// FriendRemoveAskView asks the viewer to confirm removing a friend.
+type FriendRemoveAskView struct {
+	ID   string
+	Name string
+}
+
+// FriendRemovedView is a friend removed.
+type FriendRemovedView struct{ Name string }

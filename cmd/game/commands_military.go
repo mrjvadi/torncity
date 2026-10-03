@@ -1,7 +1,12 @@
 package main
 
 import (
+	"context"
+	"strings"
 	"time"
+
+	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
+	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 
 	"github.com/mrjvadi/torncity/internal/application/handlers"
 	"github.com/mrjvadi/torncity/internal/config"
@@ -33,7 +38,7 @@ func warRules(c config.War) handlers.WarRules {
 // commands to their handlers (docs/adr/0022-military-and-diplomacy.md).
 func (h phaseHandlers) bindMilitary() map[string]commandFunc {
 	m, d, a, w := h.military, h.diplomacy, h.appointments, h.war
-	return map[string]commandFunc{
+	table := map[string]commandFunc{
 		"military.ministry": decoded(m.Ministry),
 		"military.forces":   decoded(m.Forces),
 		"military.branch":   decoded(m.Branch),
@@ -76,5 +81,32 @@ func (h phaseHandlers) bindMilitary() map[string]commandFunc {
 		"war.launch":  decoded(w.Launch),
 		// The scheduler's: an operation reaching its target.
 		"war.resolve": decoded(w.Resolve),
+	}
+	// The army and war are offered only where a barracks stands, and refuse
+	// everywhere else as if they did not exist. The scheduler's own commands
+	// (a period ending, equipment landing, an operation reaching its target)
+	// are not a player's and are not gated.
+	for name, f := range table {
+		switch {
+		case name == "military.settle", name == "military.arrive", name == "war.resolve":
+		case strings.HasPrefix(name, "military."), strings.HasPrefix(name, "war."):
+			table[name] = h.needBarracks(f)
+		}
+	}
+	return table
+}
+
+// needBarracks refuses a military or war command from a player who is not in
+// a settlement with a barracks standing.
+func (h phaseHandlers) needBarracks(f commandFunc) commandFunc {
+	return func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+		gate := h.militaryGate
+		if gate == nil {
+			gate = h.village.MilitaryOpen
+		}
+		if err := gate(ctx, env.Metadata); err != nil {
+			return nil, err
+		}
+		return f(ctx, env)
 	}
 }

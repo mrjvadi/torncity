@@ -21,7 +21,7 @@ import (
 // The inbox badge end to end (migrations/0037_notification_inbox), against a
 // real Postgres schema: an inbox-mode notice is stored and counted on one
 // edited-in-place message, a redelivery never double-counts, an instant kind
-// still goes out on its own, opening /inbox marks everything read and clears
+// still goes out on its own, opening /inbox changes nothing, opening one notice reads only it, "read all" clears
 // the badge, and the 24h-unread reminder fires exactly once per pile of
 // unread items. The gateway itself is not involved: a fake Sender stands in
 // for it, exactly the port cmd/notifier hands the real one through.
@@ -268,7 +268,7 @@ func TestNotificationInboxBadge(t *testing.T) {
 		t.Errorf("instant notice category = %q, want finance", instantCategory)
 	}
 
-	// --- opening /inbox marks everything read and clears the badge ---
+	// --- opening /inbox changes nothing; opening ONE notice reads only that one ---
 	inboxHandler := handlers.NewInboxHandler(postgres.NewUnitOfWork(pool, testDefaultLanguage),
 		i18n.NewStore(catalog), handlers.InboxRules{PageSize: 5}, clock.Now)
 	meta := envelope.Metadata{
@@ -283,12 +283,66 @@ func TestNotificationInboxBadge(t *testing.T) {
 	if resp == nil {
 		t.Fatal("inbox.show returned no response")
 	}
+	if got := unreadCount(); got != 3 {
+		t.Fatalf("after only showing /inbox, unread notifications = %d, want still 3", got)
+	}
+	// Showing it again (a refresh, or back from a category) is the same hub.
+	if _, err := rr(inboxHandler.Show(ctx, meta)); err != nil {
+		t.Fatalf("inbox.show again: %v", err)
+	}
+	if got := unreadCount(); got != 3 {
+		t.Fatalf("after showing /inbox twice, unread notifications = %d, want still 3", got)
+	}
+
+	rows, err := pool.Raw().Query(ctx,
+		`SELECT id::text FROM player_notifications WHERE player_id = $1::uuid AND read_at IS NULL ORDER BY created_at, id`, player.ID)
+	if err != nil {
+		t.Fatalf("listing the unread notifications: %v", err)
+	}
+	var unreadIDs []string
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			t.Fatalf("scanning an id: %v", err)
+		}
+		unreadIDs = append(unreadIDs, id)
+	}
+	rows.Close()
+	if len(unreadIDs) != 3 {
+		t.Fatalf("unread ids = %v, want 3", unreadIDs)
+	}
+
+	// Open the first one: only it is read, the badge falls to 2, the others stay.
+	if _, err := rr(inboxHandler.Read(ctx, meta, handlers.InboxReadRequest{ID: unreadIDs[0], Page: "1"})); err != nil {
+		t.Fatalf("inbox.read first: %v", err)
+	}
+	if got := unreadCount(); got != 2 {
+		t.Fatalf("after reading one notice, unread = %d, want 2", got)
+	}
+	if b := badgeRow(); b.UnreadCount != 2 {
+		t.Fatalf("badge after reading one = %d, want 2", b.UnreadCount)
+	}
+	// The next one opens normally, and reading the same one again changes nothing.
+	if _, err := rr(inboxHandler.Read(ctx, meta, handlers.InboxReadRequest{ID: unreadIDs[1]})); err != nil {
+		t.Fatalf("inbox.read second: %v", err)
+	}
+	if _, err := rr(inboxHandler.Read(ctx, meta, handlers.InboxReadRequest{ID: unreadIDs[1]})); err != nil {
+		t.Fatalf("inbox.read second again: %v", err)
+	}
+	if got := unreadCount(); got != 1 {
+		t.Fatalf("after reading two notices, unread = %d, want 1", got)
+	}
+
+	// "Read all" is the one explicit clear-everything action; it clears the badge.
+	if _, err := rr(inboxHandler.ReadAll(ctx, meta)); err != nil {
+		t.Fatalf("inbox.read_all: %v", err)
+	}
 	if got := unreadCount(); got != 0 {
-		t.Fatalf("after opening /inbox, unread notifications = %d, want 0", got)
+		t.Fatalf("after read all, unread notifications = %d, want 0", got)
 	}
 	cleared := badgeRow()
 	if cleared.UnreadCount != 0 || cleared.TelegramMessageID != 0 {
-		t.Fatalf("badge after opening /inbox = %+v, want cleared", cleared)
+		t.Fatalf("badge after read all = %+v, want cleared", cleared)
 	}
 
 	// --- the reminder fires once, 24h after the next item, on a fake clock ---

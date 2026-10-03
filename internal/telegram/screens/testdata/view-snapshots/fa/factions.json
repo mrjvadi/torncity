@@ -22,6 +22,7 @@
         }
       ],
       "fee": 50000,
+      "founding": null,
       "mine": null
     }
   },
@@ -33,6 +34,7 @@
       "city_code": "kessmoor",
       "factions": null,
       "fee": 0,
+      "founding": null,
       "mine": {
         "code": "L10N5ZA",
         "name": "شیرهای شمال"

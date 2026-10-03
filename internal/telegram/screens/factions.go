@@ -61,6 +61,9 @@ func renderFactionList(c Context, v FactionListView) *presenter.Response {
 	if v.Mine != nil {
 		mine = c.T("faction.list_mine", map[string]any{"faction": c.factionName(*v.Mine)})
 		kb.Add(c.T("faction.button.mine", nil), AddrFactionMine)
+	} else if v.Founding != nil && !v.Founding.Open {
+		mine = c.T("faction.list_locked", map[string]any{"have": FormatNumber(c, int64(v.Founding.Have)),
+			"need": FormatNumber(c, int64(v.Founding.Need))})
 	} else {
 		mine = c.T("faction.list_found", map[string]any{"fee": FormatMoney(c, v.Fee)})
 		kb.Add(c.T("faction.button.found", nil), AddrFactionFound)
