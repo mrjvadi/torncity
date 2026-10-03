@@ -5,8 +5,7 @@
     "view": {
       "building": {
         "code": "granary",
-        "name": "Granary",
-        "trip": null
+        "name": "Granary"
       },
       "can_manage": true,
       "effects": null,
@@ -30,8 +29,7 @@
         {
           "item": {
             "code": "timber",
-            "name": "Timber",
-            "trip": null
+            "name": "Timber"
           },
           "kind": "component",
           "qty": 15
@@ -39,8 +37,7 @@
         {
           "item": {
             "code": "wheat",
-            "name": "Wheat",
-            "trip": null
+            "name": "Wheat"
           },
           "kind": "item",
           "qty": 120
@@ -64,8 +61,7 @@
     "view": {
       "building": {
         "code": "granary",
-        "name": "Granary",
-        "trip": null
+        "name": "Granary"
       },
       "can_manage": false,
       "effects": null,
@@ -104,8 +100,7 @@
     "view": {
       "building": {
         "code": "teaching_circle",
-        "name": "Teaching circle",
-        "trip": null
+        "name": "Teaching circle"
       },
       "can_manage": true,
       "effects": null,
@@ -144,8 +139,7 @@
     "view": {
       "building": {
         "code": "teaching_circle",
-        "name": "Teaching circle",
-        "trip": null
+        "name": "Teaching circle"
       },
       "can_manage": true,
       "effects": null,
@@ -177,15 +171,13 @@
           "build_time_seconds": 14400,
           "building": {
             "code": "school",
-            "name": "School",
-            "trip": null
+            "name": "School"
           },
           "cost_money": 9000,
           "missing": [
             {
               "code": "record_keeping",
-              "name": "Record keeping",
-              "trip": null
+              "name": "Record keeping"
             }
           ],
           "needs_tier": "",
@@ -204,8 +196,7 @@
     "view": {
       "building": {
         "code": "civic_hall",
-        "name": "Civic hall",
-        "trip": null
+        "name": "Civic hall"
       },
       "can_manage": true,
       "effects": null,
@@ -223,8 +214,7 @@
         "finish_at": null,
         "knowledge": {
           "code": "canal_irrigation",
-          "name": "Canal irrigation",
-          "trip": null
+          "name": "Canal irrigation"
         },
         "left_seconds": 2460
       },
@@ -252,8 +242,7 @@
     "view": {
       "building": {
         "code": "watch_hut",
-        "name": "Watch hut",
-        "trip": null
+        "name": "Watch hut"
       },
       "can_manage": false,
       "effects": [
@@ -297,8 +286,7 @@
     "view": {
       "building": {
         "code": "road",
-        "name": "Road",
-        "trip": null
+        "name": "Road"
       },
       "can_manage": true,
       "effects": null,
@@ -337,8 +325,7 @@
     "view": {
       "building": {
         "code": "carpentry_workshop",
-        "name": "Carpentry workshop",
-        "trip": null
+        "name": "Carpentry workshop"
       },
       "can_manage": true,
       "effects": null,
@@ -377,8 +364,7 @@
     "view": {
       "building": {
         "code": "granary",
-        "name": "Granary",
-        "trip": null
+        "name": "Granary"
       },
       "can_manage": true,
       "effects": null,
@@ -417,8 +403,7 @@
     "view": {
       "building": {
         "code": "carpentry_workshop",
-        "name": "Carpentry workshop",
-        "trip": null
+        "name": "Carpentry workshop"
       },
       "can_manage": true,
       "effects": null,
@@ -458,8 +443,7 @@
       "build_time_seconds": 600,
       "building": {
         "code": "road",
-        "name": "Road",
-        "trip": null
+        "name": "Road"
       },
       "cost_money": 150,
       "count": 3,
@@ -487,8 +471,7 @@
     "view": {
       "building": {
         "code": "road",
-        "name": "Road",
-        "trip": null
+        "name": "Road"
       },
       "can_rotate": false,
       "from": {
@@ -698,8 +681,7 @@
     "view": {
       "building": {
         "code": "road",
-        "name": "Road",
-        "trip": null
+        "name": "Road"
       },
       "can_rotate": false,
       "from": {
@@ -911,16 +893,14 @@
       "build_time_seconds": 2700,
       "building": {
         "code": "cottage",
-        "name": "Village house",
-        "trip": null
+        "name": "Village house"
       },
       "cost_money": 720,
       "materials": [
         {
           "component": {
             "code": "timber",
-            "name": "Timber",
-            "trip": null
+            "name": "Timber"
           },
           "quantity": 2
         }
@@ -937,8 +917,7 @@
     "view": {
       "building": {
         "code": "cottage",
-        "name": "Village house",
-        "trip": null
+        "name": "Village house"
       },
       "can_rotate": false,
       "from": {
@@ -1683,8 +1662,7 @@
     "view": {
       "building": {
         "code": "militia_camp",
-        "name": "Militia camp",
-        "trip": null
+        "name": "Militia camp"
       },
       "can_rotate": true,
       "from": {
@@ -1894,8 +1872,7 @@
     "view": {
       "building": {
         "code": "militia_camp",
-        "name": "Militia camp",
-        "trip": null
+        "name": "Militia camp"
       },
       "can_rotate": true,
       "from": {
@@ -2105,8 +2082,7 @@
     "view": {
       "building": {
         "code": "civic_hall",
-        "name": "Civic hall",
-        "trip": null
+        "name": "Civic hall"
       },
       "can_rotate": false,
       "from": {
@@ -2318,16 +2294,14 @@
       "build_time_seconds": 7200,
       "building": {
         "code": "civic_hall",
-        "name": "Civic hall",
-        "trip": null
+        "name": "Civic hall"
       },
       "cost_money": 1000,
       "materials": [
         {
           "component": {
             "code": "timber",
-            "name": "Timber",
-            "trip": null
+            "name": "Timber"
           },
           "quantity": 5
         }
@@ -2346,8 +2320,7 @@
       "build_time_seconds": 2700,
       "building": {
         "code": "militia_camp",
-        "name": "Militia camp",
-        "trip": null
+        "name": "Militia camp"
       },
       "cost_money": 500,
       "materials": null,
@@ -2398,8 +2371,7 @@
     "view": {
       "class": {
         "code": "path",
-        "name": "Footpath",
-        "trip": null
+        "name": "Footpath"
       },
       "climb_m": 22,
       "crossing_cost": 60,
@@ -2435,8 +2407,7 @@
     "view": {
       "class": {
         "code": "path",
-        "name": "Footpath",
-        "trip": null
+        "name": "Footpath"
       },
       "climb_m": 22,
       "crossing_cost": 60,

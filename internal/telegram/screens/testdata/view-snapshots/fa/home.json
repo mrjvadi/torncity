@@ -24,14 +24,12 @@
       "next_level_xp": 50,
       "place": {
         "code": "",
-        "name": "",
-        "trip": null
+        "name": ""
       },
       "rank": null,
       "stage": {
         "code": "",
-        "name": "",
-        "trip": null
+        "name": ""
       },
       "travel_remaining_seconds": 0,
       "travel_to": "",
@@ -80,8 +78,7 @@
       "next_level_xp": 2800,
       "place": {
         "code": "",
-        "name": "",
-        "trip": null
+        "name": ""
       },
       "rank": {
         "code": "breadwinner",
@@ -90,8 +87,7 @@
       },
       "stage": {
         "code": "youth",
-        "name": "Youth",
-        "trip": null
+        "name": "Youth"
       },
       "travel_remaining_seconds": 0,
       "travel_to": "",
@@ -160,8 +156,7 @@
       "next_level_xp": 2800,
       "place": {
         "code": "",
-        "name": "",
-        "trip": null
+        "name": ""
       },
       "rank": {
         "code": "breadwinner",
@@ -170,8 +165,7 @@
       },
       "stage": {
         "code": "youth",
-        "name": "Youth",
-        "trip": null
+        "name": "Youth"
       },
       "travel_remaining_seconds": 0,
       "travel_to": "",
@@ -223,14 +217,12 @@
       "next_level_xp": 150,
       "place": {
         "code": "",
-        "name": "",
-        "trip": null
+        "name": ""
       },
       "rank": null,
       "stage": {
         "code": "",
-        "name": "",
-        "trip": null
+        "name": ""
       },
       "travel_remaining_seconds": 8100,
       "travel_to": "Brennhaven",
@@ -282,14 +274,12 @@
       "next_level_xp": 150,
       "place": {
         "code": "",
-        "name": "",
-        "trip": null
+        "name": ""
       },
       "rank": null,
       "stage": {
         "code": "",
-        "name": "",
-        "trip": null
+        "name": ""
       },
       "travel_remaining_seconds": 0,
       "travel_to": "",
@@ -297,8 +287,7 @@
       "travelling": false,
       "village": {
         "code": "vin",
-        "name": "Vinlar",
-        "trip": null
+        "name": "Vinlar"
       },
       "walk": null,
       "work": null,
@@ -330,14 +319,12 @@
       "next_level_xp": 50,
       "place": {
         "code": "",
-        "name": "",
-        "trip": null
+        "name": ""
       },
       "rank": null,
       "stage": {
         "code": "",
-        "name": "",
-        "trip": null
+        "name": ""
       },
       "travel_remaining_seconds": 0,
       "travel_to": "",
@@ -374,14 +361,12 @@
       "next_level_xp": 0,
       "place": {
         "code": "",
-        "name": "",
-        "trip": null
+        "name": ""
       },
       "rank": null,
       "stage": {
         "code": "",
-        "name": "",
-        "trip": null
+        "name": ""
       },
       "travel_remaining_seconds": 0,
       "travel_to": "",
@@ -408,8 +393,7 @@
       "name": "سارا",
       "place": {
         "code": "",
-        "name": "",
-        "trip": null
+        "name": ""
       },
       "travelling": false,
       "walk": null
@@ -445,14 +429,12 @@
       "next_level_xp": 2800,
       "place": {
         "code": "",
-        "name": "",
-        "trip": null
+        "name": ""
       },
       "rank": null,
       "stage": {
         "code": "",
-        "name": "",
-        "trip": null
+        "name": ""
       },
       "travel_remaining_seconds": 0,
       "travel_to": "",
@@ -506,8 +488,7 @@
       "name": "سارا",
       "place": {
         "code": "",
-        "name": "",
-        "trip": null
+        "name": ""
       },
       "travelling": false,
       "walk": null

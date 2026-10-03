@@ -964,6 +964,7 @@ export interface CourseGap {
   fee: number
   duration_seconds: number
   nearest: Named | null
+  nearest_trip: TripHint | null
   needs: CourseNeed[] | null
 }
 
@@ -2340,6 +2341,7 @@ export interface JobDetailView {
 export interface JobGap {
   job: JobRef
   nearest: Named | null
+  nearest_trip: TripHint | null
   needs: CourseNeed[] | null
 }
 
@@ -3266,7 +3268,6 @@ export interface MyOrdersView {
 export interface Named {
   code: string
   name: string
-  trip: TripHint | null
 }
 
 export interface NeedBuilding {

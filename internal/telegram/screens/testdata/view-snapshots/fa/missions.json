@@ -11,8 +11,7 @@
           "open": 0,
           "place": {
             "code": "city_hall",
-            "name": "Civic centre",
-            "trip": null
+            "name": "Civic centre"
           }
         },
         {
@@ -21,8 +20,7 @@
           "open": 0,
           "place": {
             "code": "police_station",
-            "name": "Police station",
-            "trip": null
+            "name": "Police station"
           }
         }
       ],
@@ -44,8 +42,7 @@
         "open": 0,
         "place": {
           "code": "city_hall",
-          "name": "Civic centre",
-          "trip": null
+          "name": "Civic centre"
         }
       },
       "boards": null,
@@ -58,8 +55,7 @@
           "blocked": "",
           "mission": {
             "code": "first_steps",
-            "name": "First steps",
-            "trip": null
+            "name": "First steps"
           },
           "objectives": null,
           "repeatable": false,
@@ -69,8 +65,7 @@
               {
                 "item": {
                   "code": "sandwich",
-                  "name": "Sandwich",
-                  "trip": null
+                  "name": "Sandwich"
                 },
                 "qty": 2
               }
@@ -83,8 +78,7 @@
           "blocked": "requires",
           "mission": {
             "code": "study_up",
-            "name": "Back to school",
-            "trip": null
+            "name": "Back to school"
           },
           "objectives": null,
           "repeatable": false,
@@ -99,8 +93,7 @@
           "blocked": "cooldown",
           "mission": {
             "code": "city_courier",
-            "name": "City courier",
-            "trip": null
+            "name": "City courier"
           },
           "objectives": null,
           "repeatable": true,
@@ -115,8 +108,7 @@
           "blocked": "active",
           "mission": {
             "code": "medicine_drive",
-            "name": "Medicine drive",
-            "trip": null
+            "name": "Medicine drive"
           },
           "objectives": null,
           "repeatable": true,
@@ -143,8 +135,7 @@
         "open": 0,
         "place": {
           "code": "city_hall",
-          "name": "Civic centre",
-          "trip": null
+          "name": "Civic centre"
         }
       },
       "cooldown_seconds": 0,
@@ -152,8 +143,7 @@
       "min_level": 1,
       "mission": {
         "code": "first_steps",
-        "name": "First steps",
-        "trip": null
+        "name": "First steps"
       },
       "no": 0,
       "objectives": [
@@ -186,8 +176,7 @@
           {
             "item": {
               "code": "sandwich",
-              "name": "Sandwich",
-              "trip": null
+              "name": "Sandwich"
             },
             "qty": 2
           }
@@ -210,8 +199,7 @@
         "open": 0,
         "place": {
           "code": "city_hall",
-          "name": "Civic centre",
-          "trip": null
+          "name": "Civic centre"
         }
       },
       "cooldown_seconds": 1440,
@@ -219,8 +207,7 @@
       "min_level": 2,
       "mission": {
         "code": "city_courier",
-        "name": "City courier",
-        "trip": null
+        "name": "City courier"
       },
       "no": 0,
       "objectives": [
@@ -258,8 +245,7 @@
         "open": 0,
         "place": {
           "code": "city_hall",
-          "name": "Civic centre",
-          "trip": null
+          "name": "Civic centre"
         }
       },
       "cooldown_seconds": 0,
@@ -267,8 +253,7 @@
       "min_level": 0,
       "mission": {
         "code": "study_up",
-        "name": "Back to school",
-        "trip": null
+        "name": "Back to school"
       },
       "no": 0,
       "objectives": [
@@ -287,8 +272,7 @@
       "requires": [
         {
           "code": "first_steps",
-          "name": "First steps",
-          "trip": null
+          "name": "First steps"
         }
       ],
       "reward": {
@@ -312,8 +296,7 @@
         "open": 0,
         "place": {
           "code": "city_hall",
-          "name": "Civic centre",
-          "trip": null
+          "name": "Civic centre"
         }
       },
       "cooldown_seconds": 1440,
@@ -321,8 +304,7 @@
       "min_level": 0,
       "mission": {
         "code": "medicine_drive",
-        "name": "Medicine drive",
-        "trip": null
+        "name": "Medicine drive"
       },
       "no": 0,
       "objectives": [
@@ -360,8 +342,7 @@
         "open": 0,
         "place": {
           "code": "",
-          "name": "",
-          "trip": null
+          "name": ""
         }
       },
       "cooldown_seconds": 0,
@@ -369,8 +350,7 @@
       "min_level": 0,
       "mission": {
         "code": "medicine_drive",
-        "name": "Medicine drive",
-        "trip": null
+        "name": "Medicine drive"
       },
       "no": 17,
       "objectives": null,
@@ -396,8 +376,7 @@
           "left_seconds": 0,
           "mission": {
             "code": "medicine_drive",
-            "name": "Medicine drive",
-            "trip": null
+            "name": "Medicine drive"
           },
           "no": 17,
           "objectives": [
@@ -421,8 +400,7 @@
           "left_seconds": 540,
           "mission": {
             "code": "road_watch",
-            "name": "Road watch",
-            "trip": null
+            "name": "Road watch"
           },
           "no": 18,
           "objectives": [
@@ -497,8 +475,7 @@
         "kind": "delivered",
         "mission": {
           "code": "medicine_drive",
-          "name": "Medicine drive",
-          "trip": null
+          "name": "Medicine drive"
         },
         "qty": 2,
         "withheld": 0,
@@ -511,8 +488,7 @@
           "left_seconds": 0,
           "mission": {
             "code": "first_steps",
-            "name": "First steps",
-            "trip": null
+            "name": "First steps"
           },
           "no": 0,
           "objectives": null,
@@ -525,8 +501,7 @@
           "left_seconds": 0,
           "mission": {
             "code": "city_courier",
-            "name": "City courier",
-            "trip": null
+            "name": "City courier"
           },
           "no": 0,
           "objectives": null,
@@ -547,8 +522,7 @@
         "kind": "completed",
         "mission": {
           "code": "medicine_drive",
-          "name": "Medicine drive",
-          "trip": null
+          "name": "Medicine drive"
         },
         "qty": 0,
         "withheld": 300,
@@ -568,8 +542,7 @@
           "left_seconds": 0,
           "mission": {
             "code": "first_steps",
-            "name": "First steps",
-            "trip": null
+            "name": "First steps"
           },
           "no": 19,
           "objectives": [
@@ -604,8 +577,7 @@
         "kind": "accepted",
         "mission": {
           "code": "first_steps",
-          "name": "First steps",
-          "trip": null
+          "name": "First steps"
         },
         "qty": 0,
         "withheld": 0,
@@ -623,16 +595,14 @@
         {
           "item": {
             "code": "sandwich",
-            "name": "Sandwich",
-            "trip": null
+            "name": "Sandwich"
           },
           "qty": 2
         }
       ],
       "mission": {
         "code": "first_steps",
-        "name": "First steps",
-        "trip": null
+        "name": "First steps"
       },
       "withheld": 0,
       "xp": 40
@@ -647,16 +617,14 @@
         {
           "item": {
             "code": "bandage",
-            "name": "Bandage",
-            "trip": null
+            "name": "Bandage"
           },
           "qty": 1
         }
       ],
       "mission": {
         "code": "medicine_drive",
-        "name": "Medicine drive",
-        "trip": null
+        "name": "Medicine drive"
       },
       "withheld": 300,
       "xp": 30
@@ -735,13 +703,11 @@
       "arrives_at": null,
       "crime": {
         "code": "",
-        "name": "",
-        "trip": null
+        "name": ""
       },
       "here": {
         "code": "bazaar",
-        "name": "Bazaar",
-        "trip": null
+        "name": "Bazaar"
       },
       "mode": "",
       "need": "board",
@@ -750,14 +716,12 @@
       },
       "place": {
         "code": "city_hall",
-        "name": "Civic centre",
-        "trip": null
+        "name": "Civic centre"
       },
       "remaining_seconds": 0,
       "shop": {
         "code": "",
-        "name": "",
-        "trip": null
+        "name": ""
       },
       "then": "mission.board",
       "then_args": [

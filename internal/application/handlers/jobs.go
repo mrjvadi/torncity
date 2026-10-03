@@ -331,8 +331,7 @@ func (h *JobsHandler) List(ctx context.Context, meta envelope.Metadata, req Page
 				if err != nil {
 					return err
 				}
-				near = withTrip(ctx, tx, h.trips, p, near)
-				view.Gaps = append(view.Gaps, plife.JobGap{Job: jobRef(def, 0), Nearest: near, Needs: needs})
+				view.Gaps = append(view.Gaps, plife.JobGap{Job: jobRef(def, 0), Nearest: near, NearestTrip: tripTo(ctx, tx, h.trips, p, near), Needs: needs})
 				continue
 			}
 			career, ok := snap.Career(def.Code)

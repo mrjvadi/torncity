@@ -359,10 +359,9 @@ func (h *EducationHandler) List(ctx context.Context, meta envelope.Metadata, req
 					if err != nil {
 						return err
 					}
-					near = withTrip(ctx, tx, h.trips, p, near)
 					view.Elsewhere = append(view.Elsewhere, screens.CourseGap{
 						Course: plife.CourseRef{Code: def.Code, Name: def.Name}, Fee: course.Cost.Minor(),
-						Duration: h.scale.RealWait(course.Duration), Nearest: near, Needs: needs})
+						Duration: h.scale.RealWait(course.Duration), Nearest: near, NearestTrip: tripTo(ctx, tx, h.trips, p, near), Needs: needs})
 				}
 				continue
 			}

@@ -205,7 +205,7 @@ func (h *EducationHandler) taughtHere(ctx context.Context, tx application.Tx, sn
 		return nil, nil, err
 	} else if near != nil {
 		req.CityCode, req.City = near.Code, near.Name
-		req.Trip = withTrip(ctx, tx, h.trips, p, near).Trip
+		req.Trip = tripTo(ctx, tx, h.trips, p, near)
 	}
 	return req, nil, nil
 }

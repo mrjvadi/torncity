@@ -7,28 +7,23 @@
       "categories": [
         {
           "code": "petty_theft",
-          "name": "Petty theft",
-          "trip": null
+          "name": "Petty theft"
         },
         {
           "code": "street_crime",
-          "name": "Street crime",
-          "trip": null
+          "name": "Street crime"
         },
         {
           "code": "burglary",
-          "name": "Burglary",
-          "trip": null
+          "name": "Burglary"
         },
         {
           "code": "fraud",
-          "name": "Fraud",
-          "trip": null
+          "name": "Fraud"
         },
         {
           "code": "smuggling",
-          "name": "Smuggling",
-          "trip": null
+          "name": "Smuggling"
         }
       ],
       "city": "Ostmarch",
@@ -53,22 +48,19 @@
       "tier": {
         "next": {
           "code": "hustler",
-          "name": "Hustler",
-          "trip": null
+          "name": "Hustler"
         },
         "next_xp": 150,
         "tier": {
           "code": "novice",
-          "name": "Novice",
-          "trip": null
+          "name": "Novice"
         },
         "xp": 96
       },
       "travelling": false,
       "venue": {
         "code": "train_station",
-        "name": "Train station",
-        "trip": null
+        "name": "Train station"
       }
     }
   },
@@ -80,28 +72,23 @@
       "categories": [
         {
           "code": "petty_theft",
-          "name": "Petty theft",
-          "trip": null
+          "name": "Petty theft"
         },
         {
           "code": "street_crime",
-          "name": "Street crime",
-          "trip": null
+          "name": "Street crime"
         },
         {
           "code": "burglary",
-          "name": "Burglary",
-          "trip": null
+          "name": "Burglary"
         },
         {
           "code": "fraud",
-          "name": "Fraud",
-          "trip": null
+          "name": "Fraud"
         },
         {
           "code": "smuggling",
-          "name": "Smuggling",
-          "trip": null
+          "name": "Smuggling"
         }
       ],
       "city": "Ostmarch",
@@ -126,22 +113,19 @@
       "tier": {
         "next": {
           "code": "",
-          "name": "",
-          "trip": null
+          "name": ""
         },
         "next_xp": 0,
         "tier": {
           "code": "professional",
-          "name": "Professional",
-          "trip": null
+          "name": "Professional"
         },
         "xp": 1200
       },
       "travelling": false,
       "venue": {
         "code": "city_centre",
-        "name": "City centre",
-        "trip": null
+        "name": "City centre"
       }
     }
   },
@@ -153,28 +137,23 @@
       "categories": [
         {
           "code": "petty_theft",
-          "name": "Petty theft",
-          "trip": null
+          "name": "Petty theft"
         },
         {
           "code": "street_crime",
-          "name": "Street crime",
-          "trip": null
+          "name": "Street crime"
         },
         {
           "code": "burglary",
-          "name": "Burglary",
-          "trip": null
+          "name": "Burglary"
         },
         {
           "code": "fraud",
-          "name": "Fraud",
-          "trip": null
+          "name": "Fraud"
         },
         {
           "code": "smuggling",
-          "name": "Smuggling",
-          "trip": null
+          "name": "Smuggling"
         }
       ],
       "city": "Ostmarch",
@@ -189,8 +168,7 @@
       "jail": {
         "crime": {
           "code": "",
-          "name": "",
-          "trip": null
+          "name": ""
         },
         "ends_at": "2026-09-23T12:40:00Z",
         "remaining_seconds": 5700
@@ -207,22 +185,19 @@
       "tier": {
         "next": {
           "code": "hustler",
-          "name": "Hustler",
-          "trip": null
+          "name": "Hustler"
         },
         "next_xp": 150,
         "tier": {
           "code": "novice",
-          "name": "Novice",
-          "trip": null
+          "name": "Novice"
         },
         "xp": 96
       },
       "travelling": false,
       "venue": {
         "code": "city_centre",
-        "name": "City centre",
-        "trip": null
+        "name": "City centre"
       }
     }
   },
@@ -233,8 +208,7 @@
       "busy": {
         "crime": {
           "code": "home_burglary",
-          "name": "Home burglary",
-          "trip": null
+          "name": "Home burglary"
         },
         "ends_at": "2026-09-23T11:06:30Z",
         "remaining_seconds": 90
@@ -242,28 +216,23 @@
       "categories": [
         {
           "code": "petty_theft",
-          "name": "Petty theft",
-          "trip": null
+          "name": "Petty theft"
         },
         {
           "code": "street_crime",
-          "name": "Street crime",
-          "trip": null
+          "name": "Street crime"
         },
         {
           "code": "burglary",
-          "name": "Burglary",
-          "trip": null
+          "name": "Burglary"
         },
         {
           "code": "fraud",
-          "name": "Fraud",
-          "trip": null
+          "name": "Fraud"
         },
         {
           "code": "smuggling",
-          "name": "Smuggling",
-          "trip": null
+          "name": "Smuggling"
         }
       ],
       "city": "Ostmarch",
@@ -288,22 +257,19 @@
       "tier": {
         "next": {
           "code": "hustler",
-          "name": "Hustler",
-          "trip": null
+          "name": "Hustler"
         },
         "next_xp": 150,
         "tier": {
           "code": "novice",
-          "name": "Novice",
-          "trip": null
+          "name": "Novice"
         },
         "xp": 96
       },
       "travelling": false,
       "venue": {
         "code": "city_centre",
-        "name": "City centre",
-        "trip": null
+        "name": "City centre"
       }
     }
   },
@@ -335,22 +301,19 @@
       "tier": {
         "next": {
           "code": "hustler",
-          "name": "Hustler",
-          "trip": null
+          "name": "Hustler"
         },
         "next_xp": 150,
         "tier": {
           "code": "novice",
-          "name": "Novice",
-          "trip": null
+          "name": "Novice"
         },
         "xp": 96
       },
       "travelling": true,
       "venue": {
         "code": "",
-        "name": "",
-        "trip": null
+        "name": ""
       }
     }
   },
@@ -360,15 +323,13 @@
     "view": {
       "category": {
         "code": "petty_theft",
-        "name": "Petty theft",
-        "trip": null
+        "name": "Petty theft"
       },
       "crimes": [
         {
           "crime": {
             "code": "pickpocketing",
-            "name": "Pickpocketing",
-            "trip": null
+            "name": "Pickpocketing"
           },
           "duration_seconds": 0,
           "eligible": true,
@@ -377,8 +338,7 @@
         {
           "crime": {
             "code": "shoplifting",
-            "name": "Shoplifting",
-            "trip": null
+            "name": "Shoplifting"
           },
           "duration_seconds": 0,
           "eligible": false,
@@ -395,15 +355,13 @@
     "view": {
       "category": {
         "code": "burglary",
-        "name": "Burglary",
-        "trip": null
+        "name": "Burglary"
       },
       "crimes": [
         {
           "crime": {
             "code": "home_burglary",
-            "name": "Home burglary",
-            "trip": null
+            "name": "Home burglary"
           },
           "duration_seconds": 120,
           "eligible": false,
@@ -422,16 +380,14 @@
       "can_commit": true,
       "category": {
         "code": "petty_theft",
-        "name": "Petty theft",
-        "trip": null
+        "name": "Petty theft"
       },
       "chance_bps": 5160,
       "cooldown_left_seconds": 0,
       "cooldown_seconds": 0,
       "crime": {
         "code": "pickpocketing",
-        "name": "Pickpocketing",
-        "trip": null
+        "name": "Pickpocketing"
       },
       "duration_seconds": 0,
       "fine_max": 400,
@@ -467,13 +423,11 @@
           "have": 0,
           "have_tier": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           },
           "here": {
             "code": "train_station",
-            "name": "Train station",
-            "trip": null
+            "name": "Train station"
           },
           "kind": "venue",
           "met": true,
@@ -481,35 +435,29 @@
           "skill": "",
           "tier": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           },
           "tool": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           },
           "trip": null,
           "venues": [
             {
               "code": "city_centre",
-              "name": "City centre",
-              "trip": null
+              "name": "City centre"
             },
             {
               "code": "bus_terminal",
-              "name": "Bus terminal",
-              "trip": null
+              "name": "Bus terminal"
             },
             {
               "code": "train_station",
-              "name": "Train station",
-              "trip": null
+              "name": "Train station"
             },
             {
               "code": "airport",
-              "name": "Airport",
-              "trip": null
+              "name": "Airport"
             }
           ],
           "wait_seconds": 0
@@ -526,16 +474,14 @@
       "can_commit": false,
       "category": {
         "code": "burglary",
-        "name": "Burglary",
-        "trip": null
+        "name": "Burglary"
       },
       "chance_bps": 3200,
       "cooldown_left_seconds": 0,
       "cooldown_seconds": 0,
       "crime": {
         "code": "home_burglary",
-        "name": "Home burglary",
-        "trip": null
+        "name": "Home burglary"
       },
       "duration_seconds": 120,
       "fine_max": 2000,
@@ -571,13 +517,11 @@
           "have": 3,
           "have_tier": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           },
           "here": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           },
           "kind": "level",
           "met": false,
@@ -585,13 +529,11 @@
           "skill": "",
           "tier": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           },
           "tool": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           },
           "trip": null,
           "venues": null,
@@ -606,13 +548,11 @@
           "have": 0,
           "have_tier": {
             "code": "novice",
-            "name": "Novice",
-            "trip": null
+            "name": "Novice"
           },
           "here": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           },
           "kind": "crime_tier",
           "met": false,
@@ -620,13 +560,11 @@
           "skill": "",
           "tier": {
             "code": "hustler",
-            "name": "Hustler",
-            "trip": null
+            "name": "Hustler"
           },
           "tool": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           },
           "trip": null,
           "venues": null,
@@ -641,13 +579,11 @@
           "have": 1,
           "have_tier": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           },
           "here": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           },
           "kind": "skill",
           "met": false,
@@ -655,13 +591,11 @@
           "skill": "lockpicking",
           "tier": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           },
           "tool": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           },
           "trip": null,
           "venues": null,
@@ -676,13 +610,11 @@
           "have": 4,
           "have_tier": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           },
           "here": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           },
           "kind": "skill",
           "met": true,
@@ -690,13 +622,11 @@
           "skill": "stealth",
           "tier": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           },
           "tool": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           },
           "trip": null,
           "venues": null,
@@ -711,13 +641,11 @@
           "have": 0,
           "have_tier": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           },
           "here": {
             "code": "train_station",
-            "name": "Train station",
-            "trip": null
+            "name": "Train station"
           },
           "kind": "venue",
           "met": false,
@@ -725,20 +653,17 @@
           "skill": "",
           "tier": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           },
           "tool": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           },
           "trip": null,
           "venues": [
             {
               "code": "city_centre",
-              "name": "City centre",
-              "trip": null
+              "name": "City centre"
             }
           ],
           "wait_seconds": 0
@@ -755,16 +680,14 @@
       "can_commit": false,
       "category": {
         "code": "smuggling",
-        "name": "Smuggling",
-        "trip": null
+        "name": "Smuggling"
       },
       "chance_bps": 4100,
       "cooldown_left_seconds": 0,
       "cooldown_seconds": 0,
       "crime": {
         "code": "goods_smuggling",
-        "name": "Smuggling small goods",
-        "trip": null
+        "name": "Smuggling small goods"
       },
       "duration_seconds": 240,
       "fine_max": 4000,
@@ -800,13 +723,11 @@
           "have": 0,
           "have_tier": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           },
           "here": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           },
           "kind": "facility",
           "met": false,
@@ -814,13 +735,11 @@
           "skill": "",
           "tier": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           },
           "tool": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           },
           "trip": null,
           "venues": null,
@@ -838,16 +757,14 @@
       "can_commit": false,
       "category": {
         "code": "fraud",
-        "name": "Fraud",
-        "trip": null
+        "name": "Fraud"
       },
       "chance_bps": 5500,
       "cooldown_left_seconds": 0,
       "cooldown_seconds": 0,
       "crime": {
         "code": "street_scam",
-        "name": "Street scam",
-        "trip": null
+        "name": "Street scam"
       },
       "duration_seconds": 20,
       "fine_max": 600,
@@ -885,16 +802,14 @@
       "can_commit": true,
       "category": {
         "code": "burglary",
-        "name": "Burglary",
-        "trip": null
+        "name": "Burglary"
       },
       "chance_bps": 6200,
       "cooldown_left_seconds": 0,
       "cooldown_seconds": 7200,
       "crime": {
         "code": "home_burglary",
-        "name": "Home burglary",
-        "trip": null
+        "name": "Home burglary"
       },
       "duration_seconds": 120,
       "fine_max": 2000,
@@ -930,13 +845,11 @@
           "have": 0,
           "have_tier": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           },
           "here": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           },
           "kind": "tool",
           "met": true,
@@ -944,13 +857,11 @@
           "skill": "",
           "tier": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           },
           "tool": {
             "code": "lockpick_set",
-            "name": "Lockpick set",
-            "trip": null
+            "name": "Lockpick set"
           },
           "trip": null,
           "venues": null,
@@ -968,16 +879,14 @@
       "can_commit": false,
       "category": {
         "code": "burglary",
-        "name": "Burglary",
-        "trip": null
+        "name": "Burglary"
       },
       "chance_bps": 3200,
       "cooldown_left_seconds": 4500,
       "cooldown_seconds": 7200,
       "crime": {
         "code": "home_burglary",
-        "name": "Home burglary",
-        "trip": null
+        "name": "Home burglary"
       },
       "duration_seconds": 120,
       "fine_max": 2000,
@@ -1013,13 +922,11 @@
           "have": 0,
           "have_tier": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           },
           "here": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           },
           "kind": "tool",
           "met": false,
@@ -1027,13 +934,11 @@
           "skill": "",
           "tier": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           },
           "tool": {
             "code": "lockpick_set",
-            "name": "Lockpick set",
-            "trip": null
+            "name": "Lockpick set"
           },
           "trip": null,
           "venues": null,
@@ -1051,16 +956,14 @@
       "can_commit": false,
       "category": {
         "code": "petty_theft",
-        "name": "Petty theft",
-        "trip": null
+        "name": "Petty theft"
       },
       "chance_bps": 6000,
       "cooldown_left_seconds": 0,
       "cooldown_seconds": 0,
       "crime": {
         "code": "shoplifting",
-        "name": "Shoplifting",
-        "trip": null
+        "name": "Shoplifting"
       },
       "duration_seconds": 0,
       "fine_max": 200,
@@ -1099,8 +1002,7 @@
       "confiscated": null,
       "crime": {
         "code": "pickpocketing",
-        "name": "Pickpocketing",
-        "trip": null
+        "name": "Pickpocketing"
       },
       "criminal_xp": 8,
       "dry_spell": false,
@@ -1135,8 +1037,7 @@
       "take": 1500,
       "venue": {
         "code": "train_station",
-        "name": "Train station",
-        "trip": null
+        "name": "Train station"
       },
       "victim_player": true,
       "xp": 5
@@ -1151,8 +1052,7 @@
       "confiscated": null,
       "crime": {
         "code": "pickpocketing",
-        "name": "Pickpocketing",
-        "trip": null
+        "name": "Pickpocketing"
       },
       "criminal_xp": 8,
       "dry_spell": false,
@@ -1187,8 +1087,7 @@
       "take": 0,
       "venue": {
         "code": "train_station",
-        "name": "Train station",
-        "trip": null
+        "name": "Train station"
       },
       "victim_player": true,
       "xp": 5
@@ -1203,8 +1102,7 @@
       "confiscated": null,
       "crime": {
         "code": "shoplifting",
-        "name": "Shoplifting",
-        "trip": null
+        "name": "Shoplifting"
       },
       "criminal_xp": 8,
       "dry_spell": false,
@@ -1239,8 +1137,7 @@
       "take": 64,
       "venue": {
         "code": "city_centre",
-        "name": "City centre",
-        "trip": null
+        "name": "City centre"
       },
       "victim_player": false,
       "xp": 5
@@ -1255,8 +1152,7 @@
       "confiscated": null,
       "crime": {
         "code": "shoplifting",
-        "name": "Shoplifting",
-        "trip": null
+        "name": "Shoplifting"
       },
       "criminal_xp": 8,
       "dry_spell": true,
@@ -1291,8 +1187,7 @@
       "take": 0,
       "venue": {
         "code": "city_centre",
-        "name": "City centre",
-        "trip": null
+        "name": "City centre"
       },
       "victim_player": false,
       "xp": 5
@@ -1307,8 +1202,7 @@
       "confiscated": null,
       "crime": {
         "code": "pickpocketing",
-        "name": "Pickpocketing",
-        "trip": null
+        "name": "Pickpocketing"
       },
       "criminal_xp": 0,
       "dry_spell": false,
@@ -1324,8 +1218,7 @@
       "jail": {
         "crime": {
           "code": "",
-          "name": "",
-          "trip": null
+          "name": ""
         },
         "ends_at": "2026-09-23T11:09:00Z",
         "remaining_seconds": 240
@@ -1345,8 +1238,7 @@
       "take": 0,
       "venue": {
         "code": "train_station",
-        "name": "Train station",
-        "trip": null
+        "name": "Train station"
       },
       "victim_player": false,
       "xp": 0
@@ -1361,8 +1253,7 @@
       "confiscated": null,
       "crime": {
         "code": "home_burglary",
-        "name": "Home burglary",
-        "trip": null
+        "name": "Home burglary"
       },
       "criminal_xp": 0,
       "dry_spell": false,
@@ -1378,8 +1269,7 @@
       "jail": {
         "crime": {
           "code": "",
-          "name": "",
-          "trip": null
+          "name": ""
         },
         "ends_at": "2026-09-23T11:09:00Z",
         "remaining_seconds": 240
@@ -1399,8 +1289,7 @@
       "take": 0,
       "venue": {
         "code": "city_centre",
-        "name": "City centre",
-        "trip": null
+        "name": "City centre"
       },
       "victim_player": false,
       "xp": 0
@@ -1415,8 +1304,7 @@
       "confiscated": null,
       "crime": {
         "code": "shoplifting",
-        "name": "Shoplifting",
-        "trip": null
+        "name": "Shoplifting"
       },
       "criminal_xp": 8,
       "dry_spell": false,
@@ -1435,16 +1323,14 @@
         {
           "item": {
             "code": "phone",
-            "name": "Phone",
-            "trip": null
+            "name": "Phone"
           },
           "qty": 1
         },
         {
           "item": {
             "code": "jewellery",
-            "name": "Jewellery",
-            "trip": null
+            "name": "Jewellery"
           },
           "qty": 2
         }
@@ -1468,8 +1354,7 @@
       "take": 64,
       "venue": {
         "code": "city_centre",
-        "name": "City centre",
-        "trip": null
+        "name": "City centre"
       },
       "victim_player": false,
       "xp": 5
@@ -1484,8 +1369,7 @@
       "confiscated": null,
       "crime": {
         "code": "pickpocketing",
-        "name": "Pickpocketing",
-        "trip": null
+        "name": "Pickpocketing"
       },
       "criminal_xp": 8,
       "dry_spell": false,
@@ -1518,14 +1402,12 @@
       ],
       "stolen": {
         "code": "watch",
-        "name": "Wristwatch",
-        "trip": null
+        "name": "Wristwatch"
       },
       "take": 1500,
       "venue": {
         "code": "train_station",
-        "name": "Train station",
-        "trip": null
+        "name": "Train station"
       },
       "victim_player": true,
       "xp": 5
@@ -1540,19 +1422,16 @@
       "confiscated": [
         {
           "code": "lockpick_set",
-          "name": "Lockpick set",
-          "trip": null
+          "name": "Lockpick set"
         },
         {
           "code": "crowbar",
-          "name": "Crowbar",
-          "trip": null
+          "name": "Crowbar"
         }
       ],
       "crime": {
         "code": "pickpocketing",
-        "name": "Pickpocketing",
-        "trip": null
+        "name": "Pickpocketing"
       },
       "criminal_xp": 0,
       "dry_spell": false,
@@ -1568,8 +1447,7 @@
       "jail": {
         "crime": {
           "code": "",
-          "name": "",
-          "trip": null
+          "name": ""
         },
         "ends_at": "2026-09-23T11:09:00Z",
         "remaining_seconds": 240
@@ -1589,8 +1467,7 @@
       "take": 0,
       "venue": {
         "code": "train_station",
-        "name": "Train station",
-        "trip": null
+        "name": "Train station"
       },
       "victim_player": false,
       "xp": 0
@@ -1605,8 +1482,7 @@
       "confiscated": null,
       "crime": {
         "code": "pickpocketing",
-        "name": "Pickpocketing",
-        "trip": null
+        "name": "Pickpocketing"
       },
       "criminal_xp": 8,
       "dry_spell": false,
@@ -1641,8 +1517,7 @@
       "take": 1500,
       "venue": {
         "code": "train_station",
-        "name": "Train station",
-        "trip": null
+        "name": "Train station"
       },
       "victim_player": true,
       "xp": 5
@@ -1671,8 +1546,7 @@
           "at": null,
           "crime": {
             "code": "home_burglary",
-            "name": "Home burglary",
-            "trip": null
+            "name": "Home burglary"
           },
           "result": "in_progress"
         },
@@ -1680,8 +1554,7 @@
           "at": null,
           "crime": {
             "code": "pickpocketing",
-            "name": "Pickpocketing",
-            "trip": null
+            "name": "Pickpocketing"
           },
           "result": "succeeded"
         },
@@ -1689,8 +1562,7 @@
           "at": null,
           "crime": {
             "code": "shoplifting",
-            "name": "Shoplifting",
-            "trip": null
+            "name": "Shoplifting"
           },
           "result": "escaped"
         },
@@ -1698,8 +1570,7 @@
           "at": null,
           "crime": {
             "code": "pickpocketing",
-            "name": "Pickpocketing",
-            "trip": null
+            "name": "Pickpocketing"
           },
           "result": "caught"
         }
@@ -1708,14 +1579,12 @@
       "tier": {
         "next": {
           "code": "hustler",
-          "name": "Hustler",
-          "trip": null
+          "name": "Hustler"
         },
         "next_xp": 150,
         "tier": {
           "code": "novice",
-          "name": "Novice",
-          "trip": null
+          "name": "Novice"
         },
         "xp": 96
       },
@@ -1746,14 +1615,12 @@
       "tier": {
         "next": {
           "code": "hustler",
-          "name": "Hustler",
-          "trip": null
+          "name": "Hustler"
         },
         "next_xp": 150,
         "tier": {
           "code": "novice",
-          "name": "Novice",
-          "trip": null
+          "name": "Novice"
         },
         "xp": 0
       },
@@ -1845,8 +1712,7 @@
       "city_code": "ostmarch",
       "crime": {
         "code": "pickpocketing",
-        "name": "Pickpocketing",
-        "trip": null
+        "name": "Pickpocketing"
       },
       "crime_id": "cfaebd97-b816-43a8-aff9-3798555dd818",
       "item": null,
@@ -1856,8 +1722,7 @@
       "thief_name": "",
       "venue": {
         "code": "train_station",
-        "name": "Train station",
-        "trip": null
+        "name": "Train station"
       }
     }
   },
@@ -1870,8 +1735,7 @@
       "city_code": "ostmarch",
       "crime": {
         "code": "pickpocketing",
-        "name": "Pickpocketing",
-        "trip": null
+        "name": "Pickpocketing"
       },
       "crime_id": "cfaebd97-b816-43a8-aff9-3798555dd818",
       "item": null,
@@ -1881,8 +1745,7 @@
       "thief_name": "Kaveh",
       "venue": {
         "code": "train_station",
-        "name": "Train station",
-        "trip": null
+        "name": "Train station"
       }
     }
   },
@@ -1895,14 +1758,12 @@
       "city_code": "ostmarch",
       "crime": {
         "code": "pickpocketing",
-        "name": "Pickpocketing",
-        "trip": null
+        "name": "Pickpocketing"
       },
       "crime_id": "cfaebd97-b816-43a8-aff9-3798555dd818",
       "item": {
         "code": "watch",
-        "name": "Wristwatch",
-        "trip": null
+        "name": "Wristwatch"
       },
       "report_fee": 200,
       "report_within_seconds": 86400,
@@ -1910,8 +1771,7 @@
       "thief_name": "",
       "venue": {
         "code": "train_station",
-        "name": "Train station",
-        "trip": null
+        "name": "Train station"
       }
     }
   },
@@ -1924,8 +1784,7 @@
       "city_code": "ostmarch",
       "crime": {
         "code": "pickpocketing",
-        "name": "Pickpocketing",
-        "trip": null
+        "name": "Pickpocketing"
       },
       "crime_id": "cfaebd97-b816-43a8-aff9-3798555dd818",
       "fee": 200,
@@ -1955,8 +1814,7 @@
       "city_code": "ostmarch",
       "crime": {
         "code": "pickpocketing",
-        "name": "Pickpocketing",
-        "trip": null
+        "name": "Pickpocketing"
       },
       "crime_id": "cfaebd97-b816-43a8-aff9-3798555dd818",
       "fee": 0,
@@ -1976,8 +1834,7 @@
           "city_code": "ostmarch",
           "crime": {
             "code": "pickpocketing",
-            "name": "Pickpocketing",
-            "trip": null
+            "name": "Pickpocketing"
           },
           "remaining_seconds": 240,
           "restored": 0,
@@ -1990,8 +1847,7 @@
           "city_code": "brennhaven",
           "crime": {
             "code": "pickpocketing",
-            "name": "Pickpocketing",
-            "trip": null
+            "name": "Pickpocketing"
           },
           "remaining_seconds": 10,
           "restored": 0,
@@ -2004,8 +1860,7 @@
           "city_code": "ostmarch",
           "crime": {
             "code": "pickpocketing",
-            "name": "Pickpocketing",
-            "trip": null
+            "name": "Pickpocketing"
           },
           "remaining_seconds": 0,
           "restored": 800,
@@ -2018,8 +1873,7 @@
           "city_code": "calderis",
           "crime": {
             "code": "pickpocketing",
-            "name": "Pickpocketing",
-            "trip": null
+            "name": "Pickpocketing"
           },
           "remaining_seconds": 0,
           "restored": 0,
@@ -2044,8 +1898,7 @@
       "city_code": "ostmarch",
       "crime": {
         "code": "pickpocketing",
-        "name": "Pickpocketing",
-        "trip": null
+        "name": "Pickpocketing"
       },
       "fine": 300,
       "fine_paid": 0,
@@ -2067,8 +1920,7 @@
       "city_code": "ostmarch",
       "crime": {
         "code": "pickpocketing",
-        "name": "Pickpocketing",
-        "trip": null
+        "name": "Pickpocketing"
       },
       "fine": 300,
       "fine_paid": 0,
@@ -2090,16 +1942,14 @@
       "city_code": "ostmarch",
       "crime": {
         "code": "pickpocketing",
-        "name": "Pickpocketing",
-        "trip": null
+        "name": "Pickpocketing"
       },
       "fine": 300,
       "fine_paid": 0,
       "restored": 1100,
       "returned": {
         "code": "watch",
-        "name": "Wristwatch",
-        "trip": null
+        "name": "Wristwatch"
       },
       "shortfall": 400,
       "solved": true,
@@ -2117,8 +1967,7 @@
       "city_code": "ostmarch",
       "crime": {
         "code": "pickpocketing",
-        "name": "Pickpocketing",
-        "trip": null
+        "name": "Pickpocketing"
       },
       "fine": 300,
       "fine_paid": 0,
@@ -2140,8 +1989,7 @@
       "cash": 0,
       "crime": {
         "code": "home_burglary",
-        "name": "Home burglary",
-        "trip": null
+        "name": "Home burglary"
       },
       "have": 0,
       "kind": "requirements",
@@ -2155,13 +2003,11 @@
           "have": 3,
           "have_tier": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           },
           "here": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           },
           "kind": "level",
           "met": false,
@@ -2169,13 +2015,11 @@
           "skill": "",
           "tier": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           },
           "tool": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           },
           "trip": null,
           "venues": null,
@@ -2190,13 +2034,11 @@
           "have": 0,
           "have_tier": {
             "code": "novice",
-            "name": "Novice",
-            "trip": null
+            "name": "Novice"
           },
           "here": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           },
           "kind": "crime_tier",
           "met": false,
@@ -2204,13 +2046,11 @@
           "skill": "",
           "tier": {
             "code": "hustler",
-            "name": "Hustler",
-            "trip": null
+            "name": "Hustler"
           },
           "tool": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           },
           "trip": null,
           "venues": null,
@@ -2230,8 +2070,7 @@
       "cash": 0,
       "crime": {
         "code": "home_burglary",
-        "name": "Home burglary",
-        "trip": null
+        "name": "Home burglary"
       },
       "have": 2,
       "kind": "nerve",
@@ -2249,8 +2088,7 @@
       "cash": 0,
       "crime": {
         "code": "",
-        "name": "",
-        "trip": null
+        "name": ""
       },
       "have": 0,
       "kind": "jail",
@@ -2268,8 +2106,7 @@
       "cash": 0,
       "crime": {
         "code": "",
-        "name": "",
-        "trip": null
+        "name": ""
       },
       "have": 0,
       "kind": "busy",
@@ -2287,8 +2124,7 @@
       "cash": 0,
       "crime": {
         "code": "",
-        "name": "",
-        "trip": null
+        "name": ""
       },
       "have": 0,
       "kind": "work",
@@ -2306,8 +2142,7 @@
       "cash": 0,
       "crime": {
         "code": "",
-        "name": "",
-        "trip": null
+        "name": ""
       },
       "have": 0,
       "kind": "travelling",
@@ -2325,8 +2160,7 @@
       "cash": 0,
       "crime": {
         "code": "",
-        "name": "",
-        "trip": null
+        "name": ""
       },
       "have": 0,
       "kind": "nowhere",
@@ -2344,8 +2178,7 @@
       "cash": 0,
       "crime": {
         "code": "",
-        "name": "",
-        "trip": null
+        "name": ""
       },
       "have": 0,
       "kind": "no_victim",
@@ -2363,8 +2196,7 @@
       "cash": 0,
       "crime": {
         "code": "",
-        "name": "",
-        "trip": null
+        "name": ""
       },
       "have": 0,
       "kind": "not_found",
@@ -2382,8 +2214,7 @@
       "cash": 0,
       "crime": {
         "code": "",
-        "name": "",
-        "trip": null
+        "name": ""
       },
       "have": 0,
       "kind": "not_yours",
@@ -2401,8 +2232,7 @@
       "cash": 0,
       "crime": {
         "code": "",
-        "name": "",
-        "trip": null
+        "name": ""
       },
       "have": 0,
       "kind": "expired",
@@ -2420,8 +2250,7 @@
       "cash": 0,
       "crime": {
         "code": "",
-        "name": "",
-        "trip": null
+        "name": ""
       },
       "have": 0,
       "kind": "nothing_stolen",
@@ -2439,8 +2268,7 @@
       "cash": 1200,
       "crime": {
         "code": "",
-        "name": "",
-        "trip": null
+        "name": ""
       },
       "have": 0,
       "kind": "cannot_afford",
@@ -2458,8 +2286,7 @@
       "cash": 0,
       "crime": {
         "code": "",
-        "name": "",
-        "trip": null
+        "name": ""
       },
       "have": 0,
       "kind": "not_jailed",
@@ -2477,8 +2304,7 @@
       "cash": 0,
       "crime": {
         "code": "home_burglary",
-        "name": "Home burglary",
-        "trip": null
+        "name": "Home burglary"
       },
       "have": 0,
       "kind": "cooldown",

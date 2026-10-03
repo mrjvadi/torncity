@@ -362,7 +362,7 @@ func (c Context) jobGaps(gaps []JobGap) string {
 		if g.Nearest != nil {
 			key = "job.not_here_line_near"
 			args["city"] = c.CityName(g.Nearest.Code, g.Nearest.Name)
-			args["trip"] = c.tripText(g.Nearest.Trip)
+			args["trip"] = c.tripText(g.NearestTrip)
 		}
 		lines = append(lines, c.T(key, args))
 	}

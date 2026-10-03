@@ -319,8 +319,7 @@
           "incoming": true,
           "kind": {
             "code": "alliance",
-            "name": "Military alliance",
-            "trip": null
+            "name": "Military alliance"
           },
           "no": 5,
           "other": {
@@ -336,8 +335,7 @@
           "incoming": false,
           "kind": {
             "code": "trade_agreement",
-            "name": "Trade agreement",
-            "trip": null
+            "name": "Trade agreement"
           },
           "no": 6,
           "other": {
@@ -353,8 +351,7 @@
           "incoming": false,
           "kind": {
             "code": "non_aggression",
-            "name": "Non-aggression pact",
-            "trip": null
+            "name": "Non-aggression pact"
           },
           "no": 2,
           "other": {
@@ -370,8 +367,7 @@
           "incoming": false,
           "kind": {
             "code": "trade_agreement",
-            "name": "Trade agreement",
-            "trip": null
+            "name": "Trade agreement"
           },
           "no": 1,
           "other": {
@@ -387,8 +383,7 @@
           "incoming": false,
           "kind": {
             "code": "alliance",
-            "name": "Military alliance",
-            "trip": null
+            "name": "Military alliance"
           },
           "no": 7,
           "other": {
@@ -404,8 +399,7 @@
           "incoming": false,
           "kind": {
             "code": "non_aggression",
-            "name": "Non-aggression pact",
-            "trip": null
+            "name": "Non-aggression pact"
           },
           "no": 8,
           "other": {
@@ -421,8 +415,7 @@
           "incoming": false,
           "kind": {
             "code": "trade_agreement",
-            "name": "Trade agreement",
-            "trip": null
+            "name": "Trade agreement"
           },
           "no": 9,
           "other": {
@@ -485,18 +478,15 @@
       "kinds": [
         {
           "code": "alliance",
-          "name": "Military alliance",
-          "trip": null
+          "name": "Military alliance"
         },
         {
           "code": "non_aggression",
-          "name": "Non-aggression pact",
-          "trip": null
+          "name": "Non-aggression pact"
         },
         {
           "code": "trade_agreement",
-          "name": "Trade agreement",
-          "trip": null
+          "name": "Trade agreement"
         }
       ],
       "partner": {
@@ -519,8 +509,7 @@
       },
       "kind": {
         "code": "alliance",
-        "name": "Military alliance",
-        "trip": null
+        "name": "Military alliance"
       },
       "kinds": null,
       "partner": {
@@ -546,8 +535,7 @@
         "incoming": false,
         "kind": {
           "code": "trade_agreement",
-          "name": "Trade agreement",
-          "trip": null
+          "name": "Trade agreement"
         },
         "no": 6,
         "other": {
@@ -574,8 +562,7 @@
         "incoming": false,
         "kind": {
           "code": "non_aggression",
-          "name": "Non-aggression pact",
-          "trip": null
+          "name": "Non-aggression pact"
         },
         "no": 2,
         "other": {
@@ -624,8 +611,7 @@
           },
           "treaty": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           }
         },
         {
@@ -648,8 +634,7 @@
           },
           "treaty": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           }
         },
         {
@@ -672,8 +657,7 @@
           },
           "treaty": {
             "code": "alliance",
-            "name": "Military alliance",
-            "trip": null
+            "name": "Military alliance"
           }
         },
         {
@@ -699,8 +683,7 @@
           },
           "treaty": {
             "code": "non_aggression",
-            "name": "Non-aggression pact",
-            "trip": null
+            "name": "Non-aggression pact"
           }
         },
         {
@@ -723,8 +706,7 @@
           },
           "treaty": {
             "code": "trade_agreement",
-            "name": "Trade agreement",
-            "trip": null
+            "name": "Trade agreement"
           }
         },
         {
@@ -747,8 +729,7 @@
           },
           "treaty": {
             "code": "non_aggression",
-            "name": "Non-aggression pact",
-            "trip": null
+            "name": "Non-aggression pact"
           }
         },
         {
@@ -771,8 +752,7 @@
           },
           "treaty": {
             "code": "trade_agreement",
-            "name": "Trade agreement",
-            "trip": null
+            "name": "Trade agreement"
           }
         }
       ],
@@ -1054,8 +1034,7 @@
       },
       "kind": {
         "code": "alliance",
-        "name": "Military alliance",
-        "trip": null
+        "name": "Military alliance"
       },
       "no": 5,
       "other": {

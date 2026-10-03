@@ -96,8 +96,7 @@
       "walk_to_work_seconds": 0,
       "workplace": {
         "code": "bazaar",
-        "name": "Bazaar",
-        "trip": null
+        "name": "Bazaar"
       }
     }
   }

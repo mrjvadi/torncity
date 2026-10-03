@@ -36,22 +36,19 @@
         {
           "place": {
             "code": "residential_area",
-            "name": "Residential area",
-            "trip": null
+            "name": "Residential area"
           },
           "price": 150,
           "relief": 8,
           "rest": 55,
           "spot": {
             "code": "hostel",
-            "name": "Hostel bed",
-            "trip": null
+            "name": "Hostel bed"
           },
           "way": {
             "place": {
               "code": "residential_area",
-              "name": "Residential area",
-              "trip": null
+              "name": "Residential area"
             },
             "walk_seconds": 25
           }
@@ -59,24 +56,21 @@
         {
           "place": {
             "code": "park",
-            "name": "City park",
-            "trip": null
+            "name": "City park"
           },
           "price": 0,
           "relief": -3,
           "rest": 30,
           "spot": {
             "code": "bench",
-            "name": "Park bench",
-            "trip": null
+            "name": "Park bench"
           },
           "way": null
         }
       ],
       "stage": {
         "code": "youth",
-        "name": "Youth",
-        "trip": null
+        "name": "Youth"
       },
       "village_home": null,
       "worth": {
@@ -134,8 +128,7 @@
       "spots": null,
       "stage": {
         "code": "youth",
-        "name": "Youth",
-        "trip": null
+        "name": "Youth"
       },
       "village_home": null,
       "worth": {
@@ -193,22 +186,19 @@
         {
           "place": {
             "code": "residential_area",
-            "name": "Residential area",
-            "trip": null
+            "name": "Residential area"
           },
           "price": 150,
           "relief": 8,
           "rest": 55,
           "spot": {
             "code": "hostel",
-            "name": "Hostel bed",
-            "trip": null
+            "name": "Hostel bed"
           },
           "way": {
             "place": {
               "code": "residential_area",
-              "name": "Residential area",
-              "trip": null
+              "name": "Residential area"
             },
             "walk_seconds": 25
           }
@@ -216,24 +206,21 @@
         {
           "place": {
             "code": "park",
-            "name": "City park",
-            "trip": null
+            "name": "City park"
           },
           "price": 0,
           "relief": -3,
           "rest": 30,
           "spot": {
             "code": "bench",
-            "name": "Park bench",
-            "trip": null
+            "name": "Park bench"
           },
           "way": null
         }
       ],
       "stage": {
         "code": "youth",
-        "name": "Youth",
-        "trip": null
+        "name": "Youth"
       },
       "village_home": null,
       "worth": {
@@ -278,8 +265,7 @@
       "self": true,
       "stage": {
         "code": "youth",
-        "name": "Youth",
-        "trip": null
+        "name": "Youth"
       }
     }
   },
@@ -310,8 +296,7 @@
       "self": true,
       "stage": {
         "code": "youth",
-        "name": "Youth",
-        "trip": null
+        "name": "Youth"
       }
     }
   },
@@ -346,8 +331,7 @@
       "self": false,
       "stage": {
         "code": "youth",
-        "name": "Youth",
-        "trip": null
+        "name": "Youth"
       }
     }
   },
@@ -367,8 +351,7 @@
           "number": 0,
           "place": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           },
           "place_kind": "",
           "private": false,
@@ -385,8 +368,7 @@
           "number": 0,
           "place": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           },
           "place_kind": "",
           "private": false,
@@ -403,8 +385,7 @@
           "number": 0,
           "place": {
             "code": "ostmarch",
-            "name": "Ostmarch",
-            "trip": null
+            "name": "Ostmarch"
           },
           "place_kind": "",
           "private": true,
@@ -421,8 +402,7 @@
           "number": 0,
           "place": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           },
           "place_kind": "",
           "private": false,
@@ -439,8 +419,7 @@
           "number": 0,
           "place": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           },
           "place_kind": "",
           "private": false,
@@ -457,8 +436,7 @@
           "number": 0,
           "place": {
             "code": "ostmarch",
-            "name": "Ostmarch",
-            "trip": null
+            "name": "Ostmarch"
           },
           "place_kind": "",
           "private": false,
@@ -475,8 +453,7 @@
           "number": 0,
           "place": {
             "code": "ostmarch",
-            "name": "Ostmarch",
-            "trip": null
+            "name": "Ostmarch"
           },
           "place_kind": "",
           "private": false,
@@ -493,8 +470,7 @@
           "number": 0,
           "place": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           },
           "place_kind": "",
           "private": false,
@@ -581,8 +557,7 @@
       "rest": 55,
       "spot": {
         "code": "hostel",
-        "name": "Hostel bed",
-        "trip": null
+        "name": "Hostel bed"
       }
     }
   },
@@ -686,8 +661,7 @@
         {
           "city": {
             "code": "brennhaven",
-            "name": "Brennhaven",
-            "trip": null
+            "name": "Brennhaven"
           },
           "code": "Q7M2K9B",
           "extra": 0,
@@ -702,8 +676,7 @@
         {
           "city": {
             "code": "ostmarch",
-            "name": "Ostmarch",
-            "trip": null
+            "name": "Ostmarch"
           },
           "code": "H4T8W2C",
           "extra": 0,
@@ -730,8 +703,7 @@
         {
           "city": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           },
           "code": "brennhaven",
           "extra": 52,
@@ -746,8 +718,7 @@
         {
           "city": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           },
           "code": "ostmarch",
           "extra": 38,
@@ -774,8 +745,7 @@
         {
           "city": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           },
           "code": "B3C4D5F",
           "extra": 88,
@@ -790,8 +760,7 @@
         {
           "city": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           },
           "code": "K7Q2M9A",
           "extra": 0,

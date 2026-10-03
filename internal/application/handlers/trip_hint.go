@@ -34,13 +34,11 @@ func (h *TravelHandler) Hint(ctx context.Context, tx application.Tx, p *applicat
 	return &presentation.TripHint{Mode: best.quote.Mode, ModeName: best.name, Fare: best.quote.Fare.Minor(), Wait: best.quote.Wait}
 }
 
-// withTrip adds the journey to a nearest place; a nil place or hinter changes
-// nothing.
-func withTrip(ctx context.Context, tx application.Tx, hinter TripHinter, p *application.Player, near *presentation.Named) *presentation.Named {
+// tripTo is the journey to a nearest place; nil when there is no place, no
+// hinter or no way.
+func tripTo(ctx context.Context, tx application.Tx, hinter TripHinter, p *application.Player, near *presentation.Named) *presentation.TripHint {
 	if near == nil || hinter == nil || p == nil || near.Code == "" {
-		return near
+		return nil
 	}
-	out := *near
-	out.Trip = hinter.Hint(ctx, tx, p, near.Code)
-	return &out
+	return hinter.Hint(ctx, tx, p, near.Code)
 }

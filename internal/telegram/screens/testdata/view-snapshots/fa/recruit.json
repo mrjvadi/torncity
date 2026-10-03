@@ -45,8 +45,7 @@
         "name": "صنایع نیلوفر",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio",
-          "trip": null
+          "name": "Technology studio"
         }
       },
       "running": 1,
@@ -65,8 +64,7 @@
         "name": "صنایع نیلوفر",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio",
-          "trip": null
+          "name": "Technology studio"
         }
       },
       "running": 0,
@@ -153,8 +151,7 @@
         "name": "صنایع نیلوفر",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio",
-          "trip": null
+          "name": "Technology studio"
         }
       },
       "relocation": 1000,
@@ -255,8 +252,7 @@
         "name": "صنایع نیلوفر",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio",
-          "trip": null
+          "name": "Technology studio"
         }
       },
       "relocation": 1000,
@@ -357,8 +353,7 @@
         "name": "صنایع نیلوفر",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio",
-          "trip": null
+          "name": "Technology studio"
         }
       },
       "relocation": 1000,
@@ -459,8 +454,7 @@
         "name": "صنایع نیلوفر",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio",
-          "trip": null
+          "name": "Technology studio"
         }
       },
       "relocation": 1000,
@@ -561,8 +555,7 @@
         "name": "صنایع نیلوفر",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio",
-          "trip": null
+          "name": "Technology studio"
         }
       },
       "relocation": 1000,
@@ -663,8 +656,7 @@
         "name": "صنایع نیلوفر",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio",
-          "trip": null
+          "name": "Technology studio"
         }
       },
       "relocation": 1000,
@@ -746,8 +738,7 @@
         "name": "صنایع نیلوفر",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio",
-          "trip": null
+          "name": "Technology studio"
         }
       },
       "relocation": 1000,
@@ -783,8 +774,7 @@
           "expires_at": "2026-09-23T11:29:00Z",
           "home": {
             "code": "fenwick_span",
-            "name": "Fenwick Span",
-            "trip": null
+            "name": "Fenwick Span"
           },
           "level": 4,
           "name_seed": 7,
@@ -799,8 +789,7 @@
           "expires_at": "2026-09-23T11:25:00Z",
           "home": {
             "code": "ostmarch",
-            "name": "Ostmarch",
-            "trip": null
+            "name": "Ostmarch"
           },
           "level": 3,
           "name_seed": 52,
@@ -815,8 +804,7 @@
           "expires_at": null,
           "home": {
             "code": "calderis",
-            "name": "Calderis",
-            "trip": null
+            "name": "Calderis"
           },
           "level": 3,
           "name_seed": 3,
@@ -831,8 +819,7 @@
           "expires_at": null,
           "home": {
             "code": "fenwick_span",
-            "name": "Fenwick Span",
-            "trip": null
+            "name": "Fenwick Span"
           },
           "level": 5,
           "name_seed": 88,
@@ -847,8 +834,7 @@
           "expires_at": null,
           "home": {
             "code": "fenwick_span",
-            "name": "Fenwick Span",
-            "trip": null
+            "name": "Fenwick Span"
           },
           "level": 3,
           "name_seed": 120,
@@ -861,13 +847,11 @@
       "cities": [
         {
           "code": "fenwick_span",
-          "name": "Fenwick Span",
-          "trip": null
+          "name": "Fenwick Span"
         },
         {
           "code": "ostmarch",
-          "name": "Ostmarch",
-          "trip": null
+          "name": "Ostmarch"
         }
       ],
       "confirm_cancel": false,
@@ -897,8 +881,7 @@
         "name": "صنایع نیلوفر",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio",
-          "trip": null
+          "name": "Technology studio"
         }
       }
     }
@@ -918,8 +901,7 @@
           "expires_at": "2026-09-23T11:29:00Z",
           "home": {
             "code": "fenwick_span",
-            "name": "Fenwick Span",
-            "trip": null
+            "name": "Fenwick Span"
           },
           "level": 4,
           "name_seed": 7,
@@ -934,8 +916,7 @@
           "expires_at": "2026-09-23T11:25:00Z",
           "home": {
             "code": "ostmarch",
-            "name": "Ostmarch",
-            "trip": null
+            "name": "Ostmarch"
           },
           "level": 3,
           "name_seed": 52,
@@ -950,8 +931,7 @@
           "expires_at": null,
           "home": {
             "code": "calderis",
-            "name": "Calderis",
-            "trip": null
+            "name": "Calderis"
           },
           "level": 3,
           "name_seed": 3,
@@ -966,8 +946,7 @@
           "expires_at": null,
           "home": {
             "code": "fenwick_span",
-            "name": "Fenwick Span",
-            "trip": null
+            "name": "Fenwick Span"
           },
           "level": 5,
           "name_seed": 88,
@@ -982,8 +961,7 @@
           "expires_at": null,
           "home": {
             "code": "fenwick_span",
-            "name": "Fenwick Span",
-            "trip": null
+            "name": "Fenwick Span"
           },
           "level": 3,
           "name_seed": 120,
@@ -996,13 +974,11 @@
       "cities": [
         {
           "code": "fenwick_span",
-          "name": "Fenwick Span",
-          "trip": null
+          "name": "Fenwick Span"
         },
         {
           "code": "ostmarch",
-          "name": "Ostmarch",
-          "trip": null
+          "name": "Ostmarch"
         }
       ],
       "confirm_cancel": false,
@@ -1032,8 +1008,7 @@
         "name": "صنایع نیلوفر",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio",
-          "trip": null
+          "name": "Technology studio"
         }
       }
     }
@@ -1053,8 +1028,7 @@
           "expires_at": "2026-09-23T11:29:00Z",
           "home": {
             "code": "fenwick_span",
-            "name": "Fenwick Span",
-            "trip": null
+            "name": "Fenwick Span"
           },
           "level": 4,
           "name_seed": 7,
@@ -1069,8 +1043,7 @@
           "expires_at": "2026-09-23T11:25:00Z",
           "home": {
             "code": "ostmarch",
-            "name": "Ostmarch",
-            "trip": null
+            "name": "Ostmarch"
           },
           "level": 3,
           "name_seed": 52,
@@ -1085,8 +1058,7 @@
           "expires_at": null,
           "home": {
             "code": "calderis",
-            "name": "Calderis",
-            "trip": null
+            "name": "Calderis"
           },
           "level": 3,
           "name_seed": 3,
@@ -1101,8 +1073,7 @@
           "expires_at": null,
           "home": {
             "code": "fenwick_span",
-            "name": "Fenwick Span",
-            "trip": null
+            "name": "Fenwick Span"
           },
           "level": 5,
           "name_seed": 88,
@@ -1117,8 +1088,7 @@
           "expires_at": null,
           "home": {
             "code": "fenwick_span",
-            "name": "Fenwick Span",
-            "trip": null
+            "name": "Fenwick Span"
           },
           "level": 3,
           "name_seed": 120,
@@ -1131,13 +1101,11 @@
       "cities": [
         {
           "code": "fenwick_span",
-          "name": "Fenwick Span",
-          "trip": null
+          "name": "Fenwick Span"
         },
         {
           "code": "ostmarch",
-          "name": "Ostmarch",
-          "trip": null
+          "name": "Ostmarch"
         }
       ],
       "confirm_cancel": true,
@@ -1167,8 +1135,7 @@
         "name": "صنایع نیلوفر",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio",
-          "trip": null
+          "name": "Technology studio"
         }
       }
     }
@@ -1185,8 +1152,7 @@
       "cities": [
         {
           "code": "ostmarch",
-          "name": "Ostmarch",
-          "trip": null
+          "name": "Ostmarch"
         }
       ],
       "confirm_cancel": false,
@@ -1216,8 +1182,7 @@
         "name": "صنایع نیلوفر",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio",
-          "trip": null
+          "name": "Technology studio"
         }
       }
     }
@@ -1234,8 +1199,7 @@
       "cities": [
         {
           "code": "ostmarch",
-          "name": "Ostmarch",
-          "trip": null
+          "name": "Ostmarch"
         }
       ],
       "confirm_cancel": false,
@@ -1265,8 +1229,7 @@
         "name": "صنایع نیلوفر",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio",
-          "trip": null
+          "name": "Technology studio"
         }
       }
     }
@@ -1282,8 +1245,7 @@
           "expiring": false,
           "home": {
             "code": "calderis",
-            "name": "Calderis",
-            "trip": null
+            "name": "Calderis"
           },
           "housing": 33,
           "level": 3,
@@ -1303,8 +1265,7 @@
           "expiring": false,
           "home": {
             "code": "fenwick_span",
-            "name": "Fenwick Span",
-            "trip": null
+            "name": "Fenwick Span"
           },
           "housing": 0,
           "level": 2,
@@ -1324,8 +1285,7 @@
           "expiring": true,
           "home": {
             "code": "ostmarch",
-            "name": "Ostmarch",
-            "trip": null
+            "name": "Ostmarch"
           },
           "housing": 0,
           "level": 5,
@@ -1350,8 +1310,7 @@
         "name": "صنایع نیلوفر",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio",
-          "trip": null
+          "name": "Technology studio"
         }
       }
     }
@@ -1367,8 +1326,7 @@
           "expiring": false,
           "home": {
             "code": "calderis",
-            "name": "Calderis",
-            "trip": null
+            "name": "Calderis"
           },
           "housing": 33,
           "level": 3,
@@ -1388,8 +1346,7 @@
           "expiring": false,
           "home": {
             "code": "fenwick_span",
-            "name": "Fenwick Span",
-            "trip": null
+            "name": "Fenwick Span"
           },
           "housing": 0,
           "level": 2,
@@ -1409,8 +1366,7 @@
           "expiring": true,
           "home": {
             "code": "ostmarch",
-            "name": "Ostmarch",
-            "trip": null
+            "name": "Ostmarch"
           },
           "housing": 0,
           "level": 5,
@@ -1435,8 +1391,7 @@
         "name": "صنایع نیلوفر",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio",
-          "trip": null
+          "name": "Technology studio"
         }
       }
     }
@@ -1449,8 +1404,7 @@
         "expiring": false,
         "home": {
           "code": "fenwick_span",
-          "name": "Fenwick Span",
-          "trip": null
+          "name": "Fenwick Span"
         },
         "housing": 0,
         "level": 2,
@@ -1472,8 +1426,7 @@
           "expiring": false,
           "home": {
             "code": "calderis",
-            "name": "Calderis",
-            "trip": null
+            "name": "Calderis"
           },
           "housing": 33,
           "level": 3,
@@ -1493,8 +1446,7 @@
           "expiring": false,
           "home": {
             "code": "fenwick_span",
-            "name": "Fenwick Span",
-            "trip": null
+            "name": "Fenwick Span"
           },
           "housing": 0,
           "level": 2,
@@ -1514,8 +1466,7 @@
           "expiring": true,
           "home": {
             "code": "ostmarch",
-            "name": "Ostmarch",
-            "trip": null
+            "name": "Ostmarch"
           },
           "housing": 0,
           "level": 5,
@@ -1540,8 +1491,7 @@
         "name": "صنایع نیلوفر",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio",
-          "trip": null
+          "name": "Technology studio"
         }
       }
     }
@@ -1561,8 +1511,7 @@
         "name": "صنایع نیلوفر",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio",
-          "trip": null
+          "name": "Technology studio"
         }
       }
     }
@@ -1585,8 +1534,7 @@
         "name": "صنایع نیلوفر",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio",
-          "trip": null
+          "name": "Technology studio"
         }
       }
     }
@@ -1609,8 +1557,7 @@
         "name": "صنایع نیلوفر",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio",
-          "trip": null
+          "name": "Technology studio"
         }
       }
     }
@@ -1633,8 +1580,7 @@
         "name": "صنایع نیلوفر",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio",
-          "trip": null
+          "name": "Technology studio"
         }
       }
     }
@@ -1657,8 +1603,7 @@
         "name": "صنایع نیلوفر",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio",
-          "trip": null
+          "name": "Technology studio"
         }
       }
     }
@@ -1681,8 +1626,7 @@
         "name": "صنایع نیلوفر",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio",
-          "trip": null
+          "name": "Technology studio"
         }
       }
     }
@@ -1705,8 +1649,7 @@
         "name": "صنایع نیلوفر",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio",
-          "trip": null
+          "name": "Technology studio"
         }
       }
     }
@@ -1729,8 +1672,7 @@
         "name": "صنایع نیلوفر",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio",
-          "trip": null
+          "name": "Technology studio"
         }
       }
     }
@@ -1753,8 +1695,7 @@
         "name": "صنایع نیلوفر",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio",
-          "trip": null
+          "name": "Technology studio"
         }
       }
     }
@@ -1777,8 +1718,7 @@
         "name": "صنایع نیلوفر",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio",
-          "trip": null
+          "name": "Technology studio"
         }
       }
     }
@@ -1801,8 +1741,7 @@
         "name": "صنایع نیلوفر",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio",
-          "trip": null
+          "name": "Technology studio"
         }
       }
     }
@@ -1825,8 +1764,7 @@
         "name": "صنایع نیلوفر",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio",
-          "trip": null
+          "name": "Technology studio"
         }
       }
     }
@@ -1849,8 +1787,7 @@
         "name": "",
         "type": {
           "code": "",
-          "name": "",
-          "trip": null
+          "name": ""
         }
       }
     }
@@ -1866,8 +1803,7 @@
         "name": "صنایع نیلوفر",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio",
-          "trip": null
+          "name": "Technology studio"
         }
       },
       "count": 3,
@@ -1889,8 +1825,7 @@
         "name": "صنایع نیلوفر",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio",
-          "trip": null
+          "name": "Technology studio"
         }
       },
       "count": 0,
@@ -1912,8 +1847,7 @@
         "name": "صنایع نیلوفر",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio",
-          "trip": null
+          "name": "Technology studio"
         }
       },
       "count": 0,
@@ -1935,8 +1869,7 @@
         "name": "صنایع نیلوفر",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio",
-          "trip": null
+          "name": "Technology studio"
         }
       },
       "count": 0,
@@ -1958,8 +1891,7 @@
         "name": "صنایع نیلوفر",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio",
-          "trip": null
+          "name": "Technology studio"
         }
       },
       "count": 0,
@@ -1981,8 +1913,7 @@
         "name": "صنایع نیلوفر",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio",
-          "trip": null
+          "name": "Technology studio"
         }
       },
       "count": 0,
@@ -2004,8 +1935,7 @@
         "name": "صنایع نیلوفر",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio",
-          "trip": null
+          "name": "Technology studio"
         }
       },
       "count": 0,
@@ -2027,8 +1957,7 @@
         "name": "صنایع نیلوفر",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio",
-          "trip": null
+          "name": "Technology studio"
         }
       },
       "count": 0,
@@ -2050,8 +1979,7 @@
         "name": "صنایع نیلوفر",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio",
-          "trip": null
+          "name": "Technology studio"
         }
       },
       "count": 0,
@@ -2073,8 +2001,7 @@
         "name": "صنایع نیلوفر",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio",
-          "trip": null
+          "name": "Technology studio"
         }
       },
       "count": 0,
@@ -2096,8 +2023,7 @@
         "name": "صنایع نیلوفر",
         "type": {
           "code": "tech_studio",
-          "name": "Technology studio",
-          "trip": null
+          "name": "Technology studio"
         }
       },
       "count": 0,

@@ -15,8 +15,7 @@
             "name": "Shefa",
             "type": {
               "code": "clinic",
-              "name": "Clinic",
-              "trip": null
+              "name": "Clinic"
             }
           },
           "doctor": 12,
@@ -33,8 +32,7 @@
             "name": "Nilou Repairs",
             "type": {
               "code": "",
-              "name": "",
-              "trip": null
+              "name": ""
             }
           },
           "doctor": 1,
@@ -59,8 +57,7 @@
           "name": "",
           "type": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           }
         },
         "doctor": 0,
@@ -86,8 +83,7 @@
           "name": "",
           "type": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           }
         },
         "doctor": 0,
@@ -105,8 +101,7 @@
             "name": "Shefa",
             "type": {
               "code": "clinic",
-              "name": "Clinic",
-              "trip": null
+              "name": "Clinic"
             }
           },
           "doctor": 12,
@@ -123,8 +118,7 @@
             "name": "Kaveh Bakery",
             "type": {
               "code": "",
-              "name": "",
-              "trip": null
+              "name": ""
             }
           },
           "doctor": 3,
@@ -141,8 +135,7 @@
             "name": "Nilou Repairs",
             "type": {
               "code": "",
-              "name": "",
-              "trip": null
+              "name": ""
             }
           },
           "doctor": 1,
@@ -167,8 +160,7 @@
           "name": "",
           "type": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           }
         },
         "doctor": 0,
@@ -203,8 +195,7 @@
           "name": "Shefa",
           "type": {
             "code": "clinic",
-            "name": "Clinic",
-            "trip": null
+            "name": "Clinic"
           }
         },
         "doctor": 12,
@@ -239,8 +230,7 @@
           "name": "",
           "type": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           }
         },
         "doctor": 0,
@@ -264,8 +254,7 @@
           "name": "Shefa",
           "type": {
             "code": "clinic",
-            "name": "Clinic",
-            "trip": null
+            "name": "Clinic"
           }
         },
         "doctor": 12,
@@ -303,8 +292,7 @@
           "name": "",
           "type": {
             "code": "",
-            "name": "",
-            "trip": null
+            "name": ""
           }
         },
         "doctor": 0,
@@ -339,8 +327,7 @@
           "name": "Shefa",
           "type": {
             "code": "clinic",
-            "name": "Clinic",
-            "trip": null
+            "name": "Clinic"
           }
         },
         "doctor": 12,
@@ -367,8 +354,7 @@
           "name": "Shefa",
           "type": {
             "code": "clinic",
-            "name": "Clinic",
-            "trip": null
+            "name": "Clinic"
           }
         },
         "doctor": 12,
@@ -397,8 +383,7 @@
         "name": "Shefa",
         "type": {
           "code": "clinic",
-          "name": "Clinic",
-          "trip": null
+          "name": "Clinic"
         }
       },
       "stock": 18,
@@ -421,8 +406,7 @@
         "name": "Shefa",
         "type": {
           "code": "clinic",
-          "name": "Clinic",
-          "trip": null
+          "name": "Clinic"
         }
       },
       "stock": 0,
@@ -451,8 +435,7 @@
     "view": {
       "item": {
         "code": "bandage",
-        "name": "Bandage",
-        "trip": null
+        "name": "Bandage"
       },
       "patient": "Kaveh",
       "price": 1200,
@@ -461,8 +444,7 @@
         "name": "Shefa",
         "type": {
           "code": "clinic",
-          "name": "Clinic",
-          "trip": null
+          "name": "Clinic"
         }
       },
       "saved_seconds": 240,
@@ -534,8 +516,7 @@
       "confiscated": null,
       "crime": {
         "code": "home_burglary",
-        "name": "Home burglary",
-        "trip": null
+        "name": "Home burglary"
       },
       "criminal_xp": 0,
       "dry_spell": false,
@@ -557,8 +538,7 @@
       "jail": {
         "crime": {
           "code": "",
-          "name": "",
-          "trip": null
+          "name": ""
         },
         "ends_at": "2026-09-23T11:14:00Z",
         "remaining_seconds": 540
@@ -578,8 +558,7 @@
       "take": 0,
       "venue": {
         "code": "residential_area",
-        "name": "Residential area",
-        "trip": null
+        "name": "Residential area"
       },
       "victim_player": false,
       "xp": 0
@@ -594,8 +573,7 @@
       "confiscated": null,
       "crime": {
         "code": "home_burglary",
-        "name": "Home burglary",
-        "trip": null
+        "name": "Home burglary"
       },
       "criminal_xp": 0,
       "dry_spell": false,
@@ -630,8 +608,7 @@
       "take": 0,
       "venue": {
         "code": "residential_area",
-        "name": "Residential area",
-        "trip": null
+        "name": "Residential area"
       },
       "victim_player": false,
       "xp": 0
@@ -645,8 +622,7 @@
       "cash": 0,
       "crime": {
         "code": "",
-        "name": "",
-        "trip": null
+        "name": ""
       },
       "have": 0,
       "kind": "hospital",
@@ -710,14 +686,12 @@
       "next_level_xp": 750,
       "place": {
         "code": "",
-        "name": "",
-        "trip": null
+        "name": ""
       },
       "rank": null,
       "stage": {
         "code": "",
-        "name": "",
-        "trip": null
+        "name": ""
       },
       "travel_remaining_seconds": 0,
       "travel_to": "",

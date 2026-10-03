@@ -126,13 +126,10 @@ func RefOfAddress(addr string) Ref {
 type Named struct {
 	Code string
 	Name string
-	// Trip is how far the place is, when the entry is the nearest place that
-	// has something (a «not available here» card): the cheapest journey from
-	// where the player stands. Nil when unknown.
-	Trip *TripHint
 }
 
-// TripHint is the cheapest way to a place, from the travel quote: the mode,
+// TripHint is how far the nearest place is, on a «not available here» card: the
+// cheapest journey from where the player stands, from the travel quote: the mode,
 // its fare in minor units and the real wait on the game clock.
 type TripHint struct {
 	Mode     string

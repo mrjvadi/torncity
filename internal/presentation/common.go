@@ -113,7 +113,9 @@ type CourseGap struct {
 	Duration time.Duration
 	// Nearest is the place that teaches it; nil when none is known.
 	Nearest *Named
-	Needs   []CourseNeed
+	// NearestTrip is the way to Nearest (fare and wait); nil when unknown.
+	NearestTrip *TripHint
+	Needs       []CourseNeed
 }
 
 // EducationLiteracy is the first lesson, reading and writing, and how far the
