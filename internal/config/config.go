@@ -919,6 +919,11 @@ type Settlement struct {
 	// when it is not (docs/adr/0041 6.4 and building_functions.yml granary).
 	StorageSpoilKeptBPS   int64 // settlement.storage_spoil_kept_bps
 	StorageSpoilUnkeptBPS int64 // settlement.storage_spoil_unkept_bps
+	// StorageKeeperRuleAt (RFC 3339) is when the storekeeper rule began: a store that
+	// stood complete before it keeps counting its full room for StorageKeeperGraceDays
+	// real days after it, so no town loses room overnight; 0 days switches the grace off.
+	StorageKeeperRuleAt    string // settlement.storage_keeper_rule_at
+	StorageKeeperGraceDays int64  // settlement.storage_keeper_grace_days
 	// MaterialBuyMax is the most units of one material a village may buy from
 	// Support in one purchase.
 	MaterialBuyMax int64 // settlement.material_buy_max
@@ -1658,25 +1663,27 @@ func Defaults() *Config {
 			FoundingCurrencyCodeLen:   3,
 			FoundingCurrencySymbolMax: 3,
 
-			TeachPeriod:           24 * time.Hour,
-			TeachRateBPS:          1500,
-			BaseSchoolCapacityBPS: 8000,
-			ScarcityKBPS:          10000,
-			ScarcityFloorBPS:      3000,
-			ScarcityCapBPS:        80000,
-			SellerBandBPS:         500,
-			DemolitionSalvageBPS:  2000,
-			MaterialMarkupBPS:     12000,
-			StockBaseCapacity:     60,
-			StorageSpoilKeptBPS:   5,
-			StorageSpoilUnkeptBPS: 30,
-			MaterialBuyMax:        200,
-			MaterialBuyPresets:    []int64{5, 20, 50},
-			FoundingGrant:         10_000,
-			DonationMin:           100,
-			DonationMax:           100_000,
-			DonationPresets:       []int64{250, 1000, 5000},
-			CitizenLotPrice:       400, CitizenLotPriceMin: 100, CitizenLotPriceMax: 5000,
+			TeachPeriod:            24 * time.Hour,
+			TeachRateBPS:           1500,
+			BaseSchoolCapacityBPS:  8000,
+			ScarcityKBPS:           10000,
+			ScarcityFloorBPS:       3000,
+			ScarcityCapBPS:         80000,
+			SellerBandBPS:          500,
+			DemolitionSalvageBPS:   2000,
+			MaterialMarkupBPS:      12000,
+			StockBaseCapacity:      60,
+			StorageSpoilKeptBPS:    5,
+			StorageSpoilUnkeptBPS:  30,
+			StorageKeeperRuleAt:    "2026-10-03T00:00:00Z",
+			StorageKeeperGraceDays: 14,
+			MaterialBuyMax:         200,
+			MaterialBuyPresets:     []int64{5, 20, 50},
+			FoundingGrant:          10_000,
+			DonationMin:            100,
+			DonationMax:            100_000,
+			DonationPresets:        []int64{250, 1000, 5000},
+			CitizenLotPrice:        400, CitizenLotPriceMin: 100, CitizenLotPriceMax: 5000,
 			CitizenPermitFee: 100, CitizenPermitFeeMax: 1000,
 			CitizenTaxBPS: 200, CitizenTaxBPSMax: 500, CitizenTaxPeriod: 24 * time.Hour,
 			CitizenMaterialMarkupBPS: 12000,

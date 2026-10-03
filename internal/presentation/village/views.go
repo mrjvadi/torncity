@@ -996,6 +996,9 @@ type StockClassLine struct {
 type StockStoreLine struct {
 	Building presentation.Named
 	Kept     bool
+	// GraceUntil is set for a store that stood before the keeper rule and has
+	// none: until then its room counts all the same (null once it is over).
+	GraceUntil time.Time
 }
 
 // MaterialBuyView is the confirm before a purchase.
@@ -1112,6 +1115,9 @@ type LaborJobLine struct {
 	Mine    bool
 	// Points is the work one shift of the viewer adds.
 	Points int64
+	// LotX and LotY are the site's lot, so two jobs of the same kind (four
+	// road pieces) can be told apart on the board.
+	LotX, LotY int
 }
 
 // LaborBoardView is the hiring board.

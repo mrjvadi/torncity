@@ -375,9 +375,6 @@ func (h *EducationHandler) List(ctx context.Context, meta envelope.Metadata, req
 		}
 		if !hereC.all && hereC.hasClass {
 			lit := &screens.EducationLiteracy{ShareBPS: hereC.literacy}
-			if step, ok := snap.SettlementTierStep(hereC.settlement.Tier); ok {
-				lit.NextBPS, lit.NextStage = int(step.LiteracyBPS), step.Code
-			}
 			view.Literacy = lit
 		}
 		view.Empty, view.Build = educationEmpty(snap, hereC, len(lines))

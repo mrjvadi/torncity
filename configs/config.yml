@@ -1278,6 +1278,11 @@ settlement:
   # little with a staffed granary keeping it, more in the open yard.
   storage_spoil_kept_bps: 5
   storage_spoil_unkept_bps: 30
+  # Stores that stood before the storekeeper rule keep their full room for this many
+  # real days after the rule date (a grace, so no town loses room overnight); the
+  # screen warns "no keeper" and says until when.
+  storage_keeper_rule_at: "2026-10-03T00:00:00Z"
+  storage_keeper_grace_days: 14
   material_buy_max: 200
   material_buy_presets: [5, 20, 50]
   # Village treasury start-up. A village has no income until its abstract

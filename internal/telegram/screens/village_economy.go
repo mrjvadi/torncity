@@ -177,10 +177,15 @@ func renderVillageMaterials(c Context, v MaterialsView) *presenter.Response {
 	var stores []string
 	for _, st := range v.Stores {
 		key := "village.materials.store_unkept"
-		if st.Kept {
+		args := map[string]any{"name": c.SettlementBuildingName(st.Building), "wage": FormatMoney(c, v.Wage)}
+		switch {
+		case st.Kept:
 			key = "village.materials.store_kept"
+		case !st.GraceUntil.IsZero():
+			key = "village.materials.store_grace"
+			args["until"] = FormatDate(c, st.GraceUntil)
 		}
-		stores = append(stores, c.T(key, map[string]any{"name": c.SettlementBuildingName(st.Building), "wage": FormatMoney(c, v.Wage)}))
+		stores = append(stores, c.T(key, args))
 	}
 	var spoil string
 	if v.SpoilBPS > 0 {

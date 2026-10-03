@@ -119,12 +119,10 @@ type CourseGap struct {
 }
 
 // EducationLiteracy is the first lesson, reading and writing, and how far the
-// settlement has come: its literate share against what the next stage asks.
+// settlement has come: its literate share. There is no "next stage" to reach
+// (ADR 0044: a settlement grows by what it researches and builds).
 type EducationLiteracy struct {
 	ShareBPS int
-	// NextBPS is what the next stage asks (0 when there is no next stage), NextStage its name.
-	NextBPS   int
-	NextStage string
 }
 
 // What a place offers no course for.

@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"sort"
+	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
@@ -46,6 +47,20 @@ type StorageRules struct {
 	// SpoilKeptBPS and SpoilUnkeptBPS are the share of the food that spoils per
 	// game day, with a kept granary and without.
 	SpoilKeptBPS, SpoilUnkeptBPS int64
+	// GraceFrom is when the storekeeper rule began and GraceDays how many real
+	// days after it a store that already stood keeps counting its full room
+	// without a keeper (no town loses room overnight). Zero days: no grace.
+	GraceFrom time.Time
+	GraceDays int64
+}
+
+// graceUntil is when the grace of a store built at `since` ends; the zero time
+// when the store has none (it was built after the rule, or there is no grace).
+func (r StorageRules) graceUntil(since time.Time) time.Time {
+	if r.GraceDays <= 0 || r.GraceFrom.IsZero() || !since.Before(r.GraceFrom) {
+		return time.Time{}
+	}
+	return r.GraceFrom.AddDate(0, 0, int(r.GraceDays))
 }
 
 func (r StorageRules) enabled() bool { return r.Clock.Validate() == nil }
@@ -80,6 +95,14 @@ type storeBuilding struct {
 	Provides map[string]int
 	Kept     bool
 	Wage     int64
+	// GraceUntil is set for a store built before the keeper rule: until then its
+	// room counts even with no keeper.
+	GraceUntil time.Time
+}
+
+// counts reports whether the store's room counts at `now`.
+func (s storeBuilding) counts(now time.Time) bool {
+	return s.Kept || now.Before(s.GraceUntil)
 }
 
 // villageStock is what the village holds and how much room it has, by class.
@@ -159,7 +182,7 @@ func sumQty(m map[string]int64) int64 {
 
 // storeBuildings lists the standing storage buildings in a fixed order: the
 // type code, then the id.
-func storeBuildings(snap *content.Snapshot, buildings []application.SettlementBuildingInstance) []storeBuilding {
+func storeBuildings(snap *content.Snapshot, buildings []application.SettlementBuildingInstance, rules StorageRules) []storeBuilding {
 	var out []storeBuilding
 	for _, b := range buildings {
 		if b.Status != "complete" {
@@ -179,7 +202,11 @@ func storeBuildings(snap *content.Snapshot, buildings []application.SettlementBu
 				wageBPS = int64(st.WageBPS)
 			}
 		}
-		out = append(out, storeBuilding{ID: b.ID, Type: b.TypeCode, Provides: def.Storage.Provides, Wage: wageBPS})
+		since := b.QueuedAt
+		if b.CompletedAt != nil {
+			since = *b.CompletedAt
+		}
+		out = append(out, storeBuilding{ID: b.ID, Type: b.TypeCode, Provides: def.Storage.Provides, Wage: wageBPS, GraceUntil: rules.graceUntil(since)})
 	}
 	sort.Slice(out, func(i, j int) bool {
 		if out[i].Type != out[j].Type {
@@ -197,7 +224,7 @@ func storeBuildings(snap *content.Snapshot, buildings []application.SettlementBu
 func (h *VillageHandler) stockOf(ctx context.Context, tx application.Tx, snap *content.Snapshot, settlementID string,
 	buildings []application.SettlementBuildingInstance,
 ) (villageStock, error) {
-	stores := storeBuildings(snap, buildings)
+	stores := storeBuildings(snap, buildings, h.storage)
 	day, err := h.settleStorageDay(ctx, tx, snap, settlementID, buildings, stores)
 	if err != nil {
 		return villageStock{}, err
@@ -241,7 +268,7 @@ func (h *VillageHandler) stockOf(ctx context.Context, tx application.Tx, snap *c
 		room("bulk").Capacity = h.stockBaseCapacity
 	}
 	for _, st := range stores {
-		if !st.Kept {
+		if !st.counts(h.now()) {
 			continue
 		}
 		for class, n := range st.Provides {
