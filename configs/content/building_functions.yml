@@ -86,17 +86,14 @@ item_storage:
   - {code: rope,        planned: true, source: "ADR 0045 4.3", evidence: adr, requires: {}, class: goods, bulk: 1, needs_research: [bulk]}
 
 planned_skills:
-  # ADR 0041 5.1 (audit M-04): skills the role catalogue trains. The skill set is
-  # a rule in code (player.SkillCodes), so adding them is an owner decision.
+  # ADR 0041 5.1 (audit M-04): skills the role catalogue trains and skills.yml
+  # does not list yet. carpentry, masonry, smithing and farming moved to skills.yml
+  # (2026-10-03); the rest are added there together with what trains them.
   - {code: forestry,    source: "ADR 0041 5.1", evidence: adr}
-  - {code: masonry,     source: "ADR 0041 5.1", evidence: adr}
-  - {code: carpentry,   source: "ADR 0041 5.1", evidence: adr}
-  - {code: smithing,    source: "ADR 0041 5.1", evidence: adr}
   - {code: weaving,     source: "ADR 0041 5.1", evidence: adr}
   - {code: pottery,     source: "ADR 0041 5.1", evidence: adr}
   - {code: milling,     source: "ADR 0041 5.1", evidence: adr}
   - {code: baking,      source: "ADR 0041 5.1", evidence: adr}
-  - {code: farming,     source: "ADR 0041 5.1", evidence: adr}
   - {code: herding,     source: "ADR 0041 5.1", evidence: adr}
   - {code: fishing,     source: "ADR 0041 5.1", evidence: adr}
   - {code: trade,       source: "ADR 0041 5.1", evidence: adr}

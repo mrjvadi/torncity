@@ -107,6 +107,11 @@ skill:
   lockpicking: قفل‌بازکنی
   deception: فریبکاری
   streetwise: خیابان‌شناسی
+  carpentry: نجاری
+  masonry: بنایی
+  smithing: آهنگری
+  farming: کشاورزی
+  herbalism: گیاهان دارویی
 
 # City display names, keyed on the city's content code (configs/content/cities.yml).
 # The code never changes after a city ships; the name here may. A city with no
@@ -522,6 +527,7 @@ career:
 course:
   officer_training: دورهٔ افسری
   first_aid: کمک‌های اولیه
+  herbal_medicine: گیاهان دارویی
   driving_licence: گواهینامهٔ رانندگی
   bookkeeping: دفترداری
   programming_fundamentals: مبانی برنامه‌نویسی

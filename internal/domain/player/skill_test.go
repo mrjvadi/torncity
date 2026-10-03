@@ -25,7 +25,10 @@ func TestValidateSkillCode(t *testing.T) {
 		{"deception", SkillDeception, nil},
 		{"streetwise", SkillStreetwise, nil},
 		{"empty is not a skill", SkillCode(""), ErrUnknownSkill},
-		{"invented code", SkillCode("alchemy"), ErrUnknownSkill},
+		{"a content-only skill is well formed", SkillCode("carpentry"), nil},
+		{"digits and underscore are allowed", SkillCode("herbal_medicine2"), nil},
+		{"starts with a letter", SkillCode("2fast"), ErrUnknownSkill},
+		{"no dashes", SkillCode("black-smith"), ErrUnknownSkill},
 		{"case matters, the stored value is lower case", SkillCode("Programming"), ErrUnknownSkill},
 		{"whitespace is not trimmed for us", SkillCode(" driving"), ErrUnknownSkill},
 	}
@@ -53,8 +56,8 @@ func TestSkillCodesIsClosed(t *testing.T) {
 	}
 
 	codes[0] = SkillCode("alchemy")
-	if err := Validate(SkillCode("alchemy")); err == nil {
-		t.Error("writing into the slice returned by SkillCodes() changed the game's skill set")
+	if SkillCodes()[0] == SkillCode("alchemy") {
+		t.Error("writing into the slice returned by SkillCodes() changed the engine's list")
 	}
 }
 
@@ -67,7 +70,7 @@ func TestNewSkill(t *testing.T) {
 		t.Errorf("new skill = %+v, want finance at level 0 with 0 XP", s)
 	}
 
-	if _, err := NewSkill(SkillCode("alchemy")); !errors.Is(err, ErrUnknownSkill) {
+	if _, err := NewSkill(SkillCode("Alchemy")); !errors.Is(err, ErrUnknownSkill) {
 		t.Errorf("NewSkill(alchemy) = %v, want ErrUnknownSkill", err)
 	}
 }

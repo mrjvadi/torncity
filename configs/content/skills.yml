@@ -1,12 +1,12 @@
 # Skills.
 #
-# The SET of skills is a rule, not content: other systems branch on individual
-# skills (programming drives software production, driving drives racing), so
-# a skill invented here would be one a player can train and never use. The
-# loader therefore rejects any code not in internal/domain/player.SkillCodes().
-#
-# What IS content here is how each skill is named and grouped for display.
-# Renaming or regrouping needs no code change.
+# The CATALOGUE of skills is content (2026-10-03, activities follow-up): a skill
+# is added here, with its `requires` as a `kind: skill` row in availability.yml,
+# and a job, course, crime, recipe, item or workplace (`trains`) uses it. The
+# content lint proves every skill any file names is listed here, and that the
+# codes the engine itself names in code (internal/domain/player.SkillCodes,
+# for example programming and driving) are all present. A skill nobody uses is
+# a dead end: add one only together with what trains it and what uses it.
 #
 # See docs/adr/0004-content-system.md.
 #
@@ -23,6 +23,14 @@ skills:
   - {code: mechanics,   name: Mechanics,   category: trades}
   - {code: cooking,     name: Cooking,     category: trades}
   - {code: logistics,   name: Logistics,   category: trades}
+  # The village crafts and farming (ADR 0041 5.1): trained by the journeyman
+  # courses (education.yml) and by working a shift in the matching workplace
+  # (`trains` in settlement_buildings.yml); used by the recipes and staff roles.
+  - {code: carpentry,   name: Carpentry,   category: crafts}
+  - {code: masonry,     name: Masonry,     category: crafts}
+  - {code: smithing,    name: Smithing,    category: crafts}
+  - {code: farming,     name: Farming,     category: land}
+  - {code: herbalism,   name: Herbal Medicine, category: professional}
   - {code: driving,     name: Driving,     category: trades}
   - {code: medicine,    name: Medicine,    category: professional}
   - {code: management,  name: Management,  category: professional}

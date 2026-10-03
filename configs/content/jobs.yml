@@ -286,7 +286,7 @@ careers:
         energy_cost: 20
         shift_duration: 4h
         xp_per_shift: 12
-        skill_xp_per_shift: [{skill: medicine, xp: 20}]
+        skill_xp_per_shift: [{skill: medicine, xp: 20}, {skill: herbalism, xp: 8}]
         promotion: {min_performance: 58, min_time_in_tier: 36h, min_shifts: 8}
       - rank: skilled
         title: Nurse

@@ -172,7 +172,7 @@ func TestValidateRejects(t *testing.T) {
 		},
 		{
 			name:   "a skill code the domain does not declare",
-			mutate: func(p *Pack) { p.Skills[0].Code = "telepathy" },
+			mutate: func(p *Pack) { p.Skills[0].Code = "Telepathy" },
 			want:   ErrUnknownSkillCode,
 		},
 		{
@@ -241,7 +241,7 @@ func TestValidateReportsEveryProblem(t *testing.T) {
 	p.Cities[0].TaxRateBPS = -5
 	p.Cities[1].CostOfLiving = 0
 	p.Routes[0].Distance = 0
-	p.Skills[0].Code = "telepathy"
+	p.Skills[0].Code = "Telepathy"
 
 	err := p.Validate()
 	if err == nil {

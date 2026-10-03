@@ -263,6 +263,7 @@ settlement_buildings:
     workers: 2
     shift: 1h30m
     wage: 30
+    trains: {skill: carpentry, xp: 20}
 
   - code: masonry_workshop
     name: "کارگاه بنایی"
@@ -280,6 +281,7 @@ settlement_buildings:
     workers: 2
     shift: 1h30m
     wage: 20
+    trains: {skill: masonry, xp: 20}
 
   - code: smithy
     name: آهنگری
@@ -436,6 +438,7 @@ settlement_buildings:
     workers: 4
     shift: 2h
     wage: 50
+    trains: {skill: farming, xp: 15}
 
   - code: farm_shaft
     name: "مزرعهٔ قناتی"
@@ -451,6 +454,7 @@ settlement_buildings:
     workers: 4
     shift: 2h
     wage: 50
+    trains: {skill: farming, xp: 15}
 
   - code: farm_terrace
     name: مزرعهٔ پلکانی
@@ -466,6 +470,7 @@ settlement_buildings:
     workers: 4
     shift: 2h
     wage: 50
+    trains: {skill: farming, xp: 15}
 
   - code: farm_paddy
     name: "شالیزار"
@@ -481,6 +486,7 @@ settlement_buildings:
     workers: 4
     shift: 2h
     wage: 50
+    trains: {skill: farming, xp: 15}
 
   - code: pasture_range
     name: "چراگاه"

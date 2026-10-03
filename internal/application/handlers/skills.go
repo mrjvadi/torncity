@@ -89,7 +89,17 @@ func (h *SkillsHandler) List(ctx context.Context, meta envelope.Metadata) (*pres
 			stored[row.Code] = row
 		}
 
-		codes := player.SkillCodes()
+		// The catalogue is content (skills.yml); the engine's own codes are the
+		// fallback while no content is loaded.
+		var codes []player.SkillCode
+		if h.content != nil && h.content.Current() != nil {
+			for _, d := range h.content.Current().Skills() {
+				codes = append(codes, d.SkillCode())
+			}
+		}
+		if len(codes) == 0 {
+			codes = player.SkillCodes()
+		}
 		var teaches func(code string) bool
 		if h.content != nil && h.cities != nil {
 			if snap := h.content.Current(); snap != nil {

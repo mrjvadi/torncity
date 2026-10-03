@@ -52,6 +52,7 @@ courses:
     duration: 10h
     min_level: 0
     prerequisites: [literacy_class]
+    skill_rewards: [{skill: carpentry, xp: 200}]
     certifies: true
 
   - code: masonry_craft
@@ -61,6 +62,7 @@ courses:
     duration: 10h
     min_level: 0
     prerequisites: [literacy_class]
+    skill_rewards: [{skill: masonry, xp: 200}]
     certifies: true
 
   - code: smithing_craft
@@ -70,6 +72,7 @@ courses:
     duration: 12h
     min_level: 0
     prerequisites: [literacy_class]
+    skill_rewards: [{skill: smithing, xp: 200}]
     certifies: true
 
   # The clerks of the land registry and the bank (staff roles registrar,
@@ -102,6 +105,19 @@ courses:
     min_level: 0
     prerequisites: [bookkeeping]
     skill_rewards: [{skill: finance, xp: 250}]
+    certifies: true
+
+  # Herbal medicine: what a village healer knows (which plant for which ailment,
+  # how it is dried and brewed). Taught beside the health post by its health
+  # worker; it trains the herbalism skill and gives no licence to treat.
+  - code: herbal_medicine
+    name: Herbal Medicine
+    institution: training_center
+    cost: 700
+    duration: 6h
+    min_level: 0
+    prerequisites: [literacy_class]
+    skill_rewards: [{skill: herbalism, xp: 200}]
     certifies: true
 
   - code: first_aid

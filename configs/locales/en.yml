@@ -43,6 +43,11 @@ skill:
   lockpicking: Lockpicking
   deception: Deception
   streetwise: Streetwise
+  carpentry: Carpentry
+  masonry: Masonry
+  smithing: Smithing
+  farming: Farming
+  herbalism: Herbal medicine
 
 # City display names, keyed on the city's content code (configs/content/cities.yml).
 # The code never changes after a city ships; the name here may. A city with no
@@ -455,6 +460,7 @@ course:
   software_engineering: Software Engineering Degree
   evening_accounting: Evening Class in Accounting
   literacy_class: Reading and Writing Class
+  herbal_medicine: Herbal Medicine
   carpentry_craft: Carpentry Journeyman
   masonry_craft: Masonry Journeyman
   smithing_craft: Smithing Journeyman

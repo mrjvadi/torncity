@@ -132,7 +132,7 @@ func (r RouteDef) Edge() world.Edge {
 // other packages branch on individual members of it. What is authored here is
 // everything about a skill that is naming and grouping rather than meaning.
 type SkillDef struct {
-	// Code must be one of player.SkillCodes().
+	// Code is a well-formed skill code; every skill any other file names must be listed here.
 	Code string `yaml:"code"`
 	// Name is display text.
 	Name string `yaml:"name"`

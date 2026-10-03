@@ -11,7 +11,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/domain/inventory"
 	"github.com/mrjvadi/torncity/internal/domain/item"
 	"github.com/mrjvadi/torncity/internal/domain/payment"
-	"github.com/mrjvadi/torncity/internal/domain/player"
 	"github.com/mrjvadi/torncity/internal/domain/shop"
 )
 
@@ -396,8 +395,8 @@ func (p *Pack) validateItems(problems *[]error) {
 		}
 	}
 	skills := item.Set{}
-	for _, s := range player.SkillCodes() {
-		skills[string(s)] = struct{}{}
+	for _, s := range p.knownSkillCodes() {
+		skills[s] = struct{}{}
 	}
 	vocab := item.Vocabulary{Categories: categories, Skills: skills}
 	archetypes := map[string]bool{}

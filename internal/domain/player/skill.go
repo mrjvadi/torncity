@@ -4,23 +4,27 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"regexp"
 )
 
 // SkillCode identifies one trainable skill, matching player_skills.skill_code
 // in docs/database.md.
 //
-// WHY THIS SET IS CODE AND NOT CONTENT. The set of skill codes is closed and
-// lives here because other packages branch on individual members of it: a
-// software product is produced by Programming, a vehicle is repaired by
-// Mechanics, a race is driven with Driving. A code that no package knows about
-// cannot affect anything, so inventing one in a content file would produce a
-// skill a player can train and never use — the worst kind of empty feature.
+// WHERE THE CATALOGUE LIVES. The catalogue of skills (which skills exist, how
+// each is named, what a settlement needs to teach it) is content: skills.yml
+// lists them and availability.yml says what each one requires. The content
+// lint proves every skill a job, course, crime, recipe, item or staff role
+// names is in that catalogue, so a skill can be added without a code change.
 //
-// Everything ABOUT a skill that is tuning rather than meaning is content and
-// does not belong here: its display name and translations, which jobs and
-// recipes require it, what level gates what, how much XP an activity awards.
-// That data is authored outside the code and injected. The line is: the
-// identity of a skill is a rule, the numbers attached to it are content.
+// What stays in code are the constants below: the skills some rule branches
+// on (programming drives software production, driving drives racing, medicine
+// drives treatment). They are only the codes the engine names; the content
+// lint requires each of them to be in skills.yml. A new content-only skill
+// (carpentry, farming…) is used by jobs, recipes and courses, not by a branch.
+//
+// Everything ABOUT a skill that is tuning rather than meaning is content too:
+// display name, which jobs and recipes require it, what level gates what, how
+// much XP an activity awards.
 type SkillCode string
 
 // The skills named by 02_PLAYER.md, plus Driving, which racing consumes.
@@ -47,17 +51,18 @@ const (
 	SkillStreetwise  SkillCode = "streetwise"
 )
 
-// ErrUnknownSkill means a skill code is not one of the codes above. Callers
+// ErrUnknownSkill means a skill code is not well formed (see Validate). Callers
 // compare with errors.Is; the wrapped text names the offending code for logs.
+// Whether a well-formed code is in the catalogue is the content lint's job.
 var ErrUnknownSkill = errors.New("player: unknown skill code")
 
 // MaxSkillLevel is where a single skill's curve stops. It bounds the slice
 // AddSkillXP can return, for the same reason MaxLevel does.
 const MaxSkillLevel = 100
 
-// skillCodes is the closed set, in the order 02_PLAYER.md lists them with
-// Driving after them and the criminal skills last. Kept unexported so no caller can append to the game's skill
-// list by mutating a shared slice.
+// skillCodes are the skills the engine names in code (the constants above), in
+// the order 02_PLAYER.md lists them with Driving after them and the criminal
+// skills last. Kept unexported so no caller can mutate the shared slice.
 var skillCodes = []SkillCode{
 	SkillProgramming,
 	SkillMechanics,
@@ -74,25 +79,27 @@ var skillCodes = []SkillCode{
 	SkillStreetwise,
 }
 
-// SkillCodes returns every valid skill code. The slice is a copy.
+// SkillCodes returns the skill codes the engine itself names. The catalogue of
+// all skills is skills.yml; the content lint requires these to be in it. The
+// slice is a copy.
 func SkillCodes() []SkillCode {
 	out := make([]SkillCode, len(skillCodes))
 	copy(out, skillCodes)
 	return out
 }
 
-// Validate rejects a code that is not part of the closed set, including the
-// empty string.
-//
-// A linear scan over thirteen entries is not worth a map: it is faster than
-// hashing at this size, and it keeps the set readable as one list above.
+// skillCodeRe is the shape of a skill code: lower case, digits and underscore,
+// starting with a letter.
+var skillCodeRe = regexp.MustCompile(`^[a-z][a-z0-9_]{1,39}$`)
+
+// Validate rejects a code that is not well formed, including the empty string.
+// It does not know the catalogue (that is content, checked by the content
+// lint and, at run time, by the places that hold a snapshot).
 func Validate(code SkillCode) error {
-	for _, known := range skillCodes {
-		if known == code {
-			return nil
-		}
+	if !skillCodeRe.MatchString(string(code)) {
+		return fmt.Errorf("%w: %q", ErrUnknownSkill, string(code))
 	}
-	return fmt.Errorf("%w: %q", ErrUnknownSkill, string(code))
+	return nil
 }
 
 // Skill is one player's standing in one skill, mirroring a player_skills row.
