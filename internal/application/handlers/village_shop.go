@@ -99,11 +99,11 @@ type VillageShopRequest struct {
 }
 
 // shopRefusal carries a refusal of the village shop out of a unit of work.
-type villageShopRefusal struct{ view village.ShopRefusalView }
+type villageShopRefusal struct{ view village.VillageShopRefusalView }
 
 func (r *villageShopRefusal) Error() string { return "handlers: village shop refused: " + r.view.Kind }
 
-func (h *VillageHandler) shopRefused(v village.ShopRefusalView) error {
+func (h *VillageHandler) shopRefused(v village.VillageShopRefusalView) error {
 	return &villageShopRefusal{view: v}
 }
 
@@ -388,39 +388,39 @@ func fitsOf(room carry.Room, bulk, grams int64) int64 {
 // shopView builds the shop screen for a viewer.
 func (h *VillageHandler) shopView(ctx context.Context, tx application.Tx, meta envelope.Metadata, p *application.Player,
 	s application.FoundedSettlement, now time.Time,
-) (village.ShopView, error) {
+) (village.VillageShopView, error) {
 	snap := h.content.Current()
 	day, err := h.SettleShopDay(ctx, tx, s, now)
 	if err != nil {
-		return village.ShopView{}, err
+		return village.VillageShopView{}, err
 	}
 	st, err := h.shopStateOf(ctx, tx, snap, s)
 	if err != nil {
-		return village.ShopView{}, err
+		return village.VillageShopView{}, err
 	}
 	capBPS, taxBPS, err := h.shopTerms(ctx, tx, s)
 	if err != nil {
-		return village.ShopView{}, err
+		return village.VillageShopView{}, err
 	}
 	present, err := h.presentHere(ctx, tx, p, s)
 	if err != nil {
-		return village.ShopView{}, err
+		return village.VillageShopView{}, err
 	}
 	head := authorizeVillage(ctx, tx, s, p.ID) == nil
 	_, cash, err := playerCash(ctx, tx, p.ID)
 	if err != nil {
-		return village.ShopView{}, err
+		return village.VillageShopView{}, err
 	}
 	cenv := carryEnv{rules: h.shop.Carry, clock: h.shop.Clock}
 	if err := tx.Items().LockOwner(ctx, p.ID); err != nil {
-		return village.ShopView{}, err
+		return village.VillageShopView{}, err
 	}
 	cst, err := cenv.load(ctx, tx, snap, p.ID, now, true)
 	if err != nil {
-		return village.ShopView{}, err
+		return village.VillageShopView{}, err
 	}
 	room := cst.room(h.shop.Carry)
-	view := village.ShopView{
+	view := village.VillageShopView{
 		Village: s.Name, Building: st.boosted, Closed: shopClosed(day),
 		NextDelivery: h.nextDelivery(now), DeliveryHour: h.shop.RestockHour, Wage: st.wage, TaxBPS: taxBPS,
 		TaxMaxBPS: h.shop.TaxMax, TaxPresets: h.shop.TaxPresets,
@@ -442,7 +442,7 @@ func (h *VillageHandler) shopView(ctx context.Context, tx application.Tx, meta e
 	}
 	for _, ol := range st.open {
 		row := stock[ol.line.Code]
-		line := village.ShopLine{
+		line := village.VillageShopLine{
 			Item: h.shopNameOf(snap, ol.line.Code), Kind: ol.kind, Shelf: shelfRefOf(snap, ol.line.Code),
 			Price: st.rules.Price(ol.line, row.SoldToday, capBPS), Reference: ol.line.Ref, Stock: row.Stock,
 			Tradable: ol.def.Tradable,
@@ -516,7 +516,7 @@ func (h *VillageHandler) Shop(ctx context.Context, meta envelope.Metadata) (*pre
 
 func (h *VillageHandler) shopScreen(ctx context.Context, meta envelope.Metadata, bought *village.ShopBought, mended *village.ShopMended) (*presentation.Response, error) {
 	lang := meta.Language
-	var view village.ShopView
+	var view village.VillageShopView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, l, err := h.viewer(ctx, tx, meta)
 		if err != nil {
@@ -556,7 +556,7 @@ func (h *VillageHandler) ShopBuy(ctx context.Context, meta envelope.Metadata, re
 		return nil, errors.InvalidInput("a quantity is a whole number from 1 to 1000")
 	}
 	var (
-		checkout *village.ShopCheckoutView
+		checkout *village.VillageShopCheckoutView
 		bought   *village.ShopBought
 		replayed bool
 	)
@@ -590,7 +590,7 @@ func (h *VillageHandler) ShopBuy(ctx context.Context, meta envelope.Metadata, re
 			return err
 		}
 		if !present {
-			return h.shopRefused(village.ShopRefusalView{Kind: village.ShopRefusedNotHere})
+			return h.shopRefused(village.VillageShopRefusalView{Kind: village.ShopRefusedNotHere})
 		}
 		if err := RefuseDetained(ctx, tx, p.ID, now); err != nil {
 			return err
@@ -604,7 +604,7 @@ func (h *VillageHandler) ShopBuy(ctx context.Context, meta envelope.Metadata, re
 			return err
 		}
 		if closed := shopClosed(day); closed != village.ShopOpen {
-			return h.shopRefused(village.ShopRefusalView{Kind: village.ShopRefusedClosed, Closed: closed, NextDelivery: h.nextDelivery(now)})
+			return h.shopRefused(village.VillageShopRefusalView{Kind: village.ShopRefusedClosed, Closed: closed, NextDelivery: h.nextDelivery(now)})
 		}
 		st, err := h.shopStateOf(ctx, tx, snap, s)
 		if err != nil {
@@ -619,7 +619,7 @@ func (h *VillageHandler) ShopBuy(ctx context.Context, meta envelope.Metadata, re
 		code := strings.TrimSpace(req.Item)
 		name := h.shopNameOf(snap, code)
 		if ol == nil {
-			return h.shopRefused(village.ShopRefusalView{Kind: village.ShopRefusedNotThere, Item: name})
+			return h.shopRefused(village.VillageShopRefusalView{Kind: village.ShopRefusedNotThere, Item: name})
 		}
 		row, err := tx.VillageShop().Line(ctx, s.CityID, code)
 		if err != nil {
@@ -633,10 +633,10 @@ func (h *VillageHandler) ShopBuy(ctx context.Context, meta envelope.Metadata, re
 		if err := st.rules.CanSell(ol.line, planned.Units, row.Stock, boughtToday, qty); err != nil {
 			left := max(st.rules.PlayerDayCap(ol.line, planned.Units)-boughtToday, 0)
 			if stderrors.Is(err, vshop.ErrPlayerCap) {
-				return h.shopRefused(village.ShopRefusalView{Kind: village.ShopRefusedCap, Item: name, LeftToday: left, Stock: row.Stock,
+				return h.shopRefused(village.VillageShopRefusalView{Kind: village.ShopRefusedCap, Item: name, LeftToday: left, Stock: row.Stock,
 					NextDelivery: h.nextDelivery(now)})
 			}
-			return h.shopRefused(village.ShopRefusalView{Kind: village.ShopRefusedSoldOut, Item: name, Stock: row.Stock,
+			return h.shopRefused(village.VillageShopRefusalView{Kind: village.ShopRefusedSoldOut, Item: name, Stock: row.Stock,
 				NextDelivery: h.nextDelivery(now)})
 		}
 		// No room, no sale.
@@ -652,7 +652,7 @@ func (h *VillageHandler) ShopBuy(ctx context.Context, meta envelope.Metadata, re
 			if stderrors.Is(err, carry.ErrTooHeavy) {
 				kind = village.ShopRefusedTooHeavy
 			}
-			return h.shopRefused(village.ShopRefusalView{Kind: kind, Item: name, FreeSpace: room.FreeSpace, NeedSpace: bulk,
+			return h.shopRefused(village.VillageShopRefusalView{Kind: kind, Item: name, FreeSpace: room.FreeSpace, NeedSpace: bulk,
 				FreeG: room.FreeG, NeedG: grams})
 		}
 		capBPS, taxBPS, err := h.shopTerms(ctx, tx, s)
@@ -679,7 +679,7 @@ func (h *VillageHandler) ShopBuy(ctx context.Context, meta envelope.Metadata, re
 		plan := wallet.Plan(due, snap.ShopAccepts("village_shop"))
 		backTo := []string{village.AddrShop}
 		if !chosen {
-			checkout = &village.ShopCheckoutView{
+			checkout = &village.VillageShopCheckoutView{
 				Village: s.Name, Item: name, Kind: ol.kind, Qty: qty, Unit: unit, Total: total.Minor(), Tax: tax.Minor(), TaxBPS: taxBPS,
 				Stock: row.Stock, Space: bulk, FreeSpace: room.FreeSpace, Grams: grams,
 				Payment: paymentChoice(plan, wallet), Nonce: h.shopNonce(),
@@ -820,7 +820,7 @@ func (h *VillageHandler) shopTerm(ctx context.Context, meta envelope.Metadata, r
 			lo, hi, field = 0, h.shop.TaxMax, "tax_bps"
 		}
 		if bps < lo || bps > hi {
-			return h.shopRefused(village.ShopRefusalView{Kind: village.ShopRefusedCapRange, Min: lo, Max: hi})
+			return h.shopRefused(village.VillageShopRefusalView{Kind: village.ShopRefusedCapRange, Min: lo, Max: hi})
 		}
 		now := h.now()
 		if isCap {
@@ -874,7 +874,7 @@ func (h *VillageHandler) ShopRepair(ctx context.Context, meta envelope.Metadata,
 			return err
 		}
 		if !present {
-			return h.shopRefused(village.ShopRefusalView{Kind: village.ShopRefusedNotHere})
+			return h.shopRefused(village.VillageShopRefusalView{Kind: village.ShopRefusedNotHere})
 		}
 		if err := tx.Items().LockOwner(ctx, p.ID); err != nil {
 			return err
@@ -884,14 +884,14 @@ func (h *VillageHandler) ShopRepair(ctx context.Context, meta envelope.Metadata,
 			return err
 		}
 		if closed := shopClosed(day); closed != village.ShopOpen {
-			return h.shopRefused(village.ShopRefusalView{Kind: village.ShopRefusedClosed, Closed: closed, NextDelivery: h.nextDelivery(now)})
+			return h.shopRefused(village.VillageShopRefusalView{Kind: village.ShopRefusedClosed, Closed: closed, NextDelivery: h.nextDelivery(now)})
 		}
 		st, err := h.shopStateOf(ctx, tx, snap, s)
 		if err != nil {
 			return err
 		}
 		if !st.boosted {
-			return h.shopRefused(village.ShopRefusalView{Kind: village.ShopRefusedNoBuilding})
+			return h.shopRefused(village.VillageShopRefusalView{Kind: village.ShopRefusedNoBuilding})
 		}
 		code, _, piece, err := held(ctx, tx, p.ID, strings.TrimSpace(req.Item))
 		if err != nil {
@@ -899,7 +899,7 @@ func (h *VillageHandler) ShopRepair(ctx context.Context, meta envelope.Metadata,
 		}
 		def, _ := snap.ItemDef(code)
 		if piece == nil || def.Bag == nil {
-			return h.shopRefused(village.ShopRefusalView{Kind: village.ShopRefusedNothingToMend, Item: named(code, def.Name)})
+			return h.shopRefused(village.VillageShopRefusalView{Kind: village.ShopRefusedNothingToMend, Item: named(code, def.Name)})
 		}
 		// The wear is settled first, so a bag is mended for what it really lost.
 		cenv := carryEnv{rules: h.shop.Carry, clock: h.shop.Clock}
@@ -911,7 +911,7 @@ func (h *VillageHandler) ShopRepair(ctx context.Context, meta envelope.Metadata,
 		}
 		cost := h.shop.Carry.RepairCost(def.BasePrice, piece.UsesLeft, def.Durability)
 		if cost < 1 {
-			return h.shopRefused(village.ShopRefusalView{Kind: village.ShopRefusedNothingToMend, Item: named(def.Code, def.Name)})
+			return h.shopRefused(village.VillageShopRefusalView{Kind: village.ShopRefusedNothingToMend, Item: named(def.Code, def.Name)})
 		}
 		wallet, err := application.OpenWallet(ctx, tx.Ledger(), p.ID)
 		if err != nil {

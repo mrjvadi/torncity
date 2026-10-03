@@ -35,11 +35,11 @@ func (c Context) shopItemName(n Named, kind string) string {
 }
 
 // VillageShop renders the shop.
-func VillageShop(c Context, v village.ShopView) *presenter.Response {
+func VillageShop(c Context, v village.VillageShopView) *presenter.Response {
 	return c.withView(renderVillageShop(c, v), ScreenVillageShop, v)
 }
 
-func renderVillageShop(c Context, v village.ShopView) *presenter.Response {
+func renderVillageShop(c Context, v village.VillageShopView) *presenter.Response {
 	status := c.T("village.shop.open", nil)
 	if v.Closed != village.ShopOpen {
 		status = c.T("village.shop.closed."+v.Closed, nil)
@@ -155,11 +155,11 @@ func renderVillageShop(c Context, v village.ShopView) *presenter.Response {
 }
 
 // VillageShopCheckout renders the price and the ways to pay.
-func VillageShopCheckout(c Context, v village.ShopCheckoutView) *presenter.Response {
+func VillageShopCheckout(c Context, v village.VillageShopCheckoutView) *presenter.Response {
 	return c.withView(renderVillageShopCheckout(c, v), ScreenVillageShopCheckout, v)
 }
 
-func renderVillageShopCheckout(c Context, v village.ShopCheckoutView) *presenter.Response {
+func renderVillageShopCheckout(c Context, v village.VillageShopCheckoutView) *presenter.Response {
 	name := c.shopItemName(v.Item, v.Kind)
 	facts := []string{
 		c.T("village.shop.checkout_item", map[string]any{"item": name, "qty": FormatNumber(c, v.Qty), "unit": FormatMoney(c, v.Unit)}),
@@ -189,11 +189,11 @@ func renderVillageShopCheckout(c Context, v village.ShopCheckoutView) *presenter
 }
 
 // VillageShopRefusal renders a purchase or a mending refused.
-func VillageShopRefusal(c Context, v village.ShopRefusalView) *presenter.Response {
+func VillageShopRefusal(c Context, v village.VillageShopRefusalView) *presenter.Response {
 	return c.withView(renderVillageShopRefusal(c, v), ScreenVillageShopRefusal, v)
 }
 
-func renderVillageShopRefusal(c Context, v village.ShopRefusalView) *presenter.Response {
+func renderVillageShopRefusal(c Context, v village.VillageShopRefusalView) *presenter.Response {
 	args := map[string]any{
 		"item": c.ItemName(v.Item), "stock": FormatNumber(c, v.Stock), "left": FormatNumber(c, v.LeftToday),
 		"free": FormatNumber(c, v.FreeSpace), "need": FormatNumber(c, v.NeedSpace),

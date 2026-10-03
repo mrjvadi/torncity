@@ -495,7 +495,7 @@ export interface BuildingView {
   research: BuildingResearchLine | null
   has_upgrade: boolean
   upgrades: BuildingUpgradeLine[] | null
-  shop: ShopView | null
+  shop: VillageShopView | null
 }
 
 export interface BuyView {
@@ -4438,6 +4438,16 @@ export interface SettlementWhoView {
   offline: number
 }
 
+export interface ShelfLine {
+  item: Named
+  shelf: ShelfRef
+  price: number
+  stock: number
+  busy: boolean
+  buyback: number
+  next_restock: string | null
+}
+
 export interface ShelfRef {
   code: string
   group: string
@@ -4506,16 +4516,9 @@ export interface ShopCheckoutView {
 }
 
 export interface ShopLine {
-  item: Named
-  kind: string
-  shelf: ShelfRef
-  price: number
-  reference: number
-  stock: number
-  left_today: number
-  fits: number
-  max_buy: number
-  tradable: boolean
+  shop: Named
+  place: Named
+  here: boolean
 }
 
 export interface ShopLockedLine {
@@ -4557,32 +4560,12 @@ export interface ShopSoldView {
 }
 
 export interface ShopView {
-  village: string
-  building: boolean
-  closed: string
-  next_delivery: string | null
-  delivery_hour: number
-  wage: number
+  shop: Named
+  place: Named
+  here: boolean
+  walk_seconds: number
+  shelves: ShelfLine[] | null
   tax_bps: number
-  tax_max_bps: number
-  tax_presets: number[] | null
-  price_cap_bps: number
-  cap_min_bps: number
-  cap_max_bps: number
-  cap_presets: number[] | null
-  can_set_cap: boolean
-  presets: number[] | null
-  resident: boolean
-  lines: ShopLine[] | null
-  locked: ShopLockedLine[] | null
-  free_space: number
-  capacity: number
-  free_g: number
-  repairs: ShopRepairLine[] | null
-  can_repair: boolean
-  cash: number
-  bought: ShopBought | null
-  mended: ShopMended | null
 }
 
 export interface ShopsView {
@@ -5192,6 +5175,80 @@ export interface VillageRoleLine {
   tier: number
 }
 
+export interface VillageShopCheckoutView {
+  village: string
+  item: Named
+  kind: string
+  qty: number
+  unit: number
+  total: number
+  tax: number
+  tax_bps: number
+  stock: number
+  space: number
+  free_space: number
+  grams: number
+  payment: PaymentChoice
+  nonce: string
+}
+
+export interface VillageShopLine {
+  item: Named
+  kind: string
+  shelf: ShelfRef
+  price: number
+  reference: number
+  stock: number
+  left_today: number
+  fits: number
+  max_buy: number
+  tradable: boolean
+}
+
+export interface VillageShopRefusalView {
+  kind: string
+  item: Named
+  closed: string
+  stock: number
+  left_today: number
+  free_space: number
+  need_space: number
+  free_g: number
+  need_g: number
+  min: number
+  max: number
+  next_delivery: string | null
+}
+
+export interface VillageShopView {
+  village: string
+  building: boolean
+  closed: string
+  next_delivery: string | null
+  delivery_hour: number
+  wage: number
+  tax_bps: number
+  tax_max_bps: number
+  tax_presets: number[] | null
+  price_cap_bps: number
+  cap_min_bps: number
+  cap_max_bps: number
+  cap_presets: number[] | null
+  can_set_cap: boolean
+  presets: number[] | null
+  resident: boolean
+  lines: VillageShopLine[] | null
+  locked: ShopLockedLine[] | null
+  free_space: number
+  capacity: number
+  free_g: number
+  repairs: ShopRepairLine[] | null
+  can_repair: boolean
+  cash: number
+  bought: ShopBought | null
+  mended: ShopMended | null
+}
+
 export interface VillageSupport {
   code: string
   name: string
@@ -5725,9 +5782,9 @@ export interface ScreenViews {
   village_refusal: VillageRefusalView
   village_residence_confirm: ResidenceView
   village_residence_done: ResidenceView
-  village_shop: ShopView
-  village_shop_checkout: ShopCheckoutView
-  village_shop_refusal: ShopRefusalView
+  village_shop: VillageShopView
+  village_shop_checkout: VillageShopCheckoutView
+  village_shop_refusal: VillageShopRefusalView
   village_work: WorkView
   village_work_started: WorkView
   voted: VotedView

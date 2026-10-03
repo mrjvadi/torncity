@@ -141,11 +141,13 @@ func (a *EconomyAdmin) verifyShop(ctx context.Context, v *LedgerVerification) er
 			WHERE reason = 'spoiled' AND reference_type = 'village_storage_days'`},
 		{&s.SpoilRows, "spoiled units in the storage days", `SELECT COALESCE(SUM(spoiled_units), 0)::bigint FROM village_storage_days`},
 		{&s.MarketDuesLedger, "village market dues in the ledger", `SELECT COALESCE(SUM(amount), 0)::bigint FROM ledger_entries
-			WHERE reason = 'village_market_dues' AND amount > 0`},
+			WHERE reason = 'village_market_dues' AND amount > 0
+			  AND reference_id IN (SELECT id FROM market_trades)`},
 		{&s.MarketDuesRows, "village market dues in the trades", `SELECT COALESCE(SUM(t.fee), 0)::bigint FROM market_trades t
 			JOIN cities c ON c.id = t.city_id AND c.origin = 'founded'`},
 		{&s.ListingLedger, "village market listing fees in the ledger", `SELECT COALESCE(SUM(amount), 0)::bigint FROM ledger_entries
-			WHERE reason = 'village_market_listing_fee' AND amount > 0`},
+			WHERE reason = 'village_market_listing_fee' AND amount > 0
+			  AND reference_id IN (SELECT id FROM market_orders)`},
 		{&s.ListingRows, "village market listing fees on the orders", `SELECT COALESCE(SUM(listing_fee), 0)::bigint FROM market_orders`},
 		{&s.PlayerDayBroken, "players' daily counts", `
 			SELECT count(*) FROM (

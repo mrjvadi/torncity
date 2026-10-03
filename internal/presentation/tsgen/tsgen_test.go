@@ -16,6 +16,14 @@ import (
 	_ "github.com/mrjvadi/torncity/internal/presentation/village"
 )
 
+// TestNoTwoViewsShareAName: the generated file is flat by type name, so two Go
+// structs of one name would be merged into one declaration.
+func TestNoTwoViewsShareAName(t *testing.T) {
+	if c := tsgen.Collisions(presentation.Specs()); len(c) > 0 {
+		t.Errorf("two different Go views share a TypeScript name; rename one: %v", c)
+	}
+}
+
 // TestGeneratedTypesAreInSync fails when a Go view changed and api/views.gen.ts
 // did not: the web client's types are generated from the Go views, never
 // written by hand. Regenerate with UPDATE_CONTRACT=1 go test ./internal/presentation/tsgen/.

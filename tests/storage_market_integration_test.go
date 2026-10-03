@@ -169,11 +169,6 @@ func TestWorkingStorehouse(t *testing.T) {
 	if err := pool.Raw().QueryRow(ctx, `SELECT id::text FROM cities WHERE founded_by_group_id = $1`, meta.TelegramChatID).Scan(&cityID); err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() {
-		c, cancel := context.WithTimeout(context.Background(), testTimeout)
-		defer cancel()
-		_, _ = pool.Raw().Exec(c, `DELETE FROM village_storage_days WHERE settlement_id = $1::uuid`, cityID)
-	})
 	seedTreasury(t, pool, cityID, 60_000)
 	head := asPlayer(meta, founder)
 	mk := func(command string) envelope.Metadata {
@@ -203,11 +198,9 @@ func TestWorkingStorehouse(t *testing.T) {
 		}
 		return 0, 0
 	}
-	resettle := func() { // forget the settled days: the next look settles today afresh
+	resettle := func() { // the next game day: the next look settles it afresh
 		t.Helper()
-		if _, err := pool.Raw().Exec(ctx, `DELETE FROM village_storage_days WHERE settlement_id = $1::uuid`, cityID); err != nil {
-			t.Fatal(err)
-		}
+		e.clock.Advance(24*time.Hour + time.Minute)
 	}
 	addBuilding := func(code string, x int) {
 		t.Helper()
@@ -295,7 +288,7 @@ func TestWorkingStorehouse(t *testing.T) {
 	}); err != nil {
 		t.Fatal(err)
 	}
-	e.clock.Advance(24*time.Hour + time.Minute) // the next game day
+	resettle()
 	drain()
 	view()
 	view() // a second look spoils nothing more

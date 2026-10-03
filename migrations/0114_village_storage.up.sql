@@ -15,11 +15,13 @@
 -- remainder (in ten-thousandths of a unit) carried to the next day so rounding
 -- never favours either side.
 --
+-- No foreign key to cities: like the shop days and the ledger they are the record,
+-- and outlive a test settlement the verifier would otherwise lose the rows of.
 -- Conventions as 0058. Additive; never a wipe.
 BEGIN;
 
 CREATE TABLE village_storage_days (
-    settlement_id         uuid        NOT NULL REFERENCES cities (id),
+    settlement_id         uuid        NOT NULL,
     day                   bigint      NOT NULL,
     buildings             integer     NOT NULL,
     kept                  integer     NOT NULL,
