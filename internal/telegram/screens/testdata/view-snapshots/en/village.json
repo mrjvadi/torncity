@@ -2398,7 +2398,8 @@
     "view": {
       "class": {
         "code": "path",
-        "name": "Footpath"
+        "name": "Footpath",
+        "trip": null
       },
       "climb_m": 22,
       "crossing_cost": 60,
@@ -2434,7 +2435,8 @@
     "view": {
       "class": {
         "code": "path",
-        "name": "Footpath"
+        "name": "Footpath",
+        "trip": null
       },
       "climb_m": 22,
       "crossing_cost": 60,
