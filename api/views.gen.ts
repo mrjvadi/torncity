@@ -1778,6 +1778,7 @@ export interface FriendAcceptedView {
 export interface FriendLine {
   id: string
   name: string
+  code: string
   status: string
   incoming: boolean
 }

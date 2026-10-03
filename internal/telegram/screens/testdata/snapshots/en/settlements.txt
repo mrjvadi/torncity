@@ -1,91 +1,91 @@
 ━━━ Settlement founded · river nearby, both buildings placed ━━━
 (edits message 42)
-🏡 A new village has been founded!
+🏡 A new city has been founded!
 
-This group has founded the village of "Korendal" near Vestara.
+This group has founded the city of "Korendal" near Vestara.
 Terrain: Temperate forest
 Starting buildings: Civic hall, Road
-This village is protected from attack until 30 September 2026.
+This city is protected from attack until 30 September 2026.
   ───
   [🔙 Back] → player:profile.get
 
 ━━━ Settlement founded · no named feature nearby ━━━
 (edits message 42)
-🏡 A new village has been founded!
+🏡 A new city has been founded!
 
-This group has founded the village of "Ashvale" near an unnamed land.
+This group has founded the city of "Ashvale" near an unnamed land.
 Terrain: Desert
 Starting buildings: Civic hall, Road
-This village is protected from attack until 30 September 2026.
+This city is protected from attack until 30 September 2026.
   ───
   [🔙 Back] → player:profile.get
 
 ━━━ Settlement founded · only the civic hall fit ━━━
 (edits message 42)
-🏡 A new village has been founded!
+🏡 A new city has been founded!
 
-This group has founded the village of "Milgrave" near the Northern Sea.
+This group has founded the city of "Milgrave" near the Northern Sea.
 Terrain: Tundra
 Starting buildings: Civic hall
-This village is protected from attack until 30 September 2026.
+This city is protected from attack until 30 September 2026.
   ───
   [🔙 Back] → player:profile.get
 
 ━━━ Founding · the group message with the form's button ━━━
 (edits message 42)
-📝 Complete the village details
+📝 Complete the city details
 
-Sara wants to found a village for this group, but first has to complete its details: the village's name, national currency, emblem and motto. The button below opens the game; once the form is submitted the village is founded and announced here.
+Sara wants to found a city for this group, but first has to complete its details: the city's name, national currency, emblem and motto. The button below opens the game; once the form is submitted the city is founded and announced here.
 
-⏳ Time to complete it: 30 minutes. If it runs out nothing is built and you may send "found village" again.
+⏳ Time to complete it: 30 minutes. If it runs out nothing is built and you may send "found city" again.
 
 If the button does not open, open the game from the bot's private chat; the form is waiting there.
   ───
-  [📝 Complete village details] → 
+  [📝 Complete city details] → 
 
 ━━━ Founding · another player asks while a draft is open ━━━
 (edits message 42)
-📝 Sara is completing this group's village details.
+📝 Sara is completing this group's city details.
 
-Only they can submit the form, but you can look at it. If it is not done within 12 minutes, send "found village" again.
+Only they can submit the form, but you can look at it. If it is not done within 12 minutes, send "found city" again.
 
 If the button does not open, open the game from the bot's private chat; the form is waiting there.
   ───
-  [📝 Complete village details] → 
+  [📝 Complete city details] → 
 
 ━━━ Settlement founded · through the form, with emblem, motto and currency ━━━
 (edits message 42)
-🏡 A new village has been founded!
+🏡 A new city has been founded!
 
-This group has founded the village of "Korendal" near Vestara.
+This group has founded the city of "Korendal" near Vestara.
 Terrain: Temperate forest
 Starting buildings: Civic hall, Road
-This village is protected from attack until 30 September 2026.
+This city is protected from attack until 30 September 2026.
 
 Emblem: 🛡 🌾 🔴🟡
 "Together we build"
 
-👤 Village head: Sara
-🪙 National currency: Korendal mark (KRD) - reserved for the day this village becomes a country; until then Sup is used.
+👤 Mayor: Sara
+🪙 National currency: Korendal mark (KRD) - reserved for the day this city becomes a country; until then Sup is used.
   ───
   [🔙 Back] → player:profile.get
 
 ━━━ Founding refused · the form expired ━━━
 (edits message 42)
-⏳ This form ran out of time and no village was built. Send "found village" in the group again.
+⏳ This form ran out of time and no city was built. Send "found city" in the group again.
   ───
   [🔙 Back] → player:profile.get
 
 ━━━ Founding refused · not the founder ━━━
 (edits message 42)
-🔒 Only the player who asked to found the village can submit this form.
+🔒 Only the player who asked to found the city can submit this form.
   ───
   [🔙 Back] → player:profile.get
 
 ━━━ Founding refused · the form has problems ━━━
 (edits message 42)
 ⚠️ A few things in the form need fixing:
-• Another village already has that name.
+• Another city already has that name.
 • The currency code must be exactly 3 capital Latin letters, like KRD.
 • The emblem is incomplete; pick a shape, an icon and two different colours.
   ───
@@ -93,7 +93,7 @@ Emblem: 🛡 🌾 🔴🟡
 
 ━━━ Settlement refused · only works in a group ━━━
 (edits message 42)
-🏡 Founding a village only works inside a group. Add the bot to your group and send this command there.
+🏡 Founding a city only works inside a group. Add the bot to your group and send this command there.
   ───
   [🔙 Back] → player:profile.get
 
@@ -105,8 +105,8 @@ Emblem: 🛡 🌾 🔴🟡
 
 ━━━ Settlement refused · this group already founded one ━━━
 (edits message 42)
-🏡 This group has already founded the village of "Korendal".
+🏡 This group has already founded the city of "Korendal".
 
-Each group founds only one village; grow it from your village's own government instead.
+Each group founds only one city; grow it from your city's own government instead.
   ───
   [🔙 Back] → player:profile.get

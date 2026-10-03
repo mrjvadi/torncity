@@ -34,11 +34,11 @@ No step is ahead.
 
 ━━━ Village overview · the readout button (flag on) ━━━
 (edits message 42)
-🏘 the village of Korendal
+🏘 the city of Korendal
 
 👥 Population: 6 of 12
 
-🏦 Village treasury: 7,400 SUP
+🏦 City treasury: 7,400 SUP
 
 🌾 Food coverage: 40%
 💼 Job coverage: 0%
@@ -50,7 +50,7 @@ No step is ahead.
 No buildings stand here yet.
   ───
   [🏡 Become a resident] → settlement:join
-  [📚 Village knowledge] → settlement:knowledge   │   [⏳ Build progress] → settlement:build.progress
+  [📚 City knowledge] → settlement:knowledge   │   [⏳ Build progress] → settlement:build.progress
   [🧱 Stock and market] → settlement:materials
   [👥 People] → settlement:who
   [📈 Growth] → settlement:development.view

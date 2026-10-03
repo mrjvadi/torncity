@@ -1,56 +1,56 @@
-# Telegram wording (en) of village founding (the group draft, the form, the announcement), layered over configs/locales/en.yml by the catalogue loader.
+# Telegram wording (en) of city founding (the group draft, the form, the announcement), layered over configs/locales/en.yml by the catalogue loader.
 # Moved here with its screens (docs/adr/0039-presentation-split.md, section 7); a key is defined once across the layers.
 settlement:
   found:
-    title: "🏡 A new village has been founded!"
+    title: "🏡 A new city has been founded!"
     body: |-
-      This group has founded the village of "{name}" near {feature}.
+      This group has founded the city of "{name}" near {feature}.
       Terrain: {biome}
       Starting buildings: {buildings}
-      This village is protected from attack until {protection}.
+      This city is protected from attack until {protection}.
     unnamed_feature: "an unnamed land"
     # The founding form adds these to the announcement (docs/adr/0028 section 3).
     emblem: "Emblem: {emblem}"
     motto: "\"{motto}\""
-    founder: "👤 Village head: {founder}"
-    currency: "🪙 National currency: {name} ({code}) - reserved for the day this village becomes a country; until then Sup is used."
-    group_only: "🏡 Founding a village only works inside a group. Add the bot to your group and send this command there."
+    founder: "👤 Mayor: {founder}"
+    currency: "🪙 National currency: {name} ({code}) - reserved for the day this city becomes a country; until then Sup is used."
+    group_only: "🏡 Founding a city only works inside a group. Add the bot to your group and send this command there."
     no_world: "🌍 The world map is not ready yet. Try again shortly."
     already:
-      title: "🏡 This group has already founded the village of \"{name}\"."
-      body: "Each group founds only one village; grow it from your village's own government instead."
+      title: "🏡 This group has already founded the city of \"{name}\"."
+      body: "Each group founds only one city; grow it from your city's own government instead."
 founding:
   draft:
-    title: "📝 Complete the village details"
-    body: "{founder} wants to found a village for this group, but first has to complete its details: the village's name, national currency, emblem and motto. The button below opens the game; once the form is submitted the village is founded and announced here."
-    deadline: "⏳ Time to complete it: {minutes} minutes. If it runs out nothing is built and you may send \"found village\" again."
+    title: "📝 Complete the city details"
+    body: "{founder} wants to found a city for this group, but first has to complete its details: the city's name, national currency, emblem and motto. The button below opens the game; once the form is submitted the city is founded and announced here."
+    deadline: "⏳ Time to complete it: {minutes} minutes. If it runs out nothing is built and you may send \"found city\" again."
     hint: "If the button does not open, open the game from the bot's private chat; the form is waiting there."
-    pending_title: "📝 {founder} is completing this group's village details."
-    pending_body: "Only they can submit the form, but you can look at it. If it is not done within {minutes} minutes, send \"found village\" again."
-    button: "📝 Complete village details"
+    pending_title: "📝 {founder} is completing this group's city details."
+    pending_body: "Only they can submit the form, but you can look at it. If it is not done within {minutes} minutes, send \"found city\" again."
+    button: "📝 Complete city details"
   form:
-    title: "📝 Village details"
-    mine: "Choose the village's name, national currency, emblem and motto, then submit the form."
+    title: "📝 City details"
+    mine: "Choose the city's name, national currency, emblem and motto, then submit the form."
     other: "{founder} is completing this form; only they can submit it."
-    done: "🏡 The village of \"{name}\" has been founded."
-  checked: "✅ The form is fine; you can found the village of \"{name}\"."
+    done: "🏡 The city of \"{name}\" has been founded."
+  checked: "✅ The form is fine; you can found the city of \"{name}\"."
   refusal:
-    no_draft: "📝 No village form was found. Send \"found village\" in the group."
-    expired: "⏳ This form ran out of time and no village was built. Send \"found village\" in the group again."
-    not_founder: "🔒 Only the player who asked to found the village can submit this form."
-    already: "🏡 This group has already founded the village of \"{name}\"."
+    no_draft: "📝 No city form was found. Send \"found city\" in the group."
+    expired: "⏳ This form ran out of time and no city was built. Send \"found city\" in the group again."
+    not_founder: "🔒 Only the player who asked to found the city can submit this form."
+    already: "🏡 This group has already founded the city of \"{name}\"."
     invalid: "⚠️ A few things in the form need fixing:"
     no_world: "🌍 The world map is not ready yet. Try again shortly."
-    group_only: "🏡 Founding a village only works inside a group. Add the bot to your group and send \"found village\" there."
-    unavailable: "🛠 The village form is unavailable for now. Try again shortly."
+    group_only: "🏡 Founding a city only works inside a group. Add the bot to your group and send \"found city\" there."
+    unavailable: "🛠 The city form is unavailable for now. Try again shortly."
   problem:
-    name_short: "The village name needs at least {name_min} characters."
-    name_long: "The village name can have at most {name_max} characters."
-    name_chars: "The village name may only use Persian or Latin letters and spaces; no digits or symbols."
-    name_link: "The village name cannot be a link, a handle or an address."
+    name_short: "The city name needs at least {name_min} characters."
+    name_long: "The city name can have at most {name_max} characters."
+    name_chars: "The city name may only use Persian or Latin letters and spaces; no digits or symbols."
+    name_link: "The city name cannot be a link, a handle or an address."
     name_forbidden: "That name is not allowed; pick another."
     name_reserved: "That name is reserved by the game."
-    name_taken: "Another village already has that name."
+    name_taken: "Another city already has that name."
     motto_long: "The motto can have at most {motto_max} characters."
     motto_chars: "The motto may only use letters, digits and simple punctuation."
     motto_link: "The motto cannot contain a link or a handle."
@@ -59,11 +59,11 @@ founding:
     currency_name_long: "The currency name can have at most {currency_name_max} characters."
     currency_name_chars: "The currency name may only use Persian or Latin letters and spaces."
     currency_name_forbidden: "That currency name is not allowed."
-    currency_name_taken: "Another village has already taken that currency name."
+    currency_name_taken: "Another city has already taken that currency name."
     currency_code_format: "The currency code must be exactly {code_len} capital Latin letters, like KRD."
     currency_code_reserved: "That code is reserved for the game's or the real world's currencies."
     currency_code_forbidden: "That code is not allowed."
-    currency_code_taken: "Another village has already taken that currency code."
+    currency_code_taken: "Another city has already taken that currency code."
     currency_symbol_invalid: "The currency symbol must be 1 to {symbol_max} characters, without spaces."
     emblem_invalid: "The emblem is incomplete; pick a shape, an icon and two different colours."
   emoji:

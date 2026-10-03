@@ -97,13 +97,13 @@ travel:
   # to a new level; {level} is the highest level reached.
   arrived_level: "⭐ تبریک؛ به سطح {level} رسیدید."
   none: "الان در سفر نیستید. برای سفر، «نقشه» را باز کنید."
-  # «سفر به این روستا» typed in a village's group (travel.here): the journey to
+  # «سفر به این شهر» typed in a village's group (travel.here): the journey to
   # that group's village, with nothing to choose. These are what it says when
   # there is no journey to offer.
   here:
-    no_village: "🏡 این گروه هنوز روستایی ندارد، پس مقصدی برای سفر نیست. برای شروع «ساخت روستا» را بفرستید."
+    no_village: "🏡 این گروه هنوز شهری ندارد، پس مقصدی برای سفر نیست. برای شروع «ساخت شهر» را بفرستید."
     already_there: "📍 همین حالا در {village} هستید و سفری لازم نیست. برای رفتن به جای دیگر «نقشه» را باز کنید."
-    group_only: "🧭 «سفر به این روستا» را در گروهِ همان روستا بفرستید تا مستقیم به آنجا سفر کنید. برای مقصدهای دیگر «نقشه» را باز کنید."
+    group_only: "🧭 «سفر به این شهر» را در گروهِ همان شهر بفرستید تا مستقیم به آنجا سفر کنید. برای مقصدهای دیگر «نقشه» را باز کنید."
   same_city: "همین حالا در این شهر هستید. مقصد دیگری را از «نقشه» انتخاب کنید."
   no_route: "از شهری که در آن هستید راهی به آنجا نیست. یکی از مقصدهای «نقشه» را انتخاب کنید."
   mode_unavailable: "این وسیله در این مسیر رفت‌وآمد نمی‌کند. مقصد را دوباره از «نقشه» بزنید تا وسیله‌های همین مسیر را ببینید."
@@ -111,7 +111,7 @@ map:
   cities_title: "🧭 سفر به شهر دیگر"
   title: "🗺 نقشه"
   origin: "📍 شما در {city} هستید."
-  destinations: "از اینجا به این شهرها و روستاها می‌توانید سفر کنید:"
+  destinations: "از اینجا به این شهرها می‌توانید سفر کنید:"
   destination: "• {city} - {distance} کیلومتر"
   # A place priced from the world: the distance, the cheapest fare and the
   # fastest way there.
@@ -182,7 +182,7 @@ settings:
   language_changed: "✅ زبان بازی به {language} تغییر کرد."
   presence: "👁 چه کسانی وضعیت آنلاین من را ببینند: {visibility}"
   presence_changed: "✅ حالا وضعیت آنلاین شما برای «{visibility}» دیده می‌شود."
-  presence_nobody_hint: "با «هیچ‌کس»، وضعیت آنلاین دیگران هم برایتان پنهان می‌شود؛ فقط اهالی روستای خودتان می‌توانند شما را ببینند."
+  presence_nobody_hint: "با «هیچ‌کس»، وضعیت آنلاین دیگران هم برایتان پنهان می‌شود؛ فقط اهالی شهر خودتان می‌توانند شما را ببینند."
 # کلاینت‌های بازی (api/client-api.md): کد یک‌بارمصرفی که کلاینت را به حساب
 # وصل می‌کند و فهرست کلاینت‌های وصل‌شده.
 device:

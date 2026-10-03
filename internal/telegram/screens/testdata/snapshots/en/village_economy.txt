@@ -10,22 +10,22 @@
 • Timber: 9
 • Stone: 5
 
-🛒 Support's market (paid in SUP from the treasury):
+🛒 The Central City's market (paid in SUP from the treasury):
 • Timber: 18 SUP each
 • Stone: 8 SUP each
 • Wool: 15 SUP each
 
-What the village's own workplaces make comes cheaper than the market; to get going you can buy here.
+What the city's own workplaces make comes cheaper than the market; to get going you can buy here.
   ───
   [🛒 Timber x5] → settlement:materials.buy:timber:5   │   [🛒 Timber x20] → settlement:materials.buy:timber:20   │   [🛒 Timber x50] → settlement:materials.buy:timber:50
   [🛒 Stone x5] → settlement:materials.buy:stone:5   │   [🛒 Stone x20] → settlement:materials.buy:stone:20   │   [🛒 Stone x50] → settlement:materials.buy:stone:50
   [🛒 Wool x5] → settlement:materials.buy:wool:5   │   [🛒 Wool x20] → settlement:materials.buy:wool:20   │   [🛒 Wool x50] → settlement:materials.buy:wool:50
-  [⚒ Work in the village] → settlement:work   │   [🏗 Construction] → settlement:build
+  [⚒ Work in the city] → settlement:work   │   [🏗 Construction] → settlement:build
   [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:materials
 
 ━━━ Stock and market · a resident, empty stock, just bought ━━━
 (edits message 42)
-✅ 10 Timber bought and brought to the village stock (180 SUP from the treasury).
+✅ 10 Timber bought and brought to the city stock (180 SUP from the treasury).
 
 🧱 Stock and market of Korendal
 
@@ -36,19 +36,19 @@ What the village's own workplaces make comes cheaper than the market; to get goi
 📥 In the stock:
 The stock is empty.
 
-🛒 Support's market (paid in SUP from the treasury):
+🛒 The Central City's market (paid in SUP from the treasury):
 • Timber: 18 SUP each
 
-What the village's own workplaces make comes cheaper than the market; to get going you can buy here.
+What the city's own workplaces make comes cheaper than the market; to get going you can buy here.
   ───
-  [⚒ Work in the village] → settlement:work   │   [🏗 Construction] → settlement:build
+  [⚒ Work in the city] → settlement:work   │   [🏗 Construction] → settlement:build
   [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:materials
 
 ━━━ Buy confirm · ten timber ━━━
 (edits message 42)
 🛒 Buy 10 Timber for Korendal?
 
-18 SUP each; 180 SUP in all is paid from the treasury (now 58,000 SUP) and the goods go to the village stock.
+18 SUP each; 180 SUP in all is paid from the treasury (now 58,000 SUP) and the goods go to the city stock.
   ───
   [✅ Yes, buy (180 SUP)] → settlement:materials.buy:timber:10:confirm
   [🔙 Back] → settlement:materials
@@ -64,7 +64,7 @@ What the village's own workplaces make comes cheaper than the market; to get goi
 
 📦 Stock room: 14 of 60 units
 
-A resident works each shift; nothing is made without a worker and the wage is paid from the village treasury.
+A resident works each shift; nothing is made without a worker and the wage is paid from the city treasury.
   ───
   [🧱 Stock and market] → settlement:materials   │   [🏗 Construction] → settlement:build
   [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:work
@@ -77,7 +77,7 @@ A resident works each shift; nothing is made without a worker and the wage is pa
 
 📦 Stock room: 0 of 60 units
 
-A resident works each shift; nothing is made without a worker and the wage is paid from the village treasury.
+A resident works each shift; nothing is made without a worker and the wage is paid from the city treasury.
   ───
   [⚒ Start a shift at Woodcutter's camp] → settlement:work:b1
   [🧱 Stock and market] → settlement:materials   │   [🏗 Construction] → settlement:build
@@ -91,7 +91,7 @@ There is no workplace yet. To start, build one of these: Woodcutter's camp, Smal
 
 📦 Stock room: 0 of 60 units
 
-A resident works each shift; nothing is made without a worker and the wage is paid from the village treasury.
+A resident works each shift; nothing is made without a worker and the wage is paid from the city treasury.
   ───
   [🏗 Build Woodcutter's camp] → settlement:build.lots:woodcutter_camp
   [🏗 Build Small pit] → settlement:build.lots:small_pit
@@ -108,7 +108,7 @@ A resident works each shift; nothing is made without a worker and the wage is pa
 
 📦 Stock room: 0 of 60 units
 
-A resident works each shift; nothing is made without a worker and the wage is paid from the village treasury.
+A resident works each shift; nothing is made without a worker and the wage is paid from the city treasury.
   ───
   [🧱 Stock and market] → settlement:materials   │   [🏗 Construction] → settlement:build
   [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:work
@@ -123,7 +123,7 @@ A resident works each shift; nothing is made without a worker and the wage is pa
 
 📦 Stock room: 14 of 60 units
 
-A resident works each shift; nothing is made without a worker and the wage is paid from the village treasury.
+A resident works each shift; nothing is made without a worker and the wage is paid from the city treasury.
   ───
   [🧱 Stock and market] → settlement:materials   │   [🏗 Construction] → settlement:build
   [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:work
@@ -132,7 +132,7 @@ A resident works each shift; nothing is made without a worker and the wage is pa
 (edits message 42)
 🧱 To build Housing block you are still missing something:
 
-• 10 Timber needed (in the village stock: 2) - build a Woodcutter's camp to make it or buy it from Support's market (18 SUP each)
+• 10 Timber needed (in the city stock: 2) - build a Woodcutter's camp to make it or buy it from the Central City's market (18 SUP each)
   ───
   [🏗 Build Woodcutter's camp] → settlement:build.lots:woodcutter_camp
   [🛒 Buy 8 Timber] → settlement:materials.buy:timber:8
@@ -143,7 +143,7 @@ A resident works each shift; nothing is made without a worker and the wage is pa
 (edits message 42)
 🧱 To build Civic hall you are still missing something:
 
-• 5 Timber needed (in the village stock: 0) - made at your Woodcutter's camp, work a shift there or buy it from Support's market (18 SUP each)
+• 5 Timber needed (in the city stock: 0) - made at your Woodcutter's camp, work a shift there or buy it from the Central City's market (18 SUP each)
   ───
   [⚒ Work at Woodcutter's camp] → settlement:work
   [🛒 Buy 5 Timber] → settlement:materials.buy:timber:5
@@ -154,7 +154,7 @@ A resident works each shift; nothing is made without a worker and the wage is pa
 (edits message 42)
 ⚒ To work at Carpentry workshop you are still missing something:
 
-• 3 Wheat needed (in the village stock: 1) - build a Canal farm to make it
+• 3 Wheat needed (in the city stock: 1) - build a Canal farm to make it
   ───
   [🏗 Build Canal farm] → settlement:build.lots:farm_canal
   [🧱 Stock and market] → settlement:materials
@@ -164,10 +164,10 @@ A resident works each shift; nothing is made without a worker and the wage is pa
 (edits message 42)
 🧱 To build School you are still missing something:
 
-• One of these buildings: Village classroom - build it first
-• 10 Timber needed (in the village stock: 0) - build a Woodcutter's camp to make it or buy it from Support's market (18 SUP each)
+• One of these buildings: City classroom - build it first
+• 10 Timber needed (in the city stock: 0) - build a Woodcutter's camp to make it or buy it from the Central City's market (18 SUP each)
   ───
-  [🏗 Build Village classroom] → settlement:build.lots:teaching_circle
+  [🏗 Build City classroom] → settlement:build.lots:teaching_circle
   [🏗 Build Woodcutter's camp] → settlement:build.lots:woodcutter_camp
   [🛒 Buy 10 Timber] → settlement:materials.buy:timber:10
   [🧱 Stock and market] → settlement:materials
@@ -177,15 +177,15 @@ A resident works each shift; nothing is made without a worker and the wage is pa
 (edits message 42)
 🔬 To research Carpentry you are still missing something:
 
-• The knowledge Basic literacy - research it under Village knowledge or buy it from Support
+• The knowledge Basic literacy - research it under City knowledge or buy it from the Central City
   ───
-  [📚 Village knowledge] → settlement:knowledge
+  [📚 City knowledge] → settlement:knowledge
   [🧱 Stock and market] → settlement:materials
   [🔙 Back] → settlement:knowledge
 
 ━━━ Refusal · the stock is full ━━━
 (edits message 42)
-📦 The village stock has no room. A granary adds room.
+📦 The city stock has no room. A granary adds room.
   ───
   [🔙 Back] → settlement:materials
 
@@ -209,7 +209,7 @@ A resident works each shift; nothing is made without a worker and the wage is pa
 
 🏗 Woodcutter's camp - cost 300 SUP - build time 30m
 🧱 Civic hall - cost 1,000 SUP - materials: 5 Timber - you lack: 5 Timber
-🔒 School - build one of Village classroom first
+🔒 School - build one of City classroom first
   ───
   [🏗 Build Woodcutter's camp] → settlement:build.lots:woodcutter_camp   │   [🏗 Build Civic hall] → settlement:build.lots:civic_hall
   [🗺 Expand the land] → settlement:grid.grow

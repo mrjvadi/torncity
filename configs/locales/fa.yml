@@ -285,8 +285,8 @@ office:
   central_banker: "رئیس بانک مرکزی"
   military_governor: "فرماندار نظامی"
   parliament: مجلس
-  village_head: دهیار
-  town_head: فرماندار
+  village_head: شهردار
+  town_head: شهردار
   governor: استاندار
 
 # Policy names, keyed on the lever's content code (configs/content/governance.yml).
@@ -322,9 +322,9 @@ lever:
     bank_reserve_ratio: "ذخیرهٔ قانونی بانک ملی"
     bank_funding: "سرمایه‌گذاری خزانه در بانک ملی (سهم هر دوره)"
   village:
-    local_levy: "عوارض محلی روستا"
+    local_levy: "عوارض محلی شهر"
   town:
-    local_levy: "عوارض محلی شهرک"
+    local_levy: "عوارض محلی"
     building_permit_fee: "هزینهٔ پروانهٔ ساخت"
   province:
     revenue_share: "سهم استان از درآمد شهرها"
@@ -353,7 +353,7 @@ biome:
 # (docs/adr/0028-world-and-settlements.md section 7).
 settlement_building:
   road: جاده
-  civic_hall: "خانهٔ دهیاری"
+  civic_hall: "شهرداری"
   private_cottage: "کلبه"
   private_house: "خانه"
   woodcutter_camp: "کارگاه هیزم‌شکنی"
@@ -400,7 +400,7 @@ settlement_building:
 # Group founding (docs/adr/0028-world-and-settlements.md section 3): a group
 # admin registers the group and the game places the new village on the map.
 
-# The founding form (docs/adr/0028-world-and-settlements.md section 3): «ساخت روستا»
+# The founding form (docs/adr/0028-world-and-settlements.md section 3): «ساخت شهر»
 # opens a draft in the group; the founder completes the village's details in
 # the game client, and only submitting the form founds the village.
 
@@ -430,7 +430,7 @@ group:
   webapp_slow_down: "⏳ همین الان فرستاده شد؛ پیوی خودتان را ببینید."
   webapp_unavailable: "این بخش فعلاً در دسترس نیست. کمی بعد دوباره امتحان کنید."
   webapp_text: "🌐 برای ورود به بازی روی دکمهٔ زیر بزنید تا در همین گفت‌وگو باز شود."
-  webapp_text_founding: "🏡 برای پر کردن فرم تأسیس روستا روی دکمهٔ زیر بزنید تا در همین گفت‌وگو باز شود."
+  webapp_text_founding: "🏡 برای پر کردن فرم تأسیس شهر روی دکمهٔ زیر بزنید تا در همین گفت‌وگو باز شود."
   webapp_open: "🌐 باز کردن"
   # Posted once when the bot is added to a group.
   welcome: |-
@@ -635,12 +635,12 @@ command_alias:
   # Straight to the village of the group it is sent in (travel.here): the ways
   # there from wherever the player stands, no list to search.
   travel:
-    here: "سفر به این روستا | سفر به این گروه | سفر به اینجا | بریم اینجا"
+    here: "سفر به این شهر | سفر به این روستا | سفر به این گروه | سفر به اینجا | بریم اینجا"
   settlement:
-    found: "ساخت روستا | تاسیس روستا"
-    join: "ساکن این روستا شو | عضویت در روستا | ساکن روستا شو"
-    leave: "ترک روستا"
-    who: "اهالی روستا | آنلاین‌ها"
+    found: "ساخت شهر | تاسیس شهر | ساخت روستا | تاسیس روستا"
+    join: "ساکن این شهر شو | عضویت در شهر | ساکن شهر شو | ساکن این روستا شو | عضویت در روستا | ساکن روستا شو"
+    leave: "ترک شهر | ترک روستا"
+    who: "اهالی شهر | اهالی روستا | آنلاین‌ها"
 
 # Where a command runs (configs/commands.yml). Sent in the wrong kind of chat,
 # it is not run; the player reads one of these instead.
@@ -1067,7 +1067,7 @@ career_category:
 mission_board:
   city_hall: تابلوی اعلانات شهرداری
   police: تابلوی پلیس
-  village_works: تابلوی کارهای روستا
+  village_works: تابلوی کارهای شهر
 
 # مأموریت‌ها (docs/adr/0023): کارهایی که شهر روی تابلوهایش می‌گذارد.
 mission:
@@ -1094,10 +1094,10 @@ mission:
     brief: "پلیس از داوطلبان می‌خواهد دارو را درست به کار ببرند."
   village_first_lesson:
     name: "اولین درس"
-    brief: "روستا به آدم‌های باسواد نیاز دارد: یک دوره را تا آخر بخوانید."
+    brief: "شهر به آدم‌های باسواد نیاز دارد: یک دوره را تا آخر بخوانید."
   village_bread_run:
     name: "نان برای انبار"
-    brief: "انبار روستا نان کم آورده؛ سه نان به تابلو برسانید."
+    brief: "انبار شهر نان کم آورده؛ سه نان به تابلو برسانید."
   village_bandage_run:
     name: "باند برای خانهٔ بهداشت"
     brief: "خانهٔ بهداشت باند کم دارد؛ سه باند به تابلو برسانید."
@@ -1246,8 +1246,8 @@ life:
     richest_tab: "💎 ثروتمندترین‌ها"
     richest_hint: "دارایی خالص: نقد، بانک، پس‌انداز، سهام، طلا، املاک و کالاها، منهای بدهی و وام."
     village_title: "🏡 ثروتمندترین‌های {village}"
-    village_tab: "🏡 روستا"
-    village_hint: "هم‌روستایی‌ها بر پایهٔ دارایی خالص‌شان."
+    village_tab: "🏡 شهر"
+    village_hint: "هم‌شهری‌ها بر پایهٔ دارایی خالص‌شان."
     companies_title: "🏢 بزرگ‌ترین شرکت‌ها"
     companies_line: "{pos}. {name} - {tag} در {city} - {value}"
     companies_tab: "🏢 شرکت‌ها"
@@ -1311,9 +1311,9 @@ recruit:
     first: "آرش|مریم|کیان|نگار|بهرام|سپیده|داریوش|لیلا|فرهاد|نسرین|کامران|شیرین|پویا|مهسا|رامین|آزاده|سیاوش|ترانه|امید|یلدا"
     last: "رستمی|کاظمی|نوروزی|فرهمند|صالحی|تهرانی|مرادی|سعیدی|احمدی|کریمی|شریفی|یزدانی"
 
-# آخرین بازدید و اهالی روستا (docs/adr/0030-realtime-interest-and-presence.md؛
+# آخرین بازدید و اهالی شهر (docs/adr/0030-realtime-interest-and-presence.md؛
 # internal/telegram/screens/presence.go). صفحهٔ «اهالی» در گروه است و فقط
-# فهرست همان روستاست؛ تنظیم شخصی هرگز در گروه نمایش داده نمی‌شود.
+# فهرست همان شهر است؛ تنظیم شخصی هرگز در گروه نمایش داده نمی‌شود.
 presence:
   visibility:
     everyone: "همه"
@@ -1337,7 +1337,7 @@ presence:
     more: "و {count} نفر آنلاین دیگر"
     nobody: "الان کسی آنلاین نیست."
 
-# خبرهای کوتاه روستا در گروه (internal/workers/notification/village_news.go).
+# خبرهای کوتاه شهر در گروه (internal/workers/notification/village_news.go).
 # یک خبر تنها با جملهٔ کامل می‌آید؛ چند خبر پشت‌سرهم یکی می‌شوند و فهرست‌وار.
 
 # نام نقش ساختمان‌های آبادی (settlement_buildings.yml، role)؛ شرط‌های دسترسی به آن‌ها اشاره می‌کنند.

@@ -535,18 +535,18 @@ button:
   confirm_pay: "✅ Confirm and pay"
   pay_again: "💸 Pay again"
 
-# "Not available here": a service this place (a village, a town) does not have yet, and the nearest place that does.
+# "Not available here": a service this place (a city) does not have yet, and the nearest place that does.
 unavailable:
   title: "🚫 {service} is not available here"
-  from: "{service} starts at the {stage} stage; this is still a {here}."
+  from: "{service} has not been set up here yet."
   only_support: "{service} is only in {place}."
   requires: "Building needed: {buildings}."
   nearest: "Nearest place: {city}."
   service_unknown: "This service"
   stage_unknown: "somewhere else"
   stage:
-    village: "village"
-    town: "town"
+    village: "city"
+    town: "city"
     city: "city"
     country: "country"
     support: "central city"

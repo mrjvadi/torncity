@@ -140,7 +140,7 @@ Friends can find you by sending "find K7Q2M9A".
   [🗺 Map] → map:list   │   [💼 My job] → job:status
   [🎓 Education] → education:list   │   [🏦 Bank] → bank:show
   [🏠 My property] → property:mine   │   [🛒 Shops] → shop:list
-  [🏡 My village] → settlement:home   │   [🏢 The city's companies] → company:list
+  [🏡 My city] → settlement:home   │   [🏢 The city's companies] → company:list
   [👥 Friends] → social:friend.list   │   [🏴 My faction] → faction:mine
   [📋 My missions] → mission:mine
   [🛠 Skills] → skills:list   │   [🧬 My life] → life:me

@@ -990,6 +990,9 @@ type SearchView struct {
 type FriendLine struct {
 	ID   string
 	Name string
+	// Code is the friend's public player code, set for an accepted friend only: it is what a client sends to pay the
+	// friend or to invite them to a faction, so the list needs no search first. Empty for a pending or blocked edge.
+	Code string
 	// Status is the stored edge status. It is never shown as it stands: it
 	// only chooses which line the friend gets.
 	Status string

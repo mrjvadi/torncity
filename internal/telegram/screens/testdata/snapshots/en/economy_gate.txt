@@ -1,7 +1,7 @@
 ━━━ Not here, bank counters · loans in a village ━━━
 (edits message 42)
 🚫 Bank loans is not available here
-Bank loans starts at the city stage; this is still a village.
+Bank loans has not been set up here yet.
 Building needed: Bank.
 Nearest place: Brennhaven.
   ───
@@ -11,7 +11,7 @@ Nearest place: Brennhaven.
 ━━━ Not here, bank counters · savings in a village ━━━
 (edits message 42)
 🚫 Savings is not available here
-Savings starts at the city stage; this is still a village.
+Savings has not been set up here yet.
 Building needed: Bank.
 Nearest place: Brennhaven.
   ───
@@ -21,7 +21,7 @@ Nearest place: Brennhaven.
 ━━━ Not here, bank counters · insurance in a town ━━━
 (edits message 42)
 🚫 Insurance is not available here
-Insurance starts at the city stage; this is still a town.
+Insurance has not been set up here yet.
 Building needed: Bank.
 Nearest place: Brennhaven.
   ───
@@ -31,7 +31,7 @@ Nearest place: Brennhaven.
 ━━━ Not here, markets of money · the exchange in a village ━━━
 (edits message 42)
 🚫 The stock exchange is not available here
-The stock exchange starts at the city stage; this is still a village.
+The stock exchange has not been set up here yet.
 Building needed: Bank.
 Nearest place: Brennhaven.
   ───
@@ -41,7 +41,7 @@ Nearest place: Brennhaven.
 ━━━ Not here, markets of money · gold in a village ━━━
 (edits message 42)
 🚫 The gold dealer is not available here
-The gold dealer starts at the city stage; this is still a village.
+The gold dealer has not been set up here yet.
 Building needed: Bank.
 Nearest place: Brennhaven.
   ───
@@ -60,6 +60,6 @@ Nearest place: Brennhaven.
 ━━━ Not here, markets of money · nowhere known to go ━━━
 (edits message 42)
 🚫 The gold dealer is not available here
-The gold dealer starts at the city stage; this is still a village.
+The gold dealer has not been set up here yet.
   ───
   [🔙 Back] → player:profile.get

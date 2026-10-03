@@ -25,7 +25,7 @@ func villageEconomySnapshots(c Context, who people, add func(string, *presenter.
 	pit := sampleNamed(c.Lang, "small_pit", "گودال استخراج", "Small pit")
 	joinery := sampleNamed(c.Lang, "carpentry_workshop", "کارگاه نجاری", "Carpentry workshop")
 	housing := sampleNamed(c.Lang, "housing_block", "بلوک مسکونی", "Housing block")
-	civicHall := sampleNamed(c.Lang, "civic_hall", "خانهٔ دهیاری", "Civic hall")
+	civicHall := sampleNamed(c.Lang, "civic_hall", "شهرداری", "Civic hall")
 	school := sampleNamed(c.Lang, "school", "مدرسه", "School")
 	carpentry := sampleNamed(c.Lang, "carpentry", "نجاری", "Carpentry")
 

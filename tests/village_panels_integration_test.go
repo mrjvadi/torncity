@@ -585,7 +585,7 @@ func TestVillagePanelsBatchRoadsAndGrowth(t *testing.T) {
 		return s
 	}()
 
-	if r := growReq(stranger, ""); !strings.Contains(r.Text, "دهیار") {
+	if r := growReq(stranger, ""); !strings.Contains(r.Text, "شهردار") {
 		t.Errorf("a non-head could ask to grow the land: %q", r.Text)
 	}
 	first := growReq(head, "")

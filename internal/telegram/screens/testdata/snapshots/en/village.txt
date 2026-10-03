@@ -1,10 +1,10 @@
 ━━━ Village overview · a young village ━━━
 (edits message 42)
-🏘 the village of Korendal
+🏘 the city of Korendal
 
 👥 Population: 340 of 500
 
-🏦 Village treasury: 12,400 SUP
+🏦 City treasury: 12,400 SUP
 
 🌾 Food coverage: 62%
 💼 Job coverage: 48%
@@ -17,18 +17,18 @@
 • Carpentry workshop
   ───
   [🏡 Become a resident] → settlement:join
-  [📚 Village knowledge] → settlement:knowledge   │   [⏳ Build progress] → settlement:build.progress
+  [📚 City knowledge] → settlement:knowledge   │   [⏳ Build progress] → settlement:build.progress
   [🧱 Stock and market] → settlement:materials
   [👥 People] → settlement:who
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → settlement:overview
 
 ━━━ Village overview · nothing built yet ━━━
 (edits message 42)
-🏘 the village of Korendal
+🏘 the city of Korendal
 
 👥 Population: 40 of 100
 
-🏦 Village treasury: 900 SUP
+🏦 City treasury: 900 SUP
 
 🌾 Food coverage: 20%
 💼 Job coverage: 10%
@@ -40,7 +40,7 @@
 No buildings stand here yet.
   ───
   [🏡 Become a resident] → settlement:join
-  [📚 Village knowledge] → settlement:knowledge   │   [⏳ Build progress] → settlement:build.progress
+  [📚 City knowledge] → settlement:knowledge   │   [⏳ Build progress] → settlement:build.progress
   [🧱 Stock and market] → settlement:materials
   [👥 People] → settlement:who
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → settlement:overview
@@ -56,7 +56,7 @@ No buildings stand here yet.
 ✅ Oral tradition - already known
 🔬 Canal irrigation - research cost 3,000 SUP (24h) - ready-made price: 5,400 SUP
 🔒 Basic literacy - needs Oral tradition first
-🔒 Shaft irrigation - this village's terrain does not permit it
+🔒 Shaft irrigation - this city's terrain does not permit it
 
 🔭 6 more items unlock beyond these.
   ───
@@ -109,7 +109,7 @@ Nothing is queued.
 (edits message 42)
 🏛 Granary
 
-The village store: the shared materials and goods are kept here, and construction draws from this stock.
+The city store: the shared materials and goods are kept here, and construction draws from this stock.
 
 ✅ Built and working.
 
@@ -129,7 +129,7 @@ The village store: the shared materials and goods are kept here, and constructio
 (edits message 42)
 🏛 Granary
 
-The village store: the shared materials and goods are kept here, and construction draws from this stock.
+The city store: the shared materials and goods are kept here, and construction draws from this stock.
 
 ✅ Built and working.
 
@@ -139,13 +139,13 @@ The village store: the shared materials and goods are kept here, and constructio
 
 ━━━ Building panel · a teaching circle, the head sees the upgrade ━━━
 (edits message 42)
-🏛 Village classroom
+🏛 City classroom
 
-Teaches the villagers; while it stands, literacy slowly spreads.
+Teaches the residents; while it stands, literacy slowly spreads.
 
 ✅ Built and working.
 
-📖 Village literacy: 34%
+📖 City literacy: 34%
 
 🧑‍🏫 Teaching is under way and literacy is slowly rising.
 
@@ -157,9 +157,9 @@ Teaches the villagers; while it stands, literacy slowly spreads.
 
 ━━━ Building panel · the upgrade, revealed when pressed ━━━
 (edits message 42)
-🏛 Village classroom
+🏛 City classroom
 
-⬆️ The next step after Village classroom:
+⬆️ The next step after City classroom:
 
 🔒 School - you need Record keeping first
   ───
@@ -169,19 +169,19 @@ Teaches the villagers; while it stands, literacy slowly spreads.
 (edits message 42)
 🏛 Civic hall
 
-The village's seat of office, where the head runs the village. The treasury, knowledge and construction are reached from here.
+The city's seat of office, where the head runs the city. The treasury, knowledge and construction are reached from here.
 
 ✅ Built and working.
 
 👥 Population: 34
 
-🏦 Village treasury: 24,600 SUP
+🏦 City treasury: 24,600 SUP
 
 🔬 Research under way: Canal irrigation - 41m left
 
 🧾 Upkeep: 20 SUP per period
   ───
-  [🏘 Village] → settlement:overview   │   [📚 Village knowledge] → settlement:knowledge
+  [🏘 City] → settlement:overview   │   [📚 City knowledge] → settlement:knowledge
   [🏗 Construction] → settlement:build   │   [⏳ Build progress] → settlement:build.progress
   [🗑 Demolish] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44:dm
   [🔙 Back] → settlement:build.progress   │   [🔄 Refresh] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
@@ -190,7 +190,7 @@ The village's seat of office, where the head runs the village. The treasury, kno
 (edits message 42)
 🏛 Watch hut
 
-Watches over the village and raises local security.
+Watches over the city and raises local security.
 
 ✅ Built and working.
 
@@ -204,7 +204,7 @@ Watches over the village and raises local security.
 (edits message 42)
 🏛 Road
 
-A village road; it joins the lots and is the way the villagers walk. It does nothing else.
+A city road; it joins the lots and is the way the residents walk. It does nothing else.
 
 ✅ Built and working.
 
@@ -217,7 +217,7 @@ A village road; it joins the lots and is the way the villagers walk. It does not
 (edits message 42)
 🏛 Carpentry workshop
 
-A workshop, the base of making goods in the village.
+A workshop, the base of making goods in the city.
 
 🏗 Under construction: 42% - finishes at 16:05 (1h 30m left).
   ───
@@ -251,7 +251,7 @@ A workshop, the base of making goods in the village.
 Tap a finished building to see it.
   ───
   [🏗 Carpentry] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
-  [Granary] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44   │   [Village classroom] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
+  [Granary] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44   │   [City classroom] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
   [Civic hall] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
   [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:build.progress
 
@@ -269,7 +269,7 @@ Build time: 10m (all start together)
 (edits message 42)
 🚧 The batch was not built and nothing was paid. These lots have a problem:
 • row 1, column 2: already taken
-• row 10, column 10: outside the village
+• row 10, column 10: outside the city
 • row 4, column 3: water or too steep
   ───
   [🔙 Back] → settlement:overview
@@ -362,7 +362,7 @@ Standing buildings stay where they are. Water and steep ground stay unbuildable.
 
 ━━━ Land · the technical bound ━━━
 (edits message 42)
-🗺 The village's land has reached the technical limit of the map size and cannot grow further.
+🗺 The city's land has reached the technical limit of the map size and cannot grow further.
   ───
   [🔙 Back] → settlement:overview
 
@@ -436,11 +436,11 @@ Location: row 1, column 4
 
 ━━━ Village overview · a resident's view (no join button) ━━━
 (edits message 42)
-🏘 the village of Korendal
+🏘 the city of Korendal
 
 👥 Population: 12 of 100
 
-🏦 Village treasury: 900 SUP
+🏦 City treasury: 900 SUP
 
 🌾 Food coverage: 20%
 💼 Job coverage: 10%
@@ -451,23 +451,23 @@ Location: row 1, column 4
 
 No buildings stand here yet.
 
-🌱 This is your home: buy land, build a house and help the village grow.
+🌱 This is your home: buy land, build a house and help the city grow.
   ───
   [🏡 Buy land] → settlement:land   │   [🏠 Build a house] → settlement:private
-  [⚒ Work in the village] → settlement:work   │   [💰 Give to the treasury] → settlement:donate
+  [⚒ Work in the city] → settlement:work   │   [💰 Give to the treasury] → settlement:donate
   [🧾 My property] → settlement:mine   │   [👥 People] → settlement:who
-  [📚 Village knowledge] → settlement:knowledge   │   [⏳ Build progress] → settlement:build.progress
+  [📚 City knowledge] → settlement:knowledge   │   [⏳ Build progress] → settlement:build.progress
   [🧱 Stock and market] → settlement:materials
-  [🚪 Leave the village] → settlement:leave
+  [🚪 Leave the city] → settlement:leave
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → settlement:overview
 
 ━━━ Village home · the group hub, a resident, with Support's services a journey away ━━━
 (edits message 42)
-🏘 the village of Korendal
+🏘 the city of Korendal
 
 👥 Population: 12 of 100
 
-🏦 Village treasury: 10,900 SUP
+🏦 City treasury: 10,900 SUP
 
 🌾 Food coverage: 20%
 💼 Job coverage: 10%
@@ -478,16 +478,16 @@ No buildings stand here yet.
 
 No buildings stand here yet.
 
-🌱 This is your home: buy land, build a house and help the village grow.
+🌱 This is your home: buy land, build a house and help the city grow.
 
 🧭 Services in Central City - travel there for them:
   ───
   [🏡 Buy land] → settlement:land   │   [🏠 Build a house] → settlement:private
-  [⚒ Work in the village] → settlement:work   │   [💰 Give to the treasury] → settlement:donate
+  [⚒ Work in the city] → settlement:work   │   [💰 Give to the treasury] → settlement:donate
   [🧾 My property] → settlement:mine   │   [👥 People] → settlement:who
-  [📚 Village knowledge] → settlement:knowledge   │   [⏳ Build progress] → settlement:build.progress
+  [📚 City knowledge] → settlement:knowledge   │   [⏳ Build progress] → settlement:build.progress
   [🧱 Stock and market] → settlement:materials
-  [🚪 Leave the village] → settlement:leave
+  [🚪 Leave the city] → settlement:leave
   [🏦 Bank - travel to Central City] → travel:options:support   │   [🛒 Market - travel to Central City] → travel:options:support
   [💼 Jobs - travel to Central City] → travel:options:support   │   [📚 Knowledge - travel to Central City] → travel:options:support
   [🏥 Hospital - travel to Central City] → travel:options:support   │   [⛓ Jail - travel to Central City] → travel:options:support
@@ -495,11 +495,11 @@ No buildings stand here yet.
 
 ━━━ Village home · a private chat (the village is home, run in its group) ━━━
 (edits message 42)
-🏘 the village of Korendal
+🏘 the city of Korendal
 
 👥 Population: 12 of 100
 
-🏦 Village treasury: 10,900 SUP
+🏦 City treasury: 10,900 SUP
 
 🌾 Food coverage: 20%
 💼 Job coverage: 10%
@@ -510,14 +510,14 @@ No buildings stand here yet.
 
 No buildings stand here yet.
 
-🌱 This is your home: buy land, build a house and help the village grow.
+🌱 This is your home: buy land, build a house and help the city grow.
 
-🏘 Building, research and donations are done in the village group; here you see how your village stands.
+🏘 Building, research and donations are done in the city group; here you see how your city stands.
 
 🧭 Services in Central City - travel there for them:
   ───
   [🏡 Buy land] → settlement:land   │   [🏠 Build a house] → settlement:private
-  [⚒ Work in the village] → settlement:work   │   [💰 Give to the treasury] → settlement:donate
+  [⚒ Work in the city] → settlement:work   │   [💰 Give to the treasury] → settlement:donate
   [🧾 My property] → settlement:mine
   [🏦 Bank - travel to Central City] → travel:options:support   │   [🛒 Market - travel to Central City] → travel:options:support
   [💼 Jobs - travel to Central City] → travel:options:support   │   [📚 Knowledge - travel to Central City] → travel:options:support
@@ -526,11 +526,11 @@ No buildings stand here yet.
 
 ━━━ Village home · the village head's hub (civic build and land terms) ━━━
 (edits message 42)
-🏘 the village of Korendal
+🏘 the city of Korendal
 
 👥 Population: 12 of 100
 
-🏦 Village treasury: 10,900 SUP
+🏦 City treasury: 10,900 SUP
 
 🌾 Food coverage: 20%
 💼 Job coverage: 10%
@@ -541,22 +541,22 @@ No buildings stand here yet.
 
 No buildings stand here yet.
 
-🌱 This is your home: buy land, build a house and help the village grow.
+🌱 This is your home: buy land, build a house and help the city grow.
   ───
   [🏡 Buy land] → settlement:land   │   [🏠 Build a house] → settlement:private
-  [⚒ Work in the village] → settlement:work   │   [💰 Give to the treasury] → settlement:donate
+  [⚒ Work in the city] → settlement:work   │   [💰 Give to the treasury] → settlement:donate
   [🧾 My property] → settlement:mine   │   [👥 People] → settlement:who
-  [📚 Village knowledge] → settlement:knowledge   │   [⏳ Build progress] → settlement:build.progress
+  [📚 City knowledge] → settlement:knowledge   │   [⏳ Build progress] → settlement:build.progress
   [🧱 Stock and market] → settlement:materials
   [🏗 Construction] → settlement:build   │   [⚖️ Land terms] → settlement:terms
-  [🚪 Leave the village] → settlement:leave
+  [🚪 Leave the city] → settlement:leave
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → settlement:overview
 
 ━━━ Land grid · free lots on offer ━━━
 (edits message 42)
 🏡 Land in Korendal
 
-Any free lot can be yours: the price goes to the village treasury and the lot is yours for good.
+Any free lot can be yours: the price goes to the city treasury and the lot is yours for good.
 💵 Price per lot: 400 SUP
 📌 Your lots: 1 of 6
 
@@ -576,7 +576,7 @@ Any free lot can be yours: the price goes to the village treasury and the lot is
 Row 4, column 3
 Price: 400 SUP
 
-The money goes to the village treasury.
+The money goes to the city treasury.
 
 🛣 This lot is on the road; no road is needed.
   ───
@@ -587,7 +587,7 @@ The money goes to the village treasury.
 (edits message 42)
 ✅ This lot is yours now
 
-Row 4, column 3 is registered in your name and 400 SUP went to the village treasury.
+Row 4, column 3 is registered in your name and 400 SUP went to the city treasury.
 You can build a house on it now.
   ───
   [🏠 Build a house] → settlement:private   │   [🏡 More land] → settlement:land
@@ -600,7 +600,7 @@ You can build a house on it now.
 Row 4, column 3
 Price: 400 SUP
 
-The money goes to the village treasury.
+The money goes to the city treasury.
 
 🛣 No road reaches this lot yet. 3 lots of road are laid over public land for 30 SUP. The road stays public for good.
 
@@ -616,7 +616,7 @@ You pay in all: 430 SUP
 Row 4, column 3
 Price: 400 SUP
 
-The money goes to the village treasury.
+The money goes to the city treasury.
 
 🌉 Reaching this lot takes 2 lots of road and a crossing over water (1 lots of culvert or footbridge). Whole road: 160 SUP. The road stays public for good.
 
@@ -632,7 +632,7 @@ You pay in all: 560 SUP
 Row 4, column 3
 Price: 400 SUP
 
-The money goes to the village treasury.
+The money goes to the city treasury.
 
 ⛔ No road can reach this lot: other people's lots, buildings, slopes or wide water close it in. That is why it is not for sale.
 
@@ -655,7 +655,7 @@ No road reaches this lot, so "Private cottage" cannot be built on it. Here is wh
 
 🛣 No road reaches this lot yet. 2 lots of road are laid, 1 of them on your own lots, for 20 SUP.
 
-If you do not want a road, the sale is cancelled, 400 SUP comes back to you from the village treasury and the lot returns to the village.
+If you do not want a road, the sale is cancelled, 400 SUP comes back to you from the city treasury and the lot returns to the city.
   ───
   [🛣 Lay the road - 160 SUP] → settlement:lot.repair:2-3:connect:confirm
   [🪓 Cut the road through my own land (1 lots, 20 SUP)] → settlement:lot.repair:2-3:carve:confirm
@@ -773,7 +773,7 @@ Cash total: 954 SUP
 📜 Building permit: 100 SUP (up to 1,000 SUP)
 📊 Property tax each period: 2% (up to 5%)
 
-All of it goes to the village treasury.
+All of it goes to the city treasury.
   ───
   [💵 Lot 100 SUP] → settlement:terms:lot_price:100   │   [💵 Lot 400 SUP] → settlement:terms:lot_price:400   │   [💵 Lot 800 SUP] → settlement:terms:lot_price:800
   [📜 Permit 0 SUP] → settlement:terms:permit_fee:0   │   [📜 Permit 100 SUP] → settlement:terms:permit_fee:100   │   [📜 Permit 200 SUP] → settlement:terms:permit_fee:200
@@ -795,7 +795,7 @@ You have reached the personal lot limit; build on your lots first.
 
 ━━━ Refusal · citizen_zoning ━━━
 (edits message 42)
-The share of private lots in this village is full, to keep public space.
+The share of private lots in this city is full, to keep public space.
   ───
   [🔙 Back] → settlement:overview
 
@@ -813,7 +813,7 @@ You do not have enough money for this.
 
 ━━━ Refusal · citizen_private_only ━━━
 (edits message 42)
-This is a private building: residents build it on their own lot, not the village head.
+This is a private building: residents build it on their own lot, not the mayor.
   ───
   [🔙 Back] → settlement:overview
 
@@ -849,7 +849,7 @@ You have no tax debt.
 
 ━━━ Refusal · citizen_off ━━━
 (edits message 42)
-Buying land is not open in this village yet.
+Buying land is not open in this city yet.
   ───
   [🔙 Back] → settlement:overview
 
@@ -862,24 +862,24 @@ You own no lots; buy one first.
 
 ━━━ Village home · a group with no village: the call to found one ━━━
 (edits message 42)
-🏡 This group has no village yet.
+🏡 This group has no city yet.
 
-A village is your group's home: it has a shared treasury, buildings and knowledge, and everyone who lives there shares in it. Open the founding form with the button below; nothing is built until it is complete.
+A city is your group's home: it has a shared treasury, buildings and knowledge, and everyone who lives there shares in it. Open the founding form with the button below; nothing is built until it is complete.
   ───
-  [🏗 Found the village] → settlement:found
+  [🏗 Found the city] → settlement:found
   [🔙 Back] → player:profile.get
 
 ━━━ Village home · private, living in no village ━━━
 (edits message 42)
-🏡 You do not live in a village yet.
+🏡 You do not live in a city yet.
 
-Go to a village group and press «Live in this village», or send «Found a village» in your own group.
+Go to a city group and press «Live in this city», or send «Found a city» in your own group.
   ───
   [🔙 Back] → player:profile.get
 
 ━━━ Refusal · a city-only feature asked of a village ━━━
 (edits message 42)
-This is for cities: a village has no budget or city council yet. It opens up once the village grows.
+A city council and a budget are not set up in this city yet. They open up as the city grows.
   ───
   [🔙 Back] → player:profile.get
 
@@ -893,7 +893,7 @@ I could not understand that request. Please use the buttons.
 (edits message 42)
 🏡 Become a resident of Korendal?
 
-Your home moves to this village. Your properties, companies and job stay where they are, but from now on your income tax goes to the village treasury and you need a work permit to work in other cities.
+Your home moves to this city. Your properties, companies and job stay where they are, but from now on your income tax goes to the city treasury and you need a work permit to work in other cities.
 You cannot move home again for 72h.
   ───
   [✅ Yes, I will live here] → settlement:join:confirm
@@ -905,7 +905,7 @@ You cannot move home again for 72h.
 
 Your home is now here, and you are one of 13 residents. You cannot move again for 72h.
   ───
-  [🏘 Village] → settlement:overview
+  [🏘 City] → settlement:overview
   [🔙 Back] → player:profile.get
 
 ━━━ Residence · asks before leaving ━━━
@@ -924,18 +924,18 @@ You cannot move home again for 72h.
 
 Your home is now Support. You cannot move again for 72h.
   ───
-  [🏘 Village] → settlement:overview
+  [🏘 City] → settlement:overview
   [🔙 Back] → player:profile.get
 
 ━━━ Residence refused · already a resident ━━━
 (edits message 42)
-🏡 You already live in this village.
+🏡 You already live in this city.
   ───
   [🔙 Back] → settlement:overview
 
 ━━━ Residence refused · not a resident ━━━
 (edits message 42)
-🏡 You do not live in this village.
+🏡 You do not live in this city.
   ───
   [🔙 Back] → settlement:overview
 
@@ -947,7 +947,7 @@ Your home is now Support. You cannot move again for 72h.
 
 ━━━ Residence refused · the head cannot leave ━━━
 (edits message 42)
-🔒 You cannot leave the village while you are its head.
+🔒 You cannot leave the city while you are its head.
   ───
   [🔙 Back] → settlement:overview
 
@@ -955,7 +955,7 @@ Your home is now Support. You cannot move again for 72h.
 (edits message 42)
 🏡 Sara became a resident of Korendal.
   ───
-  [🏘 Village] → settlement:overview
+  [🏘 City] → settlement:overview
 
 ━━━ Village news · several joined and a building finished ━━━
 (edits message 42)
@@ -964,11 +964,11 @@ Your home is now Support. You cannot move again for 72h.
 • 🏡 Kamran moved in.
 • 🏗 The Watch hut is built.
   ───
-  [🏘 Village] → settlement:overview
+  [🏘 City] → settlement:overview
 
 ━━━ Village refused · not enough materials ━━━
 (edits message 42)
-🧱 The village does not have enough of the materials this build needs.
+🧱 The city does not have enough of the materials this build needs.
   ───
   [🔙 Back] → settlement:overview
 

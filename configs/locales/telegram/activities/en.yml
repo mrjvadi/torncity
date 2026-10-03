@@ -16,8 +16,8 @@ activities:
     working: "Working at {building} - {duration} left - pay: {wage}"
     empty:
       no_settlement: "Here, work means the careers of the city."
-      not_resident: "You have to live in this village to work here."
-      no_jobs: "No work for now. When the village head builds a workplace or posts a job, it shows up here."
+      not_resident: "You have to live in this city to work here."
+      no_jobs: "No work for now. When the mayor builds a workplace or posts a job, it shows up here."
   health:
     title: "🩺 Health"
     health: "❤️ {health} of {max}"

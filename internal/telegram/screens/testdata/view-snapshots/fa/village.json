@@ -192,7 +192,7 @@
     "view": {
       "building": {
         "code": "civic_hall",
-        "name": "خانهٔ دهیاری"
+        "name": "شهرداری"
       },
       "can_manage": true,
       "effects": null,
@@ -2080,7 +2080,7 @@
     "view": {
       "building": {
         "code": "civic_hall",
-        "name": "خانهٔ دهیاری"
+        "name": "شهرداری"
       },
       "can_rotate": false,
       "from": {
@@ -2291,7 +2291,7 @@
       "build_time_seconds": 7200,
       "building": {
         "code": "civic_hall",
-        "name": "خانهٔ دهیاری"
+        "name": "شهرداری"
       },
       "cost_money": 1000,
       "materials": [

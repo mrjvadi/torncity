@@ -91,9 +91,9 @@ travel:
   arrived_level: "⭐ Congratulations — you reached level {level}."
   none: "You are not travelling right now. Open the “Map” to choose a destination."
   here:
-    no_village: "🏡 This group has no village yet, so there is nowhere to travel to. Send “found village” to start one."
+    no_village: "🏡 This group has no city yet, so there is nowhere to travel to. Send “found city” to start one."
     already_there: "📍 You are in {village} right now; no journey needed. Open the “Map” to go somewhere else."
-    group_only: "🧭 Send “travel to this village” in the group of that village to travel straight there. Open the “Map” for other destinations."
+    group_only: "🧭 Send “travel to this city” in the group of that city to travel straight there. Open the “Map” for other destinations."
   same_city: "You are already in this city. Choose another destination on the “Map”."
   no_route: "There is no route there from your current city. Choose one of the destinations on the “Map”."
   mode_unavailable: "That way of travelling does not serve this route. Choose the destination on the “Map” again to see the ways that do."
@@ -101,7 +101,7 @@ map:
   cities_title: "🧭 Travel to another city"
   title: "🗺 Map"
   origin: "📍 You are in {city}."
-  destinations: "From here you can travel to these cities and villages:"
+  destinations: "From here you can travel to these cities:"
   destination: "• {city} - {distance} km"
   destination_priced: "• {city} - {distance} km - fare from {fare} - fastest {wait}"
   destination_free: "• {city} - {distance} km - free on foot - fastest {wait}"
@@ -166,7 +166,7 @@ settings:
   language_changed: "✅ The game language is now {language}."
   presence: "👁 Who can see me online: {visibility}"
   presence_changed: "✅ Your online status is now visible to: {visibility}."
-  presence_nobody_hint: "With \"nobody\", other players' online status is hidden from you too; only people in your own village can see you."
+  presence_nobody_hint: "With \"nobody\", other players' online status is hidden from you too; only people in your own city can see you."
 # Game clients (api/client-api.md): the one-time code that links a native
 # client to the account, and the clients linked so far.
 device:

@@ -5,9 +5,9 @@
 The registration fee goes to the city's treasury, and each period the company's upkeep is taken from its account. Choose the kind of business.
 
 🏷 Grocery store - registration 1,000 SUP - upkeep 50 SUP per period
-🔒 Restaurant - starts at a town; this is still a village. Needs: Market (level 1).
-🔒 Factory - starts at a city; this is still a village. Needs: Factory.
-🔒 Aerospace manufacturer - starts at a country; this is still a village. Needs: Workshop (level 4).
+🔒 Restaurant - starts at a city; this is still a city. Needs: Market (level 1).
+🔒 Factory - starts at a city; this is still a city. Needs: Factory.
+🔒 Aerospace manufacturer - starts at a country; this is still a city. Needs: Workshop (level 4).
   ───
   [🏷 Grocery store] → company:type:grocery
   [🔙 Back] → company:list
@@ -24,7 +24,7 @@ The registration fee goes to the city's treasury, and each period the company's 
 
 A company earns from the people of the city. Every shift your staff work raises its capacity and its quality; their wages are paid from the company's account.
 
-🔒 Restaurant - starts at a town; this is still a village. Needs: Market (level 1).
+🔒 Restaurant - starts at a city; this is still a city. Needs: Market (level 1).
   ───
   [🧭 Brennhaven] → travel:options:brennhaven
   [🔙 Back] → company:register
@@ -41,7 +41,7 @@ A company earns from the people of the city. Every shift your staff work raises 
 
 A company earns from the people of the city. Every shift your staff work raises its capacity and its quality; their wages are paid from the company's account.
 
-🔒 Factory - starts at a city; this is still a village. Needs: Factory.
+🔒 Factory - starts at a city; this is still a city. Needs: Factory.
   ───
   [🧭 Brennhaven] → travel:options:brennhaven
   [🔙 Back] → company:register
@@ -75,6 +75,6 @@ A company earns from the people of the city. Every shift your staff work raises 
 
 A company earns from the people of the city. Every shift your staff work raises its capacity and its quality; their wages are paid from the company's account.
 
-🔒 Aerospace manufacturer - starts at a country; this is still a village. Needs: Workshop (level 4).
+🔒 Aerospace manufacturer - starts at a country; this is still a city. Needs: Workshop (level 4).
   ───
   [🔙 Back] → company:register

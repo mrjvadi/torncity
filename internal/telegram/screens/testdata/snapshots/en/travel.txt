@@ -4,7 +4,7 @@
 
 📍 You are in Ostmarch.
 
-From here you can travel to these cities and villages:
+From here you can travel to these cities:
 • Fenwick Span - 120 km
 • Aldrin Hollow - 340 km
 • Brennhaven - 1,260 km
@@ -41,7 +41,7 @@ You have not settled in a city yet. Once you do, your travel destinations appear
 
 📍 You are in Amol.
 
-From here you can travel to these cities and villages:
+From here you can travel to these cities:
 • Central City - 1,280 km - fare from 6,400 SUP - fastest 14h 20m
 • 🛡 🌾 🔴🟡 Kashan - 42 km - free on foot - fastest 8m
 • 🏰 🐎 🔵⚪ Sari - 380 km - fare from 780 SUP - fastest 19m
@@ -53,7 +53,7 @@ From here you can travel to these cities and villages:
 
 ━━━ Travel here · the group has no village ━━━
 (edits message 42)
-🏡 This group has no village yet, so there is nowhere to travel to. Send “found village” to start one.
+🏡 This group has no city yet, so there is nowhere to travel to. Send “found city” to start one.
   ───
   [🧭 Other destinations] → map:cities
 
@@ -65,7 +65,7 @@ From here you can travel to these cities and villages:
 
 ━━━ Travel here · not in a group ━━━
 (edits message 42)
-🧭 Send “travel to this village” in the group of that village to travel straight there. Open the “Map” for other destinations.
+🧭 Send “travel to this city” in the group of that city to travel straight there. Open the “Map” for other destinations.
   ───
   [🧭 Other destinations] → map:cities
 

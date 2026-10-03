@@ -209,8 +209,8 @@ office:
   central_banker: "Central bank governor"
   military_governor: "Military governor"
   parliament: Parliament
-  village_head: Village head
-  town_head: Town head
+  village_head: Mayor
+  town_head: Mayor
   governor: Governor
 
 # Policy names, keyed on the lever's content code (configs/content/governance.yml).
@@ -246,9 +246,9 @@ lever:
     bank_reserve_ratio: "National bank reserve ratio"
     bank_funding: "Treasury funding of the national bank (share per period)"
   village:
-    local_levy: Village local levy
+    local_levy: City local levy
   town:
-    local_levy: Town local levy
+    local_levy: Local levy
     building_permit_fee: Building permit fee
   province:
     revenue_share: Province share of city revenue
@@ -310,9 +310,9 @@ settlement_building:
   paddy_banks: Paddy banks
   health_house: Health house
   clinic: Clinic
-  teaching_circle: Village classroom
+  teaching_circle: City classroom
   school: School
-  barter_post: Village market
+  barter_post: City market
   market: Market
   bank: Bank
   barracks: Barracks
@@ -322,11 +322,11 @@ settlement_building:
   market_stall: Market stall
 
 # Group founding (docs/adr/0028-world-and-settlements.md section 3): a group
-# admin registers the group and the game places the new village on the map.
+# admin registers the group and the game places the new city on the map.
 
 # The founding form (docs/adr/0028-world-and-settlements.md section 3): "found
-# village" opens a draft in the group; the founder completes the village's
-# details in the game client, and only submitting the form founds the village.
+# city" opens a draft in the group; the founder completes the city's
+# details in the game client, and only submitting the form founds the city.
 
 # Playing in a group (internal/gateway/groups). A screen with a player's own
 # details is shown only to that player; these lines are all the rest of the
@@ -353,7 +353,7 @@ group:
   webapp_slow_down: "⏳ Just sent; check your private chat."
   webapp_unavailable: "This is not available right now. Try again in a moment."
   webapp_text: "🌐 Tap the button below to open the game right here in this chat."
-  webapp_text_founding: "🏡 Tap the button below to fill in the village founding form right here in this chat."
+  webapp_text_founding: "🏡 Tap the button below to fill in the city founding form right here in this chat."
   webapp_open: "🌐 Open"
   # Posted once when the bot is added to a group.
   welcome: |-
@@ -549,12 +549,12 @@ command_alias:
   devices: "devices"
   village: "village"
   travel:
-    here: "travel to this village | travel to this group | take me here"
+    here: "travel to this city | travel to this village | travel to this group | take me here"
   settlement:
-    found: "found village"
-    join: "join village | become resident"
-    leave: "leave village"
-    who: "village people | who is online"
+    found: "found city | found village"
+    join: "join city | join village | become resident"
+    leave: "leave city | leave village"
+    who: "city people | village people | who is online"
 
 # Where a command runs (configs/commands.yml).
 channel:
@@ -970,7 +970,7 @@ career_category:
 mission_board:
   city_hall: Civic noticeboard
   police: Police board
-  village_works: Village works board
+  village_works: City works board
 
 # Missions (docs/adr/0023): jobs a city posts on its boards.
 mission:
@@ -997,10 +997,10 @@ mission:
     brief: "The police want volunteers who know how to use medicine."
   village_first_lesson:
     name: "First lesson"
-    brief: "The village needs people who can read and write: finish a course."
+    brief: "The city needs people who can read and write: finish a course."
   village_bread_run:
     name: "Bread for the store"
-    brief: "The village store is short of bread; bring three loaves to the board."
+    brief: "The city store is short of bread; bring three loaves to the board."
   village_bandage_run:
     name: "Bandages for the health house"
     brief: "The health house is short of bandages; hand in three."
@@ -1143,7 +1143,7 @@ life:
     richest_tab: "💎 Richest"
     richest_hint: "Net worth: cash, bank, savings, shares, gold, property and goods, less debts and loans."
     village_title: "🏡 The richest in {village}"
-    village_tab: "🏡 Village"
+    village_tab: "🏡 City"
     village_hint: "Your neighbours by net worth."
     companies_title: "🏢 The biggest companies"
     companies_line: "{pos}. {name} - {tag} in {city} - {value}"
@@ -1207,9 +1207,9 @@ recruit:
     first: "Arash|Maryam|Kian|Negar|Bahram|Sepideh|Dariush|Leila|Farhad|Nasrin|Kamran|Shirin|Pouya|Mahsa|Ramin|Azadeh|Siavash|Taraneh|Omid|Yalda"
     last: "Rostami|Kazemi|Nowruzi|Farahmand|Salehi|Tehrani|Moradi|Saeedi|Ahmadi|Karimi|Sharifi|Yazdani"
 
-# Last seen and a village's people (docs/adr/0030-realtime-interest-and-presence.md;
+# Last seen and a city's people (docs/adr/0030-realtime-interest-and-presence.md;
 # internal/telegram/screens/presence.go). The people screen lives in the group and
-# is only that village's list; the personal setting is never shown in a group.
+# is only that city's list; the personal setting is never shown in a group.
 presence:
   visibility:
     everyone: "everyone"
@@ -1233,7 +1233,7 @@ presence:
     more: "and {count} more online"
     nobody: "Nobody is online right now."
 
-# Short village news in the group (internal/workers/notification/village_news.go).
+# Short city news in the group (internal/workers/notification/village_news.go).
 # One item reads as a full sentence; a burst is merged into one short list.
 
 # Names of the roles of settlement buildings (settlement_buildings.yml, role); availability conditions name them.

@@ -538,9 +538,16 @@ func (h *SocialHandler) FriendList(ctx context.Context, meta envelope.Metadata, 
 			if err != nil {
 				return err
 			}
+			code := ""
+			if e.Status == friendAccepted {
+				if fp, perr := tx.Players().GetByID(ctx, e.FriendPlayerID); perr == nil {
+					code = fp.PublicCode
+				}
+			}
 			lines = append(lines, society.FriendLine{
 				ID:     e.FriendPlayerID,
 				Name:   name,
+				Code:   code,
 				Status: e.Status,
 				// Only a request the other player sent can be accepted; one
 				// this player sent waits for the other one's answer.

@@ -67,7 +67,7 @@ settlement_buildings:
     cap_exempt: true
 
   - code: civic_hall
-    name: "خانهٔ دهیاری"
+    name: "شهرداری"
     role: governance
     tier: 1
     footprint: [2, 2]

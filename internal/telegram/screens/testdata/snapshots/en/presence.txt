@@ -40,7 +40,7 @@ Nobody is online right now.
 
 🌐 Game language: English
 👁 Who can see me online: nobody
-With "nobody", other players' online status is hidden from you too; only people in your own village can see you.
+With "nobody", other players' online status is hidden from you too; only people in your own city can see you.
   ───
   [🌐 Switch to ⁨فارسی⁩] → player:language.set:fa
   [👁 Online status: everyone] → player:presence.set:everyone
@@ -55,27 +55,27 @@ With "nobody", other players' online status is hidden from you too; only people 
 
 ━━━ News · construction started ━━━
 (edits message 42)
-🚧 The village head started building the Watch hut in Korendal.
+🚧 The mayor started building the Watch hut in Korendal.
   ───
   [⏳ Build progress] → settlement:build.progress
 
 ━━━ News · research finished ━━━
 (edits message 42)
-🔬 Research into Canal irrigation in Korendal is finished; the village now knows it.
+🔬 Research into Canal irrigation in Korendal is finished; the city now knows it.
   ───
-  [📚 Village knowledge] → settlement:knowledge
+  [📚 City knowledge] → settlement:knowledge
 
 ━━━ News · knowledge bought ━━━
 (edits message 42)
-📚 The village head bought Canal irrigation for Korendal.
+📚 The mayor bought Canal irrigation for Korendal.
   ───
-  [📚 Village knowledge] → settlement:knowledge
+  [📚 City knowledge] → settlement:knowledge
 
 ━━━ News · literacy grew ━━━
 (edits message 42)
 📖 Literacy in Korendal reached 24%.
   ───
-  [🏘 Village] → settlement:overview
+  [🏘 City] → settlement:overview
 
 ━━━ News · a burst merged into one post ━━━
 (edits message 42)
@@ -84,7 +84,7 @@ With "nobody", other players' online status is hidden from you too; only people 
 • 🔬 Research into Canal irrigation is finished.
 • 📖 Literacy reached 24%.
   ───
-  [🏘 Village] → settlement:overview
+  [🏘 City] → settlement:overview
 
 ━━━ News · a long burst is cut short ━━━
 (edits message 42)
@@ -97,4 +97,4 @@ With "nobody", other players' online status is hidden from you too; only people 
 • 📖 Literacy reached 31%.
 • and 2 more.
   ───
-  [🏘 Village] → settlement:overview
+  [🏘 City] → settlement:overview

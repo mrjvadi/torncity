@@ -141,7 +141,7 @@ gov:
     unknown_lever: This policy no longer exists. Open “My office” to see the policies you can change.
     unknown_place: "This place could not be found. Open the “Map” and try again."
     wrong_place: This policy does not apply to this place.
-    city_only: "This is for cities: a village has no budget or city council yet. It opens up once the village grows."
+    city_only: "A city council and a budget are not set up in this city yet. They open up as the city grows."
     office_not_found: This office does not exist here.
     office_occupied: Someone already holds this office.
     office_vacant: This office is already vacant.

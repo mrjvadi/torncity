@@ -4,9 +4,9 @@
 
 ⏳ You are working at Woodcutter's camp - the shift ends at 15:10 (35m left) - pay 30 SUP
 
-• Woodcutter's camp - 35% built, 1.3 worker-hours to go - 30 SUP a shift from the village - 1 working
+• Woodcutter's camp - 35% built, 1.3 worker-hours to go - 30 SUP a shift from the city - 1 working
 • Cottage - 0% built, 4.0 worker-hours to go - 45 SUP a shift from Sara - 0 working
-• Work at Carpentry workshop - 30 SUP a shift from the village - 18 shifts left
+• Work at Carpentry workshop - 30 SUP a shift from the city - 18 shifts left
 
 ⚖️ Labour market: supply and demand are balanced (10 of 12 labourers free) - a day labourer asks 30 SUP a shift.
 
@@ -38,11 +38,11 @@ Tap a job to open its site and press Work. Buildings are built only by the work 
 (edits message 42)
 📋 Hiring board of Korendal
 
-• Woodcutter's camp - 35% built, 1.3 worker-hours to go - 30 SUP a shift from the village - 1 working
+• Woodcutter's camp - 35% built, 1.3 worker-hours to go - 30 SUP a shift from the city - 1 working
 
 🔥 Labour market: a labour shortage! (0 of 5 labourers free) - a day labourer asks 75 SUP a shift. More homes mean more residents and workers.
 
-ℹ️ You do not live in this village, but you can work here by the day while you are in it.
+ℹ️ You do not live in this city, but you can work here by the day while you are in it.
 
 Tap a job to open its site and press Work. Buildings are built only by the work of workers; no timer finishes them by itself.
   ───
@@ -56,7 +56,7 @@ Tap a job to open its site and press Work. Buildings are built only by the work 
 
 📊 Progress: 35% - 0.7 of 2.0 worker-hours done, 1.3 to go.
 
-• Woodcutter's camp - 35% built, 1.3 worker-hours to go - 30 SUP a shift from the village - 1 working
+• Woodcutter's camp - 35% built, 1.3 worker-hours to go - 30 SUP a shift from the city - 1 working
 👷 Crew: 2 day labourers are kept on the site.
 
 👷 2 workers on site:
@@ -75,7 +75,7 @@ Tap a job to open its site and press Work. Buildings are built only by the work 
 
 📊 Progress: 35% - 0.7 of 2.0 worker-hours done, 1.3 to go.
 
-• Woodcutter's camp - 35% built, 1.3 worker-hours to go - 30 SUP a shift from the village - 1 working
+• Woodcutter's camp - 35% built, 1.3 worker-hours to go - 30 SUP a shift from the city - 1 working
 👷 Crew: 2 day labourers are kept on the site.
 
 👷 2 workers on site:
@@ -100,7 +100,7 @@ Tap a job to open its site and press Work. Buildings are built only by the work 
 
 📊 Progress: 35% - 0.7 of 2.0 worker-hours done, 1.3 to go.
 
-• Woodcutter's camp - 35% built, 1.3 worker-hours to go - 30 SUP a shift from the village - 1 working
+• Woodcutter's camp - 35% built, 1.3 worker-hours to go - 30 SUP a shift from the city - 1 working
 👷 Crew: 2 day labourers are kept on the site.
 
 👷 2 workers on site:
@@ -127,7 +127,7 @@ Tap a job to open its site and press Work. Buildings are built only by the work 
 
 ⏳ You are working at Woodcutter's camp - the shift ends at 15:35 (1h left) - pay 30 SUP
 
-• Woodcutter's camp - 35% built, 1.3 worker-hours to go - 30 SUP a shift from the village - 1 working
+• Woodcutter's camp - 35% built, 1.3 worker-hours to go - 30 SUP a shift from the city - 1 working
 👷 Crew: 2 day labourers are kept on the site.
 
 👷 2 workers on site:
@@ -178,7 +178,7 @@ Tap a job to open its site and press Work. Buildings are built only by the work 
 
 ⚖️ Labour market: supply and demand are balanced (10 of 12 labourers free) - a day labourer asks 30 SUP a shift.
   ───
-  [📋 Hiring board] → settlement:labor.board   │   [⚒ Work in the village] → settlement:work
+  [📋 Hiring board] → settlement:labor.board   │   [⚒ Work in the city] → settlement:work
   [🔙 Back] → settlement:labor.board   │   [🔄 Refresh] → settlement:labor.mine
 
 ━━━ My work · a new apprentice, on a shift ━━━
@@ -193,7 +193,7 @@ Tap a job to open its site and press Work. Buildings are built only by the work 
 
 📉 Labour market: workers are plentiful (17 of 17 labourers free) - a day labourer asks 22 SUP a shift (minimum 10 SUP).
   ───
-  [📋 Hiring board] → settlement:labor.board   │   [⚒ Work in the village] → settlement:work
+  [📋 Hiring board] → settlement:labor.board   │   [⚒ Work in the city] → settlement:work
   [🔙 Back] → settlement:labor.board   │   [🔄 Refresh] → settlement:labor.mine
 
 ━━━ Refusal · labor_no_job ━━━
@@ -204,7 +204,7 @@ Tap a job to open its site and press Work. Buildings are built only by the work 
 
 ━━━ Refusal · labor_not_here ━━━
 (edits message 42)
-🚶 To work here you must live in this village or be in it.
+🚶 To work here you must live in this city or be in it.
   ───
   [🔙 Back] → settlement:labor.board
 
@@ -222,19 +222,19 @@ Tap a job to open its site and press Work. Buildings are built only by the work 
 
 ━━━ Refusal · labor_not_employer ━━━
 (edits message 42)
-🔒 Only the employer of this job (the village head, or the building's owner) can do that.
+🔒 Only the employer of this job (the mayor, or the building's owner) can do that.
   ───
   [🔙 Back] → settlement:labor.board
 
 ━━━ Refusal · labor_no_npc ━━━
 (edits message 42)
-👷 No free labourer is left in the village today. More homes mean more residents and more workers.
+👷 No free labourer is left in the city today. More homes mean more residents and more workers.
   ───
   [🔙 Back] → settlement:labor.board
 
 ━━━ Refusal · labor_wage_too_low ━━━
 (edits message 42)
-💸 That wage is below the village's minimum wage.
+💸 That wage is below the city's minimum wage.
   ───
   [🔙 Back] → settlement:labor.board
 

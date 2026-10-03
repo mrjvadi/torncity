@@ -540,18 +540,18 @@ button:
   confirm_pay: "✅ تأیید و پرداخت"
   pay_again: "💸 پرداخت دوباره"
 
-# «اینجا نیست»: خدمتی که این جا (روستا، شهرک) هنوز راه نیفتاده و نزدیک‌ترین جایی که دارد.
+# «اینجا نیست»: خدمتی که این جا (شهر) هنوز راه نیفتاده و نزدیک‌ترین جایی که دارد.
 unavailable:
   title: "🚫 {service} اینجا نیست"
-  from: "{service} از «{stage}» به بالا هست؛ اینجا هنوز {here} است."
+  from: "{service} اینجا هنوز راه نیفتاده است."
   only_support: "{service} فقط در {place} هست."
   requires: "ساختمان لازم: {buildings}."
   nearest: "نزدیک‌ترین جا: {city}."
   service_unknown: "این خدمت"
   stage_unknown: "جای دیگر"
   stage:
-    village: "روستا"
-    town: "شهرک"
+    village: "شهر"
+    town: "شهر"
     city: "شهر"
     country: "کشور"
     support: "شهر مرکزی"

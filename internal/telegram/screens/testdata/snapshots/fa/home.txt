@@ -140,7 +140,7 @@
   [🗺 نقشه] → map:list   │   [💼 شغل من] → job:status
   [🎓 آموزش] → education:list   │   [🏦 بانک] → bank:show
   [🏠 املاک من] → property:mine   │   [🛒 مغازه‌ها] → shop:list
-  [🏡 روستای من] → settlement:home   │   [🏢 شرکت‌های شهر] → company:list
+  [🏡 شهر من] → settlement:home   │   [🏢 شرکت‌های شهر] → company:list
   [👥 دوستان] → social:friend.list   │   [🏴 جناح من] → faction:mine
   [📋 مأموریت‌های من] → mission:mine
   [🛠 مهارت‌ها] → skills:list   │   [🧬 زندگی من] → life:me

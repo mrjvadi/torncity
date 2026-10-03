@@ -43,7 +43,7 @@ func villageSnapshots(c Context, who people, add func(string, *presenter.Respons
 	basicLiteracy := sampleNamed(c.Lang, "basic_literacy", "سوادآموزی پایه", "Basic literacy")
 	carpentry := sampleNamed(c.Lang, "carpentry", "نجاری", "Carpentry")
 	watchHut := sampleNamed(c.Lang, "watch_hut", "دیده‌بانی محله", "Watch hut")
-	civicHall := sampleNamed(c.Lang, "civic_hall", "خانهٔ دهیاری", "Civic hall")
+	civicHall := sampleNamed(c.Lang, "civic_hall", "شهرداری", "Civic hall")
 	carpentryWorkshop := sampleNamed(c.Lang, "carpentry_workshop", "کارگاه نجاری", "Carpentry workshop")
 	policePost := sampleNamed(c.Lang, "police_post", "کلانتری", "Police post")
 
