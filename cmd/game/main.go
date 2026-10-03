@@ -354,7 +354,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			nil,
 		// A journey departs from, and lands at, the place of its mode.
 		).WithPlaces(registry).WithWorld(worldTravel),
-		skills: handlers.NewSkillsHandler(uow, messages, postgres.NewSkillRepository(pool), nil),
+		skills: handlers.NewSkillsHandler(uow, messages, postgres.NewSkillRepository(pool), nil).WithPlace(registry, cities, cfg.Settlement.HomeCityCode),
 		social: handlers.NewSocialHandler(
 			uow,
 			uuidGenerator{},
@@ -479,6 +479,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	h.jobs, h.education = newWorkHandlers(uow, messages, registry, cities,
 		postgres.NewPolicyReader(pool, nil), gametime.Scale(cfg.Game.TimeScale), cfg.Game.IdempotencyTTL)
 	h.education.WithHomeCity(cfg.Settlement.HomeCityCode)
+	h.jobs.WithHomeCity(cfg.Settlement.HomeCityCode)
 
 	// Crime reads crimes from the live registry and a city's justice levers
 	// only through the resolver (ADR 0015), on the game clock.

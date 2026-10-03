@@ -510,6 +510,9 @@ job:
   openings_employed: "You work as {title}. To take another job, leave your current one first."
   openings_employed_short: You already have a job. To take this one, leave your current job first.
   openings_none: No employer in this city is hiring right now.
+  not_here: "Not here:"
+  not_here_line: "• {career} - this place still needs: {needs}"
+  not_here_line_near: "• {career} - available in {city}. This place still needs: {needs}"
   openings_hint: "✅ means you qualify and can apply; 🔒 means something is still missing. Tap a job to see the details."
   opening_line: "✅ {career} - {title} - {pay} per shift"
   opening_line_locked: "🔒 {career} - {title} - {pay} per shift"
@@ -864,3 +867,19 @@ health:
   error:
     hospitalised: "🏥 You are in hospital for {remaining} more. A treatment shortens the stay."
     hospitalised_later: "🏥 You are in hospital. Get treated from the hospital screen, or wait."
+
+need:
+  teacher: teacher
+  role:
+    education: classroom or school
+    health: health house or clinic
+    market: market
+    craft: workshop
+    food: farm
+    storage: storehouse
+    security: watch post
+    housing: housing
+    transport: port or airport
+    finance: bank
+    military: barracks
+    extraction: mine

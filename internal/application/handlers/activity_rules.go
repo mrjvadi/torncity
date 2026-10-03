@@ -29,6 +29,8 @@ type crimeStanding struct {
 	level     int
 	stageRank int
 	stands    func(content.AvailabilityBuilding) bool
+	// owned is the research the settlement holds; nil means a settlement with no research to judge by.
+	owned map[string]bool
 	// decide is the dual read of ADR 0044 phase G1: given a tag and the tier's
 	// answer (stage reached and every building standing) it answers what the
 	// gate must say. Nil, the default (growth.capabilities off), keeps the tier.
@@ -66,6 +68,7 @@ func judgeCrimes(tags []content.AvailabilityDef, s crimeStanding) crimeVerdict {
 			continue // not offered at this stage, or the stage is undecided
 		}
 		var missing *content.AvailabilityBuilding
+		lacks := false
 		minLevel := 0
 		if tag.Requires != nil {
 			for _, b := range tag.Requires.Buildings {
@@ -73,6 +76,14 @@ func judgeCrimes(tags []content.AvailabilityDef, s crimeStanding) crimeVerdict {
 					b := b
 					missing = &b
 					break
+				}
+			}
+			if missing == nil && s.owned != nil {
+				for _, k := range tag.Requires.Knowledge {
+					if !s.owned[k] {
+						lacks = true // research is missing, not a building: not offered here
+						break
+					}
 				}
 			}
 			for _, p := range tag.Requires.Personal {
@@ -83,12 +94,12 @@ func judgeCrimes(tags []content.AvailabilityDef, s crimeStanding) crimeVerdict {
 		}
 		if s.decide != nil {
 			// ADR 0044 phase G1: the capability answer beside the tier's
-			tierOffered := stageOK && missing == nil
+			tierOffered := stageOK && missing == nil && !lacks
 			if offered := s.decide(tag, tierOffered); offered != tierOffered {
-				stageOK, missing = offered, nil
+				stageOK, missing, lacks = offered, nil, false
 			}
 		}
-		if !stageOK {
+		if !stageOK || lacks {
 			continue
 		}
 		switch {
@@ -139,7 +150,15 @@ func (r ActivityRules) crimeListing(ctx context.Context, tx application.Tx, snap
 			untagged = append(untagged, def.Code)
 		}
 	}
-	standing := crimeStanding{level: level, stageRank: content.StageRank(tierStage(city.Tier)), stands: stands}
+	owned, err := tx.SettlementKnowledge().Owned(ctx, city.ID)
+	if err != nil {
+		return crimeVerdict{}, err
+	}
+	have := map[string]bool{}
+	for _, o := range owned {
+		have[o.Code] = true
+	}
+	standing := crimeStanding{level: level, stageRank: content.StageRank(tierStage(city.Tier)), stands: stands, owned: have}
 	if gg := currentGrowth(); gg != nil {
 		caps, found, err := gg.InTx(ctx, tx, snap, city.ID)
 		if err != nil {

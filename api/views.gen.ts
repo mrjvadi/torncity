@@ -949,6 +949,7 @@ export interface CourseLine {
 export interface CourseNeed {
   kind: string
   code: string
+  name: string
   role: string
   tier: number
 }
@@ -2312,6 +2313,12 @@ export interface JobDetailView {
   employed: boolean
 }
 
+export interface JobGap {
+  job: JobRef
+  nearest: Named | null
+  needs: CourseNeed[] | null
+}
+
 export interface JobHiredView {
   job: JobRef
   employer: string
@@ -2334,6 +2341,7 @@ export interface JobOpeningsView {
   employed: boolean
   current: JobRef
   openings: JobOpening[] | null
+  gaps: JobGap[] | null
   page: number
   pages: number
 }

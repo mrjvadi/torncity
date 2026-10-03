@@ -82,6 +82,10 @@ func Sweep(snap *content.Snapshot, s SweepSettlement, ruinedBPS int) []SweepRow 
 	here := hubSettlement{
 		stageRank: content.StageRank(tierStage(s.Tier)),
 		stands:    standsIn(snap, s.Standing.Buildings),
+		owned:     map[string]bool{},
+	}
+	for _, k := range s.Standing.Knowledge {
+		here.owned[k.Code] = true
 	}
 	tags := snap.AllAvailabilityTags()
 	out := make([]SweepRow, 0, len(tags))

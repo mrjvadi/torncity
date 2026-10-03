@@ -29,6 +29,9 @@ type hubSettlement struct {
 	// tier would have is taken as standing.
 	content bool
 	stands  func(content.AvailabilityBuilding) bool
+	// owned is the research the settlement holds; a tag that names knowledge
+	// is not offered without it, whatever the stage says.
+	owned map[string]bool
 	// growth, cityID, caps and capsFound are the dual read of ADR 0044 phase
 	// G1: nil growth (growth.capabilities off) leaves the tier the only answer.
 	growth    *GrowthGate
@@ -75,6 +78,11 @@ func (s hubSettlement) offeredByTier(tag content.AvailabilityDef) bool {
 	if s.content || tag.Requires == nil {
 		return true
 	}
+	for _, k := range tag.Requires.Knowledge {
+		if !s.owned[k] {
+			return false
+		}
+	}
 	for _, b := range tag.Requires.Buildings {
 		if !s.stands(b) {
 			return false
@@ -110,11 +118,15 @@ func judgeSettlementOf(ctx context.Context, tx application.Tx, snap *content.Sna
 	if err != nil {
 		return s, err
 	}
+	owned, err := tx.SettlementKnowledge().Owned(ctx, city.ID)
+	if err != nil {
+		return s, err
+	}
+	s.owned = map[string]bool{}
+	for _, o := range owned {
+		s.owned[o.Code] = true
+	}
 	if gg := currentGrowth(); gg != nil {
-		owned, err := tx.SettlementKnowledge().Owned(ctx, city.ID)
-		if err != nil {
-			return s, err
-		}
 		s.growth, s.cityID, s.capsFound = gg, city.ID, true
 		s.caps = gg.FromRows(snap, application.SettlementStanding{Buildings: rows, Knowledge: owned})
 	}

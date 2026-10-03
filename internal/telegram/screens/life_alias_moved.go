@@ -38,6 +38,7 @@ type (
 	JobHiredView        = life.JobHiredView
 	JobOpening          = life.JobOpening
 	JobOpeningsView     = life.JobOpeningsView
+	JobGap              = life.JobGap
 	JobPromotedView     = life.JobPromotedView
 	JobStatusView       = life.JobStatusView
 	LootLine            = life.LootLine

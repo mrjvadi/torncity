@@ -2,9 +2,11 @@ package screens
 
 import (
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/domain/job"
+	"github.com/mrjvadi/torncity/internal/presentation"
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 )
@@ -312,7 +314,46 @@ func renderJobOpenings(c Context, v JobOpeningsView) *presenter.Response {
 		HasNext:  v.Page < v.Pages,
 		BackData: AddrHome,
 	}))
-	return c.respond(paragraphs(title, employed, list, body(companyLines...), indicator, hint), kb.Build())
+	return c.respond(paragraphs(title, employed, list, body(companyLines...), c.jobGaps(v.Gaps), indicator, hint), kb.Build())
+}
+
+// needsText names what a place lacks, as a comma list of research and buildings.
+func (c Context) needsText(needs []presentation.CourseNeed) string {
+	names := make([]string, 0, len(needs))
+	for _, n := range needs {
+		switch n.Kind {
+		case presentation.CourseNeedKnowledge:
+			names = append(names, c.SettlementKnowledgeName(Named{Code: n.Code, Name: n.Name}))
+		case presentation.CourseNeedBuilding:
+			if n.Code != "" {
+				names = append(names, c.SettlementBuildingName(Named{Code: n.Code, Name: n.Name}))
+			} else {
+				names = append(names, c.T("need.role."+n.Role, nil))
+			}
+		case presentation.CourseNeedTeacher:
+			names = append(names, c.T("need.teacher", nil))
+		}
+	}
+	return strings.Join(names, c.T("education.separator", nil))
+}
+
+// jobGaps lists the careers this place does not employ: where they are had and
+// what this place lacks (the «not here» card of CLAUDE.md section 2).
+func (c Context) jobGaps(gaps []JobGap) string {
+	if len(gaps) == 0 {
+		return ""
+	}
+	lines := []string{c.T("job.not_here", nil)}
+	for _, g := range gaps {
+		key := "job.not_here_line"
+		args := map[string]any{"career": c.jobCareer(g.Job), "needs": c.needsText(g.Needs)}
+		if g.Nearest != nil {
+			key = "job.not_here_line_near"
+			args["city"] = c.CityName(g.Nearest.Code, g.Nearest.Name)
+		}
+		lines = append(lines, c.T(key, args))
+	}
+	return body(lines...)
 }
 
 // JobDetail renders one opening: what it pays and costs, what it asks for,

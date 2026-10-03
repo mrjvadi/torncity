@@ -121,13 +121,13 @@ func (c courseHere) judgeTier(snap *content.Snapshot, tag content.AvailabilityDe
 	}
 	for _, k := range tag.Requires.Knowledge {
 		if !c.owned[k] {
-			needs = append(needs, presentation.CourseNeed{Kind: presentation.CourseNeedKnowledge, Code: k})
+			needs = append(needs, presentation.CourseNeed{Kind: presentation.CourseNeedKnowledge, Code: k, Name: knowledgeNameOf(snap, k)})
 		}
 	}
 	listed := map[content.AvailabilityBuilding]bool{}
 	for _, b := range tag.Requires.Buildings {
 		if !c.stands(b) {
-			needs = append(needs, presentation.CourseNeed{Kind: presentation.CourseNeedBuilding, Code: b.Code, Role: b.Role, Tier: b.Tier})
+			needs = append(needs, presentation.CourseNeed{Kind: presentation.CourseNeedBuilding, Code: b.Code, Role: b.Role, Tier: b.Tier, Name: buildingNameOf(snap, b.Code)})
 			listed[b] = true
 		}
 	}
@@ -204,4 +204,23 @@ func educationEmpty(snap *content.Snapshot, here courseHere, offered int) (strin
 		return presentation.EducationNoClass, nil
 	}
 	return presentation.EducationNothingTaught, nil
+}
+
+// knowledgeNameOf is a research item's authored name ("" when unknown).
+func knowledgeNameOf(snap *content.Snapshot, code string) string {
+	if d, ok := snap.SettlementKnowledgeDef(code); ok {
+		return d.Name
+	}
+	return ""
+}
+
+// buildingNameOf is a building type's authored name ("" for a role or an unknown code).
+func buildingNameOf(snap *content.Snapshot, code string) string {
+	if code == "" {
+		return ""
+	}
+	if d, ok := snap.SettlementBuildingDef(code); ok {
+		return d.Name
+	}
+	return ""
 }

@@ -2,6 +2,8 @@ package life
 
 import (
 	"time"
+
+	"github.com/mrjvadi/torncity/internal/presentation"
 )
 
 // Callback addresses of the work and study screens.
@@ -100,8 +102,20 @@ type JobOpeningsView struct {
 	Employed bool
 	Current  JobRef
 	Openings []JobOpening
-	Page     int
-	Pages    int
+	// Gaps are the careers this place does not employ: where they are had and
+	// what this place lacks to employ them itself («not here», CLAUDE.md section 2).
+	Gaps  []JobGap
+	Page  int
+	Pages int
+}
+
+// JobGap is a career the place the player stands in does not employ.
+type JobGap struct {
+	Job JobRef
+	// Nearest is the place that has it; nil when none is known.
+	Nearest *presentation.Named
+	// Needs is what this place lacks: research, buildings.
+	Needs []presentation.CourseNeed
 }
 
 // JobDetailView is one opening in detail.

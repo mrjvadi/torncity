@@ -27,6 +27,7 @@
         "title": ""
       },
       "employed": false,
+      "gaps": null,
       "openings": [
         {
           "eligible": true,

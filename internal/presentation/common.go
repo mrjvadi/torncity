@@ -83,6 +83,9 @@ const (
 type CourseNeed struct {
 	Kind string
 	Code string
+	// Name is the authored display name of the research or building (the edge
+	// prefers its own catalogue entry); empty for a role.
+	Name string
 	Role string
 	Tier int
 }
