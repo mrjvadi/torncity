@@ -480,6 +480,9 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 			}
 			return h.village.MaterialsBuy(ctx, env.Metadata, req)
 		},
+		"settlement.money": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			return h.village.Money(ctx, env.Metadata)
+		},
 		"settlement.shop": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			return h.village.Shop(ctx, env.Metadata)
 		},

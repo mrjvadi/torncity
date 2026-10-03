@@ -126,6 +126,8 @@ format:
   # A sum of money. {amount} is already written with the digits and the
   # group separator above.
   money: "{amount} SUP"
+  # An amount of Nil, the premium unit, shown only as a quote (ADR 0046 7.4).
+  nil: "{amount} Nil"
   # A date: the calendar it is counted in (jalali or gregorian), its shape,
   # and the month names.
   calendar: gregorian

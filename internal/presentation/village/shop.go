@@ -232,7 +232,7 @@ func VillageShop(c presentation.Ctx, v ShopView) *presentation.Response {
 			}
 		}
 	}
-	a = append(a, act(AddrMaterials).Named("village.materials"), back(AddrVillageOverview), refresh(AddrShop))
+	a = append(a, act(AddrMoney).Named("village.money"), act(AddrMaterials).Named("village.materials"), back(AddrVillageOverview), refresh(AddrShop))
 	return screenShop.Response(c.Lang, v, a...)
 }
 

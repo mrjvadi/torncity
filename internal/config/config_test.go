@@ -671,8 +671,10 @@ merchant:
   tax_default_bps: 301
   tax_max_bps: 1501
   tax_presets: [1, 301]
+  output_days: 8
 premium:
   nil_unit_sup: 101
+  nil_examples: [11, 111]
 `
 
 // envOverrides is the same exercise through the environment. Every entry is a
@@ -1099,7 +1101,9 @@ var envOverrides = map[string]string{
 	"TORN_MERCHANT_TAX_DEFAULT_BPS":                 "302",
 	"TORN_MERCHANT_TAX_MAX_BPS":                     "1502",
 	"TORN_MERCHANT_TAX_PRESETS":                     "2,302",
+	"TORN_MERCHANT_OUTPUT_DAYS":                     "9",
 	"TORN_PREMIUM_NIL_UNIT_SUP":                     "102",
+	"TORN_PREMIUM_NIL_EXAMPLES":                     "12,112",
 }
 
 // clearEnv removes any TORN_ override the surrounding shell happens to carry,

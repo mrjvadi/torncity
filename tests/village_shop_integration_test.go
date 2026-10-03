@@ -57,6 +57,7 @@ func newShopEnv(t *testing.T) *shopEnv {
 			PlayerDayOther: cfg.Merchant.PlayerDayOther, SupplyValuePerResident: cfg.Merchant.SupplyValueFood, BuildingBoostBPS: cfg.Merchant.BuildingBoostBPS},
 		RestockHour: int(cfg.Merchant.RestockHour), CapPresets: cfg.Merchant.CapPresets, BuyPresets: cfg.Merchant.BuyPresets,
 		TaxPresets: cfg.Merchant.TaxPresets, TaxDefault: cfg.Merchant.TaxDefaultBPS, TaxMax: cfg.Merchant.TaxMaxBPS,
+		NilUnitSup: cfg.Premium.NilUnitSup, NilExamples: cfg.Premium.NilExamples, OutputDays: int(cfg.Merchant.OutputDays),
 		Carry: cfg.CarryRules(), Clock: clk,
 	}
 	uow := postgres.NewUnitOfWork(l.pool, testDefaultLanguage)
@@ -530,6 +531,55 @@ func TestTheVillageTickDeliversTheMorning(t *testing.T) {
 	}
 	if _, _, rows := e.day(t); rows != 1 {
 		t.Errorf("days after a second tick = %d, want 1", rows)
+	}
+	verifyShopLedger(t, e.pool)
+}
+
+// The money panel is a reading: it quotes the neutral currency in Nil, reads the
+// treasury from the ledger and the basket from the shop, says what the currency
+// does not have yet, and moves no money.
+func TestTheMoneyPanelQuotesNilAndMovesNothing(t *testing.T) {
+	e := newShopEnv(t)
+	ctx := testCtx(t)
+	p := e.buyer(t, 0)
+	e.view(t, p) // the morning delivery, so the shelf has prices
+	entries := func() int {
+		return countRows(t, e.pool, `SELECT count(*) FROM ledger_entries e JOIN accounts a ON a.id = e.account_id WHERE a.owner_id = $1::uuid`, e.cityID)
+	}
+	before := entries()
+	resp, err := e.shop.Money(ctx, e.as(p, "settlement.money", "money"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resp.Screen != village.ScreenVillageMoney {
+		t.Fatalf("screen %q: %s", resp.Screen, string(resp.View))
+	}
+	var v village.MoneyView
+	if err := presentation.DecodeView(resp.View, &v); err != nil {
+		t.Fatal(err)
+	}
+	if v.NilUnitSup != 100 || v.NilPerUnitMicro != 10_000 {
+		t.Errorf("the quote is %d micro-Nil per unit with nil_unit_sup %d, want 10000 and 100", v.NilPerUnitMicro, v.NilUnitSup)
+	}
+	for _, ex := range v.Examples {
+		if want := ex.Amount * 10_000; ex.NilMicro != want {
+			t.Errorf("%d SUP quoted as %d micro-Nil, want %d", ex.Amount, ex.NilMicro, want)
+		}
+	}
+	if want := cashBalance(t, e.pool, application.AccountCityTreasury, e.cityID); v.Treasury != want {
+		t.Errorf("the panel's treasury %d is not the ledger's %d", v.Treasury, want)
+	}
+	if v.TreasuryNilMicro != v.Treasury*10_000 {
+		t.Errorf("the treasury in Nil: %d", v.TreasuryNilMicro)
+	}
+	if v.Market != village.MoneyNone || v.Reserve != village.MoneyNone || v.Currency.Issued {
+		t.Errorf("the panel claims a market or a reserve that does not exist: %+v", v)
+	}
+	if len(v.Basket) == 0 || v.IndexBPS < 10_000 || v.IndexBPS > 15_000 || v.CoverBPS < 1 {
+		t.Errorf("basket %d lines, index %d, cover %d: the shop prices must read between the reference and 1.5 times it", len(v.Basket), v.IndexBPS, v.CoverBPS)
+	}
+	if after := entries(); after != before {
+		t.Errorf("reading the panel moved money: %d ledger entries became %d", before, after)
 	}
 	verifyShopLedger(t, e.pool)
 }

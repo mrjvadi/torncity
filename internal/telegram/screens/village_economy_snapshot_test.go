@@ -176,4 +176,21 @@ func villageEconomySnapshots(c Context, who people, add func(string, *presenter.
 	} {
 		add("ShopRefused · "+r.Kind, VillageShopRefusal(g, r))
 	}
+	add("Money · the panel, a basket partly on the shelf", VillageMoney(g, village.MoneyView{
+		Village: villageNameFor(c), Currency: village.MoneyCurrency{Code: "TAL", Name: sampleNamed(c.Lang, "tal", "تالار", "Talar").Name, Symbol: "T"},
+		Market: village.MoneyNone, Reserve: village.MoneyNone, NilUnitSup: 100, NilPerUnitMicro: 10_000,
+		Examples: []village.NilExample{{Amount: 100, NilMicro: 1_000_000}, {Amount: 1000, NilMicro: 10_000_000}, {Amount: 30, NilMicro: 300_000}},
+		Treasury: 8_400, TreasuryNilMicro: 84_000_000, Output: 960, OutputNilMicro: 9_600_000, OutputDays: 7, Residents: 3,
+		Basket: []village.MoneyBasketLine{
+			{Item: sampleNamed(c.Lang, "rice", "برنج", "Rice"), Kind: "item", WeekMilli: 1400, Reference: 35, Price: 38, OnShelf: true},
+			{Item: sampleNamed(c.Lang, "tea", "چای", "Tea"), Kind: "item", WeekMilli: 560, Reference: 45, OnShelf: false},
+		},
+		IndexBPS: 10_857, CoverBPS: 6_364,
+	}))
+	add("Money · nothing on the shelf, an old village without a reserved money", VillageMoney(g, village.MoneyView{
+		Village: villageNameFor(c), Market: village.MoneyNone, Reserve: village.MoneyNone, NilUnitSup: 100, NilPerUnitMicro: 10_000,
+		Examples: []village.NilExample{{Amount: 100, NilMicro: 1_000_000}},
+		Treasury: 0, OutputDays: 7,
+		Basket: []village.MoneyBasketLine{{Item: sampleNamed(c.Lang, "rice", "برنج", "Rice"), Kind: "item", WeekMilli: 1400, Reference: 35}},
+	}))
 }

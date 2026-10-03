@@ -95,6 +95,11 @@ type VillageShopRepository interface {
 	AddPlayerDay(ctx context.Context, playerID, settlementID, line string, day, qty int64) error
 	RecordSale(ctx context.Context, s VillageShopSale) error
 
+	// Produced is the goods the village's workplaces made since a moment
+	// (finished production shifts), by code: the village's output, which the
+	// money panel prices at reference prices.
+	Produced(ctx context.Context, settlementID string, since time.Time) (map[string]int64, error)
+
 	// Terms are what the head set; a field not set is its Has flag false.
 	Terms(ctx context.Context, settlementID string) (VillageShopTerms, error)
 	SetPriceCap(ctx context.Context, settlementID string, capBPS int64, by string, at time.Time) error

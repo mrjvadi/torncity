@@ -1377,6 +1377,8 @@ bag:
 #                       treasury, which pays the shopkeeper
 #   tax_max_bps         the most the head may set
 #   tax_presets         the taxes the head's buttons offer
+#   output_days         the game days the money panel reads a village's output
+#                       over (the goods its workplaces made, at reference prices)
 merchant:
   restock_hour: 6
   markup_min_bps: 10000
@@ -1393,11 +1395,14 @@ merchant:
   tax_default_bps: 300
   tax_max_bps: 1500
   tax_presets: [100, 300, 500, 1000]
+  output_days: 7
 
 # Nil as a unit of account (docs/adr/0046 section 7.4). One Nil stands for this
 # many neutral-currency units: a village currency is QUOTED in Nil as
 # (x_ref / r0) / nil_unit_sup. It is a display constant. Nothing converts at it:
 # Nil never becomes money (ADR 0029 10.4), the TON purchase of Nil stays off
 # (finance.yml ton_exchange), and no ledger moves because of it.
+#   nil_examples  the amounts of the neutral currency the money panel spells out in Nil
 premium:
   nil_unit_sup: 100
+  nil_examples: [100, 1000, 10000]

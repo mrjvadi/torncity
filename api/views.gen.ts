@@ -3201,6 +3201,41 @@ export interface MissionsMineView {
   recent: MissionProgressLine[] | null
 }
 
+export interface MoneyBasketLine {
+  item: Named
+  kind: string
+  week_milli: number
+  reference: number
+  price: number
+  on_shelf: boolean
+}
+
+export interface MoneyCurrency {
+  code: string
+  name: string
+  symbol: string
+  issued: boolean
+}
+
+export interface MoneyView {
+  village: string
+  currency: MoneyCurrency
+  market: string
+  reserve: string
+  nil_unit_sup: number
+  nil_per_unit_micro: number
+  examples: NilExample[] | null
+  treasury: number
+  treasury_nil_micro: number
+  output: number
+  output_nil_micro: number
+  output_days: number
+  residents: number
+  basket: MoneyBasketLine[] | null
+  index_bps: number
+  cover_bps: number
+}
+
 export interface MoveLine {
   good: Good
   qty: number
@@ -3264,6 +3299,11 @@ export interface NextStep {
   finish_at: string | null
   left_seconds: number
   can_research: boolean
+}
+
+export interface NilExample {
+  amount: number
+  nil_micro: number
 }
 
 export interface NotHereView {
@@ -5566,6 +5606,7 @@ export interface ScreenViews {
   village_home_none: EmptyView
   village_materials: MaterialsView
   village_materials_buy_confirm: MaterialBuyView
+  village_money: MoneyView
   village_news: VillageNewsView
   village_overview: VillageOverviewView
   village_promote_confirm: PromotionView

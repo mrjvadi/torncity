@@ -240,10 +240,12 @@ type merchantSettings struct {
 	TaxDefaultBPS    *int64  `yaml:"tax_default_bps"`
 	TaxMaxBPS        *int64  `yaml:"tax_max_bps"`
 	TaxPresets       []int64 `yaml:"tax_presets"`
+	OutputDays       *int64  `yaml:"output_days"`
 }
 
 type premiumSettings struct {
-	NilUnitSup *int64 `yaml:"nil_unit_sup"`
+	NilUnitSup  *int64  `yaml:"nil_unit_sup"`
+	NilExamples []int64 `yaml:"nil_examples"`
 }
 
 type travelSettings struct {
@@ -1189,6 +1191,12 @@ var coreSettings = []setting{
 	moneyListSetting("merchant", "tax_presets",
 		func(c *Config) *[]int64 { return &c.Merchant.TaxPresets },
 		func(f *fileConfig) []int64 { return f.Merchant.TaxPresets }),
+	moneySetting("merchant", "output_days",
+		func(c *Config) *int64 { return &c.Merchant.OutputDays },
+		func(f *fileConfig) *int64 { return f.Merchant.OutputDays }),
+	moneyListSetting("premium", "nil_examples",
+		func(c *Config) *[]int64 { return &c.Premium.NilExamples },
+		func(f *fileConfig) []int64 { return f.Premium.NilExamples }),
 	moneySetting("premium", "nil_unit_sup",
 		func(c *Config) *int64 { return &c.Premium.NilUnitSup },
 		func(f *fileConfig) *int64 { return f.Premium.NilUnitSup }),

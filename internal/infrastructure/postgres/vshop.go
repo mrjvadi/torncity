@@ -212,3 +212,26 @@ func (r *VillageShopRepository) SetTax(ctx context.Context, settlementID string,
 	}
 	return nil
 }
+
+// Produced is the goods finished production shifts made since a moment.
+func (r *VillageShopRepository) Produced(ctx context.Context, settlementID string, since time.Time) (map[string]int64, error) {
+	rows, err := r.q.Query(ctx,
+		`SELECT v.key, SUM(v.value::bigint)::bigint
+		   FROM settlement_shifts s, jsonb_each_text(s.produced) v
+		  WHERE s.settlement_id = $1::uuid AND s.status = 'done' AND s.kind = 'production' AND s.finished_at >= $2
+		  GROUP BY v.key`, settlementID, since.UTC())
+	if err != nil {
+		return nil, fmt.Errorf("postgres: reading a village's output: %w", err)
+	}
+	defer rows.Close()
+	out := map[string]int64{}
+	for rows.Next() {
+		var code string
+		var n int64
+		if err := rows.Scan(&code, &n); err != nil {
+			return nil, err
+		}
+		out[code] = n
+	}
+	return out, rows.Err()
+}

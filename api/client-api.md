@@ -264,7 +264,9 @@ Commands are rate limited per player (`client.commands_per_minute`, 120).
 | `travel.status` | — | `travel_status` |
 | `bank.show` | — | `bank` |
 | `bank.deposit` / `bank.withdraw` | `amount`, `nonce`? | `bank` |
-| `inventory.show` | `page`? | `inventory` |
+| `inventory.show` | `page`? | `inventory`: `lines` (each with `shelf {code, group, label, group_label}`), `bags` (the two slots, `belt` then `back`: `{slot, bag}`, `bag` is `{item, serial, full_space, space, wear, wear_max, torn, comfort_kg, hard_kg}` or null) and `carry` (`{used, capacity, base, load_g, comfort_g, hard_g}`: space in «جا», load in grams) |
+| `inventory.bag.wear` | `item` (a bag piece's serial) | `item_detail` of the bag (`bag.worn` true) |
+| `inventory.bag.off` | `slot` (`belt` or `back`) | `inventory` |
 | `job.status` | — | `job_status` |
 | `life.me` | — | `life` |
 | `device.link` / `device.list` / `device.revoke` | — / — / `device` | link code, linked devices |
@@ -478,7 +480,14 @@ named `first[seed % n] last[(seed / n) % m]` from the view's `name_seed`), and
 the availability tags of every `company_type` (the stage a kind of business
 starts at, what it needs). `asset.icon` is always `<table>:<code>`;
 `asset.model` is set for tables drawn as buildings or vehicles (`place`,
-`company_type`, `mode`, `military_unit`). Items, components, crimes, skills
+`company_type`, `mode`, `military_unit`). Items and components also carry a `shelf` (ADR 0046: the leaf of the item tree,
+`food.grain`, `bags.back`), named by the tables `item_shelf` (a leaf; its
+`category` is its group) and `item_shelf_group` (a top-level group): a market
+filters and groups by it. A `settlement_building` carries a `build_category`
+(table `build_category`: housing, shops, construction, production, farming,
+public, security, other), the group of the build menu; the menu's lines
+(`settlement_build_menu`) carry the same code as `category`.
+Items, components, crimes, skills
 and company types carry a `category`, places `kind: place`, military units
 their branch as `category`, for fallback art.
 
@@ -612,13 +621,14 @@ last, confirmed action, never the panel's face. `view`:
 | field | meaning |
 |---|---|
 | `id`, `building {code,name}`, `role`, `tier`, `x`, `y`, `w`, `h`, `rotated`, `description` | the building; `description` is what it is and does, in the player's language |
-| `kind` | which panel to draw: `road`, `civic_hall`, `storage`, `school`, `security`, `generic` (draw an unknown kind as `generic`) |
+| `kind` | which panel to draw: `road`, `civic_hall`, `storage`, `school`, `security`, `shop`, `generic` (draw an unknown kind as `generic`) |
 | `state` | `complete` or `building` |
 | `effects` | `[{target, value}]` what the building adds (basis points, except `housing_capacity`); `upkeep` |
 | `started_at`, `finish_at`, `left_seconds`, `progress_percent` | under construction (0..100, already computed) |
 | `stock` | `storage`: `[{item {code,name}, kind: "component"|"item", qty}]` the village store; the store has no capacity in the content yet, so none is sent |
 | `literacy_percent`, `teaching` | `school`: teaching runs by itself while an education building stands, so it is a state, not a switch |
 | `treasury`, `population`, `research` | `civic_hall`: the village numbers and the research running now |
+| `shop` | `shop` (ADR 0046): the same view as the `village_shop` screen (below), so the building's panel draws the shelf without another page |
 | `can_manage`, `has_upgrade`, `mode` | management; `has_upgrade` tells whether the "upgrade" action is worth showing |
 | `upgrades` | only with `mode: "up"`: `[{building, tier, cost_money, build_time_seconds, available, missing}]`, the **next tier of the building's role** from the content's own ladder (a tier-2 building requires a tier-1 one of its role). It is revealed only when pressed. Levels *within* one building are a later phase and nothing here blocks them |
 
@@ -754,6 +764,11 @@ needs a group.
 | `settlement.build.demolish` | `id` | removes a **finished** building; part of its cost returns to the treasury |
 | `settlement.build.progress` | — | what is going up |
 | `settlement.materials` | — | `village_materials`: the village stock (`stock`, `used`, `capacity`) and Support's market (`market`: item, unit price); `can_buy` says whether the viewer may spend the treasury |
+| `settlement.shop` | — | `village_shop` (ADR 0046): the village's shop. `closed` is `""` (open), `no_shopkeeper`, `unpaid` or `not_yet`; `next_delivery`, `delivery_hour`, `wage`, `tax_bps` (+ `tax_max_bps`, `tax_presets`), `price_cap_bps` (+ `cap_min_bps`, `cap_max_bps`, `cap_presets`), `can_set_cap` (the head), `presets` (buy quantities), `resident` (may buy), `building` (the shop building stands), `lines` (`item {code,name}`, `kind` `item`/`component`, `shelf`, `price`, `reference`, `stock`, `left_today`, `fits`, `max_buy`, `tradable`), `locked` (what a building or research would add: `needs_buildings`, `needs_knowledge`), `free_space`, `capacity`, `free_g`, `repairs` (`serial`, `slot`, `wear`, `wear_max`, `torn`, `cost`), `can_repair`, `cash`; right after an act `bought` or `mended` |
+| `settlement.shop.buy` | `item`, `qty`, `method`?, `nonce`? | without `method`: `village_shop_checkout` (`unit`, `total`, `tax`, `tax_bps`, `space`, `free_space`, `grams`, `payment`, `nonce`), nothing changes. With `method` (`cash`/`card`) and the `nonce`: pays, delivers, answers `village_shop` with `bought`. Refusals are `village_shop_refusal` with code `village_shop_<kind>`: `closed`, `not_there`, `sold_out`, `player_cap`, `no_space`, `too_heavy`, `not_here` |
+| `settlement.shop.cap` / `settlement.shop.tax` | `bps` | the head sets the shop's price ceiling (10000..15000) / sales tax; answers `village_shop`; `village_shop_cap_range` outside the bounds |
+| `settlement.shop.repair` | `item` (a bag piece's serial) | the shop building's counter mends a bag; answers `village_shop` with `mended`; `village_shop_no_building` without one |
+| `settlement.money` | — | `village_money` (ADR 0046 section 7, a display): `currency`, `market`/`reserve` (`none` while the settlement currency has no book or reserve), `nil_unit_sup`, `nil_per_unit_micro` (millionths of a Nil per unit of the neutral money), `examples`, `treasury` (+ `treasury_nil_micro`), `output` (+ `output_nil_micro`, `output_days`), `basket` and its `index_bps`/`cover_bps`. Nothing moves, nothing converts |
 | `settlement.materials.buy` | `item`, `qty`, `confirm`? | the head buys a material from Support's market with SUP from the treasury. Without `confirm`: `village_materials_buy_confirm` (unit price, total), nothing changes. With `confirm: "confirm"`: pays, puts the goods in the stock and answers `village_materials` with `bought` |
 | `settlement.work` | `id`? | without `id`: `village_work`, the workplaces (`places`: `id`, what one shift `produces` and `consumes`, `wage`, `shift`, `workers`, `busy`, `ready`) and the viewer's own shift (`mine`). With `id` (a workplace's building id): a resident starts a timed shift there and the answer is `village_work_started` |
 | `settlement.labor.board` | — | `labor_board`, the hiring board: `jobs` (`id`, `building_id`, `building`, `kind` `construction`/`production`, `employer_kind` `settlement`/`player`, `employer`, `wage` per shift, `left` shifts the budget still pays, `progress_bps`, `left_minutes` worker-minutes of work, `workers`, `npc_crew`, `can_take`, `mine`, `points` the work one shift of the viewer adds), `market` (`housing`, `pool`, `available`, `working`, `vacancies`, `tightness_bps`, `level` `slack`/`balanced`/`tight`/`short`, `npc_wage`, `min_wage`), `working` (the viewer's shift in progress), `sites` (buildings under construction with no open job the viewer may post one for), `resident` |

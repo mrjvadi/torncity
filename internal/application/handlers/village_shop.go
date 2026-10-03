@@ -67,6 +67,12 @@ type ShopRules struct {
 	TaxPresets  []int64
 	TaxDefault  int64
 	TaxMax      int64
+	// NilUnitSup is the Nil display constant (config premium.nil_unit_sup),
+	// NilExamples the amounts the money panel spells out, OutputDays the game days
+	// it reads the village's output over.
+	NilUnitSup  int64
+	NilExamples []int64
+	OutputDays  int
 	Carry       carry.Rules
 	Clock       gametime.Clock
 }

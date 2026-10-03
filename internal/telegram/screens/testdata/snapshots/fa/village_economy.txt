@@ -239,7 +239,8 @@
   ───
   [🛒 نان ×⁨1⁩] → settlement:shop.buy:bread:1   │   [🛒 نان ×⁨3⁩] → settlement:shop.buy:bread:3
   [🛒 گونی دوشی ×⁨1⁩] → settlement:shop.buy:bag_sack:1
-  [🧱 انبار و بازار] → settlement:materials   │   [🏗 ساخت‌وساز] → settlement:build
+  [💱 ارزش پول شهر] → settlement:money   │   [🧱 انبار و بازار] → settlement:materials
+  [🏗 ساخت‌وساز] → settlement:build   │   [🏘 نمای شهر] → settlement:overview
   [🔙 بازگشت] → settlement:materials   │   [🔄 به‌روزرسانی] → settlement:shop
 
 ━━━ Shop · the head sees the two levers ━━━
@@ -268,7 +269,8 @@
   [🛒 گونی دوشی ×⁨1⁩] → settlement:shop.buy:bag_sack:1
   [🏷 سقف قیمت ⁨100⁩] → settlement:shop.cap:10000   │   [🏷 سقف قیمت ⁨150⁩] → settlement:shop.cap:15000
   [🧾 مالیات ⁨1⁩] → settlement:shop.tax:100   │   [🧾 مالیات ⁨5⁩] → settlement:shop.tax:500
-  [🧱 انبار و بازار] → settlement:materials   │   [🏗 ساخت‌وساز] → settlement:build
+  [💱 ارزش پول شهر] → settlement:money   │   [🧱 انبار و بازار] → settlement:materials
+  [🏗 ساخت‌وساز] → settlement:build   │   [🏘 نمای شهر] → settlement:overview
   [🔙 بازگشت] → settlement:materials   │   [🔄 به‌روزرسانی] → settlement:shop
 
 ━━━ Shop · a shop building, a sack to mend ━━━
@@ -294,7 +296,8 @@
   [🛒 نان ×⁨1⁩] → settlement:shop.buy:bread:1   │   [🛒 نان ×⁨3⁩] → settlement:shop.buy:bread:3
   [🛒 گونی دوشی ×⁨1⁩] → settlement:shop.buy:bag_sack:1
   [🪡 دوختن گونی دوشی (⁨⁨6⁩ ساپ⁩)] → settlement:shop.repair:SACK000001
-  [🧱 انبار و بازار] → settlement:materials   │   [🏗 ساخت‌وساز] → settlement:build
+  [💱 ارزش پول شهر] → settlement:money   │   [🧱 انبار و بازار] → settlement:materials
+  [🏗 ساخت‌وساز] → settlement:build   │   [🏘 نمای شهر] → settlement:overview
   [🔙 بازگشت] → settlement:materials   │   [🔄 به‌روزرسانی] → settlement:shop
 
 ━━━ Shop · shut: no_shopkeeper ━━━
@@ -317,7 +320,8 @@
 این‌ها را هم می‌آورد، اگر شهر داشته باشد:
 • کولهٔ کوچک - لازم دارد: دکان
   ───
-  [🧱 انبار و بازار] → settlement:materials   │   [🏗 ساخت‌وساز] → settlement:build
+  [💱 ارزش پول شهر] → settlement:money   │   [🧱 انبار و بازار] → settlement:materials
+  [🏗 ساخت‌وساز] → settlement:build   │   [🏘 نمای شهر] → settlement:overview
   [🔙 بازگشت] → settlement:materials   │   [🔄 به‌روزرسانی] → settlement:shop
 
 ━━━ Shop · shut: unpaid ━━━
@@ -340,7 +344,8 @@
 این‌ها را هم می‌آورد، اگر شهر داشته باشد:
 • کولهٔ کوچک - لازم دارد: دکان
   ───
-  [🧱 انبار و بازار] → settlement:materials   │   [🏗 ساخت‌وساز] → settlement:build
+  [💱 ارزش پول شهر] → settlement:money   │   [🧱 انبار و بازار] → settlement:materials
+  [🏗 ساخت‌وساز] → settlement:build   │   [🏘 نمای شهر] → settlement:overview
   [🔙 بازگشت] → settlement:materials   │   [🔄 به‌روزرسانی] → settlement:shop
 
 ━━━ Shop · shut: not_yet ━━━
@@ -363,7 +368,8 @@
 این‌ها را هم می‌آورد، اگر شهر داشته باشد:
 • کولهٔ کوچک - لازم دارد: دکان
   ───
-  [🧱 انبار و بازار] → settlement:materials   │   [🏗 ساخت‌وساز] → settlement:build
+  [💱 ارزش پول شهر] → settlement:money   │   [🧱 انبار و بازار] → settlement:materials
+  [🏗 ساخت‌وساز] → settlement:build   │   [🏘 نمای شهر] → settlement:overview
   [🔙 بازگشت] → settlement:materials   │   [🔄 به‌روزرسانی] → settlement:shop
 
 ━━━ Shop · a visitor cannot buy ━━━
@@ -388,7 +394,8 @@
 این‌ها را هم می‌آورد، اگر شهر داشته باشد:
 • کولهٔ کوچک - لازم دارد: دکان
   ───
-  [🧱 انبار و بازار] → settlement:materials   │   [🏗 ساخت‌وساز] → settlement:build
+  [💱 ارزش پول شهر] → settlement:money   │   [🧱 انبار و بازار] → settlement:materials
+  [🏗 ساخت‌وساز] → settlement:build   │   [🏘 نمای شهر] → settlement:overview
   [🔙 بازگشت] → settlement:materials   │   [🔄 به‌روزرسانی] → settlement:shop
 
 ━━━ Shop · just bought ━━━
@@ -413,7 +420,8 @@
 این‌ها را هم می‌آورد، اگر شهر داشته باشد:
 • کولهٔ کوچک - لازم دارد: دکان
   ───
-  [🧱 انبار و بازار] → settlement:materials   │   [🏗 ساخت‌وساز] → settlement:build
+  [💱 ارزش پول شهر] → settlement:money   │   [🧱 انبار و بازار] → settlement:materials
+  [🏗 ساخت‌وساز] → settlement:build   │   [🏘 نمای شهر] → settlement:overview
   [🔙 بازگشت] → settlement:materials   │   [🔄 به‌روزرسانی] → settlement:shop
 
 ━━━ Checkout · village shop ━━━
@@ -490,3 +498,54 @@
   ───
   [🛒 برگشت به دکان] → settlement:shop
   [🔙 بازگشت] → settlement:materials
+
+━━━ Money · the panel, a basket partly on the shelf ━━━
+(edits message 42)
+💱 ارزش پول شهر «کورندال»
+
+پول شهر شما «تالار» نام گرفته ولی هنوز منتشر نشده؛ تا آن روز خزانه و دکان با ساپ، پول شهر مرکزی، کار می‌کنند.
+
+نیل واحد سنجش است: هر نیل برابر ⁨100⁩ ساپ حساب می‌شود. این فقط یک نرخ برای دیدن است؛ هیچ پولی با نیل عوض نمی‌شود.
+
+• ⁨⁨100⁩ ساپ⁩ برابر است با ⁨⁨1⁩ نیل⁩
+• ⁨⁨1,000⁩ ساپ⁩ برابر است با ⁨⁨10⁩ نیل⁩
+• ⁨⁨30⁩ ساپ⁩ برابر است با ⁨⁨0.3⁩ نیل⁩
+
+🏦 خزانهٔ شهر: ⁨⁨8,400⁩ ساپ⁩ (برابر ⁨⁨84⁩ نیل⁩)
+
+⚒ تولید شهر در ⁨7⁩ روز بازی گذشته: ⁨⁨960⁩ ساپ⁩ به قیمت پایه (برابر ⁨⁨9.6⁩ نیل⁩)
+
+🧺 سبد کالاهای مشترک (آنچه هر شهر باید بتواند بخرد):
+• برنج: در دکان ⁨⁨38⁩ ساپ⁩، قیمت پایه ⁨⁨35⁩ ساپ⁩
+• چای: الان در دکان نیست، قیمت پایه ⁨⁨45⁩ ساپ⁩
+
+📊 این سبد در این شهر ⁨108.57⁩٪ قیمت پایه است (دکان ⁨63.64⁩٪ سبد را دارد).
+
+بازار پول شهر، ذخیره و پوشش پول هنوز ساخته نشده و نمی‌شود نرخ ساختگی گفت؛ وقتی پول شهر منتشر شد، همین‌جا با نرخ بازار می‌آید.
+
+هرچه سبد ارزان‌تر باشد، پول شهر قدرت خرید بیشتری دارد.
+  ───
+  [🔙 بازگشت] → settlement:shop   │   [🔄 به‌روزرسانی] → settlement:money
+
+━━━ Money · nothing on the shelf, an old village without a reserved money ━━━
+(edits message 42)
+💱 ارزش پول شهر «کورندال»
+
+نیل واحد سنجش است: هر نیل برابر ⁨100⁩ ساپ حساب می‌شود. این فقط یک نرخ برای دیدن است؛ هیچ پولی با نیل عوض نمی‌شود.
+
+• ⁨⁨100⁩ ساپ⁩ برابر است با ⁨⁨1⁩ نیل⁩
+
+🏦 خزانهٔ شهر: ⁨⁨0⁩ ساپ⁩ (برابر ⁨⁨0⁩ نیل⁩)
+
+⚒ تولید شهر در ⁨7⁩ روز بازی گذشته: ⁨⁨0⁩ ساپ⁩ به قیمت پایه (برابر ⁨⁨0⁩ نیل⁩)
+
+🧺 سبد کالاهای مشترک (آنچه هر شهر باید بتواند بخرد):
+• برنج: الان در دکان نیست، قیمت پایه ⁨⁨35⁩ ساپ⁩
+
+📊 هیچ‌کدام از کالاهای سبد الان روی پیشخوان دکان نیست؛ سنجشی ممکن نیست.
+
+بازار پول شهر، ذخیره و پوشش پول هنوز ساخته نشده و نمی‌شود نرخ ساختگی گفت؛ وقتی پول شهر منتشر شد، همین‌جا با نرخ بازار می‌آید.
+
+هرچه سبد ارزان‌تر باشد، پول شهر قدرت خرید بیشتری دارد.
+  ───
+  [🔙 بازگشت] → settlement:shop   │   [🔄 به‌روزرسانی] → settlement:money

@@ -14,6 +14,8 @@ import (
 // Nothing is worded here that the core did not send as a code or a number.
 
 const (
+	AddrMoney                 = village.AddrMoney
+	ScreenVillageMoney        = village.ScreenVillageMoney
 	ScreenVillageShop         = village.ScreenVillageShop
 	ScreenVillageShopCheckout = village.ScreenVillageShopCheckout
 	ScreenVillageShopRefusal  = village.ScreenVillageShopRefusal
@@ -146,7 +148,8 @@ func renderVillageShop(c Context, v village.ShopView) *presenter.Response {
 		c.T("village.shop.shelf_title", nil)+"\n"+shelf,
 		lockedText, repairText, terms,
 	)
-	kb.Row(villageButtons(c, "village.button.materials", AddrMaterials, "village.button.build", AddrBuildMenu)...)
+	kb.Row(villageButtons(c, "village.button.money", AddrMoney, "village.button.materials", AddrMaterials)...)
+	kb.Row(villageButtons(c, "village.button.build", AddrBuildMenu, "village.button.overview", AddrVillageOverview)...)
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrMaterials, RefreshData: AddrShopHere}))
 	return c.respond(text, kb.Build())
 }
@@ -215,4 +218,74 @@ func renderVillageShopRefusal(c Context, v village.ShopRefusalView) *presenter.R
 	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrMaterials}))
 	return c.respond(body(lines...), kb.Build())
+}
+
+// FormatNil spells an amount of Nil given in millionths: its whole part and up to
+// four decimals, in this context's digits (a Nil is a display unit, so a small
+// sum reads 0.0008, never 0).
+func FormatNil(c Context, micro int64) string {
+	whole, frac := micro/1_000_000, (micro%1_000_000)/100 // four decimals
+	if micro > 0 && whole == 0 && frac == 0 {
+		frac = 1
+	}
+	text := strconv.FormatInt(whole, 10)
+	if frac != 0 {
+		f := strconv.FormatInt(frac, 10)
+		for len(f) < 4 {
+			f = "0" + f
+		}
+		for f[len(f)-1] == '0' {
+			f = f[:len(f)-1]
+		}
+		text += "." + f
+	}
+	return c.T("format.nil", map[string]any{"amount": c.numerals().localise(text)})
+}
+
+// VillageMoney renders what the settlement's money is worth.
+func VillageMoney(c Context, v village.MoneyView) *presenter.Response {
+	return c.withView(renderVillageMoney(c, v), ScreenVillageMoney, v)
+}
+
+func renderVillageMoney(c Context, v village.MoneyView) *presenter.Response {
+	var currency string
+	if v.Currency.Code != "" {
+		key := "village.money.currency_reserved"
+		if v.Currency.Issued {
+			key = "village.money.currency_issued"
+		}
+		currency = c.T(key, map[string]any{"name": v.Currency.Name})
+	}
+	var examples []string
+	for _, e := range v.Examples {
+		examples = append(examples, c.T("village.money.example", map[string]any{"amount": FormatMoney(c, e.Amount), "nil": FormatNil(c, e.NilMicro)}))
+	}
+	var basket []string
+	for _, l := range v.Basket {
+		name := c.shopItemName(l.Item, l.Kind)
+		if l.OnShelf {
+			basket = append(basket, c.T("village.money.basket_line", map[string]any{"name": name, "price": FormatMoney(c, l.Price), "ref": FormatMoney(c, l.Reference)}))
+		} else {
+			basket = append(basket, c.T("village.money.basket_missing", map[string]any{"name": name, "ref": FormatMoney(c, l.Reference)}))
+		}
+	}
+	index := c.T("village.money.index_none", nil)
+	if v.IndexBPS > 0 {
+		index = c.T("village.money.index", map[string]any{"index": PercentFromBPS(c, int(v.IndexBPS)), "cover": PercentFromBPS(c, int(v.CoverBPS))})
+	}
+	text := paragraphs(
+		c.T("village.money.title", map[string]any{"village": v.Village}),
+		currency,
+		c.T("village.money.quote", map[string]any{"units": FormatNumber(c, v.NilUnitSup)}),
+		body(examples...),
+		c.T("village.money.treasury", map[string]any{"amount": FormatMoney(c, v.Treasury), "nil": FormatNil(c, v.TreasuryNilMicro)}),
+		c.T("village.money.output", map[string]any{"amount": FormatMoney(c, v.Output), "nil": FormatNil(c, v.OutputNilMicro), "days": FormatNumber(c, int64(v.OutputDays))}),
+		c.T("village.money.basket_title", nil)+"\n"+body(basket...),
+		index,
+		c.T("village.money.no_market", nil),
+		c.T("village.money.hint", nil),
+	)
+	kb := keyboards.New()
+	kb.Nav(c.nav(keyboards.Nav{BackData: AddrShopHere, RefreshData: AddrMoney}))
+	return c.respond(text, kb.Build())
 }

@@ -315,6 +315,7 @@ commands:
   settlement.shop.cap: {kind: secondary, icon: "action:shop"}
   settlement.shop.tax: {kind: secondary, icon: "action:shop"}
   settlement.shop.repair: {kind: primary, icon: "action:bag"}
+  settlement.money: {kind: navigation, icon: "action:money"}
   settlement.work: {kind: primary, icon: "action:work"}
   settlement.labor.board: {kind: navigation, icon: "action:work"}
   settlement.labor.site: {kind: navigation, icon: "action:build"}

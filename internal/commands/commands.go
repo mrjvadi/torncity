@@ -466,6 +466,8 @@ var all = []Subscription{
 	{Domain: "settlement", Action: "shop.cap", Origin: FromPlayer},
 	{Domain: "settlement", Action: "shop.tax", Origin: FromPlayer},
 	{Domain: "settlement", Action: "shop.repair", Origin: FromPlayer},
+	// What the settlement's money is worth (ADR 0046 section 7): a reading, never an act.
+	{Domain: "settlement", Action: "money", Origin: FromPlayer},
 	{Domain: "settlement", Action: "work", Origin: FromPlayer},
 	{Domain: "settlement", Action: "worked", Origin: FromScheduler},
 	// The labour market (ADR 0037): the hiring board, a construction site,

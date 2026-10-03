@@ -291,13 +291,15 @@ type Merchant struct {
 	TaxDefaultBPS    int64   // merchant.tax_default_bps: a village's sales tax until its head sets one
 	TaxMaxBPS        int64   // merchant.tax_max_bps: the most the head may set
 	TaxPresets       []int64 // merchant.tax_presets: the taxes the head's buttons offer
+	OutputDays       int64   // merchant.output_days: the game days the money panel reads a village's output over
 }
 
 // Premium is the display constant of the Nil quote (docs/adr/0046 section 7.4).
 // Nothing converts at it: it only says how many neutral-currency units one Nil
 // stands for.
 type Premium struct {
-	NilUnitSup int64 // premium.nil_unit_sup
+	NilUnitSup  int64   // premium.nil_unit_sup
+	NilExamples []int64 // premium.nil_examples: the amounts the money panel shows in Nil
 }
 
 // The values of growth.capabilities (ADR 0044 section 11, flag
@@ -1639,8 +1641,8 @@ func Defaults() *Config {
 		Merchant: Merchant{RestockHour: 6, MarkupMinBPS: 10000, MarkupMaxBPS: 15000, StockDays: 2,
 			FoodShareBPS: 4000, OtherShareBPS: 3000, PlayerDayFood: 3, PlayerDayOther: 2, SupplyValueFood: 600,
 			BuildingBoostBPS: 15000, CapPresets: []int64{10000, 11000, 12500, 15000}, BuyPresets: []int64{1, 3, 5},
-			TaxDefaultBPS: 300, TaxMaxBPS: 1500, TaxPresets: []int64{100, 300, 500, 1000}},
-		Premium:     Premium{NilUnitSup: 100},
+			TaxDefaultBPS: 300, TaxMaxBPS: 1500, TaxPresets: []int64{100, 300, 500, 1000}, OutputDays: 7},
+		Premium:     Premium{NilUnitSup: 100, NilExamples: []int64{100, 1000, 10000}},
 		Legislature: Legislature{VoteWindow: 48 * time.Hour, ListSize: 8},
 		Labor: Labor{
 			ShiftMinutes:       60,

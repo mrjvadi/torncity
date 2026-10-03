@@ -27,6 +27,7 @@ func shopRules(cfg *config.Config) handlers.ShopRules {
 		RestockHour: int(m.RestockHour),
 		CapPresets:  m.CapPresets, BuyPresets: m.BuyPresets, TaxPresets: m.TaxPresets,
 		TaxDefault: m.TaxDefaultBPS, TaxMax: m.TaxMaxBPS,
+		NilUnitSup: cfg.Premium.NilUnitSup, NilExamples: cfg.Premium.NilExamples, OutputDays: int(m.OutputDays),
 		Carry: cfg.CarryRules(), Clock: clock,
 	}
 }

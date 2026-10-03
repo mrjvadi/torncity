@@ -239,7 +239,8 @@ The shop would also carry these if the town had what they need:
   ───
   [🛒 Bread ×1] → settlement:shop.buy:bread:1   │   [🛒 Bread ×3] → settlement:shop.buy:bread:3
   [🛒 Shoulder sack ×1] → settlement:shop.buy:bag_sack:1
-  [🧱 Stock and market] → settlement:materials   │   [🏗 Construction] → settlement:build
+  [💱 What the money is worth] → settlement:money   │   [🧱 Stock and market] → settlement:materials
+  [🏗 Construction] → settlement:build   │   [🏘 City] → settlement:overview
   [🔙 Back] → settlement:materials   │   [🔄 Refresh] → settlement:shop
 
 ━━━ Shop · the head sees the two levers ━━━
@@ -268,7 +269,8 @@ The shop would also carry these if the town had what they need:
   [🛒 Shoulder sack ×1] → settlement:shop.buy:bag_sack:1
   [🏷 Ceiling 100] → settlement:shop.cap:10000   │   [🏷 Ceiling 150] → settlement:shop.cap:15000
   [🧾 Tax 1] → settlement:shop.tax:100   │   [🧾 Tax 5] → settlement:shop.tax:500
-  [🧱 Stock and market] → settlement:materials   │   [🏗 Construction] → settlement:build
+  [💱 What the money is worth] → settlement:money   │   [🧱 Stock and market] → settlement:materials
+  [🏗 Construction] → settlement:build   │   [🏘 City] → settlement:overview
   [🔙 Back] → settlement:materials   │   [🔄 Refresh] → settlement:shop
 
 ━━━ Shop · a shop building, a sack to mend ━━━
@@ -294,7 +296,8 @@ On the counter:
   [🛒 Bread ×1] → settlement:shop.buy:bread:1   │   [🛒 Bread ×3] → settlement:shop.buy:bread:3
   [🛒 Shoulder sack ×1] → settlement:shop.buy:bag_sack:1
   [🪡 Mend Shoulder sack (6 SUP)] → settlement:shop.repair:SACK000001
-  [🧱 Stock and market] → settlement:materials   │   [🏗 Construction] → settlement:build
+  [💱 What the money is worth] → settlement:money   │   [🧱 Stock and market] → settlement:materials
+  [🏗 Construction] → settlement:build   │   [🏘 City] → settlement:overview
   [🔙 Back] → settlement:materials   │   [🔄 Refresh] → settlement:shop
 
 ━━━ Shop · shut: no_shopkeeper ━━━
@@ -317,7 +320,8 @@ On the counter:
 The shop would also carry these if the town had what they need:
 • Small rucksack - needs: General store
   ───
-  [🧱 Stock and market] → settlement:materials   │   [🏗 Construction] → settlement:build
+  [💱 What the money is worth] → settlement:money   │   [🧱 Stock and market] → settlement:materials
+  [🏗 Construction] → settlement:build   │   [🏘 City] → settlement:overview
   [🔙 Back] → settlement:materials   │   [🔄 Refresh] → settlement:shop
 
 ━━━ Shop · shut: unpaid ━━━
@@ -340,7 +344,8 @@ On the counter:
 The shop would also carry these if the town had what they need:
 • Small rucksack - needs: General store
   ───
-  [🧱 Stock and market] → settlement:materials   │   [🏗 Construction] → settlement:build
+  [💱 What the money is worth] → settlement:money   │   [🧱 Stock and market] → settlement:materials
+  [🏗 Construction] → settlement:build   │   [🏘 City] → settlement:overview
   [🔙 Back] → settlement:materials   │   [🔄 Refresh] → settlement:shop
 
 ━━━ Shop · shut: not_yet ━━━
@@ -363,7 +368,8 @@ On the counter:
 The shop would also carry these if the town had what they need:
 • Small rucksack - needs: General store
   ───
-  [🧱 Stock and market] → settlement:materials   │   [🏗 Construction] → settlement:build
+  [💱 What the money is worth] → settlement:money   │   [🧱 Stock and market] → settlement:materials
+  [🏗 Construction] → settlement:build   │   [🏘 City] → settlement:overview
   [🔙 Back] → settlement:materials   │   [🔄 Refresh] → settlement:shop
 
 ━━━ Shop · a visitor cannot buy ━━━
@@ -388,7 +394,8 @@ On the counter:
 The shop would also carry these if the town had what they need:
 • Small rucksack - needs: General store
   ───
-  [🧱 Stock and market] → settlement:materials   │   [🏗 Construction] → settlement:build
+  [💱 What the money is worth] → settlement:money   │   [🧱 Stock and market] → settlement:materials
+  [🏗 Construction] → settlement:build   │   [🏘 City] → settlement:overview
   [🔙 Back] → settlement:materials   │   [🔄 Refresh] → settlement:shop
 
 ━━━ Shop · just bought ━━━
@@ -413,7 +420,8 @@ On the counter:
 The shop would also carry these if the town had what they need:
 • Small rucksack - needs: General store
   ───
-  [🧱 Stock and market] → settlement:materials   │   [🏗 Construction] → settlement:build
+  [💱 What the money is worth] → settlement:money   │   [🧱 Stock and market] → settlement:materials
+  [🏗 Construction] → settlement:build   │   [🏘 City] → settlement:overview
   [🔙 Back] → settlement:materials   │   [🔄 Refresh] → settlement:shop
 
 ━━━ Checkout · village shop ━━━
@@ -490,3 +498,54 @@ The price ceiling or tax must be between 100 and 150.
   ───
   [🛒 Back to the shop] → settlement:shop
   [🔙 Back] → settlement:materials
+
+━━━ Money · the panel, a basket partly on the shelf ━━━
+(edits message 42)
+💱 What the money of Korendal is worth
+
+Your town's money «Talar» has a name but is not issued yet; until then the treasury and the shop work in SUP, the neutral city's money.
+
+Nil is a unit of measure: one Nil counts as 100 SUP. It is only a rate to look at; no money is ever changed for Nil.
+
+• 100 SUP is worth 1 Nil
+• 1,000 SUP is worth 10 Nil
+• 30 SUP is worth 0.3 Nil
+
+🏦 Town treasury: 8,400 SUP (worth 84 Nil)
+
+⚒ What the town's workplaces made in the last 7 game days: 960 SUP at reference prices (worth 9.6 Nil)
+
+🧺 The common basket (what every town should be able to buy):
+• Rice: 38 SUP at the shop, reference price 35 SUP
+• Tea: not on the counter right now, reference price 45 SUP
+
+📊 This basket costs 108.57% of the reference price here (the shop has 63.64% of it).
+
+The town money's market, reserve and cover are not built yet and no made-up rate is given; once the town money is issued its market rate shows here.
+
+The cheaper the basket, the more the town's money buys.
+  ───
+  [🔙 Back] → settlement:shop   │   [🔄 Refresh] → settlement:money
+
+━━━ Money · nothing on the shelf, an old village without a reserved money ━━━
+(edits message 42)
+💱 What the money of Korendal is worth
+
+Nil is a unit of measure: one Nil counts as 100 SUP. It is only a rate to look at; no money is ever changed for Nil.
+
+• 100 SUP is worth 1 Nil
+
+🏦 Town treasury: 0 SUP (worth 0 Nil)
+
+⚒ What the town's workplaces made in the last 7 game days: 0 SUP at reference prices (worth 0 Nil)
+
+🧺 The common basket (what every town should be able to buy):
+• Rice: not on the counter right now, reference price 35 SUP
+
+📊 Nothing from the basket is on the counter now, so there is nothing to measure.
+
+The town money's market, reserve and cover are not built yet and no made-up rate is given; once the town money is issued its market rate shows here.
+
+The cheaper the basket, the more the town's money buys.
+  ───
+  [🔙 Back] → settlement:shop   │   [🔄 Refresh] → settlement:money
