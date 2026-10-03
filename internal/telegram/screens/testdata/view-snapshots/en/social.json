@@ -90,30 +90,35 @@
     "view": {
       "friends": [
         {
+          "code": "",
           "id": "cfaebd97-b816-43a8-aff9-3798555dd818",
           "incoming": false,
           "name": "Kaveh",
           "status": "accepted"
         },
         {
+          "code": "",
           "id": "cfaebd97-b816-43a8-aff9-3798555dd818",
           "incoming": true,
           "name": "Nilou",
           "status": "pending"
         },
         {
+          "code": "",
           "id": "cfaebd97-b816-43a8-aff9-3798555dd818",
           "incoming": false,
           "name": "",
           "status": "pending"
         },
         {
+          "code": "",
           "id": "cfaebd97-b816-43a8-aff9-3798555dd818",
           "incoming": false,
           "name": "Kaveh",
           "status": "pending"
         },
         {
+          "code": "",
           "id": "cfaebd97-b816-43a8-aff9-3798555dd818",
           "incoming": false,
           "name": "Kaveh",
