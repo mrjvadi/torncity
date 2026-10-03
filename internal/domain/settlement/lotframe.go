@@ -58,66 +58,88 @@ func SampleRect(w *worldgen.World, f LotFrame, x0, y0, wd, ht int, cellID int32)
 	if wd < 1 || ht < 1 {
 		return nil
 	}
-	hasOre := false
-	for _, d := range w.Deposits {
-		if d.CellID == cellID && oreResourceCodes[d.ResourceCode] {
-			hasOre = true
-			break
-		}
-	}
-	sw, sh := wd+2, ht+2
-	samples := make([][]worldgen.FineSample, sh)
-	for j := 0; j < sh; j++ {
-		samples[j] = make([]worldgen.FineSample, sw)
-		for i := 0; i < sw; i++ {
-			lat, lon := f.LatLon(x0+i-1, y0+j-1)
-			samples[j][i] = w.SampleFineLatLon(lat, lon)
-		}
-	}
-	nb := [4][2]int{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}
+	ls := NewLotSampler(w, f, cellID)
 	out := make([][]LotTerrain, ht)
 	for y := 0; y < ht; y++ {
 		out[y] = make([]LotTerrain, wd)
 		for x := 0; x < wd; x++ {
-			i, j := x+1, y+1
-			s := samples[j][i]
-			var maxDiff float64
-			coastal := false
-			for _, d := range nb {
-				n := samples[j+d[1]][i+d[0]]
-				if n.IsOcean {
-					coastal = true
-				}
-				diff := math.Abs(s.ElevationM - n.ElevationM)
-				if diff > maxDiff {
-					maxDiff = diff
-				}
-			}
-			lot := LotTerrain{Buildable: buildableFine(s), ElevationM: s.ElevationM, SlopeM: maxDiff, Ocean: s.IsOcean, Lake: s.IsLake}
-			if code := biomeCodeOf(w, s.Biome); code != "" {
-				lot.Tags = append(lot.Tags, code)
-				lot.Biome = code
-			}
-			switch s.StreamKind {
-			case worldgen.StreamKindStream:
-				lot.Stream = "stream"
-			case worldgen.StreamKindRiver:
-				lot.Stream = "river"
-			}
-			if s.StreamKind != worldgen.StreamKindNone {
-				lot.Tags = append(lot.Tags, "river_lot")
-			}
-			if coastal {
-				lot.Tags = append(lot.Tags, "coastal_lot")
-			}
-			if maxDiff > slopeThresholdM {
-				lot.Tags = append(lot.Tags, "sloped_lot")
-			}
-			if hasOre {
-				lot.Tags = append(lot.Tags, "ore_deposit")
-			}
-			out[y][x] = lot
+			out[y][x] = ls.At(x0+x, y0+y)
 		}
 	}
 	return out
+}
+
+// LotSampler samples single lots of a frame, caching every ground sample it
+// takes (a lot and its four side neighbours), for the lots a road opens: they
+// lie along a line, not in a rectangle. One request, one sampler.
+type LotSampler struct {
+	w       *worldgen.World
+	f       LotFrame
+	hasOre  bool
+	samples map[[2]int]worldgen.FineSample
+}
+
+// NewLotSampler builds the sampler; cellID is the settlement's world cell
+// (an ore deposit in it tags every lot, as SampleGridDetail does).
+func NewLotSampler(w *worldgen.World, f LotFrame, cellID int32) *LotSampler {
+	ls := &LotSampler{w: w, f: f, samples: map[[2]int]worldgen.FineSample{}}
+	for _, d := range w.Deposits {
+		if d.CellID == cellID && oreResourceCodes[d.ResourceCode] {
+			ls.hasOre = true
+			break
+		}
+	}
+	return ls
+}
+
+func (ls *LotSampler) sample(x, y int) worldgen.FineSample {
+	k := [2]int{x, y}
+	if s, ok := ls.samples[k]; ok {
+		return s
+	}
+	lat, lon := ls.f.LatLon(x, y)
+	s := ls.w.SampleFineLatLon(lat, lon)
+	ls.samples[k] = s
+	return s
+}
+
+// At is the terrain of lot (x, y), by the same rules as SampleGridDetail.
+func (ls *LotSampler) At(x, y int) LotTerrain {
+	nb := [4][2]int{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}
+	s := ls.sample(x, y)
+	var maxDiff float64
+	coastal := false
+	for _, d := range nb {
+		n := ls.sample(x+d[0], y+d[1])
+		if n.IsOcean {
+			coastal = true
+		}
+		if diff := math.Abs(s.ElevationM - n.ElevationM); diff > maxDiff {
+			maxDiff = diff
+		}
+	}
+	lot := LotTerrain{Buildable: buildableFine(s), ElevationM: s.ElevationM, SlopeM: maxDiff, Ocean: s.IsOcean, Lake: s.IsLake}
+	if code := biomeCodeOf(ls.w, s.Biome); code != "" {
+		lot.Tags = append(lot.Tags, code)
+		lot.Biome = code
+	}
+	switch s.StreamKind {
+	case worldgen.StreamKindStream:
+		lot.Stream = "stream"
+	case worldgen.StreamKindRiver:
+		lot.Stream = "river"
+	}
+	if s.StreamKind != worldgen.StreamKindNone {
+		lot.Tags = append(lot.Tags, "river_lot")
+	}
+	if coastal {
+		lot.Tags = append(lot.Tags, "coastal_lot")
+	}
+	if maxDiff > slopeThresholdM {
+		lot.Tags = append(lot.Tags, "sloped_lot")
+	}
+	if ls.hasOre {
+		lot.Tags = append(lot.Tags, "ore_deposit")
+	}
+	return lot
 }

@@ -115,6 +115,7 @@ const LandMine = village.LandMine
 const LandTaken = village.LandTaken
 const LandBuilding = village.LandBuilding
 const LandRoad = village.LandRoad
+const LandPlanned = village.LandPlanned
 const LandWater = village.LandWater
 const LandSteep = village.LandSteep
 

@@ -139,6 +139,12 @@ func (r *CitizenRepository) InsertPlan(ctx context.Context, p application.RoadPl
 			p.SettlementID, p.ID, xs, ys, seqs, pxs, pys, water, elev, faces, gxs, gys); err != nil {
 			return fmt.Errorf("postgres: storing the road cells: %w", err)
 		}
+		// a lot that became road is no longer a lot on offer
+		if _, err := r.q.Exec(ctx, `
+			DELETE FROM settlement_open_lots o USING settlement_road_cells c
+			 WHERE c.plan_id = $1::uuid AND o.settlement_id = c.settlement_id AND o.lot_x = c.lot_x AND o.lot_y = c.lot_y`, p.ID); err != nil {
+			return fmt.Errorf("postgres: closing the lots under a new road: %w", err)
+		}
 	}
 	return r.upsertOpen(ctx, open, true)
 }

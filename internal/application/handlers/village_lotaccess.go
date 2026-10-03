@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/domain/landroad"
 	"strings"
 	"time"
 
@@ -49,6 +50,8 @@ func (h *VillageHandler) accessRules() settlementbuilding.AccessRules {
 
 // landAccess is the village's land as the road router sees it.
 type landAccess struct {
+	h        *VillageHandler
+	pic      *landPicture
 	grid     settlementbuilding.Grid
 	existing []application.SettlementBuildingInstance
 	amap     settlementbuilding.AccessMap
@@ -90,14 +93,17 @@ func (h *VillageHandler) landAccess(ctx context.Context, tx application.Tx, sc *
 	if err != nil {
 		return nil, err
 	}
-	grid, existing, err := h.grid(ctx, tx, w, sc.s)
+	pic, err := h.picture(ctx, tx, w, sc.s, sc.lots)
 	if err != nil {
 		return nil, err
 	}
+	grid, existing := pic.grid, pic.existing
 	network := h.networkLots(existing)
 	held := make(map[[2]int]string, len(sc.lots))
 	for _, l := range sc.lots {
-		held[[2]int{l.X, l.Y}] = l.OwnerID
+		if pic.inGrid(l.X, l.Y) {
+			held[[2]int{l.X, l.Y}] = l.OwnerID
+		}
 	}
 	reserved := map[[2]int]bool{}
 	for y := range grid {
@@ -124,6 +130,7 @@ func (h *VillageHandler) landAccess(ctx context.Context, tx application.Tx, sc *
 		}
 	}
 	return &landAccess{
+		h: h, pic: pic,
 		grid: grid, existing: existing, rules: h.accessRules(),
 		amap: settlementbuilding.AccessMap{Grid: grid, Network: network, Held: held, Reserved: reserved},
 	}, nil
@@ -132,8 +139,12 @@ func (h *VillageHandler) landAccess(ctx context.Context, tx application.Tx, sc *
 // onOffer reports whether a lot is for sale: bare, buildable, not right-of-way
 // and without an owner.
 func (la *landAccess) onOffer(x, y int) bool {
-	if y < 0 || y >= len(la.grid) || x < 0 || x >= len(la.grid[y]) {
-		return false
+	if !la.pic.inGrid(x, y) {
+		o, open := la.pic.open[landroad.Lot{X: x, Y: y}]
+		_, road := la.pic.cells[landroad.Lot{X: x, Y: y}]
+		_, stands := la.pic.occ[[2]int{x, y}]
+		_, held := la.pic.held[[2]int{x, y}]
+		return open && o.Buildable && !road && !stands && !held
 	}
 	g := la.grid[y][x]
 	if !g.Buildable || g.Occupied || g.Reserved {
@@ -151,6 +162,9 @@ type lotVerdict struct {
 }
 
 func (la *landAccess) verdict(lot [2]int, asker string) lotVerdict {
+	if !la.pic.inGrid(lot[0], lot[1]) {
+		return lotVerdict{base: la.h.outerAccess(la.pic, lot, asker)}
+	}
 	v := lotVerdict{base: la.amap.Plan(lot, asker, false, la.rules)}
 	if v.base.Kind == settlementbuilding.AccessNone {
 		if c := la.amap.Plan(lot, asker, true, la.rules); c.Feasible() && len(c.Carved) > 0 {
@@ -225,7 +239,7 @@ func (h *VillageHandler) LotAccess(ctx context.Context, meta envelope.Metadata, 
 		if err != nil {
 			return err
 		}
-		x, y, _, ok := village.ParseLotToken(req.Lot)
+		x, y, _, ok := village.ParseLotTokenAny(req.Lot)
 		if !ok {
 			return refuseVillage(village.VillageNotFound, village.AddrLand)
 		}
@@ -233,8 +247,10 @@ func (h *VillageHandler) LotAccess(ctx context.Context, meta envelope.Metadata, 
 		if err != nil {
 			return err
 		}
-		if y >= len(la.grid) || x >= len(la.grid[y]) {
-			return refuseVillage(village.VillageOutOfBounds, village.AddrLand)
+		if !la.pic.inGrid(x, y) {
+			if _, open := la.pic.open[landroad.Lot{X: x, Y: y}]; !open {
+				return refuseVillage(village.VillageOutOfBounds, village.AddrLand)
+			}
 		}
 		view, err = h.lotAccessView(ctx, tx, sc, la, x, y)
 		return err
@@ -334,7 +350,7 @@ func (h *VillageHandler) BuyLot(ctx context.Context, meta envelope.Metadata, req
 		if err != nil {
 			return err
 		}
-		x, y, _, ok := village.ParseLotToken(req.Lot)
+		x, y, _, ok := village.ParseLotTokenAny(req.Lot)
 		if !ok {
 			return refuseVillage(village.VillageNotFound, village.AddrLand)
 		}
@@ -344,10 +360,17 @@ func (h *VillageHandler) BuyLot(ctx context.Context, meta envelope.Metadata, req
 			return err
 		}
 		grid := la.grid
-		if y >= len(grid) || x >= len(grid[y]) {
-			return refuseVillage(village.VillageOutOfBounds, village.AddrLand)
+		outer := !la.pic.inGrid(x, y)
+		if outer {
+			// land beyond the first grid is for sale only where a road opened it
+			l := landroad.Lot{X: x, Y: y}
+			_, open := la.pic.open[l]
+			_, road := la.pic.cells[l]
+			if !open && !road {
+				return refuseVillage(village.VillageOutOfBounds, village.AddrLand)
+			}
 		}
-		lot := grid[y][x]
+		lot := la.pic.lotAt(x, y)
 		if _, taken := sc.lotAt(x, y); taken {
 			return refuseVillage(village.CitizenLotTaken, village.AddrLand)
 		}
@@ -362,7 +385,9 @@ func (h *VillageHandler) BuyLot(ctx context.Context, meta envelope.Metadata, req
 		if sc.ownedBy(sc.p.ID) >= h.citizen.MaxLotsPerPlayer {
 			return refuseVillage(village.CitizenLotLimit, village.AddrLand)
 		}
-		if !h.zoningAllows(grid, len(sc.lots)) {
+		// the cap on the private share of the first grid; land the roads opened
+		// is not part of it
+		if !outer && !h.zoningAllows(grid, la.pic.innerHeld()) {
 			return refuseVillage(village.CitizenZoning, village.AddrLand)
 		}
 		cashAcct, cash, err := playerCash(ctx, tx, sc.p.ID)

@@ -92,3 +92,10 @@ const (
 	// AddrTravelOptions is the choice of transport to one city.
 	AddrTravelOptions = "travel:options"
 )
+
+// AddrRoadPlan and AddrRoadCancel address drawing a road out of the first
+// grid and taking an unlaid one back (docs/adr/0044 5.5).
+const (
+	AddrRoadPlan   = "settlement:road.plan"
+	AddrRoadCancel = "settlement:road.cancel"
+)

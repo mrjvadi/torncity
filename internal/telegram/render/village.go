@@ -47,4 +47,7 @@ func init() {
 	Register(village.ScreenVillageWorkStarted, screens.VillageWork)
 	Register(village.ScreenBuildingView, screens.BuildingPanel)
 	Register(village.ScreenLotBatchConfirm, screens.LotBatchConfirm)
+	Register(village.ScreenRoadQuote, screens.RoadQuote)
+	Register(village.ScreenRoadPlanned, screens.RoadPlanned)
+	Register(village.ScreenRoadCancelled, screens.RoadCancelled)
 }

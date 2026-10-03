@@ -48,7 +48,7 @@ func (r VillageBuildRequest) confirmed() bool {
 // forged or stale button, refused the same way any other malformed
 // callback argument is, never trusted as a coordinate on its own.
 func (r VillageBuildRequest) lot() (x, y int, rotated, ok bool) {
-	return village.ParseLotToken(r.Lot)
+	return village.ParseLotTokenAny(r.Lot)
 }
 
 // VillageLotsRequest names the building code the grid is being shown for,
@@ -257,6 +257,16 @@ func (h *VillageHandler) Lots(ctx context.Context, meta envelope.Metadata, req V
 			}
 			view.Rows = append(view.Rows, row)
 		}
+		// the land the roads opened beyond the first grid
+		pic, perr := h.pictureOf(ctx, tx, s)
+		if perr != nil {
+			return perr
+		}
+		if pic.hasOuter() {
+			view.Outer = h.outerLotCells(pic, func(x, y int) bool {
+				return !d.Private() && pic.canPlaceOn(def, x, y, standing) == nil && !footprintTouches(owned, def, x, y)
+			}, nil)
+		}
 		return nil
 	})
 	if resp, err := h.villageFinish(meta, lang, err); resp != nil || err != nil {
@@ -325,7 +335,10 @@ func (h *VillageHandler) Place(ctx context.Context, meta envelope.Metadata, req 
 		} else if rf != nil {
 			return rf
 		}
-		if cerr := settlementbuilding.CanPlace(def, grid, x, y, standing); cerr != nil {
+		if cerr := h.canPlaceAnywhere(ctx, tx, s, def, grid, x, y, standing); cerr != nil {
+			if r, ok := cerr.(*villageRefusal); ok {
+				return r
+			}
 			return buildingRefusal(cerr)
 		}
 		owned, oerr := privateLotSet(ctx, tx, s.CityID)
@@ -342,13 +355,13 @@ func (h *VillageHandler) Place(ctx context.Context, meta envelope.Metadata, req 
 		if perr != nil {
 			return perr
 		}
-		roadFee := int64(len(autoRoads)) * h.autoRoadCost
+		roadFee := autoRoads.Fee
 
 		if !req.confirmed() {
 			confirmView = &village.LotConfirmView{
 				SettlementName: s.Name, Building: named(d.Code, d.Name), X: x, Y: y, Rotated: rotated,
 				CostMoney: d.CostMoney + roadFee, BuildTime: h.scale.RealWait(def.BuildTime),
-				Materials: materialLines(h.content.Current(), def), AutoRoads: len(autoRoads),
+				Materials: materialLines(h.content.Current(), def), AutoRoads: len(autoRoads.Path),
 			}
 			return nil
 		}
@@ -417,7 +430,7 @@ func (h *VillageHandler) Place(ctx context.Context, meta envelope.Metadata, req 
 			}
 			payload["finish_at"] = finish.UTC().Format(time.RFC3339)
 		}
-		laid, err := h.layAutoRoads(ctx, tx, s.CityID, autoRoads, now)
+		laid, err := h.layAutoRoads(ctx, tx, s.CityID, autoRoads.Path, now)
 		if err != nil {
 			return err
 		}
@@ -676,8 +689,12 @@ func (h *VillageHandler) appendBuildingEvent(ctx context.Context, tx application
 	if err != nil {
 		return err
 	}
+	mark, err := h.layoutMark(ctx, tx, s.CityID, lots, priv)
+	if err != nil {
+		return err
+	}
 	payload["layout_version"] = application.LayoutVersionsWithTenure(s.CityID, s.Tier, s.Name,
-		wsettle.GridLotsGrown(s.Tier, h.villageGridLots, s.GridGrowth), rows, footprint, application.TenureMark(lots, priv))
+		wsettle.GridLotsGrown(s.Tier, h.villageGridLots, s.GridGrowth), rows, footprint, mark)
 	return appendVillageEvent(ctx, tx, meta, name, s.CityID, payload)
 }
 

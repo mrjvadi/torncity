@@ -34,10 +34,35 @@ func footprintOf(def settlementbuilding.Def, x, y int) [][2]int {
 // reach it. grid is left with the building's footprint marked.
 func (h *VillageHandler) planAutoRoads(ctx context.Context, tx application.Tx, s application.FoundedSettlement, code string,
 	def settlementbuilding.Def, grid settlementbuilding.Grid, x, y int,
-) ([][2]int, error) {
+) (autoRoadPlan, error) {
 	if code == "road" {
-		return nil, nil
+		return autoRoadPlan{}, nil
 	}
+	if x < 0 || y < 0 || x+def.FootprintW > len(grid) || y+def.FootprintH > len(grid) {
+		// land beyond the first grid: the lane to the nearest drawn road, and
+		// the stretch of that road not laid yet
+		w, err := h.world(ctx)
+		if err != nil {
+			return autoRoadPlan{}, err
+		}
+		lots, err := tx.Citizens().Lots(ctx, s.CityID)
+		if err != nil {
+			return autoRoadPlan{}, err
+		}
+		pic, err := h.picture(ctx, tx, w, s, lots)
+		if err != nil {
+			return autoRoadPlan{}, err
+		}
+		return h.planOuterRoads(pic, def, x, y)
+	}
+	path, err := h.planInnerRoads(ctx, tx, s, code, def, grid, x, y)
+	return autoRoadPlan{Path: path, Fee: int64(len(path)) * h.autoRoadCost}, err
+}
+
+// planInnerRoads is planAutoRoads inside the first grid.
+func (h *VillageHandler) planInnerRoads(ctx context.Context, tx application.Tx, s application.FoundedSettlement, code string,
+	def settlementbuilding.Def, grid settlementbuilding.Grid, x, y int,
+) ([][2]int, error) {
 	fp := footprintOf(def, x, y)
 	for _, p := range fp {
 		grid[p[1]][p[0]].Occupied = true
@@ -103,6 +128,13 @@ func (h *VillageHandler) layAutoRoads(ctx context.Context, tx application.Tx, se
 			return nil, err
 		}
 		out = append(out, map[string]any{"building_id": id, "lot_x": p[0], "lot_y": p[1]})
+	}
+	// a lot of a drawn road (docs/adr/0044 5.5) is laid by this: the plan keeps
+	// the book of what is built, once
+	if len(path) > 0 {
+		if _, err := tx.Citizens().MarkBuilt(ctx, settlementID, path, now); err != nil {
+			return nil, err
+		}
 	}
 	return out, nil
 }

@@ -1,9 +1,9 @@
 package handlers
 
 import (
-	plife "github.com/mrjvadi/torncity/internal/presentation/life"
 	"context"
 	"encoding/json"
+	plife "github.com/mrjvadi/torncity/internal/presentation/life"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"

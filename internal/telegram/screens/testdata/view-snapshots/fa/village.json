@@ -471,6 +471,7 @@
       "grid_lots": 5,
       "line": "line",
       "multi": true,
+      "outer": null,
       "rotated": false,
       "rows": [
         [
@@ -680,6 +681,7 @@
       "grid_lots": 5,
       "line": "end",
       "multi": true,
+      "outer": null,
       "rotated": false,
       "rows": [
         [
@@ -915,6 +917,7 @@
       "grid_lots": 10,
       "line": "",
       "multi": false,
+      "outer": null,
       "rotated": false,
       "rows": [
         [
@@ -1659,6 +1662,7 @@
       "grid_lots": 5,
       "line": "",
       "multi": false,
+      "outer": null,
       "rotated": false,
       "rows": [
         [
@@ -1868,6 +1872,7 @@
       "grid_lots": 5,
       "line": "",
       "multi": false,
+      "outer": null,
       "rotated": true,
       "rows": [
         [
@@ -2077,6 +2082,7 @@
       "grid_lots": 5,
       "line": "",
       "multi": false,
+      "outer": null,
       "rotated": false,
       "rows": [
         [
@@ -2347,6 +2353,87 @@
       },
       "tier": "village",
       "treasury": 10900
+    }
+  },
+  {
+    "title": "Road · the quote of a road drawn out of the first grid",
+    "screen": "settlement_road_quote",
+    "view": {
+      "class": {
+        "code": "path",
+        "name": "راه مالرو"
+      },
+      "climb_m": 22,
+      "crossing_cost": 60,
+      "crossings": 1,
+      "from": {
+        "x": 2,
+        "y": 4
+      },
+      "full_cost": 430,
+      "length_m": 1160,
+      "lot_cost": 10,
+      "lots": 38,
+      "max_grade_bps": 640,
+      "open_cells": null,
+      "opens": 190,
+      "options": null,
+      "path": null,
+      "plan_id": "",
+      "settlement_id": "",
+      "settlement_name": "کورندال",
+      "steep": 10,
+      "to": {
+        "x": -14,
+        "y": 19
+      },
+      "usable": 171,
+      "water": 9
+    }
+  },
+  {
+    "title": "Road · the plan is stored",
+    "screen": "settlement_road_planned",
+    "view": {
+      "class": {
+        "code": "path",
+        "name": "راه مالرو"
+      },
+      "climb_m": 22,
+      "crossing_cost": 60,
+      "crossings": 1,
+      "from": {
+        "x": 2,
+        "y": 4
+      },
+      "full_cost": 430,
+      "length_m": 1160,
+      "lot_cost": 10,
+      "lots": 38,
+      "max_grade_bps": 640,
+      "open_cells": null,
+      "opens": 190,
+      "options": null,
+      "path": null,
+      "plan_id": "r1",
+      "settlement_id": "",
+      "settlement_name": "کورندال",
+      "steep": 10,
+      "to": {
+        "x": -14,
+        "y": 19
+      },
+      "usable": 171,
+      "water": 9
+    }
+  },
+  {
+    "title": "Road · a plan taken back",
+    "screen": "settlement_road_cancelled",
+    "view": {
+      "lots": 38,
+      "plan_id": "r1",
+      "settlement_name": "کورندال"
     }
   }
 ]

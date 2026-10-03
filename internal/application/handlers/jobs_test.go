@@ -1,11 +1,11 @@
 package handlers
 
 import (
-	"github.com/mrjvadi/torncity/internal/telegram/render"
-	"github.com/mrjvadi/torncity/internal/telegram/i18n"
 	"context"
 	"encoding/json"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/telegram/i18n"
+	"github.com/mrjvadi/torncity/internal/telegram/render"
 	"sort"
 	"strings"
 	"testing"

@@ -316,6 +316,17 @@ village:
     donate_no_cash: "💰 You do not have enough cash for that gift."
     no_road: "🛣 No road can reach this building; there is no free buildable ground around it to lay one. Try another lot."
     road_reserved: "🛣 This road is someone's way in and stays road reserve; it cannot be torn down."
+    road_no_network: "🛤 The city has no road or town hall yet for a new road to start beside."
+    road_end_blocked: "🛤 The end of the road is a place a road cannot go: a building or somebody's land."
+    road_water: "🛤 The end of the road lies in water."
+    road_no_route: "🛤 No way there was found: water, steep ground or other people's land is in the way."
+    road_no_bridge: "🛤 The way crosses water further than this kind of road can bridge; better roads or a longer bridge need research."
+    road_too_long: "🛤 A single road plan cannot be longer than this; draw the road in several pieces."
+    road_foreign: "🛤 That is another city's land."
+    road_open_cap: "🛤 The city already holds the most lots open for sale; sell some first or take back a plan with no buyers."
+    road_in_use: "🛤 Something is built on this road or a lot beside it is sold; it cannot be taken back."
+    road_same: "🛤 There is a road right here; point somewhere else."
+    road_class_locked: "🛤 The city has not researched this kind of road yet."
     reserved: "🚧 This lot is road reserve; only a road can be built on it."
     batch: |-
       🚧 The batch was not built and nothing was paid. These lots have a problem:
@@ -611,3 +622,25 @@ building:
     needs_tier: "🔒 {building} - opens when the settlement becomes a {tier}"
     none: "There is no next step."
 
+# Roads that open land (docs/adr/0044 5.5): the web draws the road, Telegram shows the quote,
+# the stored plan and the lots the road opened.
+roadland:
+  quote:
+    title: "🛤 A new road for {name}"
+    body: |-
+      Kind of road: {class}
+      Length: {lots} lots, about {length} m
+      Climb: {climb} m - steepest grade: {grade}%
+      Price to build: {lot_cost} a lot, {full} for all of it
+    crossings: "🌊 {crossings} lots of the road cross water (a ford or a bridge) and cost more."
+    opens: "🏡 {opens} lots open beside the road: {usable} can be bought, {water} are water, {steep} are too steep."
+    note: "Confirming only stores the plan, at no cost. The road is built, and paid for, when somebody buys a lot beside it; the buyer pays for the road up to their lot together with the price of the land."
+    button_yes: "✅ Store the road plan"
+  planned:
+    title: "🛤 The road plan is stored"
+    body: "{lots} lots of road were drawn and {usable} lots beside it are open for sale. Whoever buys a lot builds the road up to it."
+  cancelled: "🗑 The road plan of {lots} lots was taken back."
+  land:
+    title: "🛤 The city's roads"
+    line: "{class}: {lots} lots - built {built} - for sale {open} - sold {sold}"
+    lot_button: "🟩 row {row}, column {col} - {cost}"

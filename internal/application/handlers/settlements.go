@@ -95,7 +95,6 @@ func tierWeight(tier string) float64 {
 	}
 }
 
-
 // viewer reads the player who sent the command, the same short read-only
 // unit of work every other handler's own viewer helper uses.
 func (h *SettlementsHandler) viewer(ctx context.Context, meta envelope.Metadata) (*application.Player, string, error) {
