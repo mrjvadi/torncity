@@ -133,6 +133,10 @@ type file struct {
 	SettlementBuildings []SettlementBuildingDef `yaml:"settlement_buildings"`
 	// The tier ladder (settlement_tiers.yml): see settlementtier.go.
 	SettlementTiers []SettlementTierDef `yaml:"settlement_tiers"`
+	// The item shelves (item_categories.yml): see itemshelf.go.
+	ItemCategories []ItemCategoryDef `yaml:"item_categories"`
+	// The build menu's groups (settlement_buildings.yml): see buildcategory.go.
+	BuildCategories []BuildCategoryDef `yaml:"build_categories"`
 
 	// Availability tags (availability.yml): see availability.go.
 	Availability    []AvailabilityDef   `yaml:"availability"`
@@ -312,6 +316,8 @@ func Load(dir string) (*Pack, error) {
 		pack.SettlementKnowledge = append(pack.SettlementKnowledge, doc.SettlementKnowledge...)
 		pack.SettlementBuildings = append(pack.SettlementBuildings, doc.SettlementBuildings...)
 		pack.SettlementTiers = append(pack.SettlementTiers, doc.SettlementTiers...)
+		pack.ItemCategories = append(pack.ItemCategories, doc.ItemCategories...)
+		pack.BuildCategories = append(pack.BuildCategories, doc.BuildCategories...)
 		pack.Availability = append(pack.Availability, doc.Availability...)
 		pack.StaffRoles = append(pack.StaffRoles, doc.StaffRoles...)
 		pack.PersonalSources = append(pack.PersonalSources, doc.PersonalSources...)

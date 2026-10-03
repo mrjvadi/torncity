@@ -37,9 +37,12 @@ var (
 // is, what it is worth, what a company must know to make it, and how a
 // company makes it (production.go).
 type ComponentDef struct {
-	Code       string           `yaml:"code" json:"code"`
-	Name       string           `yaml:"name" json:"name"`
-	Category   string           `yaml:"category" json:"category"`
+	Code     string `yaml:"code" json:"code"`
+	Name     string `yaml:"name" json:"name"`
+	Category string `yaml:"category" json:"category"`
+	// Shelf is the leaf of item_categories.yml the component sits on
+	// (itemshelf.go): how a market groups and filters it.
+	Shelf      string           `yaml:"shelf,omitempty" json:"shelf,omitempty"`
 	Attributes map[string]int64 `yaml:"attributes,omitempty" json:"attributes,omitempty"`
 	// BasePrice is its reference price, minor units: what a design's cost
 	// floor counts it at (item.ItemizedCost) and what a listing is compared
@@ -164,6 +167,13 @@ type ItemDef struct {
 	// Category groups goods on screens: food, drink, medicine, tool, gear,
 	// electronics, valuables.
 	Category string `yaml:"category" json:"category"`
+	// Shelf is the leaf of item_categories.yml the good sits on, written
+	// <group>.<leaf> (itemshelf.go): how a market groups and filters it. Every
+	// good has one; Category stays what it was.
+	Shelf string `yaml:"shelf,omitempty" json:"shelf,omitempty"`
+	// Tags are optional labels that cross shelves: crime_tool, crime_gear,
+	// black_market.
+	Tags []string `yaml:"tags,omitempty" json:"tags,omitempty"`
 	// Archetype is the ADR 0005 archetype the good is a kind of.
 	Archetype string `yaml:"archetype" json:"archetype"`
 	// Form is stack (counted units) or unique (pieces with a serial).

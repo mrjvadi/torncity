@@ -26,7 +26,7 @@ func TestClientCatalogueAndCityMap(t *testing.T) {
 		Companies: postgres.NewCompanyRepository(pool), Content: registry, Msgs: catalog}
 
 	cat := w.Catalogue("")
-	for _, table := range []string{"city", "place", "company_type", "item", "mode", "crime", "course", "skill", "technology", "military_unit"} {
+	for _, table := range []string{"city", "place", "company_type", "item", "mode", "crime", "course", "skill", "technology", "military_unit", "item_shelf", "item_shelf_group", "build_category", "settlement_building"} {
 		if len(cat.Entries[table]) == 0 {
 			t.Fatalf("catalogue has no %s", table)
 		}
@@ -39,6 +39,16 @@ func TestClientCatalogueAndCityMap(t *testing.T) {
 			if e.Asset.Icon != table+":"+e.Code {
 				t.Fatalf("%s %s icon %q", table, e.Code, e.Asset.Icon)
 			}
+		}
+	}
+	for _, e := range cat.Entries["item"] {
+		if e.Shelf == "" {
+			t.Fatalf("item %s has no shelf in the catalogue", e.Code)
+		}
+	}
+	for _, e := range cat.Entries["settlement_building"] {
+		if e.BuildCategory == "" {
+			t.Fatalf("building %s has no build category in the catalogue", e.Code)
 		}
 	}
 	if again := w.Catalogue(cat.Version); !again.Unchanged || again.Entries != nil {

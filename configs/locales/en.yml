@@ -657,6 +657,78 @@ item_category:
   valuables: Valuables
   military: "Military equipment"
 
+# Item shelves (configs/content/item_categories.yml): a group is item_shelf_group.<group>, a shelf item_shelf.<group>.<shelf>.
+item_shelf_group:
+  food: Food
+  drink: Drink
+  clothing: Clothing
+  bags: Bags and carriers
+  tools: Tools
+  household: Household
+  medicine: Medicine and first aid
+  materials: Materials
+  electronics: Electronics and communication
+  vehicles: Vehicles
+  valuables: Valuables
+  documents: Documents
+  military: Military equipment
+  other: Other
+item_shelf:
+  food:
+    grain: Grain and flour
+    cooked: Bread and ready food
+    dairy_meat: Dairy and meat
+    spice: "Salt, oil and sugar"
+    preserved: Dried fruit and tins
+  drink:
+    cold: Water and cold drinks
+    hot: Tea and coffee
+    energy: Energy drinks
+  clothing:
+    body: Clothes
+    head: Hats and scarves
+    hands: Gloves
+    foot: Shoes
+    outer: Coats and warm wear
+  bags:
+    belt: Belt pouches
+    back: Backpacks and sacks
+    animal: Saddle bags
+  tools:
+    hand: Hand tools
+    supply: "Rope, nails and fittings"
+    work: Workshop tools
+    locks: Locks and lock tools
+  household:
+    kitchen: Kitchen
+    lighting: Lighting
+    furnish: Furnishings
+  medicine:
+    first_aid: First aid
+    drugs: Medicines
+  materials:
+    wood: Timber and planks
+    mineral: "Stone, clay and bricks"
+    fibre: Cloth and fibre
+    metal: Metal and ore
+    fuel: Firewood and charcoal
+    seed_crop: Seed and crops
+  electronics:
+    phones: Phones and radios
+    lights: Torches
+    parts: Parts
+  vehicles:
+    cars: Cars
+    bikes: Motorbikes and bicycles
+    parts: Parts
+  valuables:
+    jewellery: Jewellery
+    watches: Watches
+    gems_metal: Gems and precious metals
+  documents:
+    licences: Licences and certificates
+    forged: Forged papers
+
 # Goods, keyed on their content code (configs/content/items.yml).
 item_name:
   led_torch: LED torch
@@ -1237,6 +1309,17 @@ presence:
 # One item reads as a full sentence; a burst is merged into one short list.
 
 # Names of the roles of settlement buildings (settlement_buildings.yml, role); availability conditions name them.
+# Build menu groups (settlement_buildings.yml build_categories).
+build_category:
+  housing: "Housing"
+  shops: "Shops and markets"
+  construction: "Construction and materials"
+  production: "Workshops and production"
+  farming: "Farming"
+  public: "Public services"
+  security: "Security and defence"
+  other: "Other"
+
 building_role:
   craft: "Workshop"
   education: "Education"

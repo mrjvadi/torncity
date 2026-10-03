@@ -16,6 +16,12 @@
           "qty": 3,
           "quality": 0,
           "serial": "",
+          "shelf": {
+            "code": "",
+            "group": "",
+            "group_label": "",
+            "label": ""
+          },
           "uses_left": 0
         },
         {
@@ -29,6 +35,12 @@
           "qty": 1,
           "quality": 0,
           "serial": "",
+          "shelf": {
+            "code": "",
+            "group": "",
+            "group_label": "",
+            "label": ""
+          },
           "uses_left": 0
         },
         {
@@ -42,6 +54,12 @@
           "qty": 0,
           "quality": 62,
           "serial": "A1B2C3D4E5",
+          "shelf": {
+            "code": "",
+            "group": "",
+            "group_label": "",
+            "label": ""
+          },
           "uses_left": 7
         },
         {
@@ -55,6 +73,12 @@
           "qty": 0,
           "quality": 55,
           "serial": "F0E1D2C3B4",
+          "shelf": {
+            "code": "",
+            "group": "",
+            "group_label": "",
+            "label": ""
+          },
           "uses_left": 0
         }
       ],
@@ -442,6 +466,12 @@
           },
           "next_restock": null,
           "price": 600,
+          "shelf": {
+            "code": "",
+            "group": "",
+            "group_label": "",
+            "label": ""
+          },
           "stock": 4
         },
         {
@@ -453,6 +483,12 @@
           },
           "next_restock": null,
           "price": 390,
+          "shelf": {
+            "code": "",
+            "group": "",
+            "group_label": "",
+            "label": ""
+          },
           "stock": 2
         },
         {
@@ -464,6 +500,12 @@
           },
           "next_restock": "2026-09-23T11:25:00Z",
           "price": 120,
+          "shelf": {
+            "code": "",
+            "group": "",
+            "group_label": "",
+            "label": ""
+          },
           "stock": 0
         }
       ],
@@ -494,6 +536,12 @@
           },
           "next_restock": null,
           "price": 600,
+          "shelf": {
+            "code": "",
+            "group": "",
+            "group_label": "",
+            "label": ""
+          },
           "stock": 4
         },
         {
@@ -505,6 +553,12 @@
           },
           "next_restock": null,
           "price": 390,
+          "shelf": {
+            "code": "",
+            "group": "",
+            "group_label": "",
+            "label": ""
+          },
           "stock": 2
         },
         {
@@ -516,6 +570,12 @@
           },
           "next_restock": "2026-09-23T11:25:00Z",
           "price": 120,
+          "shelf": {
+            "code": "",
+            "group": "",
+            "group_label": "",
+            "label": ""
+          },
           "stock": 0
         }
       ],

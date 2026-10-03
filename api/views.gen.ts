@@ -329,6 +329,7 @@ export interface BookLevel {
 
 export interface BookSummary {
   item: Named
+  shelf: ShelfRef
   best_bid: number
   best_ask: number
   last: number
@@ -402,6 +403,7 @@ export interface BudgetView {
 export interface BuildLine {
   building: Named
   role: string
+  category: string
   state: string
   cost_money: number
   build_time_seconds: number
@@ -2226,6 +2228,7 @@ export interface InsureConfirmView {
 export interface InventoryLine {
   item: Named
   category: string
+  shelf: ShelfRef
   qty: number
   serial: string
   quality: number
@@ -4285,11 +4288,19 @@ export interface SettlementWhoView {
 
 export interface ShelfLine {
   item: Named
+  shelf: ShelfRef
   price: number
   stock: number
   busy: boolean
   buyback: number
   next_restock: string | null
+}
+
+export interface ShelfRef {
+  code: string
+  group: string
+  label: string
+  group_label: string
 }
 
 export interface ShiftProgress {

@@ -107,6 +107,10 @@ type Snapshot struct {
 	// settlementTiers is settlement_tiers.yml's ladder, by the tier a step
 	// leaves; see settlementtier.go.
 	settlementTiers map[string]SettlementTierDef
+	// itemShelves is item_categories.yml's tree, by leaf code; see itemshelf.go.
+	itemShelves itemShelfIndex
+	// buildCategories is the build menu's groups; see buildcategory.go.
+	buildCategories buildCategoryIndex
 
 	// availability is availability.yml's tags by kind and code; see
 	// availability_lookup.go.
@@ -219,6 +223,8 @@ func BuildSnapshot(version int, p *Pack) (*Snapshot, error) {
 	snap.buildSettlementKnowledge(p)
 	snap.buildSettlementBuildings(p)
 	snap.buildSettlementTiers(p)
+	snap.buildItemShelves(p)
+	snap.buildBuildCategories(p)
 	snap.buildAvailabilityIndex(p)
 	snap.buildBuildingSchema(p)
 

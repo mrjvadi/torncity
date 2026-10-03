@@ -12,6 +12,8 @@ import "github.com/mrjvadi/torncity/internal/presentation"
 type (
 	// Named is a content entry: its code and its authored name.
 	Named = presentation.Named
+	// ShelfRef is the shelf a good sits on.
+	ShelfRef = presentation.ShelfRef
 	// PaymentChoice is the ways to pay one charge.
 	PaymentChoice = presentation.PaymentChoice
 	// GovPlace is a city or a country, by code.

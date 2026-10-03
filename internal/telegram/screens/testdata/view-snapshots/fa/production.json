@@ -16,6 +16,12 @@
           "qty": 1,
           "quality": 61,
           "serial": "A1B2C3D4E5",
+          "shelf": {
+            "code": "",
+            "group": "",
+            "group_label": "",
+            "label": ""
+          },
           "uses_left": 0
         }
       ],

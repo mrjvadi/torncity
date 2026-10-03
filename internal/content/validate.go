@@ -172,6 +172,7 @@ func (p *Pack) Validate() error {
 
 	// Items: components, archetypes, goods and the shops that sell them.
 	p.validateItems(&problems)
+	p.validateItemShelves(&problems)
 
 	// Elections: how each elected office is elected.
 	p.validateElections(&problems)
@@ -200,6 +201,7 @@ func (p *Pack) Validate() error {
 	p.validateVehicles(&problems)
 	p.validateSettlementKnowledge(&problems)
 	p.validateSettlementBuildings(&problems)
+	p.validateBuildCategories(&problems)
 	p.validateSettlementTiers(&problems)
 	p.validateBuildingSchema(&problems)
 

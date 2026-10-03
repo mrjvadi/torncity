@@ -13,7 +13,7 @@
 #
 # ---------------------------------------------------------------------------
 # component_categories   the kinds of part a slot accepts.
-# components             parts and materials: code, name, category,
+# components             parts and materials: code, name, category, shelf,
 #                        attributes, base_price (the reference price, minor
 #                        units: a design's cost floor counts it), optional
 #                        requires_technology (what a company must know to MAKE
@@ -41,6 +41,13 @@
 #   name            display name, the fallback for item.<code>.
 #   category        how screens group goods: food, drink, medicine, gear,
 #                   electronics, valuables.
+#   shelf           the leaf of item_categories.yml the good sits on, written
+#                   <group>.<leaf> (food.cooked). Required for every good and
+#                   component: how a market groups, searches and filters.
+#                   Different from `category`, which stays as it was.
+#   tags            optional labels that cross shelves: crime_tool, crime_gear,
+#                   black_market. A good on a restricted shelf (tools.locks,
+#                   documents.forged) carries black_market or crime_tool.
 #   archetype       the archetype above the good is a kind of.
 #   form            stack — counted units, all alike (bread); unique —
 #                   pieces with a serial, a quality and uses left (a phone).
@@ -94,51 +101,57 @@ component_categories: [grain, water, leavening, flavouring, alkaloid, binder, fi
 
 components:
   # --- Bought from NPC suppliers only (production.yml suppliers) -----------
-  - {code: diesel,       name: Diesel fuel,   category: fuel,       base_price: 4,   attributes: {quality: 50}}
-  - {code: seed_grain,   name: Seed grain,    category: seed,       base_price: 2,   attributes: {quality: 50}}
-  - {code: lithium_salt, name: Lithium salt,  category: salt,       base_price: 12,  attributes: {quality: 55}}
-  - {code: spring_water, name: Spring water,  category: water,      base_price: 1,   attributes: {quality: 60}}
-  - {code: yeast,        name: Yeast,         category: leavening,  base_price: 2,   attributes: {quality: 50}}
-  - {code: coffee_bean,  name: Coffee beans,  category: flavouring, base_price: 3,   attributes: {quality: 55}}
-  - {code: herb_extract, name: Herb extract,  category: alkaloid,   base_price: 1,   attributes: {quality: 50, potency: 10}}
-  - {code: starch,       name: Starch,        category: binder,     base_price: 1,   attributes: {quality: 40}}
-  - {code: gemstone,     name: Gemstone,      category: gem,        base_price: 250, attributes: {quality: 70}}
-  - {code: silver,       name: Silver,        category: metal,      base_price: 120, attributes: {quality: 60}}
-  - {code: copper_wire,  name: Copper wire,   category: wire,       base_price: 2,   attributes: {quality: 55}}
-  - {code: resin,        name: Epoxy resin,   category: resin,      base_price: 2,   attributes: {quality: 50}}
+  - {code: diesel, shelf: materials.fuel,       name: Diesel fuel,   category: fuel,       base_price: 4,   attributes: {quality: 50}}
+  - {code: seed_grain, shelf: materials.seed_crop,   name: Seed grain,    category: seed,       base_price: 2,   attributes: {quality: 50}}
+  - {code: lithium_salt, shelf: materials.mineral, name: Lithium salt,  category: salt,       base_price: 12,  attributes: {quality: 55}}
+  - {code: spring_water, shelf: drink.cold, name: Spring water,  category: water,      base_price: 1,   attributes: {quality: 60}}
+  - {code: yeast, shelf: food.spice,        name: Yeast,         category: leavening,  base_price: 2,   attributes: {quality: 50}}
+  - {code: coffee_bean, shelf: drink.hot,  name: Coffee beans,  category: flavouring, base_price: 3,   attributes: {quality: 55}}
+  - {code: herb_extract, shelf: medicine.drugs, name: Herb extract,  category: alkaloid,   base_price: 1,   attributes: {quality: 50, potency: 10}}
+  - {code: starch, shelf: food.spice,       name: Starch,        category: binder,     base_price: 1,   attributes: {quality: 40}}
+  - {code: gemstone, shelf: valuables.gems_metal,     name: Gemstone,      category: gem,        base_price: 250, attributes: {quality: 70}}
+  - {code: silver, shelf: valuables.gems_metal,       name: Silver,        category: metal,      base_price: 120, attributes: {quality: 60}}
+  - {code: copper_wire, shelf: materials.metal,  name: Copper wire,   category: wire,       base_price: 2,   attributes: {quality: 55}}
+  - {code: resin, shelf: materials.mineral,        name: Epoxy resin,   category: resin,      base_price: 2,   attributes: {quality: 50}}
 
   # --- Raw materials: extracted by mines, grown on farms --------------------
   - code: silica
+    shelf: materials.mineral
     name: Silica sand
     category: mineral
     base_price: 5
     attributes: {quality: 55}
     production: {method: extract, by: [mine], inputs: [{component: diesel, quantity: 1}], batch: 10, skill: engineering}
   - code: iron_ore
+    shelf: materials.metal
     name: Iron ore
     category: ore
     base_price: 6
     attributes: {quality: 50}
     production: {method: extract, by: [mine], inputs: [{component: diesel, quantity: 1}], batch: 10, skill: engineering}
   - code: crude_oil
+    shelf: materials.fuel
     name: Crude oil
     category: oil
     base_price: 8
     attributes: {quality: 50}
     production: {method: extract, by: [mine], inputs: [{component: diesel, quantity: 1}], batch: 8, skill: engineering}
   - code: wheat
+    shelf: materials.seed_crop
     name: Wheat
     category: crop
     base_price: 3
     attributes: {quality: 55}
     production: {method: grow, by: [farm], inputs: [{component: seed_grain, quantity: 1}], batch: 20, skill: logistics}
   - code: cotton
+    shelf: materials.fibre
     name: Cotton
     category: fibre
     base_price: 20
     attributes: {quality: 50}
     production: {method: grow, by: [farm], inputs: [{component: seed_grain, quantity: 2}], batch: 5, skill: logistics}
   - code: timber
+    shelf: materials.wood
     name: Timber
     category: wood
     base_price: 15
@@ -153,27 +166,30 @@ components:
   # end; the settlement_buildings.yml workplaces `produce` and `consume` them.
   # The reachability lint (internal/content/villagereach.go) refuses a material
   # a village could neither buy nor produce.
-  - {code: stone, name: Stone,  category: mineral, base_price: 6,  attributes: {quality: 50}, village_buy: true}
-  - {code: wool,  name: Wool,   category: fibre,   base_price: 12, attributes: {quality: 50}, village_buy: true}
-  - {code: plank, name: Planks, category: wood,    base_price: 30, attributes: {quality: 50}}
-  - {code: brick, name: Bricks, category: mineral, base_price: 14, attributes: {quality: 50}}
-  - {code: cloth, name: Cloth,  category: fibre,   base_price: 40, attributes: {quality: 50}}
+  - {code: stone, shelf: materials.mineral, name: Stone,  category: mineral, base_price: 6,  attributes: {quality: 50}, village_buy: true}
+  - {code: wool, shelf: materials.fibre,  name: Wool,   category: fibre,   base_price: 12, attributes: {quality: 50}, village_buy: true}
+  - {code: plank, shelf: materials.wood, name: Planks, category: wood,    base_price: 30, attributes: {quality: 50}}
+  - {code: brick, shelf: materials.mineral, name: Bricks, category: mineral, base_price: 14, attributes: {quality: 50}}
+  - {code: cloth, shelf: materials.fibre, name: Cloth,  category: fibre,   base_price: 40, attributes: {quality: 50}}
 
   # --- Made from other components by factories and kitchens ----------------
   # A design counts flour in grams: one wheat mills into a hundred.
   - code: flour
+    shelf: food.grain
     name: Flour
     category: grain
     base_price: 1
     attributes: {quality: 50}
     production: {method: formulate, by: [factory, restaurant], inputs: [{component: wheat, quantity: 1}], batch: 100, skill: cooking}
   - code: tool_steel
+    shelf: materials.metal
     name: Tool steel
     category: steel
     base_price: 60
     attributes: {quality: 60}
     production: {method: formulate, by: [factory], inputs: [{component: iron_ore, quantity: 3}, {component: diesel, quantity: 1}], batch: 1, skill: engineering}
   - code: plastic_case
+    shelf: electronics.parts
     name: Plastic case
     category: casing
     base_price: 40
@@ -183,6 +199,7 @@ components:
   # and resin the electronics wholesaler sells. No technology: it is where
   # electronics starts.
   - code: circuit_board
+    shelf: electronics.parts
     name: Circuit board
     category: board
     base_price: 20
@@ -191,6 +208,7 @@ components:
   # The phone scenario's gate: nobody makes a chipset or a battery cell, or
   # designs a phone around one, without the technology — or a license.
   - code: chipset
+    shelf: electronics.parts
     name: Chipset
     category: circuit
     base_price: 400
@@ -198,6 +216,7 @@ components:
     requires_technology: [microchips]
     production: {method: assemble, by: [factory, tech_studio], inputs: [{component: silica, quantity: 3}, {component: diesel, quantity: 1}], batch: 1, skill: engineering}
   - code: cell
+    shelf: electronics.parts
     name: Battery cell
     category: battery
     base_price: 150
@@ -323,34 +342,36 @@ archetypes:
 items:
   # --- Food and drink: energy and hunger, one group resting between meals ---
   # (life.yml: hunger is 0..100 and higher is worse, so food takes it away.)
-  - {code: bread,        name: Bread,        category: food,  archetype: food,  form: stack, base_price: 40,
+  - {code: bread, shelf: food.cooked,        name: Bread,        category: food,  archetype: food,  form: stack, base_price: 40,
      effects: [{target: energy, op: add, value: 10}, {target: hunger, op: add, value: -25}], cooldown: 30m, cooldown_group: food}
-  - {code: sandwich,     name: Sandwich,     category: food,  archetype: food,  form: stack, base_price: 90,
+  - {code: sandwich, shelf: food.cooked,     name: Sandwich,     category: food,  archetype: food,  form: stack, base_price: 90,
      effects: [{target: energy, op: add, value: 20}, {target: hunger, op: add, value: -40}], cooldown: 30m, cooldown_group: food}
-  - {code: hot_meal,     name: Hot meal,     category: food,  archetype: food,  form: stack, base_price: 180,
+  - {code: hot_meal, shelf: food.cooked,     name: Hot meal,     category: food,  archetype: food,  form: stack, base_price: 180,
      effects: [{target: energy, op: add, value: 35}, {target: happiness, op: add, value: 5}, {target: hunger, op: add, value: -70},
                {target: stress, op: add, value: -5}], cooldown: 1h, cooldown_group: food}
-  - {code: water_bottle, name: Bottle of water, category: drink, archetype: drink, form: stack, base_price: 20,
+  - {code: water_bottle, shelf: drink.cold, name: Bottle of water, category: drink, archetype: drink, form: stack, base_price: 20,
      effects: [{target: energy, op: add, value: 5}, {target: hunger, op: add, value: -5}], cooldown: 20m, cooldown_group: drink}
-  - {code: coffee,       name: Coffee,       category: drink, archetype: drink, form: stack, base_price: 60,
+  - {code: coffee, shelf: drink.hot,       name: Coffee,       category: drink, archetype: drink, form: stack, base_price: 60,
      effects: [{target: energy, op: add, value: 8}, {target: nerve, op: add, value: 1}, {target: sleep, op: add, value: -10}],
      cooldown: 45m, cooldown_group: drink}
-  - {code: energy_drink, name: Energy drink, category: drink, archetype: drink, form: stack, base_price: 150,
+  - {code: energy_drink, shelf: drink.energy, name: Energy drink, category: drink, archetype: drink, form: stack, base_price: 150,
      effects: [{target: energy, op: add, value: 25}, {target: sleep, op: add, value: -15}, {target: stress, op: add, value: 3}],
      cooldown: 2h, cooldown_group: energy_drink}
 
   # --- Medicine: health ---------------------------------------------------
-  - {code: bandage,       name: Bandage,       category: medicine, archetype: medicine, form: stack, base_price: 80,
+  - {code: bandage, shelf: medicine.first_aid,       name: Bandage,       category: medicine, archetype: medicine, form: stack, base_price: 80,
      effects: [{target: health, op: add, value: 10}], cooldown: 15m, cooldown_group: medical}
-  - {code: painkillers,   name: Painkillers,   category: medicine, archetype: medicine, form: stack, base_price: 150,
+  - {code: painkillers, shelf: medicine.drugs,   name: Painkillers,   category: medicine, archetype: medicine, form: stack, base_price: 150,
      effects: [{target: health, op: add, value: 20}], cooldown: 30m, cooldown_group: medical}
-  - {code: first_aid_kit, name: First aid kit, category: medicine, archetype: medicine, form: stack, base_price: 400,
+  - {code: first_aid_kit, shelf: medicine.first_aid, name: First aid kit, category: medicine, archetype: medicine, form: stack, base_price: 400,
      effects: [{target: health, op: add, value: 50}], cooldown: 1h, cooldown_group: medical}
 
   # --- Tools of the trade: gear while carried ------------------------------
   # A lockpick set is what a burglary needs at all (crimes.yml
   # required_tools), and what makes it likelier. It wears with every job.
   - code: lockpick_set
+    shelf: tools.locks
+    tags: [crime_tool]
     name: Lockpick set
     category: gear
     archetype: tool
@@ -361,6 +382,8 @@ items:
     gear: {categories: [burglary], success_bps: 1200, wear: 1, confiscated: true}
   # Forces a car door or a window: quicker, but loud.
   - code: crowbar
+    shelf: tools.hand
+    tags: [crime_tool]
     name: Crowbar
     category: gear
     archetype: tool
@@ -371,6 +394,8 @@ items:
     gear: {crimes: [car_break_in, home_burglary], success_bps: 800, catch_bps: 300, wear: 1, confiscated: true}
   # A pair per job; fewer prints for the police to find.
   - code: gloves
+    shelf: clothing.hands
+    tags: [crime_gear]
     name: Pair of gloves
     category: gear
     archetype: apparel
@@ -378,6 +403,8 @@ items:
     base_price: 50
     gear: {categories: [burglary, petty_theft], solve_bps: -1500, wear: 1, confiscated: true}
   - code: ski_mask
+    shelf: clothing.head
+    tags: [crime_gear]
     name: Ski mask
     category: gear
     archetype: apparel
@@ -388,6 +415,8 @@ items:
     gear: {categories: [street_crime, burglary], witness_bps: -1500, catch_bps: -500, wear: 1, confiscated: true}
   # Not evidence of anything: the police leave a runner's shoes alone.
   - code: running_shoes
+    shelf: clothing.foot
+    tags: [crime_gear]
     name: Running shoes
     category: gear
     archetype: apparel
@@ -397,6 +426,8 @@ items:
     quality: {min: 40, max: 80}
     gear: {categories: [petty_theft, street_crime], catch_bps: -1000, wear: 1}
   - code: fake_documents
+    shelf: documents.forged
+    tags: [black_market]
     name: Forged documents
     category: gear
     archetype: tool
@@ -407,6 +438,8 @@ items:
     black_market: true
     gear: {categories: [fraud, smuggling], success_bps: 1500, solve_bps: -1000, wear: 1, confiscated: true}
   - code: card_skimmer
+    shelf: tools.locks
+    tags: [crime_tool, black_market]
     name: Card skimmer
     category: gear
     archetype: device
@@ -418,17 +451,18 @@ items:
     gear: {crimes: [street_scam], success_bps: 1000, reward_bps: 1500, wear: 1, confiscated: true}
 
   # --- Things worth stealing ---------------------------------------------
-  - {code: phone,      name: Phone,       category: electronics, archetype: device, form: unique, base_price: 2500, quality: {min: 40, max: 80}}
-  - {code: watch,      name: Wristwatch,  category: valuables,   archetype: jewel,  form: unique, base_price: 800,  quality: {min: 30, max: 80}}
-  - {code: car_stereo, name: Car stereo,  category: electronics, archetype: device, form: unique, base_price: 700,  quality: {min: 20, max: 60}}
-  - {code: jewellery,  name: Jewellery,   category: valuables,   archetype: jewel,  form: stack,  base_price: 500}
+  - {code: phone, shelf: electronics.phones,      name: Phone,       category: electronics, archetype: device, form: unique, base_price: 2500, quality: {min: 40, max: 80}}
+  - {code: watch, shelf: valuables.watches,      name: Wristwatch,  category: valuables,   archetype: jewel,  form: unique, base_price: 800,  quality: {min: 30, max: 80}}
+  - {code: car_stereo, shelf: electronics.parts, name: Car stereo,  category: electronics, archetype: device, form: unique, base_price: 700,  quality: {min: 20, max: 60}}
+  - {code: jewellery, shelf: valuables.jewellery,  name: Jewellery,   category: valuables,   archetype: jewel,  form: stack,  base_price: 500}
 
   # --- Basic electronics: what a tech studio designs first ------------------
-  - {code: led_torch,    name: LED torch,    category: electronics, archetype: gadget, form: unique, base_price: 250, quality: {min: 30, max: 70}}
-  - {code: pocket_radio, name: Pocket radio, category: electronics, archetype: gadget, form: unique, base_price: 450, quality: {min: 30, max: 75}}
+  - {code: led_torch, shelf: electronics.lights,    name: LED torch,    category: electronics, archetype: gadget, form: unique, base_price: 250, quality: {min: 30, max: 70}}
+  - {code: pocket_radio, shelf: electronics.phones, name: Pocket radio, category: electronics, archetype: gadget, form: unique, base_price: 450, quality: {min: 30, max: 75}}
 
   # --- Vehicles (docs/adr/0024): driven on the car mode without its fare -----
   - code: car
+    shelf: vehicles.cars
     name: Car
     category: vehicles
     archetype: vehicle
@@ -440,6 +474,7 @@ items:
     requires_technology: [vehicle_engineering]
     vehicle: {mode: car, fuel_per_distance: 2, repair_per_journey: 60}
   - code: motorbike
+    shelf: vehicles.bikes
     name: Motorbike
     category: vehicles
     archetype: vehicle

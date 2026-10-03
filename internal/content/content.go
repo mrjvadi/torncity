@@ -307,6 +307,12 @@ type Pack struct {
 	// settlement_tiers.yml: what each step up the tier ladder asks for
 	// (settlementtier.go; docs/adr/0028 section 4.1).
 	SettlementTiers []SettlementTierDef
+	// item_categories.yml: the closed tree of shelves every good sits in
+	// (itemshelf.go; docs/adr/0046 section 6).
+	ItemCategories []ItemCategoryDef
+	// build_categories (settlement_buildings.yml): the groups of the build menu
+	// (buildcategory.go).
+	BuildCategories []BuildCategoryDef
 
 	// The building schema (buildingschema.go; roadmap step 0.5, ADR 0041 W0,
 	// ADR 0045 B0, ADR 0042 T0): functions and their modules, storage, recipes,

@@ -177,7 +177,7 @@ func (h *VillageHandler) BuildMenu(ctx context.Context, meta envelope.Metadata) 
 			if !listed {
 				continue
 			}
-			line := village.BuildLine{Building: named(d.Code, d.Name), Role: d.Role, CostMoney: d.CostMoney, BuildTime: h.scale.RealWait(def.BuildTime),
+			line := village.BuildLine{Building: named(d.Code, d.Name), Role: d.Role, Category: snap.BuildCategoryOf(d), CostMoney: d.CostMoney, BuildTime: h.scale.RealWait(def.BuildTime),
 				Materials: materialLinesOf(snap, def.CostMaterials)}
 			ok := true
 			if def.RequiresBuildingRole != nil && built[*def.RequiresBuildingRole] < 1 {

@@ -135,7 +135,9 @@ const DropConfirmation = "yes"
 type InventoryLine struct {
 	Item     Named
 	Category string
-	Qty      int64
+	// Shelf is where the good sits in the item tree (a filter for a client).
+	Shelf presentation.ShelfRef
+	Qty   int64
 	// Serial is set for a piece: its address. Quality, UsesLeft and
 	// Durability describe it.
 	Serial     string

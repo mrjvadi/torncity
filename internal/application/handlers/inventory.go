@@ -175,11 +175,11 @@ func inventoryLines(snap *content.Snapshot, stacks []application.Stack, pieces [
 	var lines []plife.InventoryLine
 	for _, s := range stacks {
 		def, _ := snap.ItemDef(s.Item)
-		lines = append(lines, plife.InventoryLine{Item: itemNamed(snap, s.Item), Category: def.Category, Qty: s.Qty})
+		lines = append(lines, plife.InventoryLine{Item: itemNamed(snap, s.Item), Category: def.Category, Shelf: shelfRefOf(snap, s.Item), Qty: s.Qty})
 	}
 	for _, pc := range pieces {
 		def, _ := snap.ItemDef(pc.Item)
-		lines = append(lines, plife.InventoryLine{Item: itemNamed(snap, pc.Item), Category: def.Category, Qty: 1,
+		lines = append(lines, plife.InventoryLine{Item: itemNamed(snap, pc.Item), Category: def.Category, Shelf: shelfRefOf(snap, pc.Item), Qty: 1,
 			Serial: pc.Serial, Quality: pc.Quality, UsesLeft: pc.UsesLeft, Durability: def.Durability,
 			Design: designs[pc.DesignID]})
 	}

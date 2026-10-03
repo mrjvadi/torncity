@@ -1,0 +1,55 @@
+# Item shelves: the closed tree every good sits in (docs/adr/0046-bags-merchants-
+# currency-exchange.md section 6; internal/content/itemshelf.go).
+#
+# WHY A NEW FIELD. An item's `category` already means three things in the code:
+# its loose group (locale item_category), a component slot kind (archetype slots
+# accept it) and, for crime gear, a crime category. Renaming it would break
+# archetypes and crime gear, so a good names its place in this tree with `shelf`
+# and the old `category` stays untouched.
+#
+# The tree has two levels. The top level follows the COICOP consumer-spending
+# divisions (food, drink, clothing, household, medicine...) with the game's own
+# groups added (bags, tools, materials); materials follow the logic of the
+# Harmonized System (raw to worked). A good's `shelf` is a LEAF written
+# `<top>.<leaf>` (food.grain). A top level with no children is its own leaf
+# (military, other).
+#
+#   code        the top-level code. The core sends codes only (ADR 0039): a
+#               client words them from its own locale, item_shelf_group.<top>
+#               for a top level and item_shelf.<top>.<leaf> for a leaf.
+#   children    leaves: {code, restricted?}. A restricted leaf is hidden from a
+#               shopper unless the settlement has the matching building (the
+#               black market, ADR 0035; rule 2): the lint requires every good
+#               on it to be a black-market or crime tool/document.
+#
+# `other` is the fallback and takes no goods: the lint refuses a good there.
+
+version: 1
+
+item_categories:
+  - code: food
+    children: [{code: grain}, {code: cooked}, {code: dairy_meat}, {code: spice}, {code: preserved}]
+  - code: drink
+    children: [{code: cold}, {code: hot}, {code: energy}]
+  - code: clothing
+    children: [{code: body}, {code: head}, {code: hands}, {code: foot}, {code: outer}]
+  - code: bags
+    children: [{code: belt}, {code: back}, {code: animal}]
+  - code: tools
+    children: [{code: hand}, {code: supply}, {code: work}, {code: locks, restricted: true}]
+  - code: household
+    children: [{code: kitchen}, {code: lighting}, {code: furnish}]
+  - code: medicine
+    children: [{code: first_aid}, {code: drugs}]
+  - code: materials
+    children: [{code: wood}, {code: mineral}, {code: fibre}, {code: metal}, {code: fuel}, {code: seed_crop}]
+  - code: electronics
+    children: [{code: phones}, {code: lights}, {code: parts}]
+  - code: vehicles
+    children: [{code: cars}, {code: bikes}, {code: parts}]
+  - code: valuables
+    children: [{code: jewellery}, {code: watches}, {code: gems_metal}]
+  - code: documents
+    children: [{code: licences}, {code: forged, restricted: true}]
+  - code: military
+  - code: other

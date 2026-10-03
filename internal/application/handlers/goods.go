@@ -11,6 +11,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/inventory"
 	"github.com/mrjvadi/torncity/internal/domain/item"
+	"github.com/mrjvadi/torncity/internal/presentation"
 	"github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
@@ -136,6 +137,15 @@ func bring(ctx context.Context, tx application.Tx, snap *content.Snapshot, ids I
 func itemNamed(snap *content.Snapshot, code string) screens.Named {
 	def, _ := snap.ItemDef(code)
 	return screens.Named{Code: code, Name: def.Name}
+}
+
+// shelfRefOf is the shelf a good (or a component) sits on, as a view sends it.
+func shelfRefOf(snap *content.Snapshot, code string) presentation.ShelfRef {
+	sh, ok := snap.ShelfOf(code)
+	if !ok {
+		return presentation.ShelfRef{}
+	}
+	return presentation.ShelfRef{Code: sh.Code, Group: sh.Group, Label: sh.Label, GroupLabel: sh.GroupLabel}
 }
 
 // isPieceRef reports whether a button's argument names a piece (its serial)
