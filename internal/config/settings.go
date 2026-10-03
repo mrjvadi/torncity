@@ -312,9 +312,6 @@ type settlementSettings struct {
 	VillageGridLots         *int     `yaml:"village_grid_lots"`
 	MinBuildableLotShareBps *int     `yaml:"min_buildable_lot_share_bps"`
 	GridShiftMaxLots        *int     `yaml:"grid_shift_max_lots"`
-	GridMaxLots             *int     `yaml:"grid_max_lots"`
-	GridLotPrice            *int64   `yaml:"grid_lot_price"`
-	GridPriceStepBPS        *int64   `yaml:"grid_price_step_bps"`
 	AutoRoadCost            *int64   `yaml:"auto_road_cost"`
 	LotAccessCrossingCost   *int64   `yaml:"lot_access_crossing_cost"`
 	LotAccessMaxCrossing    *int     `yaml:"lot_access_max_crossing"`
@@ -1126,15 +1123,6 @@ var coreSettings = []setting{
 	limitSetting("settlement", "grid_shift_max_lots",
 		func(c *Config) *int { return &c.Settlement.GridShiftMaxLots },
 		func(f *fileConfig) *int { return f.Settlement.GridShiftMaxLots }),
-	limitSetting("settlement", "grid_max_lots",
-		func(c *Config) *int { return &c.Settlement.GridMaxLots },
-		func(f *fileConfig) *int { return f.Settlement.GridMaxLots }),
-	moneySetting("settlement", "grid_lot_price",
-		func(c *Config) *int64 { return &c.Settlement.GridLotPrice },
-		func(f *fileConfig) *int64 { return f.Settlement.GridLotPrice }),
-	moneySetting("settlement", "grid_price_step_bps",
-		func(c *Config) *int64 { return &c.Settlement.GridPriceStepBPS },
-		func(f *fileConfig) *int64 { return f.Settlement.GridPriceStepBPS }),
 	moneySetting("settlement", "auto_road_cost",
 		func(c *Config) *int64 { return &c.Settlement.AutoRoadCost },
 		func(f *fileConfig) *int64 { return f.Settlement.AutoRoadCost }),

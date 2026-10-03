@@ -317,7 +317,6 @@ village:
     no_road: "🛣 No road can reach this building; there is no free buildable ground around it to lay one. Try another lot."
     road_reserved: "🛣 This road is someone's way in and stays road reserve; it cannot be torn down."
     reserved: "🚧 This lot is road reserve; only a road can be built on it."
-    grid_max: "🗺 The city's land has reached the technical limit of the map size and cannot grow further."
     batch: |-
       🚧 The batch was not built and nothing was paid. These lots have a problem:
       {lots}
@@ -512,7 +511,6 @@ build:
     short: "🧱 {building} - cost {cost} - materials: {materials} - you lack: {short}"
   button:
     place: "🏗 Build {building}"
-    grow: "🗺 Expand the land"
   confirm:
     title: "🏗 Build {building}"
     body: "Cost: {cost}\nBuild time: {time}\nLocation: row {y}, column {x}"
@@ -547,15 +545,6 @@ construction:
     open: "🏗 {building}"
   standing_hint: "Tap a finished building to see it."
 
-# Buying more land: the grid grows by a column east and a row north.
-grow:
-  title: "🗺 Expand the land of {name}"
-  body: |-
-    The land grows from {side}x{side} to {new_side}x{new_side}: {lots} new lots, {buildable} of them dry buildable ground.
-    Price: {price}
-    Treasury: {treasury}
-  note: "Standing buildings stay where they are. Water and steep ground stay unbuildable. Each expansion costs more than the last."
-  button: "✅ Confirm and expand"
 
 # The panel of one placed building (internal/telegram/screens/village_building.go):
 # what it is and what it does; demolishing is the last, quiet button.

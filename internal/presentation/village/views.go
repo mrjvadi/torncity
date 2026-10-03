@@ -35,8 +35,6 @@ const (
 	VillageBatch = "batch"
 	// VillageNoRoad is a building no road could ever reach.
 	VillageNoRoad = "no_road"
-	// VillageGridMax is the technical bound on a grid's side.
-	VillageGridMax = "grid_max"
 	// Residence (village_residence.go).
 	VillageAlreadyResident = "already_resident"
 	VillageNotResident     = "not_resident"
@@ -480,17 +478,6 @@ type LotBatchConfirmView struct {
 type BatchLotFailure struct {
 	X, Y int
 	Kind string
-}
-
-// GridGrowView is the price and yield of the next expansion.
-type GridGrowView struct {
-	SettlementName string
-	Side, NewSide  int
-	LotsGained     int
-	// BuildableGained is how many of the new lots are dry buildable ground.
-	BuildableGained int
-	Price           int64
-	Treasury        int64
 }
 
 // Refusals of the citizen loop; their text is citizen.refusal.<kind>.

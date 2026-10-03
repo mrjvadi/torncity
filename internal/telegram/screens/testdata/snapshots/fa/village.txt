@@ -83,7 +83,6 @@
 🔒 کلانتری - اول باید دفترداری را داشته باشید
   ───
   [🏗 ساخت شهرداری] → settlement:build.lots:civic_hall
-  [🗺 گسترش زمین] → settlement:grid.grow
   [🔙 بازگشت] → settlement:overview   │   [🔄 به‌روزرسانی] → settlement:build
 
 ━━━ Construction progress · one queued, one building ━━━
@@ -346,25 +345,6 @@
   [✅] → settlement:build.place:cottage:2-9   │   [✅] → settlement:build.place:cottage:3-9   │   [✅] → settlement:build.place:cottage:4-9   │   [✅] → settlement:build.place:cottage:5-9   │   [✅] → settlement:build.place:cottage:6-9   │   [✅] → settlement:build.place:cottage:7-9   │   [✅] → settlement:build.place:cottage:8-9   │   [✅] → settlement:build.place:cottage:9-9
   [◀️] → settlement:build.lots:cottage:0:-:0-2   │   [🔼] → settlement:build.lots:cottage:0:-:2-0   │   [🔽] → settlement:build.lots:cottage:0:-:2-6   │   [▶️] → settlement:build.lots:cottage:0:-:6-2
   [🔙 بازگشت] → settlement:build   │   [🔄 به‌روزرسانی] → settlement:build.lots:cottage
-
-━━━ Land · the price of the next expansion ━━━
-(edits message 42)
-🗺 گسترش زمین کورندال
-
-زمین از ⁨5⁩×⁨5⁩ به ⁨6⁩×⁨6⁩ می‌رسد و ⁨11⁩ قطعهٔ تازه به شهر اضافه می‌شود؛ ⁨9⁩ قطعه‌اش خشکیِ قابل‌ساخت است.
-هزینه: ⁨⁨550⁩ ساپ⁩
-خزانه: ⁨⁨12,400⁩ ساپ⁩
-
-بناهای فعلی سر جایشان می‌مانند. آب و شیب تند همان‌جا که هست ساخت‌ناپذیر می‌ماند. هر گسترشِ بعدی گران‌تر است.
-  ───
-  [✅ تأیید و گسترش] → settlement:grid.grow:confirm
-  [🔙 بازگشت] → settlement:build
-
-━━━ Land · the technical bound ━━━
-(edits message 42)
-🗺 زمین شهر به بیشینهٔ فنیِ اندازهٔ نقشه رسیده است و بیشتر گسترش نمی‌یابد.
-  ───
-  [🔙 بازگشت] → settlement:overview
 
 ━━━ Lot grid · a mix of states, rotatable building ━━━
 (edits message 42)

@@ -762,18 +762,6 @@ type Settlement struct {
 	// slide from its cell's centre to find a placement that meets the share.
 	GridShiftMaxLots int // settlement.grid_shift_max_lots
 
-	// Land (the grid's growth, docs/adr/0033 section 8.4 as the owner
-	// corrected it): a village owns as much land as it pays for. Growth is
-	// never tied to the tier; it is bounded by the world's terrain and by
-	// this price, and by GridMaxLots, a TECHNICAL bound on a grid's side (so
-	// a layout stays a sane size to sample, send and draw), not a game rule.
-	GridMaxLots int // settlement.grid_max_lots
-	// GridLotPrice is the price, minor units, of one lot of new land;
-	// GridPriceStepBPS makes each earlier expansion dearer: a step's price
-	// is its lots x GridLotPrice x (10000 + GridPriceStepBPS x expansions
-	// so far) / 10000.
-	GridLotPrice     int64 // settlement.grid_lot_price
-	GridPriceStepBPS int64 // settlement.grid_price_step_bps
 	// AutoRoadCost is what the treasury pays for each lot of road the game
 	// lays by itself to connect a new building: a small fee (a road laid by
 	// hand costs 50), so the game never lays roads for nothing yet a road is
@@ -1533,9 +1521,6 @@ func Defaults() *Config {
 
 			MinBuildableLotShareBps: 7000,
 			GridShiftMaxLots:        3,
-			GridMaxLots:             41,
-			GridLotPrice:            50,
-			GridPriceStepBPS:        500,
 			AutoRoadCost:            10,
 			LotAccessCrossingCost:   60,
 			LotAccessMaxCrossing:    2,
@@ -1922,9 +1907,6 @@ func (c *Config) Validate() error {
 
 	if v := c.Settlement.MinBuildableLotShareBps; v > 10_000 {
 		return fmt.Errorf("%w: settlement.min_buildable_lot_share_bps is %d, want 1 to 10000", ErrBPSTooLarge, v)
-	}
-	if v := c.Settlement.GridMaxLots; v < c.Settlement.VillageGridLots || v > 101 {
-		return fmt.Errorf("%w: settlement.grid_max_lots is %d, want the village grid (%d) to 101", ErrInvalidValue, v, c.Settlement.VillageGridLots)
 	}
 	if v := c.Settlement.GridShiftMaxLots; v > 10 {
 		return fmt.Errorf("%w: settlement.grid_shift_max_lots is %d, want 1 to 10", ErrInvalidValue, v)

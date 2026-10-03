@@ -1984,16 +1984,6 @@ export interface GovSection {
   levers: GovLever[] | null
 }
 
-export interface GridGrowView {
-  settlement_name: string
-  side: number
-  new_side: number
-  lots_gained: number
-  buildable_gained: number
-  price: number
-  treasury: number
-}
-
 export interface HealthFacility {
   kind: string
   building: Named
@@ -5411,7 +5401,6 @@ export interface ScreenViews {
   settlement_construction_progress: ConstructionProgressView
   settlement_found_draft: FoundDraftView
   settlement_founded: SettlementFoundedView
-  settlement_grid_grow: GridGrowView
   settlement_knowledge_list: KnowledgeListView
   settlement_land: LandView
   settlement_lot_access: LotAccessView

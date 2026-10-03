@@ -179,10 +179,6 @@ func villageSnapshots(c Context, who people, add func(string, *presenter.Respons
 		SettlementName: villageNameFor(c), Building: sampleNamed(c.Lang, "cottage", "خانهٔ روستایی", "Village house"),
 		GridLots: 10, Rows: wideLotRows(10), WinX: 4, WinY: 4,
 	}))
-	add("Land · the price of the next expansion", GridGrowConfirm(g, GridGrowView{
-		SettlementName: villageNameFor(c), Side: 5, NewSide: 6, LotsGained: 11, BuildableGained: 9, Price: 550, Treasury: 12_400,
-	}))
-	add("Land · the technical bound", VillageRefusal(g, VillageRefusalView{Kind: VillageGridMax}))
 
 	militiaCamp := sampleNamed(c.Lang, "militia_camp", "اردوگاه میلیشیا", "Militia camp")
 	add("Lot grid · a mix of states, rotatable building", LotGrid(g, LotGridView{

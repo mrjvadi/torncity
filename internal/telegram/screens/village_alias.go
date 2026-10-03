@@ -23,7 +23,6 @@ const VillageMaterials = village.VillageMaterials
 const VillageNotCancellable = village.VillageNotCancellable
 const VillageBatch = village.VillageBatch
 const VillageNoRoad = village.VillageNoRoad
-const VillageGridMax = village.VillageGridMax
 const VillageAlreadyResident = village.VillageAlreadyResident
 const VillageNotResident = village.VillageNotResident
 const VillageResidenceWait = village.VillageResidenceWait
@@ -96,7 +95,6 @@ type BuildingView = village.BuildingView
 type LotBatchLot = village.LotBatchLot
 type LotBatchConfirmView = village.LotBatchConfirmView
 type BatchLotFailure = village.BatchLotFailure
-type GridGrowView = village.GridGrowView
 
 // village_citizen.go
 const CitizenLotTaken = village.CitizenLotTaken

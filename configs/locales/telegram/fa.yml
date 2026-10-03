@@ -317,7 +317,6 @@ village:
     no_road: "🛣 به این بنا هیچ راهی نمی‌رسد؛ اطرافش جای آزاد و قابل‌ساخت برای کشیدن جاده نیست. قطعهٔ دیگری را امتحان کنید."
     road_reserved: "🛣 این جاده راه یک زمین است و حریم جاده می‌ماند؛ خرابش نمی‌کنند."
     reserved: "🚧 این قطعه حریم جاده است؛ فقط جاده رویش ساخته می‌شود."
-    grid_max: "🗺 زمین شهر به بیشینهٔ فنیِ اندازهٔ نقشه رسیده است و بیشتر گسترش نمی‌یابد."
     batch: |-
       🚧 ساخت گروهی انجام نشد و چیزی پرداخت نشد. این قطعه‌ها مشکل دارند:
       {lots}
@@ -512,7 +511,6 @@ build:
     short: "🧱 {building} - هزینه {cost} - مواد لازم: {materials} - کم دارید: {short}"
   button:
     place: "🏗 ساخت {building}"
-    grow: "🗺 گسترش زمین"
   confirm:
     title: "🏗 ساخت {building}"
     body: "هزینه: {cost}\nزمان ساخت: {time}\nمحل: ردیف {y}، ستون {x}"
@@ -547,15 +545,6 @@ construction:
     open: "🏗 {building}"
   standing_hint: "برای دیدن هر بنای ساخته‌شده، روی نامش بزنید."
 
-# Buying more land: the grid grows by a column east and a row north.
-grow:
-  title: "🗺 گسترش زمین {name}"
-  body: |-
-    زمین از {side}×{side} به {new_side}×{new_side} می‌رسد و {lots} قطعهٔ تازه به شهر اضافه می‌شود؛ {buildable} قطعه‌اش خشکیِ قابل‌ساخت است.
-    هزینه: {price}
-    خزانه: {treasury}
-  note: "بناهای فعلی سر جایشان می‌مانند. آب و شیب تند همان‌جا که هست ساخت‌ناپذیر می‌ماند. هر گسترشِ بعدی گران‌تر است."
-  button: "✅ تأیید و گسترش"
 
 # The panel of one placed building (internal/telegram/screens/village_building.go):
 # what it is and what it does; demolishing is the last, quiet button.

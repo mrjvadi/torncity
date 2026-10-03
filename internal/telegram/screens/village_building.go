@@ -236,35 +236,3 @@ func renderLotBatchConfirm(c Context, v LotBatchConfirmView) *presenter.Response
 	return c.respond(text, kb.Build())
 }
 
-// ---------------------------------------------------------------------
-// Land: buying more grid
-// ---------------------------------------------------------------------
-
-// AddrGridGrow and ScreenGridGrow are the land purchase's address and screen.
-const (
-	AddrGridGrow   = village.AddrGridGrow
-	ScreenGridGrow = village.ScreenGridGrow
-)
-
-// GridGrowConfirm renders the land purchase confirmation.
-func GridGrowConfirm(c Context, v GridGrowView) *presenter.Response {
-	return c.withGroupView(renderGridGrow(c, v), ScreenGridGrow, v)
-}
-
-func renderGridGrow(c Context, v GridGrowView) *presenter.Response {
-	text := paragraphs(
-		c.T("grow.title", map[string]any{"name": v.SettlementName}),
-		c.T("grow.body", map[string]any{
-			"side": FormatNumber(c, int64(v.Side)), "new_side": FormatNumber(c, int64(v.NewSide)),
-			"lots": FormatNumber(c, int64(v.LotsGained)), "buildable": FormatNumber(c, int64(v.BuildableGained)),
-			"price": FormatMoney(c, v.Price), "treasury": FormatMoney(c, v.Treasury),
-		}),
-		c.T("grow.note", nil),
-	)
-	kb := keyboards.New()
-	if b, ok := keyboards.Button(c.T("grow.button", nil), AddrGridGrow, VillageBuildConfirm); ok {
-		kb.Row(b)
-	}
-	kb.Nav(c.nav(keyboards.Nav{BackData: keyboards.Data(AddrBuildMenu)}))
-	return c.respond(text, kb.Build())
-}

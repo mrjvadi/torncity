@@ -574,9 +574,6 @@ settlement:
   village_grid_lots: 6
   min_buildable_lot_share_bps: 6500
   grid_shift_max_lots: 4
-  grid_max_lots: 42
-  grid_lot_price: 51
-  grid_price_step_bps: 501
   auto_road_cost: 11
   lot_access_crossing_cost: 61
   lot_access_max_crossing: 3

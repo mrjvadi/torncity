@@ -1181,15 +1181,9 @@ settlement:
   # How many lots, each way, the grid may slide from its cell's centre to
   # find a placement that meets the share before the cell is passed over.
   grid_shift_max_lots: 3
-  # Land (docs/adr/0033 section 8.4, as corrected: never capped by tier). The
-  # head buys one expansion at a time - a column east and a row north, so the
-  # grid grows by one lot a side and no building moves. A step costs its new
-  # lots x grid_lot_price, dearer by grid_price_step_bps for each expansion
-  # already bought. grid_max_lots is a TECHNICAL bound on a grid's side (a
-  # layout stays a sane size to sample, send and draw), not a game rule.
-  grid_max_lots: 41
-  grid_lot_price: 50
-  grid_price_step_bps: 500
+  # Land: there is no paid expansion step any more (ADR 0044, owner decision
+  # 2026-10-03). The grid is the first block of land; a road drawn out of it
+  # opens the land it reaches (road_* below).
   # What the treasury pays for each lot of road the game lays by itself to
   # connect a new building (a road laid by hand costs 50).
   auto_road_cost: 10

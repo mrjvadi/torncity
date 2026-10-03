@@ -83,7 +83,6 @@ No knowledge to show.
 🔒 Police post - needs Record keeping first
   ───
   [🏗 Build Civic hall] → settlement:build.lots:civic_hall
-  [🗺 Expand the land] → settlement:grid.grow
   [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:build
 
 ━━━ Construction progress · one queued, one building ━━━
@@ -346,25 +345,6 @@ Building: Cottage
   [✅] → settlement:build.place:cottage:2-9   │   [✅] → settlement:build.place:cottage:3-9   │   [✅] → settlement:build.place:cottage:4-9   │   [✅] → settlement:build.place:cottage:5-9   │   [✅] → settlement:build.place:cottage:6-9   │   [✅] → settlement:build.place:cottage:7-9   │   [✅] → settlement:build.place:cottage:8-9   │   [✅] → settlement:build.place:cottage:9-9
   [◀️] → settlement:build.lots:cottage:0:-:0-2   │   [🔼] → settlement:build.lots:cottage:0:-:2-0   │   [🔽] → settlement:build.lots:cottage:0:-:2-6   │   [▶️] → settlement:build.lots:cottage:0:-:6-2
   [🔙 Back] → settlement:build   │   [🔄 Refresh] → settlement:build.lots:cottage
-
-━━━ Land · the price of the next expansion ━━━
-(edits message 42)
-🗺 Expand the land of Korendal
-
-The land grows from 5x5 to 6x6: 11 new lots, 9 of them dry buildable ground.
-Price: 550 SUP
-Treasury: 12,400 SUP
-
-Standing buildings stay where they are. Water and steep ground stay unbuildable. Each expansion costs more than the last.
-  ───
-  [✅ Confirm and expand] → settlement:grid.grow:confirm
-  [🔙 Back] → settlement:build
-
-━━━ Land · the technical bound ━━━
-(edits message 42)
-🗺 The city's land has reached the technical limit of the map size and cannot grow further.
-  ───
-  [🔙 Back] → settlement:overview
 
 ━━━ Lot grid · a mix of states, rotatable building ━━━
 (edits message 42)

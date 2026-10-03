@@ -92,6 +92,3 @@ const (
 	// AddrTravelOptions is the choice of transport to one city.
 	AddrTravelOptions = "travel:options"
 )
-
-// AddrGridGrow addresses the land purchase.
-const AddrGridGrow = "settlement:grid.grow"

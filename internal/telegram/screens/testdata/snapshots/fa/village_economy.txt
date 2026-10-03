@@ -212,5 +212,4 @@
 🔒 مدرسه - اول یکی از بناهای کلاس درس را بسازید
   ───
   [🏗 ساخت کارگاه هیزم‌شکنی] → settlement:build.lots:woodcutter_camp   │   [🏗 ساخت شهرداری] → settlement:build.lots:civic_hall
-  [🗺 گسترش زمین] → settlement:grid.grow
   [🔙 بازگشت] → settlement:overview   │   [🔄 به‌روزرسانی] → settlement:build

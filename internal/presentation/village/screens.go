@@ -58,7 +58,6 @@ var (
 	screenWorkStarted    = presentation.Define[WorkView](ScreenVillageWorkStarted, "village")
 	screenBuilding       = presentation.Define[BuildingView](ScreenBuildingView, "village")
 	screenBatchConfirm   = presentation.Define[LotBatchConfirmView](ScreenLotBatchConfirm, "village")
-	screenGridGrow       = presentation.Define[GridGrowView](ScreenGridGrow, "village")
 )
 
 // EmptyView is the view of a screen that has no facts of its own.
@@ -247,7 +246,7 @@ func BuildMenu(c presentation.Ctx, v BuildMenuView) *presentation.Response {
 			a = append(a, act(AddrBuildLots, l.Building.Code).Named("build.place").About(l.Building.Code))
 		}
 	}
-	a = append(a, act(AddrGridGrow).Named("build.grow"), back(AddrVillageOverview), refresh(AddrBuildMenu))
+	a = append(a, back(AddrVillageOverview), refresh(AddrBuildMenu))
 	return screenBuildMenu.Response(c.Lang, v, a...)
 }
 
@@ -336,11 +335,6 @@ func LotBatchConfirm(c presentation.Ctx, v LotBatchConfirmView) *presentation.Re
 	}
 	a = append(a, back(AddrBuildMenu))
 	return screenBatchConfirm.Response(c.Lang, v, a...)
-}
-
-// GridGrowConfirm is the land purchase confirmation.
-func GridGrowConfirm(c presentation.Ctx, v GridGrowView) *presentation.Response {
-	return screenGridGrow.Response(c.Lang, v, confirm(AddrGridGrow, VillageBuildConfirm), back(AddrBuildMenu))
 }
 
 // VillageDonateMenu is the amounts screen of a gift to the treasury.

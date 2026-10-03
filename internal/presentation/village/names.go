@@ -39,7 +39,6 @@ const (
 	ScreenVillageWorkStarted   = "village_work_started"
 	ScreenBuildingView         = "settlement_building_view"
 	ScreenLotBatchConfirm      = "settlement_build_batch_confirm"
-	ScreenGridGrow             = "settlement_grid_grow"
 	// ScreenVillageHomeNone is what a player who lives in no village sees when asking for their village.
 	// ScreenSettlementWho is the roster of who is around in a settlement.
 	ScreenSettlementWho   = "settlement_who"

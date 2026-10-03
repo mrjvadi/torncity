@@ -456,13 +456,6 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 			}
 			return h.village.PlaceMany(ctx, env.Metadata, req)
 		},
-		"settlement.grid.grow": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
-			var req handlers.VillageGrowRequest
-			if err := decode(env, &req); err != nil {
-				return nil, err
-			}
-			return h.village.GrowGrid(ctx, env.Metadata, req)
-		},
 		"settlement.building.view": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			var req handlers.VillageBuildingViewRequest
 			if err := decode(env, &req); err != nil {

@@ -47,5 +47,4 @@ func init() {
 	Register(village.ScreenVillageWorkStarted, screens.VillageWork)
 	Register(village.ScreenBuildingView, screens.BuildingPanel)
 	Register(village.ScreenLotBatchConfirm, screens.LotBatchConfirm)
-	Register(village.ScreenGridGrow, screens.GridGrowConfirm)
 }

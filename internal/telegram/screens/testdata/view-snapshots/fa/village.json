@@ -1644,19 +1644,6 @@
     }
   },
   {
-    "title": "Land · the price of the next expansion",
-    "screen": "settlement_grid_grow",
-    "view": {
-      "buildable_gained": 9,
-      "lots_gained": 11,
-      "new_side": 6,
-      "price": 550,
-      "settlement_name": "کورندال",
-      "side": 5,
-      "treasury": 12400
-    }
-  },
-  {
     "title": "Lot grid · a mix of states, rotatable building",
     "screen": "settlement_build_lots",
     "view": {
