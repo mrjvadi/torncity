@@ -1142,14 +1142,14 @@ func TestEnrolNeedsTheUniversity(t *testing.T) {
 func TestEducationPayloadRoundTrips(t *testing.T) {
 	h := newWorkHarness(t)
 	h.uow.w.ledger.balances[accountID(application.AccountPlayerCash, h.player.ID)] = 1000
-	if _, err := h.edu.Enroll(context.Background(), h.meta("req-e", "education.enroll"), CourseRequest{Course: "evening_accounting", Method: "cash"}); err != nil {
+	if _, err := h.edu.Enroll(context.Background(), h.meta("req-e", "education.enroll"), CourseRequest{Course: "first_aid", Method: "cash"}); err != nil {
 		t.Fatal(err)
 	}
 	var p EducationActionPayload
 	if err := json.Unmarshal(h.uow.tx.actions.scheduled[0].Payload, &p); err != nil {
 		t.Fatal(err)
 	}
-	if p.PlayerID != h.player.ID || p.CourseCode != "evening_accounting" || p.EnrollmentID == "" {
+	if p.PlayerID != h.player.ID || p.CourseCode != "first_aid" || p.EnrollmentID == "" {
 		t.Errorf("payload = %+v", p)
 	}
 }
