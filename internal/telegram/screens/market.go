@@ -62,7 +62,16 @@ func renderMarket(c Context, v MarketView) *presenter.Response {
 	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrMap, RefreshData: AddrMarket}))
 	title := htmlBold(htmlEscape(c.T("market.title", map[string]any{"city": c.CityName(v.CityCode, v.City)})))
-	return c.respond(paragraphs(title, htmlEscape(body(lines...)), htmlEscape(where)), kb.Build()).AsHTML()
+	var village string
+	if vb := v.Village; vb != nil {
+		key := "market.village"
+		if vb.MarketDay {
+			key = "market.village_day"
+		}
+		village = c.T(key, map[string]any{"used": vb.StallsUsed, "stalls": vb.Stalls, "mine": vb.Mine, "per": vb.PerPlayer,
+			"dues": PercentFromBPS(c, int(vb.DuesBPS)), "listing": PercentFromBPS(c, int(vb.ListingBPS))})
+	}
+	return c.respond(paragraphs(title, htmlEscape(village), htmlEscape(body(lines...)), htmlEscape(where)), kb.Build()).AsHTML()
 }
 
 // Book renders one good's book, and — at the market place — a buy button at

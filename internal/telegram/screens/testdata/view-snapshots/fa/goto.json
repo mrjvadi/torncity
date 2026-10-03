@@ -445,6 +445,7 @@
       "city": "Ostmarch",
       "city_code": "ostmarch",
       "unavailable": null,
+      "village": null,
       "way": {
         "place": {
           "code": "bazaar",

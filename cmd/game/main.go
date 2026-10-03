@@ -472,7 +472,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			}).
 			WithLabor(laborRules(cfg.Labor), cfg.Labor.HirePresets, cfg.Labor.WagePresets).
 			WithActivities(activityRules(cfg)).
-			WithShop(shopRules(cfg)),
+			WithShop(shopRules(cfg)).WithStorage(storageRules(cfg)),
 	}
 
 	// Work and study read careers and courses from the live registry and a
@@ -502,7 +502,12 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	// Goods that come in are checked against the bags (storage and market audit P1).
 	h.crime.WithCarry(cfg.CarryRules(), gameClock)
 	// The watch checks every market trade (docs/adr/0023).
-	h.goods.market.WithWatch(watchThresholds(cfg.AntiCheat)).WithHome(cfg.Settlement.HomeCityCode)
+	h.goods.market.WithWatch(watchThresholds(cfg.AntiCheat)).WithHome(cfg.Settlement.HomeCityCode).
+		WithVillageBook(handlers.VillageMarketRules{
+			StallsPost: cfg.Trade.VillageStallsPost, StallsHall: cfg.Trade.VillageStallsHall,
+			StallsPerPlayerPost: cfg.Trade.VillageStallsPerPlayerPost, StallsPerPlayerHall: cfg.Trade.VillageStallsPerPlayerHall,
+			DayEveryDays: cfg.Trade.MarketDayEveryDays, Clock: gameClock,
+		})
 	// A service the settlement a player stands in does not offer is said so
 	// (availability.yml): the auction house and the national bank's counters.
 	serviceGate := handlers.NewServiceGate(cities, cfg.Settlement.HomeCityCode)

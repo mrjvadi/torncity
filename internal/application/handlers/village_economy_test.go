@@ -3,8 +3,8 @@ package handlers
 import (
 	"testing"
 
+	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/domain/item"
-	"github.com/mrjvadi/torncity/internal/domain/settlementbuilding"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
@@ -86,17 +86,42 @@ func TestPathNamesKnowledgeAndRoles(t *testing.T) {
 	}
 }
 
-func TestStockCapacityAddsGranary(t *testing.T) {
+// The granary and the storehouse give their room as storage classes through the
+// function catalogue (building_functions.yml), and only the kept ones count.
+func TestStoresGiveRoomByClass(t *testing.T) {
 	snap := shippedSnapshot(t)
-	granary, ok := snap.SettlementBuildingDef("granary")
-	if !ok || granary.Storage <= 0 {
-		t.Fatalf("the granary has no storage: %+v", granary)
+	stores := storeBuildings(snap, []application.SettlementBuildingInstance{
+		{ID: "b", TypeCode: "storehouse", Status: "complete"},
+		{ID: "a", TypeCode: "granary", Status: "complete"},
+		{ID: "c", TypeCode: "storehouse", Status: "building"},
+		{ID: "d", TypeCode: "woodcutter_camp", Status: "complete"},
+	})
+	if len(stores) != 2 || stores[0].Type != "granary" || stores[1].Type != "storehouse" {
+		t.Fatalf("stores = %+v, want the granary then the storehouse (a building under construction and a camp give no room)", stores)
 	}
-	def := granary.Def()
-	if def.Storage != granary.Storage {
-		t.Error("Def() drops the storage")
+	if stores[0].Provides["food"] != 300 || stores[1].Provides["bulk"] != 200 || stores[1].Provides["goods"] != 150 {
+		t.Errorf("provides = %+v / %+v", stores[0].Provides, stores[1].Provides)
 	}
-	if err := settlementbuilding.ValidateCatalogue([]settlementbuilding.Def{def}); err != nil {
-		t.Errorf("the granary is invalid: %v", err)
+	if granary, _ := snap.SettlementBuildingDef("granary"); granary.Storage != 0 {
+		t.Errorf("the granary still carries a flat storage of %d", granary.Storage)
+	}
+}
+
+// Food spoils in whole units with the fraction carried, and nothing else does.
+func TestSpoilageCarriesTheFraction(t *testing.T) {
+	snap := shippedSnapshot(t)
+	stacks := []application.OrgStack{{Item: "wheat", Qty: 100}, {Item: "timber", Qty: 100}}
+	// 30 bps of 100 wheat a day is 0.3 of a unit: nothing yet, the carry grows.
+	steps, total, carry := spoilage(snap, stacks, 30, 1, 0)
+	if len(steps) != 0 || total != 0 || carry != 3000 {
+		t.Fatalf("day 1: %+v %d carry %d, want nothing and 3000", steps, total, carry)
+	}
+	// Four days on, the carried fractions make a whole unit.
+	steps, total, carry = spoilage(snap, stacks, 30, 3, carry)
+	if total != 1 || len(steps) != 1 || steps[0].item != "wheat" || carry != 2000 {
+		t.Fatalf("day 4: %+v %d carry %d, want one wheat and 2000 left", steps, total, carry)
+	}
+	if _, total, _ := spoilage(snap, stacks, 0, 5, 0); total != 0 {
+		t.Error("a zero rate spoiled something")
 	}
 }

@@ -811,6 +811,9 @@ const (
 	// VillageStorageFull: the stock has no room for what was asked (a granary
 	// adds room).
 	VillageStorageFull = "storage_full"
+	// VillageNotEnough: the player has less of the good than they offered, or
+	// the stock has less than the office asked to take.
+	VillageNotEnough = "not_enough"
 	// VillageAlreadyWorking: the resident already works a shift.
 	VillageAlreadyWorking = "already_working"
 	// VillageWorkplaceFull: every place at the workplace is taken.
@@ -884,13 +887,34 @@ type MaterialsView struct {
 	// Used and Capacity are the units held and the room there is (the base
 	// capacity plus every standing building's storage).
 	Used, Capacity int64
-	Market         []MaterialMarketLine
+	// Classes is the same room by storage class (bulk, food, goods), in «جا»;
+	// Stores the standing storage buildings with whether a keeper keeps each
+	// (storage and market audit P2); Wage a keeper's day; SpoilBPS the share
+	// of the food that spoils per game day now.
+	Classes  []StockClassLine
+	Stores   []StockStoreLine
+	Wage     int64
+	SpoilBPS int64
+	Market   []MaterialMarketLine
 	// CanBuy reports that the viewer may spend the treasury (the village head);
 	// Presets are the quantities the buy buttons offer.
 	CanBuy  bool
 	Presets []int64
 	// Bought is set on the screen shown right after a purchase.
 	Bought *MaterialBought `json:"bought,omitempty"`
+}
+
+// StockClassLine is one storage class of the stock: the spaces held, the room
+// (the base room and what the kept stores add) and what running shifts reserve.
+type StockClassLine struct {
+	Class                    string
+	Used, Capacity, Reserved int64
+}
+
+// StockStoreLine is a standing storage building and whether it has a keeper.
+type StockStoreLine struct {
+	Building presentation.Named
+	Kept     bool
 }
 
 // MaterialBuyView is the confirm before a purchase.

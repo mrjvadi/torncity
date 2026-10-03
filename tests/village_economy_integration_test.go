@@ -327,17 +327,17 @@ func TestVillageEconomyLoop(t *testing.T) {
 	}
 
 	// 9. A shift reserves room for its goods before it starts (audit F1): the
-	// stock holds 4 timber, 360 fit; fill it to 4 short of full.
-	buy("200", screens.MaterialsConfirm)
-	buy("152", screens.MaterialsConfirm)
-	if got := stockOfItem(t, pool, cityID, "timber"); got != 356 {
-		t.Fatalf("stock before the reservation check = %d, want 356", got)
+	// stock holds 4 timber (bulk 2 each) in the 60-space yard; fill it to 4 timber
+	// short of full.
+	buy("22", screens.MaterialsConfirm)
+	if got := stockOfItem(t, pool, cityID, "timber"); got != 26 {
+		t.Fatalf("stock before the reservation check = %d, want 26", got)
 	}
 	cash1 := cashBalance(t, pool, application.AccountPlayerCash, founder.ID)
 	if r := start(campID, head); !strings.Contains(r.Text, "شیفت") {
 		t.Fatalf("a shift that fits was not started:\n%s", r.Text)
 	}
-	// The running shift's 4 units hold the last room: nobody else can take it.
+	// The running shift's 4 timber hold the last room: nobody else can take it.
 	if r := buy("1", screens.MaterialsConfirm); !strings.Contains(r.Text, "جا ندارد") {
 		t.Errorf("a purchase took the room a running shift reserved:\n%s", r.Text)
 	}
@@ -349,8 +349,8 @@ func TestVillageEconomyLoop(t *testing.T) {
 	if _, err := rrcm(mk("settlement.worked", "worked"))(village.Worked(ctx, mk("settlement.worked", "worked"), handlers.CrimeScheduledRequest{ReferenceID: shiftID, ActionID: actionID})); err != nil {
 		t.Fatal(err)
 	}
-	if got := stockOfItem(t, pool, cityID, "timber"); got != 360 {
-		t.Fatalf("the reserved goods did not all arrive: stock %d, want 360", got)
+	if got := stockOfItem(t, pool, cityID, "timber"); got != 30 {
+		t.Fatalf("the reserved goods did not all arrive: stock %d, want 30", got)
 	}
 	if got := cashBalance(t, pool, application.AccountPlayerCash, founder.ID) - cash1; got != 40 {
 		t.Fatalf("the worker was paid %d for a delivered shift, want 40", got)
@@ -358,7 +358,7 @@ func TestVillageEconomyLoop(t *testing.T) {
 	// Full now: the next shift is refused, says how much room it needs, and
 	// consumes and promises nothing.
 	treasury2 := treasuryOf(t, pool, cityID)
-	if r := start(campID, head); !strings.Contains(r.Text, "جا ندارد") || !strings.Contains(r.Text, "4") {
+	if r := start(campID, head); !strings.Contains(r.Text, "جا ندارد") || !strings.Contains(r.Text, "8") {
 		t.Errorf("a shift into a full stock was not refused with the room it needs:\n%s", r.Text)
 	}
 	var working int

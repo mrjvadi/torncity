@@ -98,12 +98,12 @@ type MarketRepository struct {
 var _ application.MarketRepository = (*MarketRepository)(nil)
 
 const orderColumns = `id::text, no, city_id::text, item_code, side, order_type, quantity, filled, unit_price,
-       owner_id::text, COALESCE(funding, ''), status, COALESCE(game_action_id::text, ''), created_at, expires_at, closed_at`
+       owner_id::text, COALESCE(funding, ''), status, COALESCE(game_action_id::text, ''), created_at, expires_at, closed_at, listing_fee`
 
 func scanOrder(row pgx.Row) (*application.MarketOrder, error) {
 	var o application.MarketOrder
 	if err := row.Scan(&o.ID, &o.No, &o.CityID, &o.Item, &o.Side, &o.Kind, &o.Qty, &o.Filled, &o.Price,
-		&o.OwnerID, &o.Funding, &o.Status, &o.GameActionID, &o.CreatedAt, &o.ExpiresAt, &o.ClosedAt); err != nil {
+		&o.OwnerID, &o.Funding, &o.Status, &o.GameActionID, &o.CreatedAt, &o.ExpiresAt, &o.ClosedAt, &o.ListingFee); err != nil {
 		return nil, err
 	}
 	o.CreatedAt, o.ExpiresAt, o.ClosedAt = o.CreatedAt.UTC(), o.ExpiresAt.UTC(), utcPtr(o.ClosedAt)
@@ -182,11 +182,11 @@ func (r *MarketRepository) PlaceOrder(ctx context.Context, o application.MarketO
 	}
 	err := r.q.QueryRow(ctx,
 		`INSERT INTO market_orders (id, city_id, item_code, side, order_type, quantity, filled, unit_price, owner_id,
-		                            funding, status, game_action_id, created_at, expires_at, closed_at)
-		 VALUES ($1::uuid, $2::uuid, $3, $4, $5, $6, $7, $8, $9::uuid, $10, $11, $12::uuid, $13, $14, $15)
+		                            funding, status, game_action_id, created_at, expires_at, closed_at, listing_fee)
+		 VALUES ($1::uuid, $2::uuid, $3, $4, $5, $6, $7, $8, $9::uuid, $10, $11, $12::uuid, $13, $14, $15, $16)
 		 RETURNING no`,
 		o.ID, o.CityID, o.Item, o.Side, o.Kind, o.Qty, o.Filled, o.Price, o.OwnerID, funding, o.Status,
-		nullableUUID(o.GameActionID), o.CreatedAt.UTC(), o.ExpiresAt.UTC(), closed).Scan(&o.No)
+		nullableUUID(o.GameActionID), o.CreatedAt.UTC(), o.ExpiresAt.UTC(), closed, o.ListingFee).Scan(&o.No)
 	if err != nil {
 		return o, fmt.Errorf("postgres: placing an order: %w", err)
 	}
@@ -240,6 +240,17 @@ func (r *MarketRepository) CountOpen(ctx context.Context, playerID string) (int,
 		return 0, fmt.Errorf("postgres: counting orders: %w", err)
 	}
 	return n, nil
+}
+
+// CountOpenIn counts the open orders in one city's books, and one player's among them.
+func (r *MarketRepository) CountOpenIn(ctx context.Context, cityID, playerID string) (total, mine int, err error) {
+	err = r.q.QueryRow(ctx,
+		`SELECT count(*), count(*) FILTER (WHERE owner_id = $2::uuid) FROM market_orders WHERE city_id = $1::uuid AND status = 'open'`,
+		cityID, playerID).Scan(&total, &mine)
+	if err != nil {
+		return 0, 0, fmt.Errorf("postgres: counting a book's stalls: %w", err)
+	}
+	return total, mine, nil
 }
 
 // Books sums a city's books.

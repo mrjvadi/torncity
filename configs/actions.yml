@@ -313,6 +313,8 @@ commands:
   settlement.build.cancel: {kind: danger, icon: "action:cancel_build"}
   settlement.materials: {kind: navigation, icon: "action:materials"}
   settlement.materials.buy: {kind: primary, icon: "action:buy"}
+  settlement.stock.donate: {kind: primary, icon: "action:give"}
+  settlement.stock.take: {kind: secondary, icon: "action:bag"}
   settlement.shop: {kind: navigation, icon: "action:shop"}
   settlement.shop.buy: {kind: primary, icon: "action:buy"}
   settlement.shop.cap: {kind: secondary, icon: "action:shop"}

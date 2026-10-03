@@ -421,6 +421,31 @@ levers:
     change_cooldown: 72h
     notice: 24h
 
+  # The village book (docs/adr/0040 section 5.4, storage and market audit P3). A
+  # settlement's own market charges a listing fee when an order takes a stall (not
+  # refunded) and dues on every trade, both to the treasury. The market warden
+  # (the muhtasib of the real market) sets them within bounds; while the seat is
+  # empty the mayor acts, and with neither the defaults apply.
+  - code: city.market_listing_fee_bps
+    jurisdiction: city
+    type: bps
+    default: 100
+    min: 0
+    max: 1000
+    held_by: market_warden
+    change_cooldown: 72h
+    notice: 24h
+
+  - code: city.market_dues_bps
+    jurisdiction: city
+    type: bps
+    default: 300
+    min: 0
+    max: 1000
+    held_by: market_warden
+    change_cooldown: 72h
+    notice: 24h
+
   # Companies (companies.yml, docs/adr/0020-companies.md). The registration
   # fee a founder pays the city's treasury is each kind of business's
   # founding fee scaled by city.company_registration, in percent (100 = as
@@ -566,6 +591,49 @@ levers:
   # being read (the full city.* catalogue takes over for free; ADR 0028
   # section 4), but the lever itself is never removed: a settlement that is
   # later demoted in content, or whose history is read back, still resolves.
+  # The same two levers on a village and on a town, held by that level's market
+  # warden (docs/adr/0040 section 5.4): the village book is a settlement's own
+  # market, and a settlement is a village or a town before it is a city.
+  - code: village.market_listing_fee_bps
+    jurisdiction: village
+    type: bps
+    default: 100
+    min: 0
+    max: 1000
+    held_by: village_market_warden
+    change_cooldown: 72h
+    notice: 24h
+
+  - code: village.market_dues_bps
+    jurisdiction: village
+    type: bps
+    default: 300
+    min: 0
+    max: 1000
+    held_by: village_market_warden
+    change_cooldown: 72h
+    notice: 24h
+
+  - code: town.market_listing_fee_bps
+    jurisdiction: town
+    type: bps
+    default: 100
+    min: 0
+    max: 1000
+    held_by: town_market_warden
+    change_cooldown: 72h
+    notice: 24h
+
+  - code: town.market_dues_bps
+    jurisdiction: town
+    type: bps
+    default: 300
+    min: 0
+    max: 1000
+    held_by: town_market_warden
+    change_cooldown: 72h
+    notice: 24h
+
   - code: village.local_levy
     jurisdiction: village
     type: bps
@@ -633,6 +701,20 @@ offices:
     # them.
     incompatible_with: [city_council]
 
+  # The market's keeper of weights, dues and honest dealing (the muhtasib;
+  # docs/research/2026-10-03-storage-market-audit.md section 3). The mayor appoints
+  # and removes; the warden holds the village book's listing fee and dues. A
+  # warden who is also mayor would check nobody, so the two are one person at most
+  # by the mayor's own choice: the mayor acts for a vacant seat.
+  - code: market_warden
+    jurisdiction: city
+    seats: 1
+    acquired_by: appointment
+    appointed_by: mayor
+    can_be_removed_by: [mayor, operator]
+    levers: [city.market_listing_fee_bps, city.market_dues_bps]
+    deputy: mayor
+
   - code: deputy_mayor
     jurisdiction: city
     seats: 1
@@ -697,6 +779,24 @@ offices:
   # later phase (ADR 0028 section 10, W7) — not built here, so no elections
   # entry names this office yet; while nobody is re-elected into it, the
   # founder simply keeps the seat.
+  - code: village_market_warden
+    jurisdiction: village
+    seats: 1
+    acquired_by: appointment
+    appointed_by: village_head
+    can_be_removed_by: [village_head, operator]
+    levers: [village.market_listing_fee_bps, village.market_dues_bps]
+    deputy: village_head
+
+  - code: town_market_warden
+    jurisdiction: town
+    seats: 1
+    acquired_by: appointment
+    appointed_by: town_head
+    can_be_removed_by: [town_head, operator]
+    levers: [town.market_listing_fee_bps, town.market_dues_bps]
+    deputy: town_head
+
   - code: village_head
     jurisdiction: village
     seats: 1

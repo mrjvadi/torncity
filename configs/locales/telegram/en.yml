@@ -324,6 +324,7 @@ village:
       🚧 The batch was not built and nothing was paid. These lots have a problem:
       {lots}
     promotion_top: "🏙 This settlement has reached the highest tier; there is no step beyond."
+    not_enough: "There is not that much."
     storage_full: "📦 The city stock has no room; this needs {missing} more units of free space. A granary adds room."
     already_working: "⚒ You are already working a shift. Wait for it to end."
     workplace_full: "⚒ Every place at this workplace is taken. Try again later or work somewhere else."
@@ -371,7 +372,17 @@ village:
   materials:
     title: "🧱 Stock and market of {village}"
     treasury: "🏦 Treasury: {amount}"
-    capacity: "📦 Stock room: {used} of {capacity} units"
+    capacity: "📦 Stock room: {used} of {capacity} space"
+    class_line: "• {class}: {used} of {capacity} space"
+    class_reserved: "• {class}: {used} of {capacity} space ({reserved} set aside for running shifts)"
+    class_name:
+      bulk: "Yard and open store"
+      food: "Food"
+      goods: "Goods"
+      ore: "Ore"
+    store_kept: "✅ {name}: has a storekeeper ({wage} a day)"
+    store_unkept: "⚠️ {name}: no storekeeper, its room does not count. The treasury must pay the wage and someone in the pool must be free."
+    spoil: "🥬 The food in the stock spoils {pct} a day."
     stock_title: "📥 In the stock:"
     stock_line: "• {name}: {qty}"
     stock_empty: "The stock is empty."

@@ -52,71 +52,6 @@ type VillageWorkRequest struct {
 	ID string `json:"id,omitempty"`
 }
 
-// --- the stock -------------------------------------------------------------
-
-// villageStock is what the village holds and how much room it has.
-type villageStock struct {
-	Units    map[string]int64
-	Used     int64
-	Capacity int64
-	// Reserved is the room the goods of shifts in progress will take when they
-	// end: a shift reserves its output when it starts, so nothing it makes is
-	// ever lost to a full stock (audit F1).
-	Reserved int64
-}
-
-// free is the room nobody has a claim on: the capacity less what is in the
-// stock and less what the running shifts will bring.
-func (s villageStock) free() int64 {
-	if f := s.Capacity - s.Used - s.Reserved; f > 0 {
-		return f
-	}
-	return 0
-}
-
-// sumQty adds up a shift's goods, component code -> quantity.
-func sumQty(m map[string]int64) int64 {
-	var n int64
-	for _, q := range m {
-		n += q
-	}
-	return n
-}
-
-// stockOf reads a settlement's stock (org_stacks, OrgSettlement) and its
-// capacity: the base capacity plus the storage of every standing building.
-func (h *VillageHandler) stockOf(ctx context.Context, tx application.Tx, snap *content.Snapshot, settlementID string,
-	buildings []application.SettlementBuildingInstance,
-) (villageStock, error) {
-	stacks, _, err := tx.Items().OrgHoldings(ctx, application.SettlementOrg(settlementID), application.HoldWarehouse)
-	if err != nil {
-		return villageStock{}, err
-	}
-	out := villageStock{Units: map[string]int64{}, Capacity: h.stockBaseCapacity}
-	for _, st := range stacks {
-		out.Units[st.Item] += st.Qty
-		out.Used += st.Qty
-	}
-	for _, b := range buildings {
-		if b.Status != "complete" {
-			continue
-		}
-		if d, ok := snap.SettlementBuildingDef(b.TypeCode); ok {
-			out.Capacity += d.Storage
-		}
-	}
-	shifts, err := tx.SettlementTreasury().WorkingShifts(ctx, settlementID)
-	if err != nil {
-		return villageStock{}, err
-	}
-	for _, sh := range shifts {
-		if sh.Kind != application.LaborKindConstruction {
-			out.Reserved += sumQty(sh.Produced)
-		}
-	}
-	return out, nil
-}
-
 // standingCodes is the set of building codes that stand (complete).
 func standingCodes(buildings []application.SettlementBuildingInstance) map[string]bool {
 	out := map[string]bool{}
@@ -369,6 +304,23 @@ func (h *VillageHandler) materialsView(ctx context.Context, tx application.Tx, m
 	}
 	view := village.MaterialsView{
 		Village: s.Name, Treasury: treasury, Used: stock.Used, Capacity: stock.Capacity, Presets: h.materialBuyPresets,
+		Wage: stock.Wage, SpoilBPS: stock.SpoilBPS,
+	}
+	classCodes := make([]string, 0, len(stock.Classes))
+	for c := range stock.Classes {
+		classCodes = append(classCodes, c)
+	}
+	sort.Strings(classCodes)
+	for _, c := range classCodes {
+		r := stock.Classes[c]
+		if r.Capacity == 0 && r.Used == 0 {
+			continue
+		}
+		view.Classes = append(view.Classes, village.StockClassLine{Class: c, Used: r.Used, Capacity: r.Capacity, Reserved: r.Reserved})
+	}
+	for _, st := range stock.Stores {
+		d, _ := snap.SettlementBuildingDef(st.Type)
+		view.Stores = append(view.Stores, village.StockStoreLine{Building: named(d.Code, d.Name), Kept: st.Kept})
 	}
 	codes := make([]string, 0, len(stock.Units))
 	for c := range stock.Units {
@@ -473,9 +425,9 @@ func (h *VillageHandler) MaterialsBuy(ctx context.Context, meta envelope.Metadat
 		if err != nil {
 			return err
 		}
-		if qty > stock.free() {
+		if qty > stock.freeUnits(cd.Code) {
 			r := refuseVillage(village.VillageStorageFull, village.AddrMaterials)
-			r.missing = qty - stock.free()
+			r.missing = qty*stock.Bulk(cd.Code) - stock.freeSpace(stock.ClassOf(cd.Code))
 			return r
 		}
 		treasury, err := treasuryBalance(ctx, tx, s.CityID)
@@ -487,7 +439,7 @@ func (h *VillageHandler) MaterialsBuy(ctx context.Context, meta envelope.Metadat
 		}
 		if !req.confirmed() {
 			confirmView = &village.MaterialBuyView{
-				Village: s.Name, Item: named(cd.Code, cd.Name), Qty: qty, Unit: unit, Total: total, Treasury: treasury, Free: stock.free(),
+				Village: s.Name, Item: named(cd.Code, cd.Name), Qty: qty, Unit: unit, Total: total, Treasury: treasury, Free: stock.freeUnits(cd.Code),
 			}
 			return nil
 		}
@@ -717,9 +669,9 @@ func (h *VillageHandler) startShiftAt(ctx context.Context, tx application.Tx, me
 	// The shift's goods must have room waiting when it ends: the inputs leave
 	// the stock at once, so only the net growth needs free room. Without it
 	// nothing starts, nothing is consumed and no wage is promised (audit F1).
-	if out, in := sumQty(d.Produces), sumQty(d.Consumes); out > stock.free()+in {
+	if _, missing := stock.shortfall(d.Produces, d.Consumes); missing > 0 {
 		r := refuseVillage(village.VillageStorageFull, village.AddrWork)
-		r.missing = out - in - stock.free()
+		r.missing = missing
 		return r
 	}
 	wage := d.Wage
@@ -833,16 +785,20 @@ func (h *VillageHandler) Worked(ctx context.Context, meta envelope.Metadata, req
 		// The shift's own goods are already reserved, so they fit; room is only
 		// short when the stock shrank meanwhile, and then the wage is paid on
 		// what was delivered, never on lost work.
-		room := stock.free() + sumQty(sh.Produced)
+		room := map[string]int64{}
+		for class := range stock.Classes {
+			room[class] = stock.freeSpace(class)
+		}
+		for class, n := range stock.spaces(sh.Produced) {
+			room[class] += n
+		}
 		made := map[string]int64{}
 		for _, c := range materialCodes(sh.Produced) {
-			q := sh.Produced[c]
-			if q > room {
-				q = room
-			}
+			class, bulk := stock.ClassOf(c), stock.Bulk(c)
+			q := min(sh.Produced[c], room[class]/bulk)
 			if q > 0 {
 				made[c] = q
-				room -= q
+				room[class] -= q * bulk
 			}
 		}
 

@@ -155,6 +155,8 @@ market:
   trade: "• {qty} at {price} - {time}"
   you_hold: "🎒 You have {qty}."
   away: "📍 Trading is done at the market. Walk there to buy or sell."
+  village: "🏪 Stalls: {used} of {stalls} taken (you may hold {per}). Dues on every trade {dues}, listing fee {listing}; both go to the settlement treasury. A selling stall sells only while you are in the settlement."
+  village_day: "🎪 It is market day! Stalls: {used} of {stalls}. No listing fee today and the dues are {dues}."
   fee_note: "🧾 The seller pays the market fee, set by the city."
   escrow_how: "💵 The price is set aside until the order fills or you cancel it. Pay it:"
   checkout_title: "🏪 Buy {item}"
@@ -198,6 +200,8 @@ market:
     not_enough: "You do not have that much {item} with you."
     no_order: There is no such order of yours.
     closed: That order is no longer open.
+    stalls_full: "Every stall of the market is taken ({count} stalls). Wait for an order to end."
+    stall_limit: "One person may hold only {count} stalls in this market; cancel one."
   embargoed: "⛔ {count} offers from a country under a trade embargo with ours were passed over."
 
 # The auction house (internal/domain/auction): unique pieces only.

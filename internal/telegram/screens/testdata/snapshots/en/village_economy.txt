@@ -4,7 +4,7 @@
 
 🏦 Treasury: 58,000 SUP
 
-📦 Stock room: 14 of 60 units
+📦 Stock room: 14 of 60 space
 
 📥 In the stock:
 • Timber: 9
@@ -32,7 +32,7 @@ What the city's own workplaces make comes cheaper than the market; to get going 
 
 🏦 Treasury: 57,820 SUP
 
-📦 Stock room: 0 of 60 units
+📦 Stock room: 0 of 60 space
 
 📥 In the stock:
 The stock is empty.

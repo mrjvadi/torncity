@@ -226,6 +226,7 @@ func (t *fakeTx) SettlementBuildings() application.SettlementBuildingRepository 
 func (t *fakeTx) Presence() application.PresenceRepository                       { return nil }
 func (t *fakeTx) Bags() application.BagRepository                                { return nil }
 func (t *fakeTx) VillageShop() application.VillageShopRepository                 { return nil }
+func (t *fakeTx) VillageStorage() application.VillageStorageRepository           { return nil }
 
 // Bank reads presence off this transaction's own players and journeys.
 func (t *fakeTx) Bank() application.BankRepository {
@@ -539,7 +540,9 @@ func TestProfileTextComesFromTheCatalogue(t *testing.T) {
 }
 
 // noSettlements is the settlement port of a world made only of content cities: no city is a founded settlement.
-type noSettlements struct{ application.SettlementRepository }
+type noSettlements struct {
+	application.SettlementRepository
+}
 
 func (noSettlements) ByID(context.Context, string) (application.FoundedSettlement, error) {
 	return application.FoundedSettlement{}, application.ErrCityNotFound

@@ -88,6 +88,8 @@ type VillageHandler struct {
 	autoRoadCost       int64
 	materialMarkupBPS  int64
 	stockBaseCapacity  int64
+	// storage is the stores' keepers and spoilage (village_storage.go).
+	storage StorageRules
 	materialBuyMax     int64
 	materialBuyPresets []int64
 	residenceCooldown  time.Duration

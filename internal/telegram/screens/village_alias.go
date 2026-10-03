@@ -138,6 +138,7 @@ type DonateView = village.DonateView
 
 // village_economy.go
 const VillageStorageFull = village.VillageStorageFull
+const VillageNotEnough = village.VillageNotEnough
 const VillageAlreadyWorking = village.VillageAlreadyWorking
 const VillageWorkplaceFull = village.VillageWorkplaceFull
 const VillageNotWorkplace = village.VillageNotWorkplace

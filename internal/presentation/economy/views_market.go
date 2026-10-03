@@ -39,6 +39,20 @@ type MarketView struct {
 	// Unavailable is set when the settlement has no market standing: the
 	// view has no other facts.
 	Unavailable *Unavailable
+	// Village is the settlement book's stalls and rates; nil in a city's book.
+	Village *VillageBookView
+}
+
+// VillageBookView is a settlement's market as a stall holder meets it (ADR 0040
+// section 5): the stalls it has and how many are taken, how many one player
+// may hold and holds, the warden's rates in basis points (listing fee when an
+// order takes a stall, dues on every trade), and whether it is market day
+// (listing fee waived, dues halved).
+type VillageBookView struct {
+	Stalls, StallsUsed  int
+	PerPlayer, Mine     int
+	ListingBPS, DuesBPS int64
+	MarketDay           bool
 }
 
 // BookLevel is one price on a side of a book and how much rests there.
@@ -69,6 +83,8 @@ type BookView struct {
 	Nonce string
 	// Unavailable is set when the settlement has no market standing.
 	Unavailable *Unavailable
+	// Village is the settlement book's stalls and rates; nil in a city's book.
+	Village *VillageBookView
 }
 
 // MarketCheckoutView is a buy order's escrow and the ways to pay it.
@@ -82,6 +98,9 @@ type MarketCheckoutView struct {
 
 // OrderPlacedView is an order placed: what traded at once, what rests.
 type OrderPlacedView struct {
+	// ListingFee is what the order paid the settlement's treasury to take a stall
+	// on the village book; zero in a city's book and on a market day.
+	ListingFee int64
 	Item        Named
 	Side        string
 	No          int64
@@ -133,6 +152,10 @@ const (
 	MarketRefusedClosed    = "closed"
 	// MarketRefusedUnavailable: the settlement has no market standing.
 	MarketRefusedUnavailable = "unavailable"
+	// MarketRefusedStallsFull: every stall of the village book is taken.
+	// MarketRefusedStallLimit: the player holds the most stalls they may.
+	MarketRefusedStallsFull = "stalls_full"
+	MarketRefusedStallLimit = "stall_limit"
 )
 
 // MarketRefusalView is a refused market request.

@@ -480,6 +480,8 @@ var argNames = map[string][]string{
 	"settlement.build.cancel":       {"id"},
 	"settlement.materials":          {},
 	"settlement.materials.buy":      {"item", "qty", "confirm"},
+	"settlement.stock.donate":       {"item", "qty"},
+	"settlement.stock.take":         {"item", "qty"},
 	"settlement.shop":               {},
 	"settlement.shop.buy":           {"item", "qty", "method", "nonce"},
 	"settlement.shop.cap":           {"bps"},

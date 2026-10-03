@@ -344,6 +344,9 @@ type MarketOrder struct {
 	Filled  int64
 	Price   int64
 	OwnerID string
+	// ListingFee is what the owner paid the settlement's treasury to put the
+	// order on the village book (zero in a city's book and on a market day).
+	ListingFee int64
 	// Funding is how a buy's escrow was paid in, cash or card: its
 	// refunds go back the same way.
 	Funding      string
@@ -392,6 +395,9 @@ type MarketRepository interface {
 	// PlayerOrders lists a player's orders, open first then the latest.
 	PlayerOrders(ctx context.Context, playerID string, limit int) ([]MarketOrder, error)
 	CountOpen(ctx context.Context, playerID string) (int, error)
+	// CountOpenIn counts the open orders of one city's books, and of one player in them:
+	// the stalls a village book has taken.
+	CountOpenIn(ctx context.Context, cityID, playerID string) (total, mine int, err error)
 	// Books sums the open books of a city, one line per good with orders
 	// or a trade.
 	Books(ctx context.Context, cityID string) ([]BookLine, error)

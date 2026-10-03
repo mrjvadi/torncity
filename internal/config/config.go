@@ -908,6 +908,13 @@ type Settlement struct {
 	// stock holds without a granary; every standing building's `storage`
 	// (settlement_buildings.yml) adds to it.
 	StockBaseCapacity int64 // settlement.stock_base_capacity
+	// StorageSpoilKeptBPS and StorageSpoilUnkeptBPS are the share of the food in
+	// a settlement's stock that spoils per game day, in basis points of the
+	// food: with a staffed granary keeping it, and with none (the open yard).
+	// A real grain store loses little when it is kept dry and aired, a lot
+	// when it is not (docs/adr/0041 6.4 and building_functions.yml granary).
+	StorageSpoilKeptBPS   int64 // settlement.storage_spoil_kept_bps
+	StorageSpoilUnkeptBPS int64 // settlement.storage_spoil_unkept_bps
 	// MaterialBuyMax is the most units of one material a village may buy from
 	// Support in one purchase.
 	MaterialBuyMax int64 // settlement.material_buy_max
@@ -1029,6 +1036,17 @@ type Trade struct {
 	MarketOrderTTL time.Duration // trade.market_order_ttl
 	// MarketMaxOpenOrders bounds one player's resting orders.
 	MarketMaxOpenOrders int // trade.market_max_open_orders
+	// VillageStallsPost and VillageStallsHall are the stalls (open orders at
+	// once) a village book has for each market post and each market hall that
+	// stands; VillageStallsPerPlayerPost and VillageStallsPerPlayerHall how
+	// many of them one player may hold, with only a post and with a hall
+	// (docs/adr/0040 section 5.1).
+	VillageStallsPost, VillageStallsHall                   int // trade.village_stalls_post, .village_stalls_hall
+	VillageStallsPerPlayerPost, VillageStallsPerPlayerHall int // trade.village_stalls_per_player_post, .village_stalls_per_player_hall
+	// MarketDayEveryDays is how often a settlement that has researched the
+	// periodic market holds a market day, in game days (0 for never): on it the
+	// listing fee is nothing and the dues are halved.
+	MarketDayEveryDays int // trade.market_day_every_days
 	// MarketMaxQuantity and MarketMaxPrice bound one order.
 	MarketMaxQuantity int   // trade.market_max_quantity
 	MarketMaxPrice    int64 // trade.market_max_price
@@ -1618,6 +1636,8 @@ func Defaults() *Config {
 			DemolitionSalvageBPS:  2000,
 			MaterialMarkupBPS:     12000,
 			StockBaseCapacity:     60,
+			StorageSpoilKeptBPS:   5,
+			StorageSpoilUnkeptBPS: 30,
 			MaterialBuyMax:        200,
 			MaterialBuyPresets:    []int64{5, 20, 50},
 			FoundingGrant:         10_000,
@@ -1709,14 +1729,17 @@ func Defaults() *Config {
 		Trade: Trade{
 			MarketOrderTTL:      168 * time.Hour,
 			MarketMaxOpenOrders: 20,
-			MarketMaxQuantity:   10000,
-			MarketMaxPrice:      100_000_000,
-			AuctionDurations:    []time.Duration{time.Hour, 6 * time.Hour, 24 * time.Hour},
-			AuctionMaxReserve:   100_000_000,
-			AuctionStepBPS:      500,
-			AuctionMinStep:      10,
-			AuctionMaxOpen:      5,
-			AuctionReservesBPS:  []int64{5000, 10000, 15000},
+			VillageStallsPost:   6, VillageStallsHall: 20,
+			VillageStallsPerPlayerPost: 3, VillageStallsPerPlayerHall: 6,
+			MarketDayEveryDays: 7,
+			MarketMaxQuantity:  10000,
+			MarketMaxPrice:     100_000_000,
+			AuctionDurations:   []time.Duration{time.Hour, 6 * time.Hour, 24 * time.Hour},
+			AuctionMaxReserve:  100_000_000,
+			AuctionStepBPS:     500,
+			AuctionMinStep:     10,
+			AuctionMaxOpen:     5,
+			AuctionReservesBPS: []int64{5000, 10000, 15000},
 		},
 	}
 }

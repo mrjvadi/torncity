@@ -39,6 +39,7 @@
       "city": "Ostmarch",
       "city_code": "ostmarch",
       "unavailable": null,
+      "village": null,
       "way": null,
       "yours": [
         {
@@ -57,6 +58,7 @@
       "city": "Ostmarch",
       "city_code": "ostmarch",
       "unavailable": null,
+      "village": null,
       "way": null,
       "yours": null
     }
@@ -99,6 +101,7 @@
         }
       ],
       "unavailable": null,
+      "village": null,
       "way": null
     }
   },
@@ -120,6 +123,7 @@
       "reference": 40,
       "trades": null,
       "unavailable": null,
+      "village": null,
       "way": null
     }
   },
@@ -161,6 +165,7 @@
         "code": "bread",
         "name": "Bread"
       },
+      "listing_fee": 0,
       "method": "cash",
       "no": 41,
       "price": 42,
@@ -182,6 +187,7 @@
         "code": "bread",
         "name": "Bread"
       },
+      "listing_fee": 0,
       "method": "",
       "no": 42,
       "price": 44,

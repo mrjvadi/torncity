@@ -363,6 +363,7 @@ export interface BookView {
   way: Way | null
   nonce: string
   unavailable: Unavailable | null
+  village: VillageBookView | null
 }
 
 export interface BoughtView {
@@ -2991,6 +2992,7 @@ export interface MarketView {
   at_market: boolean
   way: Way | null
   unavailable: Unavailable | null
+  village: VillageBookView | null
 }
 
 export interface MaterialBought {
@@ -3030,6 +3032,10 @@ export interface MaterialsView {
   stock: MaterialStockLine[] | null
   used: number
   capacity: number
+  classes: StockClassLine[] | null
+  stores: StockStoreLine[] | null
+  wage: number
+  spoil_bps: number
   market: MaterialMarketLine[] | null
   can_buy: boolean
   presets: number[] | null
@@ -3433,6 +3439,7 @@ export interface OrderLine {
 }
 
 export interface OrderPlacedView {
+  listing_fee: number
   item: Named
   side: string
   no: number
@@ -4653,6 +4660,13 @@ export interface StationView {
   confirm: boolean
 }
 
+export interface StockClassLine {
+  class: string
+  used: number
+  capacity: number
+  reserved: number
+}
+
 export interface StockOrderView {
   company: Named
   side: string
@@ -4696,6 +4710,11 @@ export interface StockPageView {
   notice: string
   notice_args: Record<string, unknown> | null
   unavailable: Unavailable | null
+}
+
+export interface StockStoreLine {
+  building: Named
+  kept: boolean
 }
 
 export interface StockView {
@@ -5018,6 +5037,16 @@ export interface VictimView {
   report_fee: number
   report_within_seconds: number
   item: Named | null
+}
+
+export interface VillageBookView {
+  stalls: number
+  stalls_used: number
+  per_player: number
+  mine: number
+  listing_bps: number
+  dues_bps: number
+  market_day: boolean
 }
 
 export interface VillageHeldLine {

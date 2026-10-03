@@ -438,6 +438,8 @@ commands:
   # scheduler's (settlement.worked).
   settlement.materials: {channel: group, client: true}
   settlement.materials.buy: {channel: group, client: true}
+  settlement.stock.donate: {channel: group, client: true}
+  settlement.stock.take: {channel: group, client: true}
   settlement.shop: {channel: group, client: true}
   settlement.shop.buy: {channel: group, client: true}
   settlement.shop.cap: {channel: group, client: true}
