@@ -241,7 +241,9 @@ func (h *VillageHandler) SocietyHub(ctx context.Context, meta envelope.Metadata)
 			plife.ActivityEntry{Code: plife.SocietyFriends, Command: "social.friend.list"},
 			plife.ActivityEntry{Code: plife.SocietyElections, Command: "election.list"},
 			plife.ActivityEntry{Code: plife.SocietyGovernment, Command: "gov.city"})
-		if here.offered(snap, "government_action", "country.war") {
+		// The army and the war board exist only where a barracks stands, and
+		// are not mentioned at all otherwise (not even as a locked tile).
+		if here.hasBarracks() && here.offered(snap, "government_action", "country.war") {
 			view.Entries = append(view.Entries, plife.ActivityEntry{Code: plife.SocietyWar, Command: "military.ministry"})
 		}
 		return nil

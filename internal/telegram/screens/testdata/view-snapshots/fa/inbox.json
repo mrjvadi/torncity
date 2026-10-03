@@ -74,12 +74,16 @@
       "items": [
         {
           "ago_seconds": 300,
+          "id": "",
           "link_addr": "",
+          "read": false,
           "text": "حقوق شما به مبلغ 1,200 پرداخت شد."
         },
         {
           "ago_seconds": 10800,
+          "id": "",
           "link_addr": "loan:hub",
+          "read": false,
           "text": "قسط وام شما به مبلغ 800 فردا سررسید می‌شود."
         }
       ],

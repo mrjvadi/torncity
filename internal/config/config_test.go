@@ -401,6 +401,7 @@ factions:
   name_max_length: 25
   max_members: 31
   max_pending: 21
+  min_founders: 22
   list_size: 11
 anticheat:
   window: 25h
@@ -835,6 +836,7 @@ var envOverrides = map[string]string{
 	"TORN_FACTIONS_NAME_MAX_LENGTH":           "26",
 	"TORN_FACTIONS_MAX_MEMBERS":               "32",
 	"TORN_FACTIONS_MAX_PENDING":               "22",
+	"TORN_FACTIONS_MIN_FOUNDERS":              "23",
 	"TORN_FACTIONS_LIST_SIZE":                 "12",
 	"TORN_ANTICHEAT_WINDOW":                   "26h",
 	"TORN_ANTICHEAT_ONE_WAY_COUNT":            "6",

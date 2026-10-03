@@ -104,6 +104,8 @@ var all = []Subscription{
 	{Domain: "social", Action: "friend.add", Origin: FromPlayer},
 	{Domain: "social", Action: "friend.accept", Origin: FromPlayer},
 	{Domain: "social", Action: "friend.list", Origin: FromPlayer},
+	{Domain: "social", Action: "friend.view", Origin: FromPlayer},
+	{Domain: "social", Action: "friend.remove", Origin: FromPlayer},
 
 	// The bank: balances, deposits and withdrawals in a city, and payments
 	// between players — cash face to face, card from anywhere. bank.pay is
@@ -577,6 +579,7 @@ var all = []Subscription{
 	{Domain: "inbox", Action: "show", Origin: FromPlayer},
 	{Domain: "inbox", Action: "category", Origin: FromPlayer},
 	{Domain: "inbox", Action: "read_all", Origin: FromPlayer},
+	{Domain: "inbox", Action: "read", Origin: FromPlayer},
 }
 
 // All returns every subscription. The slice is a copy.

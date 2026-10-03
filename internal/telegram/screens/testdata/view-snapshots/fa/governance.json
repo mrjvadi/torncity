@@ -9,6 +9,7 @@
         "name": "Ostmarch"
       },
       "holds_office": true,
+      "military_open": false,
       "no_city": false,
       "sections": [
         {
@@ -190,6 +191,7 @@
         "name": "Ostmarch"
       },
       "holds_office": false,
+      "military_open": false,
       "no_city": false,
       "sections": [
         {
@@ -228,6 +230,7 @@
         "name": ""
       },
       "holds_office": false,
+      "military_open": false,
       "no_city": true,
       "sections": null,
       "tier": ""
@@ -237,6 +240,7 @@
     "title": "My office",
     "screen": "my_office",
     "view": {
+      "military_open": false,
       "seats": [
         {
           "acting_for": "mayor",
@@ -367,6 +371,7 @@
     "title": "My office · none",
     "screen": "my_office",
     "view": {
+      "military_open": false,
       "seats": null
     }
   },

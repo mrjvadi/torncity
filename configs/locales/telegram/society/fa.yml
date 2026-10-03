@@ -41,6 +41,14 @@ social:
     incoming_anon: "👥 بازیکنی می‌خواهد با شما دوست شود."
     incoming_hint: برای پذیرفتن، دکمهٔ زیر را بزنید. درخواست در فهرست دوستانتان هم می‌ماند.
     now_friends: "👥 {player} درخواست دوستی شما را پذیرفت. از این پس دوست هستید."
+    button_view: "👤 {player}"
+    detail_title: "👤 {player}"
+    detail_faction: "جناح: {faction}"
+    button_invite: "🦁 دعوت به جناح من"
+    button_remove: "➖ حذف از دوستان"
+    button_remove_yes: "✅ بله، حذفش کن"
+    ask_remove: "{player} را از دوستانتان حذف می‌کنید؟"
+    removed: "{player} دیگر در فهرست دوستان شما نیست."
     now_friends_anon: "👥 درخواست دوستی شما پذیرفته شد. این بازیکن حالا در فهرست دوستان شماست."
 
 # Player-held offices (docs/adr/0015-player-held-offices.md): the offices and
@@ -384,6 +392,7 @@ faction:
   list_none: "هنوز جناحی در این شهر نیست."
   list_mine: "جناح شما: {faction}"
   list_found: "جناح خودتان را در شهرداری تأسیس کنید؛ هزینهٔ ثبت {fee} است."
+  list_locked: "🔒 تأسیس جناح هنوز ممکن نیست: دست‌کم {need} نفر باید ساکن همین‌جا باشند. الان {have} از {need} نفر هستند."
   page_title: "🏴 {faction}"
   page_city: "📍 شهر: {city}"
   page_members: "👥 {count} عضو:"
@@ -525,6 +534,7 @@ faction:
     no_operation: "کار گروهی‌ای در حال جمع شدن نیست."
     crew_full: "گروه پر است."
     elsewhere: "گروه در شهر یا محل دیگری جمع می‌شود."
+    too_few: "🔒 برای تأسیس جناح دست‌کم {need} نفر باید ساکن همین‌جا باشند؛ الان {have} نفرند."
     crew_short: "👥 برای شروع دست‌کم {need} نفر در محل با جسارت کافی لازم است و {have} نفر آماده‌اند."
 
 # Votes of a body (docs/adr/0024-property-and-politics.md): a council

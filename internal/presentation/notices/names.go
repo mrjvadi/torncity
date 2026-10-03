@@ -105,6 +105,8 @@ const (
 	AddrInboxShow     = "inbox:show"
 	AddrInboxCategory = "inbox:category"
 	AddrInboxReadAll  = "inbox:read_all"
+	// AddrInboxRead reads one notice: "inbox:read:<id>:<page>".
+	AddrInboxRead = "inbox:read"
 )
 
 // The answers a notice's buttons carry.

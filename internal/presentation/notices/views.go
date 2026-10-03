@@ -401,6 +401,10 @@ type InboxHubView struct {
 
 // InboxItemLine is one stored notification as the category list shows it.
 type InboxItemLine struct {
+	// ID is the stored notice's id; the command that reads it names it.
+	ID string
+	// Read is false for a notice the player has not opened yet.
+	Read bool
 	// Kind is the event behind it, "<domain>.<event>".
 	Kind   string
 	Notice StoredNotice

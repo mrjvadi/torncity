@@ -186,6 +186,9 @@ const SearchByCode = society.SearchByCode
 type SearchResult = society.SearchResult
 type SearchView = society.SearchView
 type FriendLine = society.FriendLine
+type FriendDetailView = society.FriendDetailView
+type FriendRemoveAskView = society.FriendRemoveAskView
+type FriendRemovedView = society.FriendRemovedView
 type FriendsView = society.FriendsView
 
 // governance refusals and diplomacy notices

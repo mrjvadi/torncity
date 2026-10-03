@@ -1,6 +1,7 @@
 package screens
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
@@ -26,6 +27,9 @@ const (
 	AddrInboxShow     = "inbox:show"
 	AddrInboxCategory = "inbox:category"
 	AddrInboxReadAll  = "inbox:read_all"
+	// AddrInboxRead reads one notice ("inbox:read:<id>:<page>"): only that
+	// notice is marked read and the same list comes back.
+	AddrInboxRead = "inbox:read"
 )
 
 // InboxCategoryCount is one category's unread tally, shown on the badge and
@@ -116,6 +120,10 @@ func renderInboxHub(c Context, v InboxHubView) *presenter.Response {
 
 // InboxItemLine is one stored notification, as the category list shows it.
 type InboxItemLine struct {
+	// ID is the stored notice's id, named by its "read" button.
+	ID string
+	// Read is true once the player opened it; only unread ones get the button.
+	Read bool
 	Text string
 	// Ago is how long ago it arrived, as of when the screen was built.
 	Ago time.Duration
@@ -144,7 +152,17 @@ func renderInboxCategory(c Context, v InboxCategoryView) *presenter.Response {
 		lines = append(lines, c.T("inbox.category_empty", nil))
 	}
 	for i, item := range v.Items {
-		lines = append(lines, c.T("inbox.item_line", map[string]any{"text": item.Text, "ago": FormatSpan(c, item.Ago)}))
+		key := "inbox.item_line"
+		if !item.Read && item.ID != "" {
+			key = "inbox.item_line_unread"
+		}
+		lines = append(lines, c.T(key, map[string]any{"text": item.Text, "ago": FormatSpan(c, item.Ago)}))
+		if !item.Read && item.ID != "" {
+			if btn, ok := keyboards.Button(c.T("inbox.read_item_button", map[string]any{"n": i + 1}),
+				AddrInboxRead, item.ID, strconv.Itoa(max(v.Page, 1))); ok {
+				kb.Row(btn)
+			}
+		}
 		if item.LinkAddr != "" {
 			if btn, ok := keyboards.Button(c.T("inbox.open_item_button", map[string]any{"n": i + 1}), item.LinkAddr); ok {
 				kb.Row(btn)

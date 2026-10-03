@@ -1237,6 +1237,9 @@ type Factions struct {
 	MaxMembers int // factions.max_members
 	// MaxPending caps a faction's invitations and applications waiting.
 	MaxPending int // factions.max_pending
+	// MinFounders is how many people must live in the settlement (the same
+	// group) before one of them may found a faction here.
+	MinFounders int // factions.min_founders
 	// ListSize is how many factions or members one screen lists.
 	ListSize int // factions.list_size
 }
@@ -1442,6 +1445,7 @@ func Defaults() *Config {
 			NameMaxLength: 24,
 			MaxMembers:    30,
 			MaxPending:    20,
+			MinFounders:   20,
 			ListSize:      10,
 		},
 		AntiCheat: AntiCheat{

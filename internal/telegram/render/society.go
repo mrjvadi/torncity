@@ -69,6 +69,9 @@ func init() {
 	Register(society.ScreenLeaderboard, screens.Leaderboard)
 	Register(society.ScreenSearch, screens.Search)
 	Register(society.ScreenFriends, screens.Friends)
+	Register(society.ScreenFriendDetail, screens.FriendDetail)
+	Register(society.ScreenFriendRemoveAsk, screens.FriendRemoveAsk)
+	Register(society.ScreenFriendRemoved, screens.FriendRemoved)
 	Register(society.ScreenFriendRequested, func(c screens.Context, v society.FriendRequestedView) *presenter.Response {
 		return screens.FriendRequested(c, v.Name)
 	})

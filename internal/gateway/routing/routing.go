@@ -323,6 +323,8 @@ var argNames = map[string][]string{
 	// route through SplitCommand as domain "social" with the two-token
 	// action "friend.accept".
 	"social.friend.accept": {"player"},
+	"social.friend.view":   {"player"},
+	"social.friend.remove": {"player", "confirm"},
 	"social.friend.list":   {"page"},
 	"map.list":             {"page"},
 	"map.cities":           {"page"},
@@ -448,6 +450,7 @@ var argNames = map[string][]string{
 	"inbox.show":     {},
 	"inbox.category": {"category", "page"},
 	"inbox.read_all": {},
+	"inbox.read":     {"id", "page"},
 
 	// Group founding (docs/adr/0028-world-and-settlements.md section 3)
 	// takes nothing: the game, not the group, chooses the spot.

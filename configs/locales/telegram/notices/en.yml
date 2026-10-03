@@ -86,7 +86,9 @@ inbox:
   category_title: "📂 {category}"
   category_empty: "Nothing in this category."
   item_line: "▫️ {text} - {ago} ago"
+  item_line_unread: "🔹 {text} - {ago} ago"
   open_item_button: "🔗 Item {n}"
+  read_item_button: "✅ Mark item {n} read"
   reminder: "📬 {count} unread notifications are waiting for you."
   category:
     companies: "🏢 Companies"

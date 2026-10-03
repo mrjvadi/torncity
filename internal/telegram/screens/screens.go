@@ -67,6 +67,9 @@ const (
 	AddrFriendList    = "social:friend.list"
 	AddrFriendAdd     = "social:friend.add"
 	AddrFriendAccept  = "social:friend.accept"
+	AddrFriendView    = "social:friend.view"
+	AddrFriendRemove  = "social:friend.remove"
+	AddrFactionInvite = "faction:invite"
 	AddrSettings      = "player:settings"
 	AddrLanguageSet   = "player:language.set"
 )
