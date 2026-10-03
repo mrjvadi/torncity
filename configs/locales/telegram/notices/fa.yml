@@ -86,7 +86,9 @@ inbox:
   category_title: "📂 {category}"
   category_empty: "چیزی در این دسته نیست."
   item_line: "▫️ {text} - {ago} پیش"
+  item_line_unread: "🔹 {text} - {ago} پیش"
   open_item_button: "🔗 مورد {n}"
+  read_item_button: "✅ خواندم؛ مورد {n}"
   reminder: "📬 {count} اعلان خوانده‌نشده در صندوقتان منتظر شماست."
   category:
     companies: "🏢 شرکت‌ها"

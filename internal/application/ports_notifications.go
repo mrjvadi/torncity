@@ -42,8 +42,7 @@ type NotificationItem struct {
 	// Empty means the item has none.
 	LinkAddr  string
 	CreatedAt time.Time
-	// ReadAt is nil until the player opens the item's category, or "mark
-	// all read".
+	// ReadAt is nil until the player opens the item, or "mark all read".
 	ReadAt *time.Time
 }
 
@@ -84,6 +83,15 @@ type NotificationInboxRepository interface {
 	List(ctx context.Context, playerID, category string, page, pageSize int) ([]NotificationItem, int, error)
 	// MarkAllRead marks every unread item read and reports how many changed.
 	MarkAllRead(ctx context.Context, playerID string) (int, error)
+	// Get returns one of the player's items, nil when there is none.
+	Get(ctx context.Context, playerID, itemID string) (*NotificationItem, error)
+	// MarkRead marks one unread item of the player read and reports whether
+	// it changed (false: no such item, not theirs, or already read). Only
+	// that item changes; every other stays as it was.
+	MarkRead(ctx context.Context, playerID, itemID string) (bool, error)
+	// SetBadgeUnread sets the badge's count to what is still unread, after
+	// a single item was read; a no-op when there is no badge row.
+	SetBadgeUnread(ctx context.Context, playerID string, unread int) error
 	// ClearBadge zeroes the player's badge (unread_count and
 	// telegram_message_id), a no-op when there is no badge row yet. It is
 	// called alongside MarkAllRead: the item that was on screen when the

@@ -363,7 +363,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			handlers.DefaultPageSize,
 			cfg.Game.IdempotencyTTL,
 			nil,
-		),
+		).WithFactions(registry),
 		worldMap: handlers.NewMapHandler(uow, messages, cities, travels, liveRoutes{registry: registry},
 			handlers.DefaultPageSize, nil).WithWorld(worldTravel),
 		settings: handlers.NewSettingsHandler(uow, messages, storeLanguages{store: messages}, cfg.Game.IdempotencyTTL),
@@ -547,7 +547,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	h.stageE.factions = handlers.NewFactionsHandler(uow, uuidGenerator{}, messages, registry, cities,
 		postgres.NewPlayerSearchRepository(pool), gametime.Scale(cfg.Game.TimeScale), handlers.FactionRules{
 			NameMin: cfg.Factions.NameMinLength, NameMax: cfg.Factions.NameMaxLength, MaxMembers: cfg.Factions.MaxMembers,
-			MaxPending: cfg.Factions.MaxPending, ListSize: cfg.Factions.ListSize, Limits: bankLimits},
+			MaxPending: cfg.Factions.MaxPending, MinFounders: cfg.Factions.MinFounders, ListSize: cfg.Factions.ListSize, Limits: bankLimits},
 		h.crime, cfg.Game.IdempotencyTTL, nil)
 	// Missions: content; their cash within the day's caps (config).
 	h.stageE.missions = handlers.NewMissionsHandler(uow, uuidGenerator{}, messages, registry, cities,

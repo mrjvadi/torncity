@@ -50,6 +50,8 @@ commands:
   social.friend.add: {channel: both}
   social.friend.accept: {channel: private}
   social.friend.list: {channel: private}
+  social.friend.view: {channel: private}
+  social.friend.remove: {channel: private}
 
   # The bank is private. Paying another player also works in a group — a
   # reply to their message names them — but the confirmation and the receipt
@@ -394,6 +396,7 @@ commands:
   inbox.show: {channel: private}
   inbox.category: {channel: private}
   inbox.read_all: {channel: private}
+  inbox.read: {channel: private}
 
   # Group founding (docs/adr/0028-world-and-settlements.md section 3): a
   # civic act the whole group decides and sees, never private — the same

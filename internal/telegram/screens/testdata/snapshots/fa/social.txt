@@ -71,6 +71,7 @@
 
 صفحهٔ 1 از 2
   ───
+  [👤 کاوه] → social:friend.view:cfaebd97-b816-43a8-aff9-3798555dd818
   [✅ پذیرفتن نیلوفر] → social:friend.accept:cfaebd97-b816-43a8-aff9-3798555dd818
   [بعدی ⬅️] → social:friend.list:2
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → social:friend.list:1

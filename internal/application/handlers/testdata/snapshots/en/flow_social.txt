@@ -63,6 +63,7 @@ Search by one of these:
 
 • Kaveh
   ───
+  [👤 Kaveh] → social:friend.view:7a2e9b4c-1d53-4f8a-a6e2-3c9b8d7e6f22
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → social:friend.list:1
 
 ━━━ /find K7Q2M9A (yourself) ━━━

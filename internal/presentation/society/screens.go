@@ -74,6 +74,9 @@ var (
 	screenFriends         = presentation.Define[FriendsView](ScreenFriends, "society")
 	screenFriendRequested = presentation.Define[FriendRequestedView](ScreenFriendRequested, "society")
 	screenFriendAccepted  = presentation.Define[FriendAcceptedView](ScreenFriendAccepted, "society")
+	screenFriendDetail    = presentation.Define[FriendDetailView](ScreenFriendDetail, "society")
+	screenFriendRemoveAsk = presentation.Define[FriendRemoveAskView](ScreenFriendRemoveAsk, "society")
+	screenFriendRemoved   = presentation.Define[FriendRemovedView](ScreenFriendRemoved, "society")
 )
 
 // Addresses of screens outside this area that its screens lead to.
@@ -90,6 +93,9 @@ const (
 	addrFriendList   = "social:friend.list"
 	addrFriendAdd    = "social:friend.add"
 	addrFriendAccept = "social:friend.accept"
+	addrFriendView   = "social:friend.view"
+	addrFriendRemove = "social:friend.remove"
+	addrFactionInv   = "faction:invite"
 )
 
 // Commands of the typed-in actions (the player types the last value).
@@ -191,7 +197,7 @@ func CityGovernance(c presentation.Ctx, v CityGovView) *presentation.Response {
 		a = append(a, act(AddrGovOffice).Named("gov.my_office"))
 	}
 	for _, sec := range v.Sections {
-		if sec.Place.Kind == "country" {
+		if sec.Place.Kind == "country" && v.MilitaryOpen {
 			a = append(a, act(addrMinistry, sec.Place.Code).Named("military.ministry").About(sec.Place.Code))
 		}
 	}
@@ -220,7 +226,7 @@ func MyOffice(c presentation.Ctx, v MyOfficeView) *presentation.Response {
 	}
 	shown := map[string]bool{}
 	for _, s := range v.Seats {
-		if s.Place.Kind != "country" || shown[s.Place.Code] {
+		if s.Place.Kind != "country" || shown[s.Place.Code] || !v.MilitaryOpen {
 			continue
 		}
 		shown[s.Place.Code] = true
@@ -419,7 +425,7 @@ func FactionList(c presentation.Ctx, v FactionListView) *presentation.Response {
 	}
 	if v.Mine != nil {
 		a = append(a, act(AddrFactionMine).Named("faction.mine"))
-	} else {
+	} else if v.Founding == nil || v.Founding.Open {
 		a = append(a, act(AddrFactionFound).Named("faction.found"))
 	}
 	a = append(a, back(addrHome), refresh(AddrFactions))
@@ -604,6 +610,8 @@ func FactionRefusal(c presentation.Ctx, v FactionRefusalView) *presentation.Resp
 	case FactionRefusedNoSuchCrime, FactionRefusedOperationOpen, FactionRefusedLevel, FactionRefusedNoPlaceHere,
 		FactionRefusedNoOperation, FactionRefusedCrewFull, FactionRefusedElsewhere, FactionRefusedCrewShort, FactionRefusedOnAJob:
 		next = act(AddrFactionCrime).Named("faction.crime")
+	case FactionRefusedTooFew:
+		next = act(AddrFactions).Named("faction.list")
 	default:
 		next = act(AddrFactionMine).Named("faction.mine")
 	}
@@ -813,12 +821,41 @@ func Friends(c presentation.Ctx, v FriendsView) *presentation.Response {
 		if f.Incoming {
 			a = append(a, act(addrFriendAccept, f.ID).Named("social.accept"))
 		}
+		if f.Status == "accepted" && !f.Incoming {
+			a = append(a, act(addrFriendView, f.ID).Named("social.friend_view").About(f.ID))
+		}
 	}
 	if len(v.Friends) > 0 {
 		a = pager(a, addrFriendList, nil, v.Page, v.Pages)
 	}
 	a = append(a, back(addrHome), refresh(addrFriendList, itoa(pageOr1(v.Page))))
 	return screenFriends.Response(c.Lang, v, a...)
+}
+
+// FriendDetail is one friend and the four things to do with them: see their
+// profile (this screen), pay them, invite them to the viewer's faction (only
+// with the right to), or remove them.
+func FriendDetail(c presentation.Ctx, v FriendDetailView) *presentation.Response {
+	var a []presentation.Action
+	if v.Code != "" {
+		a = append(a, act(addrPay, v.Code).Named("social.pay"))
+		if v.CanInvite {
+			a = append(a, act(addrFactionInv, v.Code).Named("social.friend_invite"))
+		}
+	}
+	a = append(a, act(addrFriendRemove, v.ID).Named("social.friend_remove"), back(addrFriendList), refresh(addrFriendView, v.ID))
+	return screenFriendDetail.Response(c.Lang, v, a...)
+}
+
+// FriendRemoveAsk asks before a friend is removed.
+func FriendRemoveAsk(c presentation.Ctx, v FriendRemoveAskView) *presentation.Response {
+	return screenFriendRemoveAsk.Response(c.Lang, v,
+		act(addrFriendRemove, v.ID, "yes").Named("social.friend_remove_yes"), back(addrFriendView, v.ID))
+}
+
+// FriendRemoved confirms a removed friend.
+func FriendRemoved(c presentation.Ctx, v FriendRemovedView) *presentation.Response {
+	return screenFriendRemoved.Response(c.Lang, v, back(addrFriendList), refresh(addrFriendList))
 }
 
 // FriendRequested confirms a sent request.

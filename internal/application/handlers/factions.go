@@ -30,7 +30,10 @@ type FactionRules struct {
 	NameMin, NameMax int
 	MaxMembers       int
 	MaxPending       int
-	ListSize         int
+	// MinFounders is how many residents a settlement needs before a faction
+	// may be founded in it; 0 means none.
+	MinFounders int
+	ListSize    int
 	Limits           bank.Limits
 }
 
@@ -275,6 +278,13 @@ func (h *FactionsHandler) List(ctx context.Context, meta envelope.Metadata, req 
 		} else if !isSentinel(err, application.ErrNotInFaction) {
 			return err
 		}
+		if view.Mine == nil && cityID != "" {
+			have, err := h.founders(ctx, tx, cityID)
+			if err != nil {
+				return err
+			}
+			view.Founding = &society.FactionFounding{Have: have, Need: h.rules.MinFounders, Open: have >= h.rules.MinFounders}
+		}
 		return nil
 	})
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
@@ -376,6 +386,13 @@ func (h *FactionsHandler) page(ctx context.Context, tx application.Tx, f applica
 	return v, nil
 }
 
+// founders is how many active players live in the settlement: the group a
+// faction is founded from.
+func (h *FactionsHandler) founders(ctx context.Context, tx application.Tx, cityID string) (int, error) {
+	n, err := tx.Settlements().ResidentCount(ctx, cityID)
+	return int(n), err
+}
+
 // Found handles faction.found: founding a faction at city hall. Without a
 // method it shows the fee and the ways to pay, each asking for the name;
 // with one and a name it founds it, paying the fee to the city.
@@ -427,6 +444,17 @@ func (h *FactionsHandler) Found(ctx context.Context, meta envelope.Metadata, req
 		}
 		if w.city == nil {
 			return application.ErrCityNotFound
+		}
+		// The founding rule: enough people must live here. Enforced here and
+		// not only hidden in the screen, so no command can skip it.
+		have, err := h.founders(ctx, tx, w.city.ID)
+		if err != nil {
+			return err
+		}
+		if have < h.rules.MinFounders {
+			r := refuseFaction(society.FactionRefusedTooFew)
+			r.view.Have, r.view.Need = have, h.rules.MinFounders
+			return r
 		}
 		fee := money.FromMinor(def.FoundingFee)
 		wallet, err := application.OpenWallet(ctx, tx.Ledger(), p.ID)

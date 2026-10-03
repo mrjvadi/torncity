@@ -560,6 +560,7 @@ export interface CityGovView {
   holds_office: boolean
   no_city: boolean
   tier: string
+  military_open: boolean
 }
 
 export interface CityMapView {
@@ -1513,6 +1514,12 @@ export interface FactionFoundedView {
   method: string
 }
 
+export interface FactionFounding {
+  have: number
+  need: number
+  open: boolean
+}
+
 export interface FactionHomeView {
   ref: FactionRef
   rank: string
@@ -1552,6 +1559,7 @@ export interface FactionListView {
   fee: number
   factions: FactionLine[] | null
   mine: FactionRef | null
+  founding: FactionFounding | null
 }
 
 export interface FactionMemberLine {
@@ -1775,12 +1783,29 @@ export interface FriendAcceptedView {
   name: string
 }
 
+export interface FriendDetailView {
+  id: string
+  name: string
+  code: string
+  faction: string
+  can_invite: boolean
+}
+
 export interface FriendLine {
   id: string
   name: string
   code: string
   status: string
   incoming: boolean
+}
+
+export interface FriendRemoveAskView {
+  id: string
+  name: string
+}
+
+export interface FriendRemovedView {
+  name: string
 }
 
 export interface FriendRequestedView {
@@ -2128,6 +2153,8 @@ export interface InboxHubView {
 }
 
 export interface InboxItemLine {
+  id: string
+  read: boolean
   kind: string
   notice: StoredNotice
   ago_seconds: number
@@ -3158,6 +3185,7 @@ export interface MyAuctionsView {
 
 export interface MyOfficeView {
   seats: GovSeat[] | null
+  military_open: boolean
 }
 
 export interface MyOrdersView {
@@ -5261,6 +5289,9 @@ export interface ScreenViews {
   founding_form: FoundingFormView
   founding_refusal: FoundingRefusalView
   friend_accepted: FriendAcceptedView
+  friend_detail: FriendDetailView
+  friend_remove_ask: FriendRemoveAskView
+  friend_removed: FriendRemovedView
   friend_requested: FriendRequestedView
   friends: FriendsView
   gold: GoldView

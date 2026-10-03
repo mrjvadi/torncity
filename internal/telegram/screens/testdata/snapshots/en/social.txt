@@ -71,6 +71,7 @@ Search by one of these:
 
 Page 1 of 2
   ───
+  [👤 Kaveh] → social:friend.view:cfaebd97-b816-43a8-aff9-3798555dd818
   [✅ Accept Nilou] → social:friend.accept:cfaebd97-b816-43a8-aff9-3798555dd818
   [Next ➡️] → social:friend.list:2
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → social:friend.list:1

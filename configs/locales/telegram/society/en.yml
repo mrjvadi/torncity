@@ -36,6 +36,14 @@ social:
     incoming_anon: "👥 A player wants to be your friend."
     incoming_hint: Tap the button below to accept. The request also stays in your friends list.
     now_friends: "👥 {player} accepted your friend request. You are now friends."
+    button_view: "👤 {player}"
+    detail_title: "👤 {player}"
+    detail_faction: "Faction: {faction}"
+    button_invite: "🦁 Invite to my faction"
+    button_remove: "➖ Remove friend"
+    button_remove_yes: "✅ Yes, remove"
+    ask_remove: "Remove {player} from your friends?"
+    removed: "{player} is no longer on your friends list."
     now_friends_anon: "👥 Your friend request was accepted. This player is now in your friends list."
 
 # Player-held offices (docs/adr/0015-player-held-offices.md): the offices and
@@ -379,6 +387,7 @@ faction:
   list_none: "No faction in this city yet."
   list_mine: "Your faction: {faction}"
   list_found: "Found your own at city hall; registering one costs {fee}."
+  list_locked: "🔒 You cannot found a faction yet: at least {need} people must live here. {have} of {need} so far."
   page_title: "🏴 {faction}"
   page_city: "📍 City: {city}"
   page_members: "👥 {count} members:"
@@ -520,6 +529,7 @@ faction:
     no_operation: "No crew is gathering."
     crew_full: "The crew is full."
     elsewhere: "The crew gathers in another city or place."
+    too_few: "🔒 A faction needs at least {need} residents here; there are {have} now."
     crew_short: "👥 Starting takes at least {need} crew at the place with the nerve; {have} are ready."
 
 # Votes of a body (docs/adr/0024-property-and-politics.md).

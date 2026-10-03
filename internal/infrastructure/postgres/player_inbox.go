@@ -250,6 +250,53 @@ UPDATE player_notifications SET read_at = $2 WHERE player_id = $1::uuid AND read
 	return int(tag.RowsAffected()), nil
 }
 
+// Get returns one of the player's items, nil when there is none.
+func (r *PlayerInboxRepository) Get(ctx context.Context, playerID, itemID string) (*application.NotificationItem, error) {
+	if !validUUID(playerID) || !validUUID(itemID) {
+		return nil, nil
+	}
+	items, err := r.scanItems(ctx, `
+SELECT id::text, player_id::text, category, kind, text_fa, text_en, screen, view, link_addr, created_at, read_at
+  FROM player_notifications WHERE id = $2::uuid AND player_id = $1::uuid`, playerID, itemID)
+	if err != nil {
+		return nil, fmt.Errorf("postgres: reading notification %s of player %s: %w", itemID, playerID, err)
+	}
+	if len(items) == 0 {
+		return nil, nil
+	}
+	return &items[0], nil
+}
+
+// MarkRead marks one unread item of the player read.
+func (r *PlayerInboxRepository) MarkRead(ctx context.Context, playerID, itemID string) (bool, error) {
+	if !validUUID(playerID) || !validUUID(itemID) {
+		return false, nil
+	}
+	tag, err := r.q.Exec(ctx, `
+UPDATE player_notifications SET read_at = $3 WHERE id = $2::uuid AND player_id = $1::uuid AND read_at IS NULL`,
+		playerID, itemID, time.Now().UTC())
+	if err != nil {
+		return false, fmt.Errorf("postgres: marking notification %s read for player %s: %w", itemID, playerID, err)
+	}
+	return tag.RowsAffected() > 0, nil
+}
+
+// SetBadgeUnread sets the badge's count, a no-op when there is no row yet.
+func (r *PlayerInboxRepository) SetBadgeUnread(ctx context.Context, playerID string, unread int) error {
+	if !validUUID(playerID) {
+		return nil
+	}
+	if unread < 0 {
+		unread = 0
+	}
+	if _, err := r.q.Exec(ctx, `
+UPDATE player_inbox_badges SET unread_count = $3, updated_at = $2 WHERE player_id = $1::uuid`,
+		playerID, time.Now().UTC(), unread); err != nil {
+		return fmt.Errorf("postgres: setting the inbox badge of player %s: %w", playerID, err)
+	}
+	return nil
+}
+
 // ClearBadge zeroes the player's badge, a no-op when there is no row yet.
 func (r *PlayerInboxRepository) ClearBadge(ctx context.Context, playerID string) error {
 	if !validUUID(playerID) {

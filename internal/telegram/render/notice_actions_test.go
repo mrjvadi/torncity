@@ -62,6 +62,11 @@ func noticeFixtures() []fixture {
 		notices.InboxCategory(c, notices.InboxCategoryView{Category: "finance", Page: 2, TotalPages: 3,
 			Items: []notices.InboxItemLine{{Kind: "bank.payment_received", Notice: notices.StoredNotice{Screen: notices.ScreenPaymentNotice, View: view}, Ago: time.Hour,
 				Link: presentation.RefOfAddress(notices.AddrBank)}}}),
+		notices.InboxCategory(c, notices.InboxCategoryView{Category: "finance", Page: 1, TotalPages: 1,
+			Items: []notices.InboxItemLine{
+				{ID: "0f0f0f0f-0000-4000-8000-000000000001", Kind: "bank.payment_received", Notice: notices.StoredNotice{Screen: notices.ScreenPaymentNotice, View: view}},
+				{ID: "0f0f0f0f-0000-4000-8000-000000000002", Read: true, Kind: "bank.payment_received", Notice: notices.StoredNotice{Screen: notices.ScreenPaymentNotice, View: view}},
+			}}),
 		notices.InboxReminder(c, notices.InboxReminderView{Unread: 4}),
 		village.FoundDraft(c, village.FoundDraftView{Founder: "Ada", Minutes: 20, DraftID: "0f0f0f0f-0000-4000-8000-000000000001"}),
 		village.FoundingRefusal(c, village.FoundingRefusalView{Kind: village.FoundingInvalid, Problems: []village.FoundingProblem{{Field: "name", Code: "name_short"}}}),
@@ -123,5 +128,46 @@ func TestTelegramNoticeButtonsAreNeutralActions(t *testing.T) {
 				}
 			}
 		}
+	}
+}
+
+// Opening one notice marks only that one read: the list offers a "read" button
+// for each unread notice (and none for a read one), each addressed to its own
+// notice, so reading one never reads or hides the others.
+func TestInboxCategoryReadsOneNoticeAtATime(t *testing.T) {
+	c := presentation.Ctx{Lang: "fa"}
+	view, _ := presentation.EncodeView(notices.PaymentView{PayerName: "Ada", Method: "card", Amount: 5})
+	item := func(id string, read bool) notices.InboxItemLine {
+		return notices.InboxItemLine{ID: id, Read: read, Kind: "bank.payment_received",
+			Notice: notices.StoredNotice{Screen: notices.ScreenPaymentNotice, View: view}}
+	}
+	r := notices.InboxCategory(c, notices.InboxCategoryView{Category: "finance", Page: 2, TotalPages: 3,
+		Items: []notices.InboxItemLine{item("n1", false), item("n2", true), item("n3", false)}})
+	got := map[string]bool{}
+	for _, a := range r.Actions {
+		if a.Command == "inbox.read" {
+			got[a.Address()] = true
+		}
+	}
+	if len(got) != 2 || !got["inbox:read:n1:2"] || !got["inbox:read:n3:2"] || got["inbox:read:n2:2"] {
+		t.Fatalf("read actions = %v, want exactly n1 and n3 on page 2", got)
+	}
+	mu.RLock()
+	fn := renderers[r.Screen]
+	mu.RUnlock()
+	out, err := fn(screens.Context{Msgs: keyTranslator{}, Lang: "fa"}, r)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var buttons []string
+	for _, row := range out.Keyboard.Rows {
+		for _, b := range row {
+			if strings.HasPrefix(b.CallbackData, "inbox:read:") {
+				buttons = append(buttons, b.CallbackData)
+			}
+		}
+	}
+	if len(buttons) != 2 || buttons[0] != "inbox:read:n1:2" || buttons[1] != "inbox:read:n3:2" {
+		t.Fatalf("Telegram read buttons = %v, want n1 and n3 only", buttons)
 	}
 }

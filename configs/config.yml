@@ -678,6 +678,11 @@ factions:
   max_members: 30
   # Invitations and applications one faction may have waiting.
   max_pending: 20
+  # People who must live in a settlement (the same group) before one of them
+  # may found a faction there. Real founding minimums run from 3 (a German
+  # party's board) through 7 (an Indian trade union) to hundreds (an Iranian
+  # party's founding assembly); the owner sets 20.
+  min_founders: 20
   # Factions or members on one screen.
   list_size: 10
 

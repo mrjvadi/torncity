@@ -63,6 +63,11 @@ type phaseHandlers struct {
 	clients deviceHandlers
 
 	inbox inboxHandlers
+
+	// militaryGate refuses a military or war command from a player whose
+	// settlement has no barracks; nil means village.MilitaryOpen. A test
+	// replaces it.
+	militaryGate func(ctx context.Context, meta envelope.Metadata) error
 }
 
 // bind maps every subscribed command to the handler method that serves it.
@@ -176,6 +181,20 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 				return nil, err
 			}
 			return h.social.FriendAccept(ctx, env.Metadata, req)
+		},
+		"social.friend.view": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.FriendActRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.social.FriendView(ctx, env.Metadata, req)
+		},
+		"social.friend.remove": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.FriendActRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.social.FriendRemove(ctx, env.Metadata, req)
 		},
 		"social.friend.list": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			var req handlers.PageRequest

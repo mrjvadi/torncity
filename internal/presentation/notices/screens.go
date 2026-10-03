@@ -284,6 +284,9 @@ func InboxHub(c presentation.Ctx, v InboxHubView) *presentation.Response {
 func InboxCategory(c presentation.Ctx, v InboxCategoryView) *presentation.Response {
 	var a []presentation.Action
 	for _, it := range v.Items {
+		if !it.Read && it.ID != "" {
+			a = append(a, act(AddrInboxRead, it.ID, strconv.Itoa(max(v.Page, 1))).Named("inbox.read").About(it.ID))
+		}
 		if it.Link.Command != "" {
 			a = append(a, presentation.Do(it.Link.Command, it.Link.Args...).Named("inbox.open_item"))
 		}
