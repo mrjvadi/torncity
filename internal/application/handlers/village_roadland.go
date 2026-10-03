@@ -300,7 +300,7 @@ func (h *VillageHandler) draftRoad(ctx context.Context, tx application.Tx, w *wo
 			_, isCell := pic.cells[l]
 			return isCell || roadSet[l]
 		},
-		MaxLots: h.citizen.RoadPlanMaxLots, StreamRun: h.citizen.MaxCrossing, CorridorRing: h.citizen.RoadCorridorRing,
+		MaxLots: h.citizen.RoadPlanMaxLots, MaxExpansions: lotSearchBudget(h.citizen.RoadPlanMaxLots), StreamRun: h.citizen.MaxCrossing, CorridorRing: h.citizen.RoadCorridorRing,
 	})
 	if err != nil {
 		var be *landroad.BridgeError
@@ -359,6 +359,13 @@ func (h *VillageHandler) draftRoad(ctx context.Context, tx application.Tx, w *wo
 
 	// the lots along the whole road network of drawn cells open for sale
 	steepM := float64(h.citizen.RoadSteepSlopeM)
+	if steepM <= 0 {
+		steepM = math.MaxFloat64 // no limit configured
+	}
+	depth := h.citizen.RoadFrontageDepth
+	if depth < 1 {
+		depth = 1
+	}
 	allRoad := make([]landroad.Lot, 0, len(pic.cells)+len(newSet))
 	for l := range pic.cells {
 		allRoad = append(allRoad, l)
@@ -366,7 +373,7 @@ func (h *VillageHandler) draftRoad(ctx context.Context, tx application.Tx, w *wo
 	for l := range newSet {
 		allRoad = append(allRoad, l)
 	}
-	frontage := landroad.Frontage(allRoad, h.citizen.RoadFrontageDepth, func(l landroad.Lot) bool {
+	frontage := landroad.Frontage(allRoad, depth, func(l landroad.Lot) bool {
 		return pic.inGrid(l.X, l.Y) || lotForeign(l) || roadSet[l]
 	})
 	sampler := wsettle.NewLotSampler(w, pic.frame, s.WorldCellID)
@@ -476,6 +483,17 @@ func (h *VillageHandler) foreignTiles(ctx context.Context, tx application.Tx, w 
 		for dx := -buf; dx <= buf; dx++ {
 			for dy := -buf; dy <= buf; dy++ {
 				out[w.Offset(c, dx, dy)] = true
+			}
+		}
+	}
+	// the ground round our own first grid is ours, whoever else's ring reaches it
+	// (two villages founded closer than the buffer, an old placement)
+	if int(s.WorldCellID) < len(w.Cells) && s.WorldCellID >= 0 {
+		pt := w.Cells[s.WorldCellID].Point
+		c := w.TileOfLatLon(pt.LatDeg, pt.LonDeg)
+		for dx := -buf; dx <= buf; dx++ {
+			for dy := -buf; dy <= buf; dy++ {
+				delete(out, w.Offset(c, dx, dy))
 			}
 		}
 	}
@@ -593,7 +611,7 @@ func (h *VillageHandler) RoadCancel(ctx context.Context, meta envelope.Metadata,
 			}
 		}
 		var want []application.OpenLotRow
-		for _, o := range landroad.Frontage(remaining, h.citizen.RoadFrontageDepth, func(l landroad.Lot) bool {
+		for _, o := range landroad.Frontage(remaining, h.windowMargin()-2, func(l landroad.Lot) bool {
 			return pic.inGrid(l.X, l.Y)
 		}) {
 			row, ok := pic.open[o.Lot]
@@ -618,4 +636,15 @@ func (h *VillageHandler) RoadCancel(ctx context.Context, meta envelope.Metadata,
 		return village.RoadCancelled(h.screen(meta, lang), *done), nil
 	}
 	return h.Land(ctx, meta)
+}
+
+// lotSearchBudget is how many lots the lot router may look at: a plan of n
+// lots needs a corridor of at most about a hundred lots per lot of road (a
+// strip of three tiles on either side), so the budget follows the plan bound
+// and a request is never an unbounded search.
+func lotSearchBudget(maxLots int) int {
+	if maxLots < 100 {
+		maxLots = 100
+	}
+	return maxLots * 100
 }

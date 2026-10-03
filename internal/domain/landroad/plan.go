@@ -33,6 +33,8 @@ type Request struct {
 
 	MaxLots   int
 	StreamRun int
+	// MaxExpansions bounds the lot router's search (0: 400,000).
+	MaxExpansions int
 	// CorridorRing is how many tiles round the world router's line the lot
 	// router may stray (1).
 	CorridorRing int
@@ -81,7 +83,7 @@ func Plan(r Request) (Path, roads.Route, error) {
 	}
 	env := Env{
 		Ground: r.Ground, Class: r.Class, LotM: r.Ground.F.LotM,
-		Blocked: r.Blocked, Cheap: r.Cheap, MaxLots: r.MaxLots, StreamRun: r.StreamRun,
+		Blocked: r.Blocked, Cheap: r.Cheap, MaxLots: r.MaxLots, StreamRun: r.StreamRun, MaxExpansions: r.MaxExpansions,
 		Corridor: func(l Lot) bool { return corridor[r.Ground.Tile(l)] },
 	}
 	path, err := Route(env, r.From, r.To)
