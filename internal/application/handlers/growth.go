@@ -107,6 +107,24 @@ func ConfigureGrowth(cfg GrowthConfig, reader application.GrowthStandingReader, 
 // currentGrowth is the configured gate, nil when off.
 func currentGrowth() *GrowthGate { return activeGrowth.Load() }
 
+// baseGate is the gate buildings use when growth.capabilities is off: it computes
+// capabilities from the open transaction and meters nothing. The size label lists
+// no building any more, so building lists are always decided by what the
+// settlement has, whatever the mode.
+var baseGate = &GrowthGate{
+	cfg: GrowthConfig{Mode: GrowthModeOff, RuinedBPS: 10000}, log: slog.Default(),
+	now:   func() time.Time { return time.Now().UTC() },
+	cache: map[string]growthCached{}, pending: map[growthKey]*growthEntry{}, logged: map[growthKey]bool{},
+}
+
+// buildingGate is the configured gate, or the base gate when the mode is off.
+func buildingGate() *GrowthGate {
+	if g := currentGrowth(); g != nil {
+		return g
+	}
+	return baseGate
+}
+
 // Enabled says the capability answer is being computed.
 func (g *GrowthGate) Enabled() bool { return g != nil }
 
@@ -310,22 +328,26 @@ func (g *GrowthGate) DecideBuilding(site, cityID string, snap *content.Snapshot,
 	if !ok {
 		tag = content.AvailabilityDef{Kind: "building", Code: code}
 	}
+	// The size label no longer lists a building (Def.ListedAt ignores it), so the
+	// capability answer decides in every mode: the building's own research and
+	// building roles plus the growth gate's. The disagreement meter still notes
+	// where the old tier effect would have differed.
 	own, _ := snap.GrowthNeeds(tag, false)
 	ownOK := caps.Satisfies(needOf(own))
-	decided := g.Decide(site, cityID, snap, caps, found, tag, tierListed && ownOK)
-	if tag.Stage == "" || g.Authoritative() {
-		return decided
+	if g.cfg.Mode != GrowthModeOff {
+		g.Decide(site, cityID, snap, caps, found, tag, tierListed && ownOK)
 	}
-	return tierListed
+	capAnswer, compared, _ := g.Answer(snap, caps, tag)
+	if !compared {
+		return tierListed
+	}
+	return capAnswer
 }
 
 // ListedInTx is DecideBuilding for a gate inside a unit of work: it reads the
 // settlement's rows itself. With growth.capabilities off it never reads.
 func ListedInTx(ctx context.Context, tx application.Tx, snap *content.Snapshot, site, cityID, code string, tierListed bool) (bool, error) {
-	gg := currentGrowth()
-	if gg == nil {
-		return tierListed, nil
-	}
+	gg := buildingGate()
 	caps, found, err := gg.InTx(ctx, tx, snap, cityID)
 	if err != nil {
 		return tierListed, err

@@ -8,6 +8,7 @@
 package tests
 
 import (
+	"context"
 	"encoding/json"
 	"testing"
 	"time"
@@ -17,6 +18,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/domain/gametime"
 	"github.com/mrjvadi/torncity/internal/domain/player"
 	"github.com/mrjvadi/torncity/internal/infrastructure/postgres"
+	"github.com/mrjvadi/torncity/internal/shared/money"
 )
 
 type teachEnv struct {
@@ -372,5 +374,73 @@ func TestTrainingSessions(t *testing.T) {
 	}
 	if v.LedgerSum != "0" || len(v.Unbalanced) != 0 || len(v.Drifted) != 0 || !v.VillageInvariants.TeachingOK() {
 		t.Fatalf("economy verify failed: sum %s, %d unbalanced, %d drifted, teaching %+v", v.LedgerSum, len(v.Unbalanced), len(v.Drifted), v.VillageInvariants)
+	}
+}
+
+// The training ground is a working building: with a trainer (a free labourer and a
+// treasury that can pay a session's wage) it trains at its own rate, the fee goes to
+// the treasury and the wage to the sink; with none it trains like open ground, free.
+func TestTrainerSeat(t *testing.T) {
+	e := newTeachEnv(t)
+	ctx := testCtx(t)
+	e.train.WithTrainer(e.village.TrainerSeat)
+	p := e.pupil(500)
+	if _, err := e.pool.Raw().Exec(ctx, `INSERT INTO settlement_buildings (id, settlement_id, type_code, lot_x, lot_y, status, queued_at, completed_at)
+		VALUES (gen_random_uuid(), $1::uuid, 'training_ground', 72, 72, 'complete', now(), now())`, e.cityID); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		_, _ = e.pool.Raw().Exec(testCtx(t), `DELETE FROM settlement_buildings WHERE settlement_id = $1::uuid AND type_code = 'training_ground'`, e.cityID)
+	})
+	xp := func() int64 {
+		return e.scalar(`SELECT COALESCE(SUM(xp), 0) FROM player_skills WHERE player_id = $1::uuid AND skill_code = 'strength'`, p.ID)
+	}
+	treasury0 := e.treasury()
+	if _, err := e.train.Start(ctx, e.as(p, "training.start", "start"), handlers.TrainRequest{Venue: "ground"}); err != nil {
+		t.Fatal(err)
+	}
+	wages := e.reasonSum("trainer_wage", true)
+	if wages <= 0 {
+		t.Fatalf("the trainer was not paid (%d)", wages)
+	}
+	if got := e.treasury() - treasury0; got != 20-wages {
+		t.Errorf("treasury changed by %d, want fee 20 less the wage %d", got, wages)
+	}
+	if got := xp(); got != 18 { // 30 at 60 percent
+		t.Errorf("strength xp at a kept ground = %d, want 18", got)
+	}
+	// the treasury can no longer pay the coach: the ground trains like open ground, for nothing
+	var bal int64
+	uow := postgres.NewUnitOfWork(e.pool, testDefaultLanguage)
+	if err := uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
+		acct, err := tx.Ledger().AccountFor(ctx, application.AccountCityTreasury, e.cityID)
+		if err != nil {
+			return err
+		}
+		bal = e.treasury()
+		_, err = tx.Ledger().Post(ctx, application.LedgerTransaction{ID: newUUID(t), Reason: application.ReasonSettlementConstruction,
+			CreatedAt: e.clock.Now(), ReferenceType: "test", ReferenceID: newUUID(t),
+			Entries: []application.LedgerEntry{{AccountID: acct.ID, Amount: money.FromMinor(-bal)}, {AccountID: application.SystemSinkAccountID, Amount: money.FromMinor(bal)}}})
+		return err
+	}); err != nil {
+		t.Fatal(err)
+	}
+	before := xp()
+	if _, err := e.train.Start(ctx, e.as(p, "training.start", "start"), handlers.TrainRequest{Venue: "ground"}); err != nil {
+		t.Fatal(err)
+	}
+	if got := xp() - before; got != 12 { // 30 at the yard's 40 percent
+		t.Errorf("strength xp at an unkept ground = %d, want 12", got)
+	}
+	if e.treasury() != 0 || e.reasonSum("trainer_wage", true) != wages {
+		t.Errorf("an unkept ground took a fee or paid a wage")
+	}
+	seedTreasury(t, e.pool, e.cityID, bal) // leave the books as the cleanup expects them
+	v, err := postgres.NewEconomyAdmin(e.pool).VerifyLedger(ctx, 10)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if v.LedgerSum != "0" || len(v.Unbalanced) != 0 || v.VillageInvariants.ServiceMisrouted != 0 {
+		t.Fatalf("economy verify failed: %+v", v.VillageInvariants)
 	}
 }

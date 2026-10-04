@@ -14,6 +14,10 @@ const (
 	ScreenVillageDonateConfirm = "village_donate_confirm"
 	ScreenVillageDonateDone    = "village_donate_done"
 	ScreenVillagePromotion     = "village_promotion"
+	// ScreenVillageCharter is the charter: the offices, their holders, what the viewer may do.
+	ScreenVillageCharter = "village_charter"
+	// ScreenVillageCharterChanged is the answer to an act on the charter.
+	ScreenVillageCharterChanged = "village_charter_changed"
 	// ScreenVillageDevelopment is the readout of ADR 0044 (what a settlement has and carries).
 	ScreenVillageDevelopment = "village_development"
 	ScreenVillagePromoteAsk  = "village_promote_confirm"

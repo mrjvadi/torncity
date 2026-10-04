@@ -38,6 +38,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/config"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/bank"
+	"github.com/mrjvadi/torncity/internal/domain/charter"
 	"github.com/mrjvadi/torncity/internal/domain/gametime"
 	wsettle "github.com/mrjvadi/torncity/internal/domain/settlement"
 	"github.com/mrjvadi/torncity/internal/domain/worldgen"
@@ -451,6 +452,9 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 				AutoRoadCost:          cfg.Settlement.AutoRoadCost,
 				MaterialMarkupBPS:     cfg.Settlement.MaterialMarkupBPS,
 				StockBaseCapacity:     cfg.Settlement.StockBaseCapacity,
+				HomesPerBuildCrew:     cfg.Settlement.BuildHomesPerCrew,
+				CharterLimits: charter.Limits{MaxOffices: int(cfg.Settlement.CharterMaxOffices), MaxSeats: int(cfg.Settlement.CharterMaxSeats),
+					MaxPermissions: int(cfg.Settlement.CharterMaxPermissions), TitleMin: int(cfg.Settlement.CharterTitleMin), TitleMax: int(cfg.Settlement.CharterTitleMax)},
 				MaterialBuyMax:        cfg.Settlement.MaterialBuyMax,
 				MaterialBuyPresets:    cfg.Settlement.MaterialBuyPresets,
 				ResidenceCooldown:     cfg.Settlement.ResidenceCooldown,
@@ -485,6 +489,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	h.education.WithHomeCity(cfg.Settlement.HomeCityCode)
 	h.training = handlers.NewTrainingHandler(uow, uuidGenerator{}, messages, registry, cities, trainingRules(cfg.Training),
 		cfg.Settlement.HomeCityCode, cfg.Game.IdempotencyTTL, nil)
+	h.training.WithTrainer(h.village.TrainerSeat)
 	h.jobs.WithHomeCity(cfg.Settlement.HomeCityCode)
 	// The «not here» cards carry the way to the nearest place (fare and wait).
 	h.education.WithTrips(h.travel)

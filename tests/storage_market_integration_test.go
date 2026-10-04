@@ -513,3 +513,82 @@ func TestTheVillageBook(t *testing.T) {
 		t.Errorf("dues %d / %d, listing fees %d / %d", s.MarketDuesLedger, s.MarketDuesRows, s.ListingLedger, s.ListingRows)
 	}
 }
+
+// The people who keep the stores are not also free for hire (rule 1c, one pool),
+// but a settlement that already had its stores keeps all its labourers until the
+// keeper rule's grace ends, and the market line says so.
+func TestKeepersLeaveTheLabourPool(t *testing.T) {
+	e := newFoundingEnv(t)
+	pool := e.pool
+	ctx := testCtx(t)
+	catalog, err := i18n.Load(filepath.Join("..", "configs", "locales"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	uow := postgres.NewUnitOfWork(pool, testDefaultLanguage)
+	clock := gametime.Clock{Epoch: e.clock.Now().Add(-100 * 24 * time.Hour), Scale: 1}
+	rules := handlers.StorageRules{Clock: clock, SpoilKeptBPS: 100, SpoilUnkeptBPS: 3000}
+	village := handlers.NewVillageHandler(uow, workIDs{t}, catalog, staticContentSource{snap: loadTestContent(t)}, e.cache,
+		postgres.NewCityRepository(pool), gametime.Scale(1),
+		handlers.VillageRules{
+			VillageGridLots: 5, TeachPeriod: time.Second, TeachRateBPS: 10_000,
+			BaseSchoolCapacityBPS: 10_000, ScarcityKBPS: 10_000, ScarcityFloorBPS: 3_000, ScarcityCapBPS: 80_000, SellerBandBPS: 500,
+			HomeCityCode: "support", MaterialMarkupBPS: 12_000, StockBaseCapacity: 60, MaterialBuyMax: 200,
+			MaterialBuyPresets: []int64{5, 20, 50},
+		}, time.Hour, e.clock.Now).
+		WithLabor(labor.Default(), []int64{1, 2, 4}, []int64{100, 125, 150, 200}).
+		WithStorage(rules)
+	meta, founder := e.group(t)
+	foundVillage(t, pool, e.h, meta)
+	var cityID string
+	if err := pool.Raw().QueryRow(ctx, `SELECT id::text FROM cities WHERE founded_by_group_id = $1`, meta.TelegramChatID).Scan(&cityID); err != nil {
+		t.Fatal(err)
+	}
+	seedTreasury(t, pool, cityID, 60_000)
+	if _, err := pool.Raw().Exec(ctx, `INSERT INTO settlement_buildings (id, settlement_id, type_code, lot_x, lot_y, status, queued_at, completed_at)
+	    VALUES ($1::uuid, $2::uuid, 'storehouse', 80, 3, 'complete', now(), now())`, newUUID(t), cityID); err != nil {
+		t.Fatal(err)
+	}
+	head := asPlayer(meta, founder)
+	mk := func(command string) envelope.Metadata {
+		m := head
+		m.Command = command
+		m.RequestID = "req_" + randomToken(t, 16)
+		m.IdempotencyKey = "it-" + randomToken(t, 16)
+		return m
+	}
+	market := func() vpres.LaborMarketLine {
+		t.Helper()
+		resp, err := rrcm(mk("settlement.labor.board"))(village.LaborBoard(ctx, mk("settlement.labor.board")))
+		if err != nil {
+			t.Fatal(err)
+		}
+		var v vpres.LaborBoardView
+		if err := presentation.DecodeView(resp.View, &v); err != nil {
+			t.Fatal(err)
+		}
+		return v.Market
+	}
+	// settle a storage day with the granary and the storehouse kept
+	e.clock.Advance(24*time.Hour + time.Minute)
+	if _, err := rrcm(mk("settlement.materials"))(village.Materials(ctx, mk("settlement.materials"))); err != nil {
+		t.Fatal(err)
+	}
+	m := market()
+	if m.Reserved != 2 || m.Available != m.Pool-2 {
+		t.Errorf("with no grace set the keepers should already be reserved from the pool: %+v", m)
+	}
+	// a grace that has not ended: the seats are counted, not taken, and the line says from when
+	rules.GraceFrom, rules.GraceDays = e.clock.Now(), 14
+	village.WithStorage(rules)
+	m = market()
+	if m.Reserved != 2 || m.Available != m.Pool || m.ReservedFrom == nil {
+		t.Errorf("during the grace the labourers stay free and the date is told: %+v", m)
+	}
+	// after it the keepers are out of the pool
+	e.clock.Advance(15 * 24 * time.Hour)
+	m = market()
+	if m.Available != m.Pool-2 || m.ReservedFrom != nil {
+		t.Errorf("after the grace the two keepers are not free: %+v", m)
+	}
+}

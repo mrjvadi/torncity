@@ -86,7 +86,7 @@ func newVillageFixture(t *testing.T) *villageFixture {
 	s := application.FoundedSettlement{CityID: villageID, Code: "v-1", Name: "Amol", Tier: "village", WorldID: testWorldRow().ID,
 		WorldCellID: cell}
 	fs := &fakeSettlements{s: s, memberOf: map[string]application.PlayerSettlement{
-		headID:     {FoundedSettlement: s, Offices: []string{"village_head"}},
+		headID:     {FoundedSettlement: s, Offices: []string{"village_head"}, Permissions: []string{"public.build"}},
 		residentID: {FoundedSettlement: s, Resident: true},
 	}}
 	now := time.Date(2026, 9, 30, 12, 0, 0, 0, time.UTC)
@@ -231,7 +231,7 @@ func TestMineIsTheBootstrapSettlement(t *testing.T) {
 	if err != nil || mine == nil {
 		t.Fatalf("head: %v %v", mine, err)
 	}
-	if !mine.IsHead || mine.Resident || mine.GridLots != 5 || mine.Tier != "village" || mine.Centre == nil ||
+	if !mine.IsHead || mine.Resident || mine.GridLots != 5 || mine.Tier != "city" || mine.Centre == nil ||
 		mine.LayoutPath != "/api/v1/settlements/"+villageID+"/layout" {
 		t.Errorf("%+v", mine)
 	}

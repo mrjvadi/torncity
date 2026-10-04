@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/mrjvadi/torncity/internal/domain/charter"
 	"context"
 	stderrors "errors"
 	"github.com/mrjvadi/torncity/internal/presentation"
@@ -59,6 +60,34 @@ func (h *VillageHandler) WithLabor(rules labor.Rules, hirePresets, wagePresets [
 type laborMarket struct {
 	line village.LaborMarketLine
 	pool int64
+	// free is the pool less the NPCs on a shift and the school's NPC teachers,
+	// before the shopkeeper and the storekeepers take their seats.
+	free int64
+}
+
+// keeperSeats is how many people of the pool keep the shop and the stores:
+// the shopkeeper of the founding stall and a keeper for each store the last
+// settled day kept. They are at work, so they are not free for hire (rule 1c,
+// one pool). Until the keeper rule's grace ends (the stores' grace, config
+// settlement.storage_grace_days) the seats are counted but not taken, so no
+// settlement loses its labourers overnight: the market line says from when.
+func (h *VillageHandler) keeperSeats(ctx context.Context, tx application.Tx, snap *content.Snapshot, s application.FoundedSettlement,
+	free int64, now time.Time,
+) (shop, stores int64, until time.Time, err error) {
+	if h.shop.enabled() {
+		if _, ok := snap.VillageShop(); ok {
+			shop = 1
+		}
+	}
+	if last, lerr := tx.VillageStorage().Last(ctx, s.CityID); lerr != nil {
+		return 0, 0, time.Time{}, lerr
+	} else if last != nil {
+		stores = last.Kept
+	}
+	if h.storage.GraceDays > 0 && !h.storage.GraceFrom.IsZero() {
+		until = h.storage.GraceFrom.AddDate(0, 0, int(h.storage.GraceDays))
+	}
+	return min(shop, free), min(stores, max(free-shop, 0)), until, nil
 }
 
 // housingOf is the homes' capacity of the standing buildings.
@@ -141,12 +170,22 @@ func (h *VillageHandler) laborMarket(ctx context.Context, tx application.Tx, sna
 			npc++
 		}
 	}
-	available := pool - npc
-	if available < 0 {
-		available = 0
+	free := max(pool-npc, 0)
+	now := h.now()
+	shopSeat, storeSeats, until, err := h.keeperSeats(ctx, tx, snap, s, free, now)
+	if err != nil {
+		return laborMarket{}, err
 	}
-	return laborMarket{pool: pool, line: village.LaborMarketLine{
-		Housing: housing, Pool: pool, Available: available, Working: all, Vacancies: vacancies,
+	reserved := shopSeat + storeSeats
+	available := free
+	var reservedFrom *time.Time
+	if !now.Before(until) {
+		available = max(free-reserved, 0)
+	} else {
+		reservedFrom = &until
+	}
+	return laborMarket{pool: pool, free: free, line: village.LaborMarketLine{
+		Housing: housing, Pool: pool, Available: available, Reserved: reserved, ReservedFrom: reservedFrom, Working: all, Vacancies: vacancies,
 		TightnessBPS: tight, Level: level, NPCWage: h.labor.NPCWage(s.Tier, tight), MinWage: h.labor.MinWage[s.Tier],
 	}}, nil
 }
@@ -187,14 +226,7 @@ func (h *VillageHandler) mayEmploy(ctx context.Context, tx application.Tx, s app
 	if j.EmployerKind == application.LaborEmployerPlayer {
 		return j.EmployerID == playerID, nil
 	}
-	err := authorizeVillage(ctx, tx, s, playerID)
-	if err == nil {
-		return true, nil
-	}
-	if stderrors.Is(err, application.ErrNotOfficeHolder) {
-		return false, nil
-	}
-	return false, err
+	return h.mayVillage(ctx, tx, s, playerID, charter.JobsPost)
 }
 
 func (h *VillageHandler) presentHere(ctx context.Context, tx application.Tx, p *application.Player, s application.FoundedSettlement) (bool, error) {
@@ -523,7 +555,7 @@ func (h *VillageHandler) boardView(ctx context.Context, tx application.Tx, p *ap
 		}
 		view.Jobs = append(view.Jobs, line)
 	}
-	head := authorizeVillage(ctx, tx, s, p.ID) == nil
+	head := hasPermission(ctx, tx, s, p.ID, charter.JobsPost)
 	for _, b := range buildings {
 		if b.Status != "building" || !b.ByWork() || hasJob[b.ID] {
 			continue
@@ -892,14 +924,11 @@ func (h *VillageHandler) postable(ctx context.Context, tx application.Tx, s appl
 	if kind == application.LaborEmployerPlayer {
 		return kind, employer, jobKind, employer == p.ID, nil
 	}
-	aerr := authorizeVillage(ctx, tx, s, p.ID)
-	if aerr == nil {
-		return kind, employer, jobKind, true, nil
+	ok, aerr := h.mayVillage(ctx, tx, s, p.ID, charter.JobsPost)
+	if aerr != nil {
+		return "", "", "", false, aerr
 	}
-	if stderrors.Is(aerr, application.ErrNotOfficeHolder) {
-		return kind, employer, jobKind, false, nil
-	}
-	return "", "", "", false, aerr
+	return kind, employer, jobKind, ok, nil
 }
 
 // LaborPost handles settlement.labor.post: the employer posts the job of a
@@ -1131,4 +1160,28 @@ func (h *VillageHandler) LaborAvailable(ctx context.Context, tx application.Tx, 
 		return 0, err
 	}
 	return m.line.Available, nil
+}
+
+// TrainerSeat is what a training ground needs of the settlement today: whether an
+// NPC of the pool is free to coach, and the wage of one session (the trainer
+// role's wage class of the NPC wage). It is the TrainingHandler's seat reader.
+func (h *VillageHandler) TrainerSeat(ctx context.Context, tx application.Tx, settlementID string) (free, wage int64, err error) {
+	s, err := tx.Settlements().ByID(ctx, settlementID)
+	if err != nil {
+		return 0, 0, err
+	}
+	buildings, err := tx.SettlementBuildings().List(ctx, settlementID)
+	if err != nil {
+		return 0, 0, err
+	}
+	snap := h.content.Current()
+	m, err := h.laborMarket(ctx, tx, snap, s, buildings)
+	if err != nil {
+		return 0, 0, err
+	}
+	class := int64(10_000)
+	if r, ok := snap.StaffRole("trainer"); ok && r.WageBPS > 0 {
+		class = int64(r.WageBPS)
+	}
+	return m.line.Available, m.line.NPCWage * class / 10_000, nil
 }

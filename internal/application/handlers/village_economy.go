@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/mrjvadi/torncity/internal/domain/charter"
 	"context"
 	stderrors "errors"
 	"github.com/mrjvadi/torncity/internal/presentation"
@@ -337,7 +338,7 @@ func (h *VillageHandler) materialsView(ctx context.Context, tx application.Tx, m
 		l := materialLineOf(snap, c, 0)
 		view.Market = append(view.Market, village.MaterialMarketLine{Item: l.Component, Price: price})
 	}
-	view.CanBuy = authorizeVillage(ctx, tx, s, p.ID) == nil
+	view.CanBuy = hasPermission(ctx, tx, s, p.ID, charter.TreasurySpend)
 	return view, nil
 }
 
@@ -390,7 +391,8 @@ func (h *VillageHandler) MaterialsBuy(ctx context.Context, meta envelope.Metadat
 		if err != nil {
 			return err
 		}
-		if err := authorizeVillage(ctx, tx, s, p.ID); err != nil {
+		spendCap, err := h.requireVillage(ctx, tx, s, p.ID, charter.TreasurySpend)
+		if err != nil {
 			return err
 		}
 		code := strings.TrimSpace(req.Item)
@@ -403,6 +405,9 @@ func (h *VillageHandler) MaterialsBuy(ctx context.Context, meta envelope.Metadat
 			return refuseVillage(village.VillageNotAvailable, village.AddrMaterials)
 		}
 		total := unit * qty
+		if spendCap > 0 && total > spendCap { // the office's ceiling for one spend
+			return refuseVillage(village.CharterOverLimit, village.AddrMaterials)
+		}
 		cd, _ := snap.ComponentDef(code)
 
 		if req.confirmed() {

@@ -284,7 +284,10 @@ type BuildingOverlay struct {
 
 // The sources of a goal (the part of GoalData.Code before the dot).
 const (
+	// GoalSourcePromotion is retired (no ladder); kept so old goals decode.
 	GoalSourcePromotion = "promotion"
+	// GoalSourceGrowth is the next research or building within reach.
+	GoalSourceGrowth = "growth"
 	GoalSourceMission   = "mission"
 )
 

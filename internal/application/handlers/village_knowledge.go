@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/mrjvadi/torncity/internal/domain/charter"
 	"context"
 	stderrors "errors"
 	"github.com/mrjvadi/torncity/internal/presentation"
@@ -71,7 +72,7 @@ func (h *VillageHandler) Research(ctx context.Context, meta envelope.Metadata, r
 		if err != nil {
 			return err
 		}
-		if err := authorizeVillage(ctx, tx, s, p.ID); err != nil {
+		if _, err := h.requireVillage(ctx, tx, s, p.ID, charter.ResearchStart); err != nil {
 			return err
 		}
 		code := strings.TrimSpace(req.Code)
@@ -168,7 +169,7 @@ func (h *VillageHandler) Buy(ctx context.Context, meta envelope.Metadata, req Vi
 		if err != nil {
 			return err
 		}
-		if err := authorizeVillage(ctx, tx, s, p.ID); err != nil {
+		if _, err := h.requireVillage(ctx, tx, s, p.ID, charter.ResearchStart); err != nil {
 			return err
 		}
 		code := strings.TrimSpace(req.Code)

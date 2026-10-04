@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/mrjvadi/torncity/internal/domain/charter"
 	"context"
 	stderrors "errors"
 	"github.com/mrjvadi/torncity/internal/presentation"
@@ -123,7 +124,7 @@ func (h *VillageHandler) PlaceMany(ctx context.Context, meta envelope.Metadata, 
 		if err != nil {
 			return err
 		}
-		if err := authorizeVillage(ctx, tx, s, p.ID); err != nil {
+		if _, err := h.requireVillage(ctx, tx, s, p.ID, charter.PublicBuild); err != nil {
 			return err
 		}
 		if def.FootprintW != 1 || def.FootprintH != 1 || !def.CapExempt || len(lots) > len(grid)*len(grid) {

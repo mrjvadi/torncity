@@ -54,7 +54,16 @@ func developmentNext(c Context, v village.DevelopmentView) string {
 	if len(v.Next) == 0 {
 		return c.T("village.development.next_none", nil)
 	}
-	return body(c.T("village.development.next_title", nil), promotionLines(c, village.PromotionView{Criteria: v.Next}))
+	lines := []string{c.T("village.development.next_title", nil)}
+	for _, n := range v.Next {
+		name := Named{Code: n.Code, Name: n.Name}
+		if n.Kind == "research" {
+			lines = append(lines, c.T("village.development.next_research", map[string]any{"name": c.SettlementKnowledgeName(name)}))
+		} else {
+			lines = append(lines, c.T("village.development.next_build", map[string]any{"name": c.SettlementBuildingName(name)}))
+		}
+	}
+	return body(lines...)
 }
 
 func renderVillageDevelopment(c Context, v village.DevelopmentView) *presenter.Response {

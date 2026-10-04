@@ -512,6 +512,44 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 			}
 			return h.village.StockTake(ctx, env.Metadata, req)
 		},
+		"settlement.charter.view": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			return h.village.CharterView(ctx, env.Metadata)
+		},
+		"settlement.charter.office.save": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageCharterRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.CharterOfficeSave(ctx, env.Metadata, req)
+		},
+		"settlement.charter.office.close": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageCharterRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.CharterOfficeClose(ctx, env.Metadata, req)
+		},
+		"settlement.charter.appoint": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageCharterRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.CharterAppoint(ctx, env.Metadata, req)
+		},
+		"settlement.charter.dismiss": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageCharterRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.CharterDismiss(ctx, env.Metadata, req)
+		},
+		"settlement.charter.resign": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageCharterRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.CharterResign(ctx, env.Metadata, req)
+		},
 		"settlement.money": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			return h.village.Money(ctx, env.Metadata)
 		},

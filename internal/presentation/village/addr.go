@@ -75,6 +75,13 @@ const (
 	// what the settlement carries and what it could add next. Listed only while
 	// growth.capabilities is on.
 	AddrVillageDevelopment = "settlement:development.view"
+	// AddrVillageCharter is the charter (ADR 0044 section 6) and the acts on it.
+	AddrVillageCharter     = "settlement:charter.view"
+	AddrCharterOfficeSave  = "settlement:charter.office.save"
+	AddrCharterOfficeClose = "settlement:charter.office.close"
+	AddrCharterAppoint     = "settlement:charter.appoint"
+	AddrCharterDismiss     = "settlement:charter.dismiss"
+	AddrCharterResign      = "settlement:charter.resign"
 )
 
 // Where the residence commands are addressed.

@@ -39,6 +39,9 @@ type TrainingVenue struct {
 	// would make it so when it does not.
 	Available bool
 	Missing   *presentation.Named
+	// Unkept says the ground stands but has no trainer today (nobody free in the
+	// pool, or a treasury that cannot pay): it then trains like open ground, free.
+	Unkept bool
 }
 
 // TrainingHomeView is the training screen: the player's own condition and the venues.

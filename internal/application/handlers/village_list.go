@@ -151,8 +151,8 @@ func (h *VillageHandler) BuildMenu(ctx context.Context, meta envelope.Metadata) 
 		pc := pathContext{snap: snap, tier: s.Tier, owned: st.Owned, caps: capabilities, standing: standingCodes(buildings), stock: stock.Units, markup: h.materialMarkupBPS}
 
 		view = village.BuildMenuView{Name: s.Name, Treasury: treasury, RunningBuilds: running,
-			ConcurrentCap: h.concurrentBuildCap[s.Tier]}
-		gg := currentGrowth() // ADR 0044 phase G1: the capability answer beside the tier's
+			ConcurrentCap: h.buildCap(snap, s, buildings)}
+		gg := buildingGate() // what the settlement has lists the buildings (the size label lists none)
 		var gcaps wsettle.Capabilities
 		var gfound bool
 		if gg != nil {

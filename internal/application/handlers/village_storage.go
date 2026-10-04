@@ -346,7 +346,13 @@ func (h *VillageHandler) settleStorageDay(ctx context.Context, tx application.Tx
 		if err != nil {
 			return nil, err
 		}
-		free := market.line.Available
+		shopSeat := int64(0)
+		if h.shop.enabled() {
+			if _, ok := snap.VillageShop(); ok {
+				shopSeat = 1
+			}
+		}
+		free := max(market.free-shopSeat, 0)
 		for _, st := range stores {
 			wage := market.line.NPCWage * st.Wage / 10_000
 			if free < 1 || treasury-wages < wage {

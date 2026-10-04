@@ -20,6 +20,7 @@
   [📚 City knowledge] → settlement:knowledge   │   [⏳ Build progress] → settlement:build.progress
   [🧱 Stock and market] → settlement:materials
   [👥 People] → settlement:who
+  [📜 Charter] → settlement:charter.view
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → settlement:overview
 
 ━━━ Village overview · nothing built yet ━━━
@@ -43,6 +44,7 @@ No buildings stand here yet.
   [📚 City knowledge] → settlement:knowledge   │   [⏳ Build progress] → settlement:build.progress
   [🧱 Stock and market] → settlement:materials
   [👥 People] → settlement:who
+  [📜 Charter] → settlement:charter.view
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → settlement:overview
 
 ━━━ Knowledge list · mixed states, research running ━━━
@@ -438,6 +440,7 @@ No buildings stand here yet.
   [🧾 My property] → settlement:mine   │   [👥 People] → settlement:who
   [📚 City knowledge] → settlement:knowledge   │   [⏳ Build progress] → settlement:build.progress
   [🧱 Stock and market] → settlement:materials
+  [📜 Charter] → settlement:charter.view
   [🚪 Leave the city] → settlement:leave
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → settlement:overview
 
@@ -467,6 +470,7 @@ No buildings stand here yet.
   [🧾 My property] → settlement:mine   │   [👥 People] → settlement:who
   [📚 City knowledge] → settlement:knowledge   │   [⏳ Build progress] → settlement:build.progress
   [🧱 Stock and market] → settlement:materials
+  [📜 Charter] → settlement:charter.view
   [🚪 Leave the city] → settlement:leave
   [🏦 Bank - travel to Central City] → travel:options:support   │   [🛒 Market - travel to Central City] → travel:options:support
   [💼 Jobs - travel to Central City] → travel:options:support   │   [📚 Knowledge - travel to Central City] → travel:options:support
@@ -529,6 +533,7 @@ No buildings stand here yet.
   [📚 City knowledge] → settlement:knowledge   │   [⏳ Build progress] → settlement:build.progress
   [🧱 Stock and market] → settlement:materials
   [🏗 Construction] → settlement:build   │   [⚖️ Land terms] → settlement:terms
+  [📜 Charter] → settlement:charter.view
   [🚪 Leave the city] → settlement:leave
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → settlement:overview
 

@@ -446,6 +446,13 @@ commands:
   settlement.materials.buy: {channel: group, client: true}
   settlement.stock.donate: {channel: group, client: true}
   settlement.stock.take: {channel: group, client: true}
+  # The charter (ADR 0044 section 6): offices the players create, their permissions and seats.
+  settlement.charter.view: {channel: group, client: true}
+  settlement.charter.office.save: {channel: group, client: true}
+  settlement.charter.office.close: {channel: group, client: true}
+  settlement.charter.appoint: {channel: group, client: true}
+  settlement.charter.dismiss: {channel: group, client: true}
+  settlement.charter.resign: {channel: group, client: true}
   settlement.shop: {channel: group, client: true}
   settlement.shop.buy: {channel: group, client: true}
   settlement.shop.cap: {channel: group, client: true}

@@ -24,6 +24,8 @@ func init() {
 	Register(village.ScreenVillageDonateDone, screens.VillageDonateDone)
 	Register(village.ScreenVillagePromotion, screens.VillagePromotion)
 	Register(village.ScreenVillageDevelopment, screens.VillageDevelopment)
+	Register(village.ScreenVillageCharter, screens.VillageCharter)
+	Register(village.ScreenVillageCharterChanged, screens.VillageCharterChanged)
 	Register(village.ScreenVillagePromoteAsk, screens.VillagePromoteAsk)
 	Register(village.ScreenVillagePromoted, screens.VillagePromoted)
 	Register(village.ScreenResidenceConfirm, screens.ResidenceAsk)

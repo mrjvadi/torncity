@@ -12,9 +12,8 @@
 • بازار: سطح ⁨1⁩
 
 🧭 گام‌های پیش رو:
-▫️ ساکنان: ⁨14⁩ از ⁨40⁩
-▫️ درمانگاه
-▫️ خزانه: ⁨⁨7,400⁩ ساپ⁩ از ⁨⁨20,000⁩ ساپ⁩
+• می‌شود «شهرداری» را ساخت
+• می‌شود «انباری» را ساخت
   ───
   [🔙 بازگشت] → settlement:overview   │   [🔄 به‌روزرسانی] → settlement:development.view
 
@@ -54,4 +53,5 @@
   [🧱 انبار و بازار] → settlement:materials
   [👥 اهالی] → settlement:who
   [📈 رشد] → settlement:development.view
+  [📜 منشور] → settlement:charter.view
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → settlement:overview

@@ -40,42 +40,25 @@ func TestWorkplaceRefusals(t *testing.T) {
 	}
 }
 
-func TestListedAtFollowsTheTier(t *testing.T) {
-	cases := []struct {
-		tier                int
-		village, town, city bool
-	}{
-		{0, true, true, true}, // a legacy row is a village's
-		{1, true, true, true},
-		{2, false, true, true},
-		{3, false, false, true},
-		{4, false, false, true},
-	}
-	for _, c := range cases {
-		d := Def{Code: "x", Tier: c.tier}
-		if d.ListedAt(SettlementVillage) != c.village || d.ListedAt(SettlementTown) != c.town || d.ListedAt(SettlementCity) != c.city {
-			t.Errorf("tier %d listed at village/town/city = %v/%v/%v, want %v/%v/%v", c.tier,
-				d.ListedAt(SettlementVillage), d.ListedAt(SettlementTown), d.ListedAt(SettlementCity), c.village, c.town, c.city)
+func TestListedAtIgnoresTheSize(t *testing.T) {
+	for tier := 0; tier <= 4; tier++ {
+		d := Def{Code: "x", Tier: tier}
+		for _, label := range []string{SettlementVillage, SettlementTown, SettlementCity} {
+			if !d.ListedAt(label) {
+				t.Errorf("a level %d building is not listed for a settlement labelled %s: the label gates nothing", tier, label)
+			}
 		}
 	}
 	if (Def{Tier: 1}).ListedAt("moon") {
-		t.Error("an unknown settlement tier lists something")
+		t.Error("an unknown settlement label lists something")
 	}
 }
 
-func TestCanPlaceRefusesABiggerSettlementsBuilding(t *testing.T) {
+func TestCanPlaceDoesNotJudgeBySize(t *testing.T) {
 	airport := Def{Code: "airport", Role: "transport", Tier: 3, FootprintW: 1, FootprintH: 1}
 	s := openStanding()
 	s.SettlementTier = SettlementVillage
-	if err := CanPlace(airport, sampleGrid(), 0, 0, s); !errors.Is(err, ErrAboveTier) {
-		t.Fatalf("a village may place an airport: err = %v", err)
-	}
-	s.SettlementTier = SettlementCity
 	if err := CanPlace(airport, sampleGrid(), 0, 0, s); err != nil {
-		t.Fatalf("a city may not place an airport: %v", err)
-	}
-	s.SettlementTier = "" // a caller that has no tier skips the rule
-	if err := CanPlace(airport, sampleGrid(), 0, 0, s); err != nil {
-		t.Fatalf("no tier: %v", err)
+		t.Fatalf("the size label refused a building whose own prerequisites hold: %v", err)
 	}
 }

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/mrjvadi/torncity/internal/domain/charter"
 	"context"
 	stderrors "errors"
 	"github.com/mrjvadi/torncity/internal/presentation"
@@ -144,9 +145,14 @@ func (h *VillageHandler) buildPlacementContext(ctx context.Context, tx applicati
 		err = rerr
 		return
 	}
+	rows, rerr2 := tx.SettlementBuildings().List(ctx, s.CityID)
+	if rerr2 != nil {
+		err = rerr2
+		return
+	}
 	standing = settlementbuilding.Standing{
 		Knowledge: st.Owned, KnowledgeCapabilities: capabilities, Built: built,
-		RunningBuilds: running, ConcurrentCap: h.concurrentBuildCap[s.Tier], LiteracyShareBPS: st.LiteracyShareBPS,
+		RunningBuilds: running, ConcurrentCap: h.buildCap(snap, s, rows), LiteracyShareBPS: st.LiteracyShareBPS,
 		SettlementTier: s.Tier,
 	}
 	return
@@ -317,7 +323,7 @@ func (h *VillageHandler) Place(ctx context.Context, meta envelope.Metadata, req 
 		if err != nil {
 			return err
 		}
-		if err := authorizeVillage(ctx, tx, s, p.ID); err != nil {
+		if _, err := h.requireVillage(ctx, tx, s, p.ID, charter.PublicBuild); err != nil {
 			return err
 		}
 		if d.Private() {

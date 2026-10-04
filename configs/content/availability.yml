@@ -96,7 +96,7 @@ availability:
   # ---- buildings: stage is the tier (1 village, 2 town, 3+ city); prerequisites are the building's own requires_* fields
   - {kind: building, code: road, stage: village, growth: {open: true, founding: true, row: 1}}
   - {kind: building, code: civic_hall, stage: village, growth: {open: true, founding: true, row: 2}}
-  - {kind: building, code: housing_block, stage: undecided, growth: {requires: {knowledge: [masonry_ii], buildings: [{role: housing, tier: 1}]}, row: 3}, question: بلوک مسکونی در سطح روستا تعریف شده است، اما در واقعیت آپارتمان‌سازی از شهرک به بالا است. آیا باید به سطح دو (شهرک) برود؟}
+  - {kind: building, code: housing_block, growth: {requires: {knowledge: [masonry_ii], buildings: [{role: housing, tier: 1}]}, row: 3, note: "2026-10-04: no size label; a block of flats needs dressed masonry and a first house standing (the real limit is the builders' craft, not the settlement's size)"}}
   - {kind: building, code: cottage, stage: village, growth: {open: true, founding: true, row: 4}}
   - {kind: building, code: park, stage: village, growth: {open: true, founding: true, row: 5}}
   - {kind: building, code: bank, stage: city, growth: {requires: {knowledge: [double_entry_bookkeeping, masonry_iii], buildings: [{role: market, tier: 2}, {code: civic_hall}]}, note: "2026-10-03 audit: a ledger tradition, a vault of dressed stone, a market with volume and the hall that holds the treasury; the teller is staffed after it stands"}, elsewhere: [{where: support}]}

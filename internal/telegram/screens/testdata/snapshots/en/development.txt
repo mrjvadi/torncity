@@ -12,9 +12,8 @@
 • Market: level 1
 
 🧭 Steps ahead:
-▫️ Residents: 14 of 40
-▫️ A clinic
-▫️ Treasury: 7,400 SUP of 20,000 SUP
+• You could build Civic hall
+• You could build Private shed
   ───
   [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:development.view
 
@@ -54,4 +53,5 @@ No buildings stand here yet.
   [🧱 Stock and market] → settlement:materials
   [👥 People] → settlement:who
   [📈 Growth] → settlement:development.view
+  [📜 Charter] → settlement:charter.view
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → settlement:overview

@@ -349,9 +349,16 @@ type PlayerSettlement struct {
 	// Offices are the office codes the player holds in the settlement's
 	// jurisdiction.
 	Offices []string
+	// Permissions are the charter permissions the player holds in the settlement
+	// (ADR 0044 section 6): everything for the head office, the grants of the
+	// offices they sit in otherwise. Sorted, without repeats.
+	Permissions []string
 	// Resident reports that the player's home (residence) is this settlement.
 	Resident bool
 }
+
+// CanManage reports that the player has a say in the settlement: some permission.
+func (p PlayerSettlement) CanManage() bool { return len(p.Permissions) > 0 }
 
 // SettlementPromotion is one step up the tier ladder.
 type SettlementPromotion struct {

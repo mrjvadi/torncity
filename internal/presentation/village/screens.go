@@ -35,6 +35,8 @@ var (
 	screenDonateDone     = presentation.Define[DonateView](ScreenVillageDonateDone, "village")
 	screenPromotion      = presentation.Define[PromotionView](ScreenVillagePromotion, "village")
 	screenDevelopment    = presentation.Define[DevelopmentView](ScreenVillageDevelopment, "village")
+	screenCharter        = presentation.Define[CharterView](ScreenVillageCharter, "village")
+	screenCharterChanged = presentation.Define[CharterChangedView](ScreenVillageCharterChanged, "village")
 	screenPromoteAsk     = presentation.Define[PromotionView](ScreenVillagePromoteAsk, "village")
 	screenPromoted       = presentation.Define[PromotionView](ScreenVillagePromoted, "village")
 	screenResidenceAsk   = presentation.Define[ResidenceView](ScreenResidenceConfirm, "village")
@@ -129,6 +131,7 @@ func VillageOverview(c presentation.Ctx, v VillageOverviewView) *presentation.Re
 	if v.Development {
 		a = append(a, act(AddrVillageDevelopment).Named("village.development"))
 	}
+	a = append(a, act(AddrVillageCharter).Named("village.charter"))
 	if v.Resident {
 		a = append(a, act(AddrVillageLeave).Named("village.leave").As(presentation.RoleDanger))
 	}
@@ -663,4 +666,16 @@ func VillageWork(c presentation.Ctx, v WorkView) *presentation.Response {
 // SettlementWho is the roster of who is around in the settlement.
 func SettlementWho(c presentation.Ctx, v SettlementWhoView) *presentation.Response {
 	return screenWho.Response(c.Lang, v, back(AddrVillageOverview), refresh(AddrSettlementWho))
+}
+
+// VillageCharter is the charter: offices, holders and the viewer's powers. The acts
+// (save, close, appoint, dismiss, resign) take their arguments from the form, so
+// the screen offers only the way back and a refresh.
+func VillageCharter(c presentation.Ctx, v CharterView) *presentation.Response {
+	return screenCharter.Response(c.Lang, v, back(AddrVillageOverview), refresh(AddrVillageCharter))
+}
+
+// VillageCharterChanged is the answer to an act on the charter.
+func VillageCharterChanged(c presentation.Ctx, v CharterChangedView) *presentation.Response {
+	return screenCharterChanged.Response(c.Lang, v, act(AddrVillageCharter).Named("village.charter"), back(AddrVillageOverview))
 }

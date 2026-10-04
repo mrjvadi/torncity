@@ -37,10 +37,19 @@ func LaborMine(c Context, v LaborMineView) *presenter.Response {
 func (c Context) laborLevel(code string) string { return c.T("village.labor.level."+code, nil) }
 
 func laborMarketText(c Context, m LaborMarketLine) string {
-	return c.T("village.labor.market."+m.Level, map[string]any{
+	text := c.T("village.labor.market."+m.Level, map[string]any{
 		"pool": m.Pool, "available": m.Available, "working": m.Working, "wage": FormatMoney(c, m.NPCWage),
 		"min": FormatMoney(c, m.MinWage), "housing": m.Housing, "percent": m.TightnessBPS / 100,
 	})
+	if m.Reserved > 0 {
+		key := "village.labor.keepers"
+		args := map[string]any{"count": m.Reserved}
+		if m.ReservedFrom != nil {
+			key, args["date"] = "village.labor.keepers_from", FormatDate(c, *m.ReservedFrom)
+		}
+		text += "\n" + c.T(key, args)
+	}
+	return text
 }
 
 // workHours is a worker-minutes figure as hours with one decimal.

@@ -173,7 +173,7 @@ func TestElectionOpensTheHallVerb(t *testing.T) {
 	}
 }
 
-func TestGoalPrefersMissionThenPromotion(t *testing.T) {
+func TestGoalPrefersMissionThenGrowth(t *testing.T) {
 	snap := testRegistry(t).Current()
 	var code string
 	var obj int64
@@ -190,11 +190,11 @@ func TestGoalPrefersMissionThenPromotion(t *testing.T) {
 	if missionGoal(snap, nil) != nil {
 		t.Error("no missions, no mission goal")
 	}
-	p := promotionGoal(snap, "village", villageID, true, nil, application.SettlementFacts{Owned: map[string]string{}})
+	p := growthGoal(snap, true, nil, application.SettlementFacts{Owned: map[string]string{}})
 	if p == nil || p.Code == "" || p.GoTo == "" || p.Target <= p.Progress {
-		t.Fatalf("promotion goal = %+v", p)
+		t.Fatalf("growth goal = %+v", p)
 	}
-	if p2 := promotionGoal(snap, "city", villageID, true, nil, application.SettlementFacts{}); p2 != nil {
-		t.Errorf("the top of the ladder has no goal: %+v", p2)
+	if p2 := growthGoal(snap, false, nil, application.SettlementFacts{}); p2 != nil {
+		t.Errorf("a resident has no growth goal: %+v", p2)
 	}
 }

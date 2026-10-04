@@ -14,11 +14,9 @@ import (
 // The development readout (docs/adr/0044-organic-growth-alliances-countries.md
 // section 4.5, phase G1): what the settlement carries against what it can
 // carry, the service buildings it has, and the goals still ahead. It sits
-// BESIDE the promotion screen and has no act; phase G4 retires the promotion.
-//
-// It exists only while growth.capabilities is on: with the flag off the command
-// answers "not available" and the village overview does not list it, so
-// nothing a player sees changes.
+// IN PLACE OF the promotion screen (retired 2026-10-04, owner scope rule "no
+// forced promotion ladder"): settlement.promotion.view and settlement.promote
+// answer this same screen for old clients. It has no act.
 //
 // The dimensions are the ones whose load and capacity already exist in the
 // data (residents over the homes' capacity, finished buildings, knowledge held).
@@ -26,9 +24,13 @@ import (
 // construction crews) have no capacity model yet; each is added with the node
 // model and the land work, never guessed here.
 
+// developmentNextLimit is how many research and building steps of each kind the
+// readout names.
+const developmentNextLimit = 4
+
 // developmentOf builds the readout of one settlement.
 func (h *VillageHandler) developmentOf(ctx context.Context, tx application.Tx, snap *content.Snapshot, s application.FoundedSettlement,
-	viewerID string,
+	_ string,
 ) (*village.DevelopmentView, error) {
 	residents, err := tx.Settlements().ResidentCount(ctx, s.CityID)
 	if err != nil {
@@ -71,17 +73,20 @@ func (h *VillageHandler) developmentOf(ctx context.Context, tx application.Tx, s
 	for _, r := range roles {
 		v.Roles = append(v.Roles, village.DevelopmentRole{Role: r, Level: levels[r]})
 	}
-	// What could be added next: the goals of the next step the settlement has not
-	// met yet (the same goal rules the promotion screen reads, ADR 0044 section 5.3
-	// row 2), without the name of the step.
-	if p, err := h.promotionOf(ctx, tx, snap, s, viewerID); err != nil {
-		return nil, err
-	} else if p != nil {
-		for _, c := range p.Criteria {
-			if !c.Met {
-				v.Next = append(v.Next, c)
-			}
+	// What could be taken next: research and buildings whose prerequisites the
+	// settlement already holds (no stage, no size).
+	ownedSet := map[string]bool{}
+	for _, o := range owned {
+		ownedSet[o.Code] = true
+	}
+	standingSet := map[string]bool{}
+	for _, b := range buildings {
+		if b.Status == "complete" {
+			standingSet[b.TypeCode] = true
 		}
+	}
+	for _, st := range snap.NextGrowth(ownedSet, standingSet, levels, developmentNextLimit) {
+		v.Next = append(v.Next, village.DevelopmentNext{Kind: st.Kind, Code: st.Code, Name: st.Name})
 	}
 	return v, nil
 }
@@ -97,9 +102,6 @@ func (h *VillageHandler) DevelopmentView(ctx context.Context, meta envelope.Meta
 			return err
 		}
 		lang = l
-		if currentGrowth() == nil {
-			return refuseVillage(village.VillageNotAvailable)
-		}
 		s, err := h.settlementOf(ctx, tx, meta)
 		if err != nil {
 			return err
