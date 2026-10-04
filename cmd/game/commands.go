@@ -557,6 +557,48 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 			}
 			return h.village.TimezoneSet(ctx, env.Metadata, req)
 		},
+		"settlement.charter.election.open": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageBallotRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.CharterElectionOpen(ctx, env.Metadata, req)
+		},
+		"settlement.charter.stand": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageBallotRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.CharterStand(ctx, env.Metadata, req)
+		},
+		"settlement.charter.vote": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageBallotRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.CharterVote(ctx, env.Metadata, req)
+		},
+		"settlement.charter.recall.start": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageBallotRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.CharterRecallStart(ctx, env.Metadata, req)
+		},
+		"settlement.charter.recall.sign": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageBallotRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.CharterRecallSign(ctx, env.Metadata, req)
+		},
+		"settlement.charter.ballot.close": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.CrimeScheduledRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.CharterBallotClose(ctx, env.Metadata, req)
+		},
 		"settlement.money": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			return h.village.Money(ctx, env.Metadata)
 		},

@@ -1320,6 +1320,27 @@ const (
 	CharterZoneCooldown  = "charter_zone_cooldown"
 	// CharterOverLimit: the act costs more than the office's ceiling for one spend.
 	CharterOverLimit = "charter_over_limit"
+	// Phase 2.
+	CharterNoBallot        = "charter_no_ballot"
+	CharterDeputyTaken     = "charter_deputy_taken"
+	CharterNotCandidacy    = "charter_not_candidacy"
+	CharterNotVoting       = "charter_not_voting"
+	CharterNotEligible     = "charter_not_eligible"
+	CharterAlreadyVoted    = "charter_already_voted"
+	CharterAlreadyStanding = "charter_already_standing"
+	CharterBadChoice       = "charter_bad_choice"
+	CharterElectionOpen    = "charter_election_open"
+	CharterNotElected      = "charter_not_elected"
+	CharterNoVacancy       = "charter_no_vacancy"
+	CharterRecallTooEarly  = "charter_recall_too_early"
+	CharterRecallCooling   = "charter_recall_cooling"
+	CharterRecallOpen      = "charter_recall_open"
+	CharterRecallSelf      = "charter_recall_self"
+	CharterNotHolder       = "charter_not_holder"
+	CharterRecalledRecent  = "charter_recalled_recently"
+	CharterVotePending     = "charter_vote_pending"
+	CharterTargetVoting    = "charter_target_cannot_vote"
+	CharterActingForbidden = "charter_acting_forbidden"
 )
 
 // CharterGrantView is one permission with its ceiling (0: none).
@@ -1346,17 +1367,22 @@ type CharterPersonView struct {
 // CharterOfficeView is one office of the charter. Founder marks the head office
 // (its holder follows the governance head; it cannot be closed).
 type CharterOfficeView struct {
-	ID          string              `json:"id"`
-	Title       string              `json:"title"`
-	Seats       int                 `json:"seats"`
-	Open        int                 `json:"open"`
-	Acquisition string              `json:"acquisition"`
-	TermDays    int                 `json:"term_days,omitempty"`
-	Founder     bool                `json:"founder,omitempty"`
-	Manager     bool                `json:"manager,omitempty"`
-	Mine        bool                `json:"mine,omitempty"`
-	Grants      []CharterGrantView  `json:"grants"`
-	Holders     []CharterPersonView `json:"holders"`
+	ID          string `json:"id"`
+	Title       string `json:"title"`
+	Seats       int    `json:"seats"`
+	Open        int    `json:"open"`
+	Acquisition string `json:"acquisition"`
+	TermDays    int    `json:"term_days,omitempty"`
+	Founder     bool   `json:"founder,omitempty"`
+	Manager     bool   `json:"manager,omitempty"`
+	Mine        bool   `json:"mine,omitempty"`
+	Deputy      bool   `json:"deputy,omitempty"`
+	// TermEnds is the earliest end of a held elected seat; CanRecall says the viewer may
+	// start a recall petition about a holder (Holders carry their codes).
+	TermEnds  *time.Time          `json:"term_ends,omitempty"`
+	CanRecall bool                `json:"can_recall,omitempty"`
+	Grants    []CharterGrantView  `json:"grants"`
+	Holders   []CharterPersonView `json:"holders"`
 }
 
 // CharterAuditView is one line of the append-only log.
@@ -1397,6 +1423,92 @@ type CharterView struct {
 	Permissions    []CharterPermissionView `json:"permissions"`
 	Audit          []CharterAuditView      `json:"audit"`
 	Limits         CharterLimitsView       `json:"limits"`
+	// Phase 2: elections, recall, amendments and the acting head.
+	CanCallElection bool                  `json:"can_call_election,omitempty"`
+	HeadVacant      bool                  `json:"head_vacant,omitempty"`
+	Acting          *CharterActingView    `json:"acting,omitempty"`
+	Ballots         []CharterBallotView   `json:"ballots,omitempty"`
+	Petitions       []CharterPetitionView `json:"petitions,omitempty"`
+	Rules           CharterRulesView      `json:"rules"`
+}
+
+// CharterCandidateView is one candidate of an election. Votes is shown only once the
+// election is settled: a ballot is secret while it runs.
+type CharterCandidateView struct {
+	Name  string `json:"name"`
+	Code  string `json:"code"`
+	Votes *int64 `json:"votes,omitempty"`
+}
+
+// CharterProposalView is the change an amendment ballot asks the residents to approve.
+type CharterProposalView struct {
+	Op          string             `json:"op"` // save or close
+	Title       string             `json:"title"`
+	Seats       int                `json:"seats,omitempty"`
+	Acquisition string             `json:"acquisition,omitempty"`
+	Deputy      bool               `json:"deputy,omitempty"`
+	Grants      []CharterGrantView `json:"grants,omitempty"`
+}
+
+// CharterBallotView is an election, a recall vote or an amendment vote. Phase is
+// candidacy, voting or closed (elections have all three; the others only voting).
+// Yes, No and the candidates' votes appear only once Status is no longer "open".
+type CharterBallotView struct {
+	ID            string                 `json:"id"`
+	Kind          string                 `json:"kind"` // election, recall, amendment
+	OfficeID      string                 `json:"office_id,omitempty"`
+	Office        string                 `json:"office,omitempty"`
+	Target        *CharterPersonView     `json:"target,omitempty"`
+	Phase         string                 `json:"phase"`
+	Status        string                 `json:"status"`
+	OpensAt       time.Time              `json:"opens_at"`
+	CandidacyEnds *time.Time             `json:"candidacy_ends,omitempty"`
+	ClosesAt      time.Time              `json:"closes_at"`
+	Eligible      int                    `json:"eligible"`
+	Needed        int                    `json:"needed,omitempty"` // votes that make a recall or amendment count
+	Candidates    []CharterCandidateView `json:"candidates,omitempty"`
+	Proposal      *CharterProposalView   `json:"proposal,omitempty"`
+	Yes           *int64                 `json:"yes,omitempty"`
+	No            *int64                 `json:"no,omitempty"`
+	Winners       []CharterPersonView    `json:"winners,omitempty"`
+	Voted         bool                   `json:"voted,omitempty"`
+	Standing      bool                   `json:"standing,omitempty"`
+	CanVote       bool                   `json:"can_vote,omitempty"`
+	CanStand      bool                   `json:"can_stand,omitempty"`
+}
+
+// CharterPetitionView is a recall petition that is collecting signatures.
+type CharterPetitionView struct {
+	ID         string            `json:"id"`
+	OfficeID   string            `json:"office_id"`
+	Office     string            `json:"office"`
+	Target     CharterPersonView `json:"target"`
+	Signatures int               `json:"signatures"`
+	Needed     int               `json:"needed"`
+	Signed     bool              `json:"signed,omitempty"`
+	CanSign    bool              `json:"can_sign,omitempty"`
+}
+
+// CharterActingView says who acts for a head seat that is vacant, until when, and the
+// most one of their spends may be (0: no cap).
+type CharterActingView struct {
+	Player   CharterPersonView `json:"player"`
+	Office   string            `json:"office,omitempty"`
+	Ends     time.Time         `json:"ends"`
+	SpendCap int64             `json:"spend_cap,omitempty"`
+}
+
+// CharterRulesView are the numbers phase 2 runs on, so a client words its help.
+type CharterRulesView struct {
+	ElectionTermDays    int `json:"election_term_days"`
+	CandidacyHours      int `json:"candidacy_hours"`
+	VotingHours         int `json:"voting_hours"`
+	RecallMinTenureDays int `json:"recall_min_tenure_days"`
+	RecallSignatureBPS  int `json:"recall_signature_bps"`
+	RecallMinSignatures int `json:"recall_min_signatures"`
+	RecallVoteHours     int `json:"recall_vote_hours"`
+	AmendVoteHours      int `json:"amend_vote_hours"`
+	ActingDays          int `json:"acting_days"`
 }
 
 // CharterChangedView is the answer to an act on the charter. Action is one of
@@ -1405,6 +1517,8 @@ type CharterView struct {
 type CharterChangedView struct {
 	Action string `json:"action"`
 	Title  string `json:"title"`
+	// BallotID names the ballot an act opened (an amendment, an election, a recall).
+	BallotID string `json:"ballot_id,omitempty"`
 }
 
 // ResidenceConfirm is the "confirm" argument's value the second press carries.

@@ -399,28 +399,42 @@ type settlementSettings struct {
 	FoundingCurrencyCodeLen   *int    `yaml:"founding_currency_code_len"`
 	FoundingCurrencySymbolMax *int    `yaml:"founding_currency_symbol_max"`
 
-	TeachPeriod            *string `yaml:"teach_period"`
-	TeachRateBPS           *int64  `yaml:"teach_rate_bps"`
-	BaseSchoolCapacityBPS  *int64  `yaml:"base_school_capacity_bps"`
-	ScarcityKBPS           *int64  `yaml:"scarcity_k_bps"`
-	ScarcityFloorBPS       *int64  `yaml:"scarcity_floor_bps"`
-	ScarcityCapBPS         *int64  `yaml:"scarcity_cap_bps"`
-	SellerBandBPS          *int64  `yaml:"seller_band_bps"`
-	DemolitionSalvageBPS   *int64  `yaml:"demolition_salvage_bps"`
-	MaterialMarkupBPS      *int64  `yaml:"material_markup_bps"`
-	StockBaseCapacity      *int64  `yaml:"stock_base_capacity"`
-	BuildHomesPerCrew      *int64  `yaml:"build_homes_per_crew"`
-	CharterMaxOffices      *int64  `yaml:"charter_max_offices"`
-	CharterMaxSeats        *int64  `yaml:"charter_max_seats"`
-	CharterMaxPermissions  *int64  `yaml:"charter_max_permissions"`
-	CharterTitleMin        *int64  `yaml:"charter_title_min"`
-	CharterTitleMax        *int64  `yaml:"charter_title_max"`
-	StorageSpoilKeptBPS    *int64  `yaml:"storage_spoil_kept_bps"`
-	StorageSpoilUnkeptBPS  *int64  `yaml:"storage_spoil_unkept_bps"`
-	StorageKeeperRuleAt    *string `yaml:"storage_keeper_rule_at"`
-	StorageKeeperGraceDays *int64  `yaml:"storage_keeper_grace_days"`
-	MaterialBuyMax         *int64  `yaml:"material_buy_max"`
-	MaterialBuyPresets     []int64 `yaml:"material_buy_presets"`
+	TeachPeriod                  *string `yaml:"teach_period"`
+	TeachRateBPS                 *int64  `yaml:"teach_rate_bps"`
+	BaseSchoolCapacityBPS        *int64  `yaml:"base_school_capacity_bps"`
+	ScarcityKBPS                 *int64  `yaml:"scarcity_k_bps"`
+	ScarcityFloorBPS             *int64  `yaml:"scarcity_floor_bps"`
+	ScarcityCapBPS               *int64  `yaml:"scarcity_cap_bps"`
+	SellerBandBPS                *int64  `yaml:"seller_band_bps"`
+	DemolitionSalvageBPS         *int64  `yaml:"demolition_salvage_bps"`
+	MaterialMarkupBPS            *int64  `yaml:"material_markup_bps"`
+	StockBaseCapacity            *int64  `yaml:"stock_base_capacity"`
+	BuildHomesPerCrew            *int64  `yaml:"build_homes_per_crew"`
+	CharterMaxOffices            *int64  `yaml:"charter_max_offices"`
+	CharterMaxSeats              *int64  `yaml:"charter_max_seats"`
+	CharterMaxPermissions        *int64  `yaml:"charter_max_permissions"`
+	CharterTitleMin              *int64  `yaml:"charter_title_min"`
+	CharterTitleMax              *int64  `yaml:"charter_title_max"`
+	CharterElectionTermDays      *int64  `yaml:"charter_election_term_days"`
+	CharterCandidacyHours        *int64  `yaml:"charter_candidacy_hours"`
+	CharterVotingHours           *int64  `yaml:"charter_voting_hours"`
+	CharterRecallMinTenureDays   *int64  `yaml:"charter_recall_min_tenure_days"`
+	CharterRecallSignatureBPS    *int64  `yaml:"charter_recall_signature_bps"`
+	CharterRecallMinSignatures   *int64  `yaml:"charter_recall_min_signatures"`
+	CharterRecallVoteHours       *int64  `yaml:"charter_recall_vote_hours"`
+	CharterRecallCooldownDays    *int64  `yaml:"charter_recall_cooldown_days"`
+	CharterAmendVoteHours        *int64  `yaml:"charter_amend_vote_hours"`
+	CharterAmendQuorumBPS        *int64  `yaml:"charter_amend_quorum_bps"`
+	CharterAmendVoteMinResidents *int64  `yaml:"charter_amend_vote_min_residents"`
+	CharterActingDays            *int64  `yaml:"charter_acting_days"`
+	CharterActingSpendCap        *int64  `yaml:"charter_acting_spend_cap"`
+	CharterMinResidencyDays      *int64  `yaml:"charter_min_residency_days"`
+	StorageSpoilKeptBPS          *int64  `yaml:"storage_spoil_kept_bps"`
+	StorageSpoilUnkeptBPS        *int64  `yaml:"storage_spoil_unkept_bps"`
+	StorageKeeperRuleAt          *string `yaml:"storage_keeper_rule_at"`
+	StorageKeeperGraceDays       *int64  `yaml:"storage_keeper_grace_days"`
+	MaterialBuyMax               *int64  `yaml:"material_buy_max"`
+	MaterialBuyPresets           []int64 `yaml:"material_buy_presets"`
 
 	FoundingGrant   *int64  `yaml:"founding_grant"`
 	DonationMin     *int64  `yaml:"donation_min"`
@@ -1408,6 +1422,48 @@ var coreSettings = []setting{
 	moneySetting("settlement", "charter_title_max",
 		func(c *Config) *int64 { return &c.Settlement.CharterTitleMax },
 		func(f *fileConfig) *int64 { return f.Settlement.CharterTitleMax }),
+	moneySetting("settlement", "charter_election_term_days",
+		func(c *Config) *int64 { return &c.Settlement.CharterElectionTermDays },
+		func(f *fileConfig) *int64 { return f.Settlement.CharterElectionTermDays }),
+	moneySetting("settlement", "charter_candidacy_hours",
+		func(c *Config) *int64 { return &c.Settlement.CharterCandidacyHours },
+		func(f *fileConfig) *int64 { return f.Settlement.CharterCandidacyHours }),
+	moneySetting("settlement", "charter_voting_hours",
+		func(c *Config) *int64 { return &c.Settlement.CharterVotingHours },
+		func(f *fileConfig) *int64 { return f.Settlement.CharterVotingHours }),
+	moneySetting("settlement", "charter_recall_min_tenure_days",
+		func(c *Config) *int64 { return &c.Settlement.CharterRecallMinTenureDays },
+		func(f *fileConfig) *int64 { return f.Settlement.CharterRecallMinTenureDays }),
+	moneySetting("settlement", "charter_recall_signature_bps",
+		func(c *Config) *int64 { return &c.Settlement.CharterRecallSignatureBPS },
+		func(f *fileConfig) *int64 { return f.Settlement.CharterRecallSignatureBPS }),
+	moneySetting("settlement", "charter_recall_min_signatures",
+		func(c *Config) *int64 { return &c.Settlement.CharterRecallMinSignatures },
+		func(f *fileConfig) *int64 { return f.Settlement.CharterRecallMinSignatures }),
+	moneySetting("settlement", "charter_recall_vote_hours",
+		func(c *Config) *int64 { return &c.Settlement.CharterRecallVoteHours },
+		func(f *fileConfig) *int64 { return f.Settlement.CharterRecallVoteHours }),
+	moneySetting("settlement", "charter_recall_cooldown_days",
+		func(c *Config) *int64 { return &c.Settlement.CharterRecallCooldownDays },
+		func(f *fileConfig) *int64 { return f.Settlement.CharterRecallCooldownDays }),
+	moneySetting("settlement", "charter_amend_vote_hours",
+		func(c *Config) *int64 { return &c.Settlement.CharterAmendVoteHours },
+		func(f *fileConfig) *int64 { return f.Settlement.CharterAmendVoteHours }),
+	moneySetting("settlement", "charter_amend_quorum_bps",
+		func(c *Config) *int64 { return &c.Settlement.CharterAmendQuorumBPS },
+		func(f *fileConfig) *int64 { return f.Settlement.CharterAmendQuorumBPS }),
+	moneySetting("settlement", "charter_amend_vote_min_residents",
+		func(c *Config) *int64 { return &c.Settlement.CharterAmendVoteMinResidents },
+		func(f *fileConfig) *int64 { return f.Settlement.CharterAmendVoteMinResidents }),
+	moneySetting("settlement", "charter_acting_days",
+		func(c *Config) *int64 { return &c.Settlement.CharterActingDays },
+		func(f *fileConfig) *int64 { return f.Settlement.CharterActingDays }),
+	moneySetting("settlement", "charter_acting_spend_cap",
+		func(c *Config) *int64 { return &c.Settlement.CharterActingSpendCap },
+		func(f *fileConfig) *int64 { return f.Settlement.CharterActingSpendCap }),
+	moneySetting("settlement", "charter_min_residency_days",
+		func(c *Config) *int64 { return &c.Settlement.CharterMinResidencyDays },
+		func(f *fileConfig) *int64 { return f.Settlement.CharterMinResidencyDays }),
 	moneySetting("settlement", "storage_spoil_kept_bps",
 		func(c *Config) *int64 { return &c.Settlement.StorageSpoilKeptBPS },
 		func(f *fileConfig) *int64 { return f.Settlement.StorageSpoilKeptBPS }),

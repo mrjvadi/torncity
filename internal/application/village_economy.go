@@ -122,6 +122,12 @@ type SettlementEconomyRepository interface {
 var ErrShiftNotFound = errors.Sentinel(errors.CodeNotFound,
 	"application.ErrShiftNotFound", "no such shift")
 
+// CharterBallotActionType is the game_actions.action_type of a charter ballot reaching its closing time (election, recall or amendment vote); CharterBallotReference its reference type.
+const (
+	CharterBallotActionType = "charter_ballot"
+	CharterBallotReference  = "charter_ballot"
+)
+
 // SettlementWorkActionType is the game_actions.action_type of a shift ending
 // (internal/workers/scheduler/routes.go carries the same literal).
 const SettlementWorkActionType = "settlement_work"

@@ -1302,6 +1302,35 @@ settlement:
   charter_max_permissions: 40
   charter_title_min: 2
   charter_title_max: 32
+  # Charter phase 2 (docs/adr/0044 6.5, 6.6): elections, recall, amendments, the acting head.
+  # the term of an elected seat, REAL days
+  charter_election_term_days: 14
+  # how long residents may stand in an election, REAL hours
+  charter_candidacy_hours: 48
+  # how long an election votes, REAL hours
+  charter_voting_hours: 72
+  # days a holder must have served before a recall petition may start
+  charter_recall_min_tenure_days: 5
+  # share of eligible residents that must sign a recall petition (2000 = 20 percent)
+  charter_recall_signature_bps: 2000
+  # the floor of signatures for a tiny town (never more than everyone)
+  charter_recall_min_signatures: 3
+  # how long a recall vote runs, REAL hours
+  charter_recall_vote_hours: 72
+  # days a holder is left alone after a recall vote and cannot be re-appointed to that office if removed
+  charter_recall_cooldown_days: 14
+  # how long an amendment vote runs, REAL hours
+  charter_amend_vote_hours: 72
+  # share of eligible residents that must vote for an amendment to count
+  charter_amend_quorum_bps: 3000
+  # residents from which a structural change goes to a vote (below it the office holder decides)
+  charter_amend_vote_min_residents: 6
+  # REAL days an acting head may act while the head seat is vacant
+  charter_acting_days: 7
+  # the most one spend of an acting head may be, minor units
+  charter_acting_spend_cap: 2000
+  # days a resident must have lived in the settlement to vote or stand
+  charter_min_residency_days: 3
   # Food in the stock spoils a share per game day (basis points of the food):
   # little with a staffed granary keeping it, more in the open yard.
   storage_spoil_kept_bps: 5

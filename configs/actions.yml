@@ -328,6 +328,11 @@ commands:
   settlement.charter.dismiss: {kind: secondary, icon: "action:person"}
   settlement.charter.resign: {kind: secondary, icon: "action:back"}
   settlement.timezone.set: {kind: secondary, icon: "action:clock"}
+  settlement.charter.election.open: {kind: primary, icon: "action:vote"}
+  settlement.charter.stand: {kind: primary, icon: "action:person"}
+  settlement.charter.vote: {kind: primary, icon: "action:vote"}
+  settlement.charter.recall.start: {kind: danger, icon: "action:cancel_build"}
+  settlement.charter.recall.sign: {kind: primary, icon: "action:edit"}
   settlement.shop: {kind: navigation, icon: "action:shop"}
   settlement.shop.buy: {kind: primary, icon: "action:buy"}
   settlement.shop.cap: {kind: secondary, icon: "action:shop"}

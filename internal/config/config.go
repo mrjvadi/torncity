@@ -939,6 +939,34 @@ type Settlement struct {
 	CharterMaxPermissions int64 // settlement.charter_max_permissions (the caps of rail R4, ADR 0044 6.4)
 	CharterTitleMin       int64 // settlement.charter_title_min (the caps of rail R4, ADR 0044 6.4)
 	CharterTitleMax       int64 // settlement.charter_title_max (the caps of rail R4, ADR 0044 6.4)
+	// The term of an elected seat, REAL days
+	CharterElectionTermDays int64 // settlement.charter_election_term_days
+	// How long residents may stand in an election, REAL hours
+	CharterCandidacyHours int64 // settlement.charter_candidacy_hours
+	// How long an election votes, REAL hours
+	CharterVotingHours int64 // settlement.charter_voting_hours
+	// Days a holder must have served before a recall petition may start
+	CharterRecallMinTenureDays int64 // settlement.charter_recall_min_tenure_days
+	// Share of eligible residents that must sign a recall petition (2000 = 20 percent)
+	CharterRecallSignatureBPS int64 // settlement.charter_recall_signature_bps
+	// The floor of signatures for a tiny town (never more than everyone)
+	CharterRecallMinSignatures int64 // settlement.charter_recall_min_signatures
+	// How long a recall vote runs, REAL hours
+	CharterRecallVoteHours int64 // settlement.charter_recall_vote_hours
+	// Days a holder is left alone after a recall vote and cannot be re-appointed to that office if removed
+	CharterRecallCooldownDays int64 // settlement.charter_recall_cooldown_days
+	// How long an amendment vote runs, REAL hours
+	CharterAmendVoteHours int64 // settlement.charter_amend_vote_hours
+	// Share of eligible residents that must vote for an amendment to count
+	CharterAmendQuorumBPS int64 // settlement.charter_amend_quorum_bps
+	// Residents from which a structural change goes to a vote (below it the office holder decides)
+	CharterAmendVoteMinResidents int64 // settlement.charter_amend_vote_min_residents
+	// REAL days an acting head may act while the head seat is vacant
+	CharterActingDays int64 // settlement.charter_acting_days
+	// The most one spend of an acting head may be, minor units
+	CharterActingSpendCap int64 // settlement.charter_acting_spend_cap
+	// Days a resident must have lived in the settlement to vote or stand
+	CharterMinResidencyDays int64 // settlement.charter_min_residency_days
 	// StorageSpoilKeptBPS and StorageSpoilUnkeptBPS are the share of the food in
 	// a settlement's stock that spoils per game day, in basis points of the
 	// food: with a staffed granary keeping it, and with none (the open yard).
@@ -1695,33 +1723,47 @@ func Defaults() *Config {
 			FoundingCurrencyCodeLen:   3,
 			FoundingCurrencySymbolMax: 3,
 
-			TeachPeriod:            24 * time.Hour,
-			TeachRateBPS:           1500,
-			BaseSchoolCapacityBPS:  8000,
-			ScarcityKBPS:           10000,
-			ScarcityFloorBPS:       3000,
-			ScarcityCapBPS:         80000,
-			SellerBandBPS:          500,
-			DemolitionSalvageBPS:   2000,
-			MaterialMarkupBPS:      12000,
-			StockBaseCapacity:      60,
-			BuildHomesPerCrew:      16,
-			CharterMaxOffices:      24,
-			CharterMaxSeats:        15,
-			CharterMaxPermissions:  40,
-			CharterTitleMin:        2,
-			CharterTitleMax:        32,
-			StorageSpoilKeptBPS:    5,
-			StorageSpoilUnkeptBPS:  30,
-			StorageKeeperRuleAt:    "2026-10-03T00:00:00Z",
-			StorageKeeperGraceDays: 14,
-			MaterialBuyMax:         200,
-			MaterialBuyPresets:     []int64{5, 20, 50},
-			FoundingGrant:          10_000,
-			DonationMin:            100,
-			DonationMax:            100_000,
-			DonationPresets:        []int64{250, 1000, 5000},
-			CitizenLotPrice:        400, CitizenLotPriceMin: 100, CitizenLotPriceMax: 5000,
+			TeachPeriod:                  24 * time.Hour,
+			TeachRateBPS:                 1500,
+			BaseSchoolCapacityBPS:        8000,
+			ScarcityKBPS:                 10000,
+			ScarcityFloorBPS:             3000,
+			ScarcityCapBPS:               80000,
+			SellerBandBPS:                500,
+			DemolitionSalvageBPS:         2000,
+			MaterialMarkupBPS:            12000,
+			StockBaseCapacity:            60,
+			BuildHomesPerCrew:            16,
+			CharterMaxOffices:            24,
+			CharterMaxSeats:              15,
+			CharterMaxPermissions:        40,
+			CharterTitleMin:              2,
+			CharterTitleMax:              32,
+			CharterElectionTermDays:      14,
+			CharterCandidacyHours:        48,
+			CharterVotingHours:           72,
+			CharterRecallMinTenureDays:   5,
+			CharterRecallSignatureBPS:    2000,
+			CharterRecallMinSignatures:   3,
+			CharterRecallVoteHours:       72,
+			CharterRecallCooldownDays:    14,
+			CharterAmendVoteHours:        72,
+			CharterAmendQuorumBPS:        3000,
+			CharterAmendVoteMinResidents: 6,
+			CharterActingDays:            7,
+			CharterActingSpendCap:        2000,
+			CharterMinResidencyDays:      3,
+			StorageSpoilKeptBPS:          5,
+			StorageSpoilUnkeptBPS:        30,
+			StorageKeeperRuleAt:          "2026-10-03T00:00:00Z",
+			StorageKeeperGraceDays:       14,
+			MaterialBuyMax:               200,
+			MaterialBuyPresets:           []int64{5, 20, 50},
+			FoundingGrant:                10_000,
+			DonationMin:                  100,
+			DonationMax:                  100_000,
+			DonationPresets:              []int64{250, 1000, 5000},
+			CitizenLotPrice:              400, CitizenLotPriceMin: 100, CitizenLotPriceMax: 5000,
 			CitizenPermitFee: 100, CitizenPermitFeeMax: 1000,
 			CitizenTaxBPS: 200, CitizenTaxBPSMax: 500, CitizenTaxPeriod: 24 * time.Hour,
 			CitizenMaterialMarkupBPS: 12000,
