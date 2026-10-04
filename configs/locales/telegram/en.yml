@@ -494,6 +494,8 @@ village:
       balanced: "⚖️ Labour market: supply and demand are balanced ({available} of {pool} labourers free) - a day labourer asks {wage} a shift."
       tight: "📈 Labour market: workers are getting scarce ({available} of {pool} labourers free) - a day labourer asks {wage} a shift."
       short: "🔥 Labour market: a labour shortage! ({available} of {pool} labourers free) - a day labourer asks {wage} a shift. More homes mean more residents and workers."
+    keepers: "• {count} of the people keep the shop and the stores and are not free for hire."
+    keepers_from: "• From {date} these {count} people are not free for hire."
     job:
       construction: "• {building} - {percent}% built, {left} to go - {wage} a shift from {employer} - {workers} working"
       production: "• Work at {building} - {wage} a shift from {employer} - {shifts} shifts left"

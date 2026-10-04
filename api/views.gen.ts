@@ -2509,6 +2509,8 @@ export interface LaborMarketLine {
   housing: number
   pool: number
   available: number
+  reserved: number
+  reserved_from: string | null | null
   working: number
   vacancies: number
   tightness_bps: number

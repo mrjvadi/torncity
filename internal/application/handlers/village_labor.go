@@ -59,6 +59,34 @@ func (h *VillageHandler) WithLabor(rules labor.Rules, hirePresets, wagePresets [
 type laborMarket struct {
 	line village.LaborMarketLine
 	pool int64
+	// free is the pool less the NPCs on a shift and the school's NPC teachers,
+	// before the shopkeeper and the storekeepers take their seats.
+	free int64
+}
+
+// keeperSeats is how many people of the pool keep the shop and the stores:
+// the shopkeeper of the founding stall and a keeper for each store the last
+// settled day kept. They are at work, so they are not free for hire (rule 1c,
+// one pool). Until the keeper rule's grace ends (the stores' grace, config
+// settlement.storage_grace_days) the seats are counted but not taken, so no
+// settlement loses its labourers overnight: the market line says from when.
+func (h *VillageHandler) keeperSeats(ctx context.Context, tx application.Tx, snap *content.Snapshot, s application.FoundedSettlement,
+	free int64, now time.Time,
+) (shop, stores int64, until time.Time, err error) {
+	if h.shop.enabled() {
+		if _, ok := snap.VillageShop(); ok {
+			shop = 1
+		}
+	}
+	if last, lerr := tx.VillageStorage().Last(ctx, s.CityID); lerr != nil {
+		return 0, 0, time.Time{}, lerr
+	} else if last != nil {
+		stores = last.Kept
+	}
+	if h.storage.GraceDays > 0 && !h.storage.GraceFrom.IsZero() {
+		until = h.storage.GraceFrom.AddDate(0, 0, int(h.storage.GraceDays))
+	}
+	return min(shop, free), min(stores, max(free-shop, 0)), until, nil
 }
 
 // housingOf is the homes' capacity of the standing buildings.
@@ -141,12 +169,22 @@ func (h *VillageHandler) laborMarket(ctx context.Context, tx application.Tx, sna
 			npc++
 		}
 	}
-	available := pool - npc
-	if available < 0 {
-		available = 0
+	free := max(pool-npc, 0)
+	now := h.now()
+	shopSeat, storeSeats, until, err := h.keeperSeats(ctx, tx, snap, s, free, now)
+	if err != nil {
+		return laborMarket{}, err
 	}
-	return laborMarket{pool: pool, line: village.LaborMarketLine{
-		Housing: housing, Pool: pool, Available: available, Working: all, Vacancies: vacancies,
+	reserved := shopSeat + storeSeats
+	available := free
+	var reservedFrom *time.Time
+	if !now.Before(until) {
+		available = max(free-reserved, 0)
+	} else {
+		reservedFrom = &until
+	}
+	return laborMarket{pool: pool, free: free, line: village.LaborMarketLine{
+		Housing: housing, Pool: pool, Available: available, Reserved: reserved, ReservedFrom: reservedFrom, Working: all, Vacancies: vacancies,
 		TightnessBPS: tight, Level: level, NPCWage: h.labor.NPCWage(s.Tier, tight), MinWage: h.labor.MinWage[s.Tier],
 	}}, nil
 }

@@ -1079,6 +1079,10 @@ type LaborMarketLine struct {
 	// Housing is the homes' capacity (base plus buildings); Pool the NPC
 	// labourers who live here, Available those not on a shift now.
 	Housing, Pool, Available int64
+	// Reserved is how many of the pool keep the shop and the stores (not free
+	// for hire); ReservedFrom is when they stop counting as free (zero: already).
+	Reserved     int64
+	ReservedFrom *time.Time
 	// Working is every shift in progress; Vacancies the shifts open jobs still
 	// pay for.
 	Working, Vacancies int64
