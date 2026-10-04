@@ -205,7 +205,7 @@ func TestVillageEconomyLoop(t *testing.T) {
 	om.Command, om.Action = "settlement.materials.buy", "materials.buy"
 	om.IdempotencyKey = "it-" + randomToken(t, 16)
 	if r, err := rrcm(om)(village.MaterialsBuy(ctx, om, handlers.VillageMaterialRequest{Item: "timber", Qty: "5", Confirm: screens.MaterialsConfirm})); err != nil ||
-		!strings.Contains(r.Text, "شهردار") {
+		!strings.Contains(r.Text, "منصب") {
 		t.Errorf("a non-head bought timber: %+v %v", r, err)
 	}
 	if got := stockOfItem(t, pool, cityID, "timber"); got != 10 {
