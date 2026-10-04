@@ -231,7 +231,7 @@ func TestMineIsTheBootstrapSettlement(t *testing.T) {
 	if err != nil || mine == nil {
 		t.Fatalf("head: %v %v", mine, err)
 	}
-	if !mine.IsHead || mine.Resident || mine.GridLots != 5 || mine.Tier != "village" || mine.Centre == nil ||
+	if !mine.IsHead || mine.Resident || mine.GridLots != 5 || mine.Tier != "city" || mine.Centre == nil ||
 		mine.LayoutPath != "/api/v1/settlements/"+villageID+"/layout" {
 		t.Errorf("%+v", mine)
 	}

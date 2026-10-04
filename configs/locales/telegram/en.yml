@@ -291,6 +291,8 @@ village:
       transport: "Transport"
     next_title: "🧭 Steps ahead:"
     next_none: "No step is ahead."
+    next_research: "• You could research {name}"
+    next_build: "• You could build {name}"
   refusal:
     no_settlement: "🏡 This group has not founded a city yet. Send \"found city\" to start."
     not_office_holder: "🔒 Only the mayor may do this."

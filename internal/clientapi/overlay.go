@@ -7,7 +7,7 @@ import (
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
-	wsettle "github.com/mrjvadi/torncity/internal/domain/settlement"
+	"github.com/mrjvadi/torncity/internal/domain/item"
 	"github.com/mrjvadi/torncity/internal/domain/settlementbuilding"
 	"github.com/mrjvadi/torncity/internal/presentation/life"
 	"github.com/mrjvadi/torncity/internal/presentation/village"
@@ -343,7 +343,7 @@ func (v *VillageService) SettlementOverlay(ctx context.Context, settlementID, pl
 	}
 	viewer := OverlayViewer{ID: playerID, Kind: kind, Resident: resident}
 	in := overlayInput{Snap: v.Content.Current(), Tier: s.Tier, Rows: rows, Viewer: viewer,
-		StockBase: v.StockBaseCapacity, ConcurrentN: settlementbuilding.ConcurrentCap(s.Tier)}
+		StockBase: v.StockBaseCapacity, ConcurrentN: settlementbuilding.CrewCap(s.Tier, overlayHousing(v.Content.Current(), rows), v.HomesPerBuildCrew)}
 	if viewer.Kind != statesync.ViewerPublic {
 		if v.Overlay == nil {
 			return nil, nil, errors.New("clientapi: no overlay reader")
@@ -401,7 +401,7 @@ func (v *VillageService) Goal(ctx context.Context, playerID string) (*statesync.
 	if err != nil {
 		return nil, err
 	}
-	return promotionGoal(snap, mine.Tier, mine.CityID, holdsHead(mine), rows, facts), nil
+	return growthGoal(snap, holdsHead(mine), rows, facts), nil
 }
 
 // missionGoal is the first unfinished objective of the first mission that
@@ -431,57 +431,54 @@ func missionGoal(snap *content.Snapshot, missions []application.MissionProgress)
 	return nil
 }
 
-// promotionGoal is the settlement's next unmet promotion criterion, counted
-// the way the promotion screen counts (handlers.tierStanding); when every one
-// is met, "promotion.ready" for the head, who takes the step. Nil at the top
-// of the ladder.
-func promotionGoal(snap *content.Snapshot, tier, settlementID string, head bool,
-	rows []application.SettlementBuildingInstance, f application.SettlementFacts,
+// growthGoal is the head's next step from what the settlement has: the first
+// research or building whose prerequisites all stand (content.NextGrowth), counted
+// the way the development readout counts. Nil for a resident or when nothing new
+// is within reach. It replaces the promotion goals: there is no ladder.
+func growthGoal(snap *content.Snapshot, head bool, rows []application.SettlementBuildingInstance, f application.SettlementFacts,
 ) *statesync.GoalData {
-	d, ok := snap.SettlementTierStep(tier)
-	if !ok {
+	if !head {
 		return nil
 	}
-	rule := wsettle.TierRule{
-		From: d.From, To: d.Code, Residents: d.Residents, LiteracyBPS: d.LiteracyBPS, Buildings: d.Buildings,
-		KnowledgeLearned: d.KnowledgeLearned, Treasury: d.Treasury,
+	owned := make(map[string]bool, len(f.Owned))
+	for code := range f.Owned {
+		owned[code] = true
 	}
-	for _, n := range d.Roles {
-		rule.Roles = append(rule.Roles, wsettle.RoleNeed{Role: n.Role, Tier: n.Tier})
-	}
-	st := wsettle.Standing{Residents: f.Residents, LiteracyBPS: int64(f.LiteracyBPS), Treasury: f.Treasury,
-		RoleTiers: map[string]int{}}
+	standing := map[string]bool{}
+	levels := map[string]int{}
 	for _, b := range rows {
 		if b.Status != "complete" {
 			continue
 		}
-		if b.TypeCode != "road" {
-			st.Buildings++
-		}
-		if def, ok := snap.SettlementBuildingDef(b.TypeCode); ok && def.Role != "" && def.Tier > st.RoleTiers[def.Role] {
-			st.RoleTiers[def.Role] = def.Tier
+		standing[b.TypeCode] = true
+		if def, ok := snap.SettlementBuildingDef(b.TypeCode); ok && def.Role != "" && def.Tier > levels[def.Role] {
+			levels[def.Role] = def.Tier
 		}
 	}
-	for _, via := range f.Owned {
-		if via != "founding" {
-			st.KnowledgeLearned++
-		}
-	}
-	p := rule.Evaluate(st)
-	for _, c := range p.Criteria {
-		if c.Met {
-			continue
-		}
-		args := map[string]string{"from": p.From, "to": p.To}
-		if c.Role != "" {
-			args["role"] = c.Role
-		}
-		return &statesync.GoalData{Code: statesync.GoalSourcePromotion + "." + c.Kind, Args: args,
-			Progress: c.Current, Target: c.Required, GoTo: village.AddrVillagePromotion}
-	}
-	if !head {
+	next := snap.NextGrowth(owned, standing, levels, 1)
+	if len(next) == 0 {
 		return nil
 	}
-	return &statesync.GoalData{Code: statesync.GoalSourcePromotion + ".ready", Args: map[string]string{"from": p.From, "to": p.To},
-		Progress: 1, Target: 1, GoTo: village.AddrVillagePromotion}
+	st := next[0]
+	return &statesync.GoalData{Code: statesync.GoalSourceGrowth + "." + st.Kind, Args: map[string]string{"code": st.Code},
+		Progress: 0, Target: 1, GoTo: village.AddrVillageDevelopment}
+}
+
+// overlayHousing is the homes' capacity of the finished buildings, the same
+// count the labour market and the build menu use.
+func overlayHousing(snap *content.Snapshot, rows []application.SettlementBuildingInstance) int64 {
+	var out int64
+	for _, b := range rows {
+		if b.Status != "complete" {
+			continue
+		}
+		if d, ok := snap.SettlementBuildingDef(b.TypeCode); ok {
+			for _, e := range d.BuildingEffects() {
+				if e.Target == "housing_capacity" && e.Op == item.EffectAdd {
+					out += e.Value
+				}
+			}
+		}
+	}
+	return out
 }

@@ -60,7 +60,7 @@ func newStateSync(ctx context.Context, cfg *config.Config, pool *postgres.Pool, 
 	villages := &clientapi.VillageService{Settlements: postgres.NewSettlementReader(pool),
 		Buildings: postgres.NewSettlementBuildingReader(pool), Content: registry,
 		VillageGridLots: cfg.Settlement.VillageGridLots, Citizens: postgres.NewCitizenReader(pool),
-		Overlay: postgres.NewVillageFacts(pool), StockBaseCapacity: cfg.Settlement.StockBaseCapacity}
+		Overlay: postgres.NewVillageFacts(pool), StockBaseCapacity: cfg.Settlement.StockBaseCapacity, HomesPerBuildCrew: cfg.Settlement.BuildHomesPerCrew}
 	store := postgres.NewStateSync(pool, stateRules(cfg))
 	store.Layouts = villages
 	store.Overlays = villages

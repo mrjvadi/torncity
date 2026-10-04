@@ -90,9 +90,6 @@ func footprintLots(def Def, x, y int) [][2]int {
 // (money and materials) is the caller's own separate all-or-nothing check
 // (ADR 0028 section 6.3), not this function's concern.
 func CanPlace(def Def, grid Grid, x, y int, s Standing) error {
-	if s.SettlementTier != "" && !def.ListedAt(s.SettlementTier) {
-		return ErrAboveTier
-	}
 	if x < 0 || y < 0 || x+def.FootprintW > grid.Width() || y+def.FootprintH > grid.Height() {
 		return ErrOutOfBounds
 	}

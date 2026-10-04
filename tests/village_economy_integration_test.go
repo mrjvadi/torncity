@@ -135,7 +135,16 @@ func TestVillageEconomyLoop(t *testing.T) {
 		t.Errorf("Lots(airport) = %+v %v, want a neutral refusal", r, err)
 	}
 
-	// 2. The housing block needs 10 timber: the refusal names where it comes from.
+	// 2. The housing block needs dressed masonry and a first house standing (no size label
+	// lists it), then 10 timber: the refusal names where it comes from.
+	if _, err := pool.Raw().Exec(ctx, `INSERT INTO settlement_knowledge_owned (id, settlement_id, code, acquired_via, acquired_at)
+	    VALUES (gen_random_uuid(), $1::uuid, 'masonry_ii', 'researched', now()) ON CONFLICT DO NOTHING`, cityID); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := pool.Raw().Exec(ctx, `INSERT INTO settlement_buildings (id, settlement_id, type_code, lot_x, lot_y, status, queued_at, completed_at)
+	    VALUES (gen_random_uuid(), $1::uuid, 'cottage', 90, 90, 'complete', now(), now())`, cityID); err != nil {
+		t.Fatal(err)
+	}
 	r, err := rrcm(mk("settlement.build.lots", "build.lots"))(village.Lots(ctx, mk("settlement.build.lots", "build.lots"), handlers.VillageLotsRequest{Code: "housing_block"}))
 	if err != nil {
 		t.Fatal(err)

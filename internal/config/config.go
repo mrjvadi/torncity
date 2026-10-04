@@ -912,6 +912,9 @@ type Settlement struct {
 	// stock holds without a granary; every standing building's `storage`
 	// (settlement_buildings.yml) adds to it.
 	StockBaseCapacity int64 // settlement.stock_base_capacity
+	// BuildHomesPerCrew is how many homes the settlement needs for each building
+	// it may raise at once beyond the first (no tier decides the cap any more).
+	BuildHomesPerCrew int64 // settlement.build_homes_per_crew
 	// StorageSpoilKeptBPS and StorageSpoilUnkeptBPS are the share of the food in
 	// a settlement's stock that spoils per game day, in basis points of the
 	// food: with a staffed granary keeping it, and with none (the open yard).
@@ -1620,7 +1623,7 @@ func Defaults() *Config {
 			ChunkDepositTilesPerDeposit: 5,
 		},
 		Growth: Growth{
-			Capabilities:  GrowthOff,
+			Capabilities:  GrowthAuthoritative,
 			CacheTTL:      5 * time.Second,
 			RuinedBPS:     10000,
 			FlushInterval: 30 * time.Second,
@@ -1673,6 +1676,7 @@ func Defaults() *Config {
 			DemolitionSalvageBPS:   2000,
 			MaterialMarkupBPS:      12000,
 			StockBaseCapacity:      60,
+			BuildHomesPerCrew:      16,
 			StorageSpoilKeptBPS:    5,
 			StorageSpoilUnkeptBPS:  30,
 			StorageKeeperRuleAt:    "2026-10-03T00:00:00Z",

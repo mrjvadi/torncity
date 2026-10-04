@@ -273,12 +273,6 @@ func (h *VillageHandler) upgradeLines(ctx context.Context, tx application.Tx, sn
 		}
 		if !listed {
 			line.Available = false
-			for _, t := range []string{"village", "town", "city"} {
-				if def.ListedAt(t) {
-					line.NeedsTier = t
-					break
-				}
-			}
 			out = append(out, line)
 			continue
 		}

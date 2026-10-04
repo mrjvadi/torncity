@@ -1125,11 +1125,12 @@ worldgen:
 # phases G0 and G1): what a settlement HAS (buildings, research, staff) replaces
 # its tier label as the thing every gate asks.
 growth:
-  # off: the tier is the only answer (default). shadow: the capability answer is
-  # computed beside every tier gate and each disagreement is metered
-  # (growth_disagreements, `admin growth report`), the tier stays authoritative.
-  # authoritative: the capability answer decides (phase G4, not before).
-  capabilities: off
+  # authoritative (default since the promotion ladder was retired, 2026-10-04):
+  # what the settlement has decides every gate. shadow: the same answer decides
+  # for buildings, other gates keep the tier answer and each disagreement is
+  # metered (growth_disagreements, `admin growth report`). off: no capability
+  # computation; the size label no longer lists buildings, so do not run off.
+  capabilities: authoritative
   # How long, REAL time, computed capabilities are reused by the gates that read
   # them outside a transaction (ADR 0044 section 5.1: pure, cached).
   cache_ttl: 5s
@@ -1274,6 +1275,9 @@ settlement:
   # stock what it needs to build; production and purchases stop at the
   # capacity, so a granary is what lets a village keep more.
   stock_base_capacity: 60
+  # Homes a settlement needs for each building it may raise at once beyond the
+  # first (the people who can raise them); 16 keeps a fresh city at one.
+  build_homes_per_crew: 16
   # Food in the stock spoils a share per game day (basis points of the food):
   # little with a staffed granary keeping it, more in the open yard.
   storage_spoil_kept_bps: 5

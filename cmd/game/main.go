@@ -451,6 +451,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 				AutoRoadCost:          cfg.Settlement.AutoRoadCost,
 				MaterialMarkupBPS:     cfg.Settlement.MaterialMarkupBPS,
 				StockBaseCapacity:     cfg.Settlement.StockBaseCapacity,
+				HomesPerBuildCrew:     cfg.Settlement.BuildHomesPerCrew,
 				MaterialBuyMax:        cfg.Settlement.MaterialBuyMax,
 				MaterialBuyPresets:    cfg.Settlement.MaterialBuyPresets,
 				ResidenceCooldown:     cfg.Settlement.ResidenceCooldown,

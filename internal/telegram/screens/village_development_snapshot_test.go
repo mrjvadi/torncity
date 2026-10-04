@@ -20,10 +20,9 @@ func developmentSnapshots(c Context, who people, add func(string, *presenter.Res
 			{Code: village.DevelopmentKnowledge, Load: 7},
 		},
 		Roles: []village.DevelopmentRole{{Role: "education", Level: 2}, {Role: "health", Level: 1}, {Role: "market", Level: 1}},
-		Next: []village.PromotionCriterionView{
-			{Kind: "residents", Current: 14, Required: 40},
-			{Kind: "role", Role: "health", Current: 1, Required: 2},
-			{Kind: "treasury", Current: 7_400, Required: 20_000},
+		Next: []village.DevelopmentNext{
+			{Kind: "build", Code: "civic_hall"},
+			{Kind: "build", Code: "private_shed"},
 		},
 	}
 	fresh := village.DevelopmentView{

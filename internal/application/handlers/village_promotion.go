@@ -154,135 +154,15 @@ func promotionView(s application.FoundedSettlement, p wsettle.Progress, head boo
 	return v
 }
 
-// PromotionView handles settlement.promotion.view: the goals of the next tier
-// and the progress on each.
+// PromotionView handles settlement.promotion.view. The ladder is retired (a
+// settlement grows by what it researches and builds, never by a promotion): the
+// command stays for old clients and answers the development readout.
 func (h *VillageHandler) PromotionView(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
-	snap := h.content.Current()
-	lang := meta.Language
-	var view *village.PromotionView
-	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
-		p, l, err := h.viewer(ctx, tx, meta)
-		if err != nil {
-			return err
-		}
-		lang = l
-		s, err := h.settlementOf(ctx, tx, meta)
-		if err != nil {
-			return err
-		}
-		if view, err = h.promotionOf(ctx, tx, snap, s, p.ID); err != nil {
-			return err
-		}
-		if view == nil {
-			return refuseVillage(village.VillagePromotionTop)
-		}
-		return nil
-	})
-	if resp, err := h.villageFinish(meta, lang, err); resp != nil || err != nil {
-		return resp, err
-	}
-	return village.VillagePromotion(h.screen(meta, lang), *view), nil
+	return h.DevelopmentView(ctx, meta)
 }
 
-// Promote handles settlement.promote: the head takes the settlement one tier
-// up. Two steps, like every act of the village: the confirm, then the step.
-// Unmet goals show the way forward instead (never a bare error); a redelivered
-// confirm, or one that lost the race to another, changes nothing.
-func (h *VillageHandler) Promote(ctx context.Context, meta envelope.Metadata, req VillagePromoteRequest) (*presentation.Response, error) {
-	snap := h.content.Current()
-	lang := meta.Language
-	var (
-		view *village.PromotionView
-		step string // "view", "ask" or "done"
-	)
-	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
-		p, l, err := h.viewer(ctx, tx, meta)
-		if err != nil {
-			return err
-		}
-		lang = l
-		s, err := h.settlementOf(ctx, tx, meta)
-		if err != nil {
-			return err
-		}
-		if err := authorizeVillage(ctx, tx, s, p.ID); err != nil {
-			return err
-		}
-		rule, ok := tierRule(snap, s.Tier)
-		if !ok {
-			return refuseVillage(village.VillagePromotionTop)
-		}
-		standing, err := tierStanding(ctx, tx, snap, s)
-		if err != nil {
-			return err
-		}
-		progress := rule.Evaluate(standing)
-		view = promotionView(s, progress, true)
-		if !progress.Met {
-			step = "view"
-			return nil
-		}
-		if !req.confirmed() {
-			step = "ask"
-			return nil
-		}
-
-		fresh, err := h.reserve(ctx, tx, p.ID, meta)
-		if err != nil {
-			return err
-		}
-		step = "done"
-		if !fresh {
-			return nil // a redelivered confirm: already promoted
-		}
-		now := h.now()
-		changed, err := tx.Settlements().Promote(ctx, application.SettlementPromotion{
-			SettlementID: s.CityID, JurisdictionID: s.JurisdictionID, From: rule.From, To: rule.To, Actor: p.ID, At: now,
-		})
-		if err != nil {
-			return err
-		}
-		if !changed {
-			return nil // another promotion won the race
-		}
-
-		// The sitting head succeeds into the new head office.
-		oldOffice, newOffice := wsettle.HeadOffice(rule.From), wsettle.HeadOffice(rule.To)
-		seat, err := tx.Governance().Seat(ctx, oldOffice, s.JurisdictionID, 1)
-		if err != nil {
-			return err
-		}
-		if !seat.Vacant() {
-			holder := seat.HolderPlayerID
-			if _, _, err := application.VacateOffice(ctx, tx, oldOffice, s.JurisdictionID, 1, now); err != nil {
-				return err
-			}
-			if _, _, err := application.FoundOffice(ctx, tx, newOffice, s.JurisdictionID, 1, holder, now); err != nil {
-				return err
-			}
-			view.CanPromote = holder == p.ID
-			if err := appendVillageEvent(ctx, tx, meta, "promoted", s.CityID, map[string]any{
-				"settlement_id": s.CityID, "name": s.Name, "from": rule.From, "to": rule.To,
-				"office": newOffice, "head_player_id": holder, "promoted_by": p.ID,
-			}); err != nil {
-				return err
-			}
-			return nil
-		}
-		return appendVillageEvent(ctx, tx, meta, "promoted", s.CityID, map[string]any{
-			"settlement_id": s.CityID, "name": s.Name, "from": rule.From, "to": rule.To,
-			"office": newOffice, "promoted_by": p.ID,
-		})
-	})
-	if resp, err := h.villageFinish(meta, lang, err); resp != nil || err != nil {
-		return resp, err
-	}
-	c := h.screen(meta, lang)
-	switch step {
-	case "view":
-		return village.VillagePromotion(c, *view), nil
-	case "ask":
-		return village.VillagePromoteAsk(c, *view), nil
-	}
-	return village.VillagePromoted(c, *view), nil
+// Promote handles settlement.promote. It no longer promotes anything; it answers
+// the development readout so an old client's button lands somewhere true.
+func (h *VillageHandler) Promote(ctx context.Context, meta envelope.Metadata, _ VillagePromoteRequest) (*presentation.Response, error) {
+	return h.DevelopmentView(ctx, meta)
 }

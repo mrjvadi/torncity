@@ -88,6 +88,8 @@ type VillageService struct {
 	// nil leaves them out. StockBaseCapacity is settlement.stock_base_capacity.
 	Overlay           OverlayReader
 	StockBaseCapacity int64
+	// HomesPerBuildCrew is settlement.build_homes_per_crew.
+	HomesPerBuildCrew int64
 	// VillageGridLots is settlement.village_grid_lots.
 	VillageGridLots int
 	Now             func() time.Time
@@ -158,7 +160,7 @@ func (v *VillageService) Mine(ctx context.Context, playerID string) (*BootstrapS
 	if err != nil {
 		return nil, err
 	}
-	out := &BootstrapSettlement{ID: ps.CityID, Code: ps.Code, Name: ps.Name, Tier: ps.Tier, WorldCell: ps.WorldCellID,
+	out := &BootstrapSettlement{ID: ps.CityID, Code: ps.Code, Name: ps.Name, Tier: application.TierCity, WorldCell: ps.WorldCellID,
 		IsHead: holdsHead(ps), Resident: ps.Resident, GridLots: v.gridLots(ps.Tier, ps.GridGrowth), LayoutPath: "/api/v1/settlements/" + ps.CityID + "/layout"}
 	if _, w, err := v.World.active(ctx); err == nil {
 		out.Centre = centreOf(w, ps.WorldCellID)

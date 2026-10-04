@@ -1250,6 +1250,12 @@ export interface DevelopmentDimension {
   capacity: number
 }
 
+export interface DevelopmentNext {
+  kind: string
+  code: string
+  name: string
+}
+
 export interface DevelopmentRole {
   role: string
   level: number
@@ -1260,7 +1266,7 @@ export interface DevelopmentView {
   settlement_id: string
   dimensions: DevelopmentDimension[] | null
   roles: DevelopmentRole[] | null
-  next: PromotionCriterionView[] | null
+  next: DevelopmentNext[] | null
 }
 
 export interface DeviceLine {

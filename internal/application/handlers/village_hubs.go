@@ -196,7 +196,7 @@ func (h *VillageHandler) EconomyHub(ctx context.Context, meta envelope.Metadata)
 		if len(mine) > 0 || h.smallholdingHere(snap, here) {
 			view.Entries = append(view.Entries, plife.ActivityEntry{Code: plife.EconomyCompanies, Command: "company.mine"})
 		}
-		if here.stageRank >= content.StageRank(h.activity.PropertyMinStage) {
+		if here.offersAny(snap, "property_type") {
 			view.Entries = append(view.Entries, plife.ActivityEntry{Code: plife.EconomyProperty, Command: "property.mine"})
 		}
 		if here.offered(snap, "finance_service", "stocks") {
@@ -267,4 +267,15 @@ func (h *VillageHandler) SocietyHub(ctx context.Context, meta envelope.Metadata)
 		return resp, err
 	}
 	return plife.SocietyHub(h.screen(meta, lang), view), nil
+}
+
+// offersAny reports whether the settlement offers at least one entry of a kind
+// (by what it has, through the same gate every entry passes).
+func (s hubSettlement) offersAny(snap *content.Snapshot, kind string) bool {
+	for _, t := range snap.AvailabilityTags(kind) {
+		if s.offered(snap, kind, t.Code) {
+			return true
+		}
+	}
+	return false
 }

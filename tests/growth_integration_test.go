@@ -81,15 +81,16 @@ func TestGrowthDualRead(t *testing.T) {
 		return e.count(t, `SELECT coalesce(sum(seen_count), 0)::int FROM growth_disagreements WHERE settlement_id = $1::uuid`, cityID)
 	}
 
-	// 1. Off (the default): nothing listed, the readout refuses, the gate computes nothing.
+	// 1. Off: the service gate computes nothing and answers by the tier; the readout is always on offer
+	// (the promotion ladder is retired).
 	handlers.ConfigureGrowth(handlers.GrowthConfig{Mode: handlers.GrowthModeOff}, nil, nil, nil)
-	if overview()["development"] == true {
-		t.Fatal("off: the overview lists the readout")
+	if overview()["development"] != true {
+		t.Fatal("off: the overview does not list the readout")
 	}
 	if r, err := village.DevelopmentView(ctx, as(head, "settlement.development.view", "development.view")); err != nil {
 		t.Fatalf("off: %v", err)
-	} else if !strings.Contains(string(r.View), "not_available") {
-		t.Errorf("off: the readout was not refused: %s", r.View)
+	} else if strings.Contains(string(r.View), "not_available") {
+		t.Errorf("off: the readout was refused: %s", r.View)
 	}
 	if un, err := gate.CheckEntry(ctx, snap, cityID, "company_type", "courier"); err != nil || un == nil {
 		t.Fatalf("off: a fresh village is not offered a town's courier business: %v %v", un, err)

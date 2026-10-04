@@ -65,9 +65,6 @@ func TestPathNamesKnowledgeAndRoles(t *testing.T) {
 		t.Fatalf("needs = %+v, want the carpentry knowledge first, then timber", needs)
 	}
 	school, _ := snap.SettlementBuildingDef("school")
-	if school.Def().ListedAt("village") {
-		t.Error("a school is a town's building")
-	}
 	pc.tier = "town"
 	var role *screens.VillageNeed
 	for _, n := range pc.placementNeeds(school.Def()) {

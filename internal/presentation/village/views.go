@@ -1286,9 +1286,18 @@ type DevelopmentView struct {
 	SettlementID string                 `json:"settlement_id,omitempty"`
 	Dimensions   []DevelopmentDimension `json:"dimensions"`
 	Roles        []DevelopmentRole      `json:"roles,omitempty"`
-	// Next are the goals still ahead, with the settlement's progress on each
-	// (the same goal rules the promotion screen reads); empty when there are none.
-	Next []PromotionCriterionView `json:"next,omitempty"`
+	// Next is what the settlement could research or build next from what it has
+	// (every prerequisite of each is held); empty when there is nothing new.
+	Next []DevelopmentNext `json:"next,omitempty"`
+}
+
+// DevelopmentNext is one step ahead: Kind is "research" or "build", Code the
+// knowledge or building code. Name is the content's fallback name; a client
+// words it from its own catalogue.
+type DevelopmentNext struct {
+	Kind string `json:"kind"`
+	Code string `json:"code"`
+	Name string `json:"name,omitempty"`
 }
 
 // ResidenceConfirm is the "confirm" argument's value the second press carries.

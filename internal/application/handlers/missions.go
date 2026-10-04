@@ -262,7 +262,17 @@ func (h *MissionsHandler) Board(ctx context.Context, meta envelope.Metadata, req
 		}
 		inSettlement := ferr == nil
 		view.Currency = villageCurrency(founded)
-		reaches := func(kind, code string) bool { return !inSettlement || stageReaches(snap, kind, code, w.city.Tier) }
+		var growthErr error
+		reaches := func(kind, code string) bool {
+			if !inSettlement {
+				return true
+			}
+			ok, err := settlementReaches(ctx, tx, snap, kind, code, w.city.ID, w.city.Tier)
+			if err != nil && growthErr == nil {
+				growthErr = err
+			}
+			return ok
+		}
 		posted := func(board string) []content.MissionDef {
 			var out []content.MissionDef
 			for _, def := range snap.BoardMissions(board, w.city.Code) {
@@ -283,8 +293,11 @@ func (h *MissionsHandler) Board(ctx context.Context, meta envelope.Metadata, req
 			view.Boards = append(view.Boards, plife.MissionBoardRef{Code: b.Code, Name: b.Name, Place: placeNamed(snap, b.Place), Open: open})
 		}
 		board, ok := snap.MissionBoard(strings.TrimSpace(req.Board))
+		if growthErr != nil {
+			return growthErr
+		}
 		if !ok || !reaches("mission_board", board.Code) {
-			return nil
+			return growthErr
 		}
 		view.Board = &plife.MissionBoardRef{Code: board.Code, Name: board.Name, Place: placeNamed(snap, board.Place)}
 		view.Here = !w.placed() || w.here.Code == board.Place
@@ -299,7 +312,7 @@ func (h *MissionsHandler) Board(ctx context.Context, meta envelope.Metadata, req
 				Reward: missionReward(snap, def), Blocked: why, Wait: left, Repeatable: def.Repeat == content.RepeatAgain,
 				Objectives: missionObjectives(snap, def, nil)})
 		}
-		return nil
+		return growthErr
 	})
 	if resp, err := h.finish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
@@ -404,7 +417,15 @@ func (h *MissionsHandler) Accept(ctx context.Context, meta envelope.Metadata, re
 		board, _ := snap.MissionBoard(def.Board)
 		if _, err := tx.Settlements().ByID(ctx, w.city.ID); err == nil {
 			// a settlement takes only the missions its stage reaches
-			if !stageReaches(snap, "mission", def.Code, w.city.Tier) || !stageReaches(snap, "mission_board", board.Code, w.city.Tier) {
+			mOK, err := settlementReaches(ctx, tx, snap, "mission", def.Code, w.city.ID, w.city.Tier)
+			if err != nil {
+				return err
+			}
+			bOK, err := settlementReaches(ctx, tx, snap, "mission_board", board.Code, w.city.ID, w.city.Tier)
+			if err != nil {
+				return err
+			}
+			if !mOK || !bOK {
 				return refuseMission(plife.MissionRefusedNotHere)
 			}
 		} else if !isSentinel(err, application.ErrCityNotFound) {
@@ -971,4 +992,22 @@ func stageReaches(snap *content.Snapshot, kind, code, tier string) bool {
 	}
 	need := content.StageRank(tag.Stage)
 	return need != 0 && content.StageRank(tierStage(tier)) >= need
+}
+
+// settlementReaches is stageReaches asked of what the settlement has as well
+// (ADR 0044 phase G1): the tier's answer, compared with the capability answer
+// through the growth gate, which decides once growth.capabilities is
+// authoritative. A tag with no stage is judged by capabilities alone.
+func settlementReaches(ctx context.Context, tx application.Tx, snap *content.Snapshot, kind, code, cityID, tier string) (bool, error) {
+	tierAnswer := stageReaches(snap, kind, code, tier)
+	gg := currentGrowth()
+	tag, ok := snap.AvailabilityTag(kind, code)
+	if gg == nil || !ok {
+		return tierAnswer, nil
+	}
+	caps, found, err := gg.InTx(ctx, tx, snap, cityID)
+	if err != nil {
+		return tierAnswer, err
+	}
+	return gg.Decide("missions", cityID, snap, caps, found, tag, tierAnswer), nil
 }

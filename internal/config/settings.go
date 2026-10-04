@@ -404,6 +404,7 @@ type settlementSettings struct {
 	DemolitionSalvageBPS   *int64  `yaml:"demolition_salvage_bps"`
 	MaterialMarkupBPS      *int64  `yaml:"material_markup_bps"`
 	StockBaseCapacity      *int64  `yaml:"stock_base_capacity"`
+	BuildHomesPerCrew      *int64  `yaml:"build_homes_per_crew"`
 	StorageSpoilKeptBPS    *int64  `yaml:"storage_spoil_kept_bps"`
 	StorageSpoilUnkeptBPS  *int64  `yaml:"storage_spoil_unkept_bps"`
 	StorageKeeperRuleAt    *string `yaml:"storage_keeper_rule_at"`
@@ -1367,6 +1368,9 @@ var coreSettings = []setting{
 	moneySetting("settlement", "stock_base_capacity",
 		func(c *Config) *int64 { return &c.Settlement.StockBaseCapacity },
 		func(f *fileConfig) *int64 { return f.Settlement.StockBaseCapacity }),
+	moneySetting("settlement", "build_homes_per_crew",
+		func(c *Config) *int64 { return &c.Settlement.BuildHomesPerCrew },
+		func(f *fileConfig) *int64 { return f.Settlement.BuildHomesPerCrew }),
 	moneySetting("settlement", "storage_spoil_kept_bps",
 		func(c *Config) *int64 { return &c.Settlement.StorageSpoilKeptBPS },
 		func(f *fileConfig) *int64 { return f.Settlement.StorageSpoilKeptBPS }),

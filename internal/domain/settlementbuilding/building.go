@@ -236,6 +236,21 @@ func ConcurrentCap(tier string) int {
 	return 1
 }
 
+// CrewCap is how many buildings a settlement may raise at once from what it
+// has: one crew for each homesPerCrew homes (the people who can raise a building),
+// never fewer than the old label's cap, which stays the floor for settlements
+// that were promoted before the ladder was retired. homesPerCrew 0 keeps the
+// label's cap alone.
+func CrewCap(tier string, homes, homesPerCrew int64) int {
+	n := ConcurrentCap(tier)
+	if homesPerCrew > 0 {
+		if c := int(1 + homes/homesPerCrew); c > n {
+			n = c
+		}
+	}
+	return n
+}
+
 // MinSettlementTier is the smallest settlement that may list and build this
 // building (ADR 0033 section 3): a role tier 1 is a village's, tier 2 a town's,
 // tier 3 and up a city's. A row with no role tier (a legacy row) is a
@@ -251,11 +266,13 @@ func (d Def) MinSettlementTier() string {
 	}
 }
 
-// ListedAt reports whether a settlement of this tier lists the building: its
-// own tier or below. An unknown tier lists nothing.
+// ListedAt reports whether a settlement lists the building as far as its label
+// goes. There is no ladder (owner scope rule 2026-10-02): a building's size says
+// nothing about who may raise it, only its own research, standing buildings and
+// the growth gate do. A settlement with an unknown tier label lists nothing.
 func (d Def) ListedAt(settlementTier string) bool {
-	have, ok := settlementTierRank[settlementTier]
-	return ok && have >= settlementTierRank[d.MinSettlementTier()]
+	_, ok := settlementTierRank[settlementTier]
+	return ok
 }
 
 // CanRotate reports whether rotating this building's footprint would

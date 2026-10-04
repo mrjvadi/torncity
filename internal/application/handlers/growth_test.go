@@ -352,11 +352,12 @@ func TestBuildingListingComparesTheTierEffectAlone(t *testing.T) {
 	// school (education L2) needs education L1 standing: a fresh village has none, so the capabilities
 	// agree with the tier (not listed) and nothing is metered
 	if got := g.DecideBuilding("build_menu", "c", snap, caps, true, "school", false); got {
-		t.Fatal("shadow keeps the tier answer")
+		t.Fatal("not listed")
 	}
 	// a building the village lists and could build, but whose Appendix A gate the village lacks (housing_block)
-	if got := g.DecideBuilding("build_menu", "c", snap, caps, true, "housing_block", true); !got {
-		t.Fatal("shadow keeps the tier answer")
+	// the size label lists nothing: what the village has decides, in every mode
+	if got := g.DecideBuilding("build_menu", "c", snap, caps, true, "housing_block", true); got {
+		t.Fatal("a building whose gate the village lacks was listed")
 	}
 	p := g.Pending()
 	if len(p) != 1 || p[0].Code != "housing_block" || !p[0].TierAnswer || p[0].CapabilityAnswer {

@@ -66,6 +66,8 @@ type VillageHandler struct {
 	// "village" is reachable today — promotion is a later phase — but the
 	// table costs nothing to carry in full.
 	concurrentBuildCap map[string]int
+	// homesPerCrew is settlement.build_homes_per_crew.
+	homesPerCrew int64
 	gridLotsByTier     map[string]int
 
 	// teachPeriod is how often the literacy diffusion tick runs, GAME
@@ -126,6 +128,8 @@ type gametimeScale interface {
 // 10 point 3).
 type VillageRules struct {
 	VillageGridLots       int
+	// HomesPerBuildCrew is settlement.build_homes_per_crew.
+	HomesPerBuildCrew int64
 	TeachPeriod           time.Duration
 	TeachRateBPS          int64
 	BaseSchoolCapacityBPS int64
@@ -167,6 +171,7 @@ func NewVillageHandler(uow application.UnitOfWork, ids IDGenerator, msgs Transla
 	return &VillageHandler{
 		uow: uow, ids: ids, msgs: msgs, content: source, worlds: worlds, cities: cities, scale: scale,
 		villageGridLots:       rules.VillageGridLots,
+		homesPerCrew:          rules.HomesPerBuildCrew,
 		concurrentBuildCap:    map[string]int{"village": settlementbuilding.ConcurrentCap("village"), "town": settlementbuilding.ConcurrentCap("town"), "city": settlementbuilding.ConcurrentCap("city")},
 		gridLotsByTier:        map[string]int{"village": rules.VillageGridLots, "town": 9, "city": 15},
 		teachPeriod:           rules.TeachPeriod,
@@ -501,7 +506,7 @@ func (h *VillageHandler) overview(ctx context.Context, meta envelope.Metadata, h
 		isHead := authorizeVillage(ctx, tx, s, viewer.ID) == nil
 		view = village.VillageOverviewView{
 			IsHead: isHead,
-			Name:   s.Name, Tier: s.Tier, Population: residents, PopulationCap: cap,
+			Name:   s.Name, Tier: application.TierCity, Population: residents, PopulationCap: cap,
 			Resident: home == s.CityID, SettlementID: s.CityID,
 			Treasury:         treasury,
 			FoodPercent:      int(coverage["food_coverage_bps"] / 100),
@@ -512,10 +517,7 @@ func (h *VillageHandler) overview(ctx context.Context, meta envelope.Metadata, h
 			LiteracyPercent:  literacyBPS / 100,
 			Buildings:        roleLines,
 		}
-		if view.Promotion, err = h.promotionOf(ctx, tx, snap, s, viewer.ID); err != nil {
-			return err
-		}
-		view.Development = currentGrowth() != nil // ADR 0044 phase G1: the readout is listed only while the flag is on
+		view.Development = true // the readout is the way forward; the promotion ladder is retired
 		if h.homeCityCode != "" {
 			if support, err := h.cities.ByCode(ctx, h.homeCityCode); err == nil {
 				view.Support = &village.VillageSupport{Code: support.Code, Name: support.Name}
@@ -694,4 +696,10 @@ func (h *VillageHandler) HomeIfVillage(ctx context.Context, meta envelope.Metada
 	}
 	resp, err := h.Home(ctx, meta)
 	return resp, err == nil, err
+}
+
+// buildCap is how many buildings the settlement may raise at once: one crew for
+// each build_homes_per_crew homes it has, at least what its old label gave.
+func (h *VillageHandler) buildCap(snap *content.Snapshot, s application.FoundedSettlement, buildings []application.SettlementBuildingInstance) int {
+	return settlementbuilding.CrewCap(s.Tier, housingOf(snap, buildings), h.homesPerCrew)
 }

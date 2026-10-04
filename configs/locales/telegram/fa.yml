@@ -291,6 +291,8 @@ village:
       transport: "رفت‌وآمد"
     next_title: "🧭 گام‌های پیش رو:"
     next_none: "گام دیگری پیش رو نیست."
+    next_research: "• می‌شود «{name}» را پژوهش کرد"
+    next_build: "• می‌شود «{name}» را ساخت"
   refusal:
     no_settlement: "🏡 این گروه هنوز شهری تأسیس نکرده است. برای شروع «ساخت شهر» را بفرستید."
     not_office_holder: "🔒 این کار فقط برای شهردار شهر ممکن است."
