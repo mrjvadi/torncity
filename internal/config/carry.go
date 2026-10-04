@@ -58,6 +58,22 @@ func (c *Config) validateCarry() error {
 	if c.Game.TravelTimeScale < 1 || c.Game.TravelTimeScale > maxTimeScale {
 		return fmt.Errorf("%w: game.travel_time_scale is %d", ErrInvalidTimeScale, c.Game.TravelTimeScale)
 	}
+	st := c.Settlement
+	for name, v := range map[string]int64{
+		"charter_election_term_days": st.CharterElectionTermDays, "charter_candidacy_hours": st.CharterCandidacyHours,
+		"charter_voting_hours": st.CharterVotingHours, "charter_recall_min_tenure_days": st.CharterRecallMinTenureDays,
+		"charter_recall_signature_bps": st.CharterRecallSignatureBPS, "charter_recall_min_signatures": st.CharterRecallMinSignatures,
+		"charter_recall_vote_hours": st.CharterRecallVoteHours, "charter_recall_cooldown_days": st.CharterRecallCooldownDays,
+		"charter_amend_vote_hours": st.CharterAmendVoteHours, "charter_amend_quorum_bps": st.CharterAmendQuorumBPS,
+		"charter_amend_vote_min_residents": st.CharterAmendVoteMinResidents, "charter_acting_days": st.CharterActingDays,
+	} {
+		if v < 1 {
+			return fmt.Errorf("%w: settlement.%s is %d (at least 1)", ErrInvalidValue, name, v)
+		}
+	}
+	if st.CharterRecallSignatureBPS > 10_000 || st.CharterAmendQuorumBPS > 10_000 || st.CharterMinResidencyDays < 0 || st.CharterActingSpendCap < 0 {
+		return fmt.Errorf("%w: settlement.charter_* shares must be at most 10000 and the residency and the cap not negative", ErrInvalidValue)
+	}
 	m := c.Merchant
 	switch {
 	case m.RestockHour > 23:

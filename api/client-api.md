@@ -790,6 +790,11 @@ needs a group.
 | `settlement.charter.office.save` | `office`? (empty creates; `"founder"` or an id edits), `title`, `seats`?, `grants` (`[{permission, limit?}]`), `acquisition`?, `term_days`? | create or edit an office (`village_charter_changed`); numbers may be sent as numbers or strings |
 | `settlement.charter.office.close` / `.appoint` / `.dismiss` / `.resign` | `office`, `player`? (public code) | close an office, seat or unseat a resident, leave an office |
 | `settlement.timezone.set` | `offset_minutes` (multiple of 15, -720..840) | the charter changes the settlement's own time zone (permission `settings.timezone`, once per `settlement.timezone_cooldown`); answers `village_charter_changed` |
+| `settlement.charter.election.open` | `office` (`"founder"` for the head seat) | call an election for an elected office (or the vacant head seat); permission `election.call` |
+| `settlement.charter.stand` | `ballot` | put the player's name on an election during candidacy |
+| `settlement.charter.vote` | `ballot`, `choice` (a candidate's public code, or `yes`/`no`) | one secret, final vote |
+| `settlement.charter.recall.start` | `office`, `player` (public code) | open a recall petition about a holder after their first days |
+| `settlement.charter.recall.sign` | `petition` | sign a petition; the signature that reaches the threshold opens the vote |
 | `settlement.road.cancel` | `id` | takes an unlaid, unsold road plan back (`settlement_road_cancelled`) |
 | `settlement.build.cancel` | `id` | calls off a building **under construction**; the spend is forfeited, the lot is free again |
 | `settlement.build.demolish` | `id` | removes a **finished** building; part of its cost returns to the treasury |
