@@ -465,8 +465,8 @@ func TestInjuryTreatedAtClinicAndRecovered(t *testing.T) {
 	resp, err = rdWith(t, catalog)(hosp.Hospital(ctx, w.meta(patient, "health.hospital")))
 	w.ok("health at discharge", resp, err, "Health: 60 of 100", "not in hospital")
 
-	// At rest the game clock gives health back: five game hours, 4 an hour.
-	w.advance(5 * time.Hour / gameScale)
+	// At rest health comes back at 4 a minute (240 an hour): five minutes.
+	w.advance(5 * time.Minute)
 	resp, err = rdWith(t, catalog)(hosp.Hospital(ctx, w.meta(patient, "health.hospital")))
 	w.ok("health after rest", resp, err, "Health: 80 of 100")
 	verifyLedger(t, w.pool)

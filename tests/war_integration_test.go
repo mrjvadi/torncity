@@ -482,8 +482,8 @@ func TestWarDeclaredFoughtTakenAndSuspended(t *testing.T) {
 	}
 	resp, err = rr(travel.Options(ctx, metaAs(stranger, "travel.options"), handlers.TravelOptionsRequest{City: "calderis"}))
 	said(t, "a journey across the front", resp, err, "war.blocked.border")
-	// Two hundred game hours heal any damage the content allows.
-	clock.Advance(200 * time.Minute)
+	// Two hundred game hours (real hours now) heal any damage the content allows.
+	clock.Advance(200 * time.Hour)
 	if text := board(farPresident, farCountryCode); contains(text, "war.board.damaged_line") {
 		t.Fatalf("the city has not healed: %s", text)
 	}

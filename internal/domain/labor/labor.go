@@ -51,8 +51,13 @@ type Level struct {
 
 // Rules are the tuning numbers of the market (config: labor.*).
 type Rules struct {
-	// ShiftMinutes is one construction shift, GAME minutes.
+	// ShiftMinutes is one construction shift in WORK minutes: the unit the build
+	// times of the content are counted in and a worker's points per shift. It is
+	// not how long a player waits; that is ShiftRealMinutes.
 	ShiftMinutes int64
+	// ShiftRealMinutes is how many REAL minutes a shift takes a player (0: the
+	// game clock maps ShiftMinutes). A sitting is minutes whatever the clock is.
+	ShiftRealMinutes int64
 	// ReferenceCrew is how many workers the content's build time assumes.
 	ReferenceCrew int64
 	// BaseWage is the wage of an NPC labourer per shift in a balanced market.
@@ -234,7 +239,7 @@ func ShiftsNeeded(remaining, pointsPerShift int64) int64 {
 // Default is the rule set the shipped config carries.
 func Default() Rules {
 	return Rules{
-		ShiftMinutes: 60, ReferenceCrew: 4, BaseWage: 30,
+		ShiftMinutes: 60, ShiftRealMinutes: 1, ReferenceCrew: 4, BaseWage: 30,
 		MinWage:          map[string]int64{"village": 10, "town": 15, "city": 25},
 		Curve:            []Point{{0, 7_000}, {5_000, 10_000}, {10_000, 15_000}, {20_000, 25_000}},
 		ParticipationBPS: 6_000, BaseHousing: 8, NPCProductivityBPS: 8_500, FeeBPS: 500, BudgetSlackBPS: 5_000,

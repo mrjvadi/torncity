@@ -71,9 +71,9 @@ How would you like to travel?
 (edits message 42)
 🚉 Departures by Train are from the train station.
 📍 You are at the city centre now.
-One press walks you to the train station (20s) and opens this page again there.
+One press walks you to the train station (1s) and opens this page again there.
   ───
-  [🚶 Go to the train station (20s)] → place:go:train_station:travel.options:brennhaven
+  [🚶 Go to the train station (1s)] → place:go:train_station:travel.options:brennhaven
   [🔙 Back] → player:profile.get
 
 ━━━ Walk to the station ━━━
@@ -261,18 +261,18 @@ How would you like to travel?
 (edits message 42)
 🚉 Departures by Flight are from the airport.
 📍 You are at the train station now.
-One press walks you to the airport (45s) and opens this page again there.
+One press walks you to the airport (1s) and opens this page again there.
   ───
-  [🚶 Go to the airport (45s)] → place:go:airport:travel.options:ostmarch
+  [🚶 Go to the airport (1s)] → place:go:airport:travel.options:ostmarch
   [🔙 Back] → player:profile.get
 
 ━━━ Pay the flight in cash anyway ━━━
 (edits message 42)
 🚉 Departures by Flight are from the airport.
 📍 You are at the train station now.
-One press walks you to the airport (45s) and opens this page again there.
+One press walks you to the airport (1s) and opens this page again there.
   ───
-  [🚶 Go to the airport (45s)] → place:go:airport:travel.options:ostmarch
+  [🚶 Go to the airport (1s)] → place:go:airport:travel.options:ostmarch
   [🔙 Back] → player:profile.get
 
 ━━━ Same city ━━━

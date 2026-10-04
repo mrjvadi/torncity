@@ -397,7 +397,7 @@ const workTelegramID = 4242
 
 // workScale is the game clock these tests run on, the one the game ships
 // with: a game hour is a real minute.
-const workScale = 60
+const workScale = 1
 
 func newWorkHarness(t *testing.T) *workHarness {
 	t.Helper()
@@ -969,9 +969,9 @@ func TestEnrollThenComplete(t *testing.T) {
 		t.Fatalf("scheduled = %d actions, want 1", n)
 	}
 	action := h.uow.tx.actions.scheduled[0]
-	// first_aid is a 2-hour course: 2 real minutes on the game clock.
-	if action.ActionType != application.EducationActionType || !action.FinishAt.Equal(h.now.Add(2*time.Minute)) {
-		t.Errorf("action = %+v, want education due in 2 real minutes", action)
+	// first_aid is a 2-hour course: 2 real hours (game time is real time).
+	if action.ActionType != application.EducationActionType || !action.FinishAt.Equal(h.now.Add(2*time.Hour)) {
+		t.Errorf("action = %+v, want education due in 2 real hours", action)
 	}
 	enrolment := h.uow.w.edu.active[h.player.ID]
 
@@ -984,7 +984,7 @@ func TestEnrollThenComplete(t *testing.T) {
 		t.Errorf("a refused enrolment charged: cash = %d", got)
 	}
 
-	h.now = h.now.Add(2 * time.Minute)
+	h.now = h.now.Add(2 * time.Hour)
 	req := CompleteCourseRequest{ActorID: h.player.ID, ReferenceID: enrolment.ID, ReferenceType: "enrollments"}
 	sched := h.meta("dispatch-1", "education.complete")
 	sched.TelegramUserID = 0

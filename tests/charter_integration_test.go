@@ -292,3 +292,92 @@ func TestCharterOfficesAndRails(t *testing.T) {
 		t.Error("the charter log could be deleted")
 	}
 }
+
+// A settlement has its own time zone: written at founding from its longitude, changed
+// only by the holder of settings.timezone, no more often than the cooldown, audited.
+func TestSettlementTimezone(t *testing.T) {
+	e := newFoundingEnv(t)
+	pool := e.pool
+	ctx := testCtx(t)
+	catalog, err := i18n.Load(filepath.Join("..", "configs", "locales"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	uow := postgres.NewUnitOfWork(pool, testDefaultLanguage)
+	village := handlers.NewVillageHandler(uow, workIDs{t}, catalog, staticContentSource{snap: loadTestContent(t)}, e.cache,
+		postgres.NewCityRepository(pool), gametime.Scale(1),
+		handlers.VillageRules{
+			VillageGridLots: 5, TeachPeriod: time.Second, TeachRateBPS: 10_000, TimezoneCooldown: 24 * time.Hour,
+			BaseSchoolCapacityBPS: 10_000, ScarcityKBPS: 10_000, ScarcityFloorBPS: 3_000, ScarcityCapBPS: 80_000, SellerBandBPS: 500,
+			HomeCityCode: "support", MaterialMarkupBPS: 12_000, StockBaseCapacity: 60, MaterialBuyMax: 200,
+			MaterialBuyPresets: []int64{5, 20, 50},
+		}, time.Hour, e.clock.Now)
+	meta, founder := e.group(t)
+	foundVillage(t, pool, e.h, meta)
+	var cityID string
+	var zone *int
+	if err := pool.Raw().QueryRow(ctx, `SELECT id::text, tz_offset_minutes FROM cities WHERE founded_by_group_id = $1`, meta.TelegramChatID).Scan(&cityID, &zone); err != nil {
+		t.Fatal(err)
+	}
+	if zone == nil || *zone%60 != 0 || *zone < -720 || *zone > 720 {
+		t.Fatalf("a new settlement's zone = %v: want a whole hour from its longitude", zone)
+	}
+	other := insertPlayer(t, pool)
+	if _, err := pool.Raw().Exec(ctx, `UPDATE players SET city_id = $1::uuid, residence_city_id = $1::uuid WHERE id = $2::uuid`, cityID, other.ID); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		c := testCtx(t)
+		_, _ = pool.Raw().Exec(c, `ALTER TABLE charter_audit DISABLE TRIGGER charter_audit_no_change`)
+		_, _ = pool.Raw().Exec(c, `DELETE FROM charter_audit WHERE settlement_id = $1::uuid`, cityID)
+		_, _ = pool.Raw().Exec(c, `ALTER TABLE charter_audit ENABLE TRIGGER charter_audit_no_change`)
+	})
+	set := func(p *application.Player, minutes int) string {
+		t.Helper()
+		m := asPlayer(meta, p)
+		m.Command = "settlement.timezone.set"
+		m.RequestID = "req_" + randomToken(t, 16)
+		m.IdempotencyKey = "it-" + randomToken(t, 16)
+		resp, err := village.TimezoneSet(ctx, m, handlers.VillageZoneRequest{OffsetMinutes: handlers.CharterInt(minutes)})
+		if err != nil {
+			t.Fatal(err)
+		}
+		var v vpres.VillageRefusalView
+		if resp.Screen == vpres.ScreenVillageRefusal && presentation.DecodeView(resp.View, &v) == nil {
+			return v.Kind
+		}
+		return ""
+	}
+	current := func() int {
+		var z int
+		if err := pool.Raw().QueryRow(ctx, `SELECT tz_offset_minutes FROM cities WHERE id = $1::uuid`, cityID).Scan(&z); err != nil {
+			t.Fatal(err)
+		}
+		return z
+	}
+	if k := set(other, 330); k != vpres.VillageNotOfficeHolder {
+		t.Errorf("a plain resident changed the zone: %q", k)
+	}
+	if k := set(founder, 100); k != vpres.CharterZoneInvalid {
+		t.Errorf("a zone that is not a multiple of 15 minutes: %q", k)
+	}
+	if k := set(founder, 900); k != vpres.CharterZoneInvalid {
+		t.Errorf("a zone east of +14h: %q", k)
+	}
+	if k := set(founder, 345); k != "" {
+		t.Fatalf("the founder could not set the zone: %q", k)
+	}
+	if current() != 345 {
+		t.Errorf("zone = %d, want 345 (+05:45)", current())
+	}
+	if k := set(founder, -480); k != vpres.CharterZoneCooldown {
+		t.Errorf("a second change inside the cooldown: %q", k)
+	}
+	e.clock.Advance(25 * time.Hour)
+	if k := set(founder, -480); k != "" || current() != -480 {
+		t.Errorf("after the cooldown: %q zone %d", k, current())
+	}
+	if n := e.count(t, `SELECT count(*) FROM charter_audit WHERE settlement_id = $1::uuid AND action = 'timezone_changed'`, cityID); n != 2 {
+		t.Errorf("%d audit lines for 2 changes", n)
+	}
+}

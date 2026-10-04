@@ -78,6 +78,10 @@ func (h *MarketHandler) villageBookOf(ctx context.Context, tx application.Tx, sn
 	if founded, err := tx.Settlements().IsFounded(ctx, city.ID); err != nil || !founded {
 		return vb, err
 	}
+	zone := time.Duration(0)
+	if fs, err := tx.Settlements().ByID(ctx, city.ID); err == nil {
+		zone = fs.Zone()
+	}
 	here, err := judgeSettlementOf(ctx, tx, snap, city, h.home)
 	if err != nil {
 		return vb, err
@@ -123,7 +127,7 @@ func (h *MarketHandler) villageBookOf(ctx context.Context, tx application.Tx, sn
 			return vb, err
 		}
 		for _, o := range owned {
-			if o.Code == "periodic_market" && h.village.Clock.DayAt(now)%int64(h.village.DayEveryDays) == 0 {
+			if o.Code == "periodic_market" && h.village.Clock.DayAtIn(now, zone)%int64(h.village.DayEveryDays) == 0 {
 				vb.MarketDay = true
 				vb.ListingBPS, vb.DuesBPS = 0, vb.DuesBPS/2
 			}

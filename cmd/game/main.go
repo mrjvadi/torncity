@@ -349,7 +349,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			// read only through the resolver (ADR 0015).
 			liveTransport{registry: registry},
 			postgres.NewPolicyReader(pool, nil),
-			cfg.Game.TimeScale,
+			cfg.Game.TravelTimeScale,
 			int64(cfg.Travel.ArrivalXP),
 			cfg.Game.IdempotencyTTL,
 			nil,
@@ -453,6 +453,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 				MaterialMarkupBPS:     cfg.Settlement.MaterialMarkupBPS,
 				StockBaseCapacity:     cfg.Settlement.StockBaseCapacity,
 				HomesPerBuildCrew:     cfg.Settlement.BuildHomesPerCrew,
+				TimezoneCooldown:      cfg.Settlement.TimezoneCooldown,
 				CharterLimits: charter.Limits{MaxOffices: int(cfg.Settlement.CharterMaxOffices), MaxSeats: int(cfg.Settlement.CharterMaxSeats),
 					MaxPermissions: int(cfg.Settlement.CharterMaxPermissions), TitleMin: int(cfg.Settlement.CharterTitleMin), TitleMax: int(cfg.Settlement.CharterTitleMax)},
 				MaterialBuyMax:        cfg.Settlement.MaterialBuyMax,

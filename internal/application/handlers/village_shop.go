@@ -246,12 +246,14 @@ func shopLineOpen(l content.VillageShopLineDef, st shopState) bool {
 
 // restockDay is the number of the restock day at now, -1 before the first
 // morning.
-func (h *VillageHandler) restockDay(now time.Time) int64 {
-	return h.shop.Clock.DayAtHour(now, h.shop.RestockHour)
+func (h *VillageHandler) restockDay(s application.FoundedSettlement, now time.Time) int64 {
+	return h.shop.Clock.DayAtHourIn(now, h.shop.RestockHour, s.Zone())
 }
 
-func (h *VillageHandler) nextDelivery(now time.Time) time.Time {
-	return h.shop.Clock.RealAtHour(h.restockDay(now)+1, h.shop.RestockHour)
+// nextDelivery is the real instant of the next morning delivery: the restock hour
+// of the settlement's own local time.
+func (h *VillageHandler) nextDelivery(s application.FoundedSettlement, now time.Time) time.Time {
+	return h.shop.Clock.RealAtHourIn(h.restockDay(s, now)+1, h.shop.RestockHour, s.Zone())
 }
 
 // SettleShopDay brings a village's shop up to the current morning: if the day's
@@ -263,7 +265,7 @@ func (h *VillageHandler) SettleShopDay(ctx context.Context, tx application.Tx, s
 	if !h.shop.enabled() {
 		return nil, nil
 	}
-	day := h.restockDay(now)
+	day := h.restockDay(s, now)
 	if day < 0 {
 		return nil, nil
 	}
@@ -423,7 +425,7 @@ func (h *VillageHandler) shopView(ctx context.Context, tx application.Tx, meta e
 	room := cst.room(h.shop.Carry)
 	view := village.VillageShopView{
 		Village: s.Name, Building: st.boosted, Closed: shopClosed(day),
-		NextDelivery: h.nextDelivery(now), DeliveryHour: h.shop.RestockHour, Wage: st.wage, TaxBPS: taxBPS,
+		NextDelivery: h.nextDelivery(s, now), DeliveryHour: h.shop.RestockHour, ZoneMinutes: int(s.Zone() / time.Minute), Wage: st.wage, TaxBPS: taxBPS,
 		TaxMaxBPS: h.shop.TaxMax, TaxPresets: h.shop.TaxPresets,
 		PriceCapBPS: capBPS, CapMinBPS: h.shop.Rules.MarkupMinBPS, CapMaxBPS: h.shop.Rules.MarkupMaxBPS,
 		CapPresets: h.shop.CapPresets, CanSetCap: head, Presets: h.shop.BuyPresets, Resident: present,
@@ -605,7 +607,7 @@ func (h *VillageHandler) ShopBuy(ctx context.Context, meta envelope.Metadata, re
 			return err
 		}
 		if closed := shopClosed(day); closed != village.ShopOpen {
-			return h.shopRefused(village.VillageShopRefusalView{Kind: village.ShopRefusedClosed, Closed: closed, NextDelivery: h.nextDelivery(now)})
+			return h.shopRefused(village.VillageShopRefusalView{Kind: village.ShopRefusedClosed, Closed: closed, NextDelivery: h.nextDelivery(s, now)})
 		}
 		st, err := h.shopStateOf(ctx, tx, snap, s)
 		if err != nil {
@@ -635,10 +637,10 @@ func (h *VillageHandler) ShopBuy(ctx context.Context, meta envelope.Metadata, re
 			left := max(st.rules.PlayerDayCap(ol.line, planned.Units)-boughtToday, 0)
 			if stderrors.Is(err, vshop.ErrPlayerCap) {
 				return h.shopRefused(village.VillageShopRefusalView{Kind: village.ShopRefusedCap, Item: name, LeftToday: left, Stock: row.Stock,
-					NextDelivery: h.nextDelivery(now)})
+					NextDelivery: h.nextDelivery(s, now)})
 			}
 			return h.shopRefused(village.VillageShopRefusalView{Kind: village.ShopRefusedSoldOut, Item: name, Stock: row.Stock,
-				NextDelivery: h.nextDelivery(now)})
+				NextDelivery: h.nextDelivery(s, now)})
 		}
 		// No room, no sale.
 		cenv := carryEnv{rules: h.shop.Carry, clock: h.shop.Clock}
@@ -889,7 +891,7 @@ func (h *VillageHandler) ShopRepair(ctx context.Context, meta envelope.Metadata,
 			return err
 		}
 		if closed := shopClosed(day); closed != village.ShopOpen {
-			return h.shopRefused(village.VillageShopRefusalView{Kind: village.ShopRefusedClosed, Closed: closed, NextDelivery: h.nextDelivery(now)})
+			return h.shopRefused(village.VillageShopRefusalView{Kind: village.ShopRefusedClosed, Closed: closed, NextDelivery: h.nextDelivery(s, now)})
 		}
 		st, err := h.shopStateOf(ctx, tx, snap, s)
 		if err != nil {

@@ -322,13 +322,14 @@ func (h *VillageHandler) settleStorageDay(ctx context.Context, tx application.Tx
 	}
 	repo := tx.VillageStorage()
 	now := h.now()
-	today := h.storage.Clock.DayAt(now)
-	if d, err := repo.Day(ctx, settlementID, today); err != nil || d != nil {
-		return d, err
-	}
 	s, err := tx.Settlements().ByID(ctx, settlementID)
 	if err != nil {
 		return nil, err
+	}
+	// a store's day is the settlement's own local day
+	today := h.storage.Clock.DayAtIn(now, s.Zone())
+	if d, err := repo.Day(ctx, settlementID, today); err != nil || d != nil {
+		return d, err
 	}
 	last, err := repo.Last(ctx, settlementID)
 	if err != nil {
@@ -375,6 +376,14 @@ func (h *VillageHandler) settleStorageDay(ctx context.Context, tx application.Tx
 	if last != nil {
 		d.SpoilCarry = last.SpoilCarry
 		days := min(today-last.Day, maxSpoilDays)
+		if days < 0 {
+			days = 0 // a zone change moved the day number back: nothing spoils twice
+		}
+		if h.storage.Clock.IsLegacyDay(last.Day) && !h.storage.Clock.IsLegacyDay(today) {
+			// the last settled day was counted by the compressed clock: the cut-over
+			// settles one real day, not every compressed day that lies between
+			days = min(days, 1)
+		}
 		if days > 0 {
 			bps := h.storage.SpoilUnkeptBPS
 			for i, st := range stores {

@@ -93,7 +93,7 @@ Requirements:
 ⬆️ Next position: Sales Associate
 Still needed for a promotion:
 <blockquote expandable>❌ Performance 55 (yours is 50)
-❌ 24m more in this position
+❌ 24h more in this position
 ❌ 6 shifts in this position (you have 0)
 ❌ Level 3 (you are level 1)
 ❌ Management level 2 (you have 0)</blockquote>
@@ -156,7 +156,7 @@ Still needed for a promotion:
 ⬆️ Next position: Sales Associate
 Still needed for a promotion:
 <blockquote expandable>❌ Performance 55 (yours is 50)
-❌ 24m more in this position
+❌ 24h more in this position
 ❌ 6 shifts in this position (you have 0)
 ❌ Level 3 (you are level 1)
 ❌ Management level 2 (you have 0)</blockquote>
@@ -222,7 +222,7 @@ Your pay, XP and performance are settled when the shift ends, and you will be no
 ⬆️ Next position: Sales Associate
 Still needed for a promotion:
 <blockquote expandable>❌ Performance 55 (yours is 50)
-❌ 23m more in this position
+❌ 23h 59m more in this position
 ❌ 6 shifts in this position (you have 0)
 ❌ Level 3 (you are level 1)
 ❌ Management level 2 (you have 0)</blockquote>
@@ -269,7 +269,7 @@ Still needed for a promotion:
 ⬆️ Next position: Sales Associate
 Still needed for a promotion:
 <blockquote expandable>❌ Performance 55 (yours is 51)
-❌ 20m more in this position
+❌ 23h 56m more in this position
 ❌ 6 shifts in this position (you have 1)
 ❌ Level 3 (you are level 1)
 ❌ Management level 2 (you have 0)</blockquote>
@@ -282,7 +282,7 @@ Still needed for a promotion:
 (edits message 42)
 You are not ready for a promotion yet:
 ❌ Performance 55 (yours is 51)
-❌ 20m more in this position
+❌ 23h 56m more in this position
 ❌ 6 shifts in this position (you have 1)
 ❌ Level 3 (you are level 1)
 ❌ Management level 2 (you have 0)

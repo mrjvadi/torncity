@@ -164,7 +164,7 @@ func TestABagWearsByTheGameDayOnlyWhenHalfFull(t *testing.T) {
 		t.Fatalf("a new sack has %d wear points, want 40", start)
 	}
 
-	w.now = w.now.Add(3 * 24 * time.Minute) // three game days
+	w.now = w.now.Add(3 * 24 * time.Hour) // three game days
 	for _, p := range []*application.Player{full, light} {
 		w.inventory(t, p)
 		w.inventory(t, p) // reading again charges nothing more

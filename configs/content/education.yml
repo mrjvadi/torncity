@@ -39,7 +39,7 @@ courses:
     name: Literacy Class
     institution: training_center
     cost: 200
-    duration: 12h
+    duration: 3h
     min_level: 0
     certifies: true
 

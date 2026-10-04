@@ -101,6 +101,10 @@ type VillageRoleLine struct {
 // 8.1's coverage numbers, ADR 0031 section 4.4's literacy).
 type VillageOverviewView struct {
 	Name string
+	// ZoneMinutes is the settlement's own time zone, minutes east of UTC: its daily
+	// rhythms (the shop's morning, the stores' day, the market day) run on local
+	// time there. A client shows its own device time beside it.
+	ZoneMinutes int
 	// Tier is "village", "town" or "city" (ADR 0028 section 4).
 	Tier string
 	// Population is the players who live here; PopulationCap is the homes the
@@ -1312,6 +1316,8 @@ const (
 	CharterAcquisition   = "charter_acquisition"
 	CharterSeatsFull     = "charter_seats_full"
 	CharterAlreadySeated = "charter_already_seated"
+	CharterZoneInvalid   = "charter_zone_invalid"
+	CharterZoneCooldown  = "charter_zone_cooldown"
 	// CharterOverLimit: the act costs more than the office's ceiling for one spend.
 	CharterOverLimit = "charter_over_limit"
 )
@@ -1374,17 +1380,23 @@ type CharterLimitsView struct {
 // CharterView is the charter of a settlement as one viewer sees it (ADR 0044 6).
 // The booleans say which acts the viewer may make; Mine is everything they hold.
 type CharterView struct {
-	Village      string                  `json:"village"`
-	SettlementID string                  `json:"settlement_id,omitempty"`
-	Offices      []CharterOfficeView     `json:"offices"`
-	Mine         []CharterGrantView      `json:"mine"`
-	CanCreate    bool                    `json:"can_create,omitempty"`
-	CanEdit      bool                    `json:"can_edit,omitempty"`
-	CanAppoint   bool                    `json:"can_appoint,omitempty"`
-	CanDismiss   bool                    `json:"can_dismiss,omitempty"`
-	Permissions  []CharterPermissionView `json:"permissions"`
-	Audit        []CharterAuditView      `json:"audit"`
-	Limits       CharterLimitsView       `json:"limits"`
+	Village      string              `json:"village"`
+	SettlementID string              `json:"settlement_id,omitempty"`
+	Offices      []CharterOfficeView `json:"offices"`
+	Mine         []CharterGrantView  `json:"mine"`
+	CanCreate    bool                `json:"can_create,omitempty"`
+	CanEdit      bool                `json:"can_edit,omitempty"`
+	CanAppoint   bool                `json:"can_appoint,omitempty"`
+	CanDismiss   bool                `json:"can_dismiss,omitempty"`
+	// ZoneMinutes is the settlement's time zone (minutes east of UTC) and CanSetZone
+	// says the viewer holds settings.timezone; ZoneNextChange is when it may change
+	// again (absent: now).
+	ZoneMinutes    int                     `json:"zone_minutes"`
+	CanSetZone     bool                    `json:"can_set_zone,omitempty"`
+	ZoneNextChange *time.Time              `json:"zone_next_change,omitempty"`
+	Permissions    []CharterPermissionView `json:"permissions"`
+	Audit          []CharterAuditView      `json:"audit"`
+	Limits         CharterLimitsView       `json:"limits"`
 }
 
 // CharterChangedView is the answer to an act on the charter. Action is one of

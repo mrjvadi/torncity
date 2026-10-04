@@ -550,6 +550,13 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 			}
 			return h.village.CharterResign(ctx, env.Metadata, req)
 		},
+		"settlement.timezone.set": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageZoneRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.TimezoneSet(ctx, env.Metadata, req)
+		},
 		"settlement.money": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			return h.village.Money(ctx, env.Metadata)
 		},
@@ -848,7 +855,7 @@ func worldRoutes(cfg *config.Config, cache *application.WorldCache, registry *co
 	for code, s := range spots {
 		locations[code] = handlers.GeoPoint{LatDeg: s.LatDeg, LonDeg: s.LonDeg}
 	}
-	return handlers.NewWorldRoutes(cache, locations, cfg.WorldGen.PlanetRadiusKm, cfg.Game.TimeScale,
+	return handlers.NewWorldRoutes(cache, locations, cfg.WorldGen.PlanetRadiusKm, cfg.Game.TravelTimeScale,
 		liveWorldTransport{registry: registry, reach: reach}), nil
 }
 

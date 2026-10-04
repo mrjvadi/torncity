@@ -100,6 +100,7 @@ type trainingSettings struct {
 
 type laborSettings struct {
 	ShiftMinutes       *int64  `yaml:"shift_minutes"`
+	ShiftRealMinutes   *int64  `yaml:"shift_real_minutes"`
 	ReferenceCrew      *int64  `yaml:"reference_crew"`
 	BaseWage           *int64  `yaml:"base_wage"`
 	MinWageVillage     *int64  `yaml:"min_wage_village"`
@@ -233,6 +234,9 @@ type gameSettings struct {
 	ContentReloadInterval *string `yaml:"content_reload_interval"`
 	TimeScale             *int    `yaml:"time_scale"`
 	ClockEpoch            *string `yaml:"clock_epoch"`
+	ClockLegacyScale      *int    `yaml:"clock_legacy_scale"`
+	ClockCutover          *string `yaml:"clock_cutover"`
+	TravelTimeScale       *int    `yaml:"travel_time_scale"`
 	CommandTimeout        *string `yaml:"command_timeout"`
 }
 
@@ -360,6 +364,7 @@ type growthSettings struct {
 type settlementSettings struct {
 	ProtectionWindow        *string  `yaml:"protection_window"`
 	ResidenceCooldown       *string  `yaml:"residence_cooldown"`
+	TimezoneCooldown        *string  `yaml:"timezone_cooldown"`
 	HomeCityCode            *string  `yaml:"home_city_code"`
 	PropertyHubMinStage     *string  `yaml:"property_hub_min_stage"`
 	MinSpawnDistanceKm      *float64 `yaml:"min_spawn_distance_km"`
@@ -1163,6 +1168,15 @@ var coreSettings = []setting{
 	durationSetting("growth", "flush_interval",
 		func(c *Config) *time.Duration { return &c.Growth.FlushInterval },
 		func(f *fileConfig) *string { return f.Growth.FlushInterval }),
+	limitSetting("game", "clock_legacy_scale",
+		func(c *Config) *int { return &c.Game.ClockLegacyScale },
+		func(f *fileConfig) *int { return f.Game.ClockLegacyScale }),
+	stringSetting("game", "clock_cutover",
+		func(c *Config) *string { return &c.Game.ClockCutover },
+		func(f *fileConfig) *string { return f.Game.ClockCutover }),
+	limitSetting("game", "travel_time_scale",
+		func(c *Config) *int { return &c.Game.TravelTimeScale },
+		func(f *fileConfig) *int { return f.Game.TravelTimeScale }),
 	stringSetting("game", "clock_epoch",
 		func(c *Config) *string { return &c.Game.ClockEpoch },
 		func(f *fileConfig) *string { return f.Game.ClockEpoch }),
@@ -1244,6 +1258,9 @@ var coreSettings = []setting{
 	durationSetting("settlement", "protection_window",
 		func(c *Config) *time.Duration { return &c.Settlement.ProtectionWindow },
 		func(f *fileConfig) *string { return f.Settlement.ProtectionWindow }),
+	durationSetting("settlement", "timezone_cooldown",
+		func(c *Config) *time.Duration { return &c.Settlement.TimezoneCooldown },
+		func(f *fileConfig) *string { return f.Settlement.TimezoneCooldown }),
 	durationSetting("settlement", "residence_cooldown",
 		func(c *Config) *time.Duration { return &c.Settlement.ResidenceCooldown },
 		func(f *fileConfig) *string { return f.Settlement.ResidenceCooldown }),
@@ -1507,6 +1524,9 @@ var coreSettings = []setting{
 		func(c *Config) *int64 { return &c.Training.GymFee },
 		func(f *fileConfig) *int64 { return f.Training.GymFee }),
 
+	moneySetting("labor", "shift_real_minutes",
+		func(c *Config) *int64 { return &c.Labor.ShiftRealMinutes },
+		func(f *fileConfig) *int64 { return f.Labor.ShiftRealMinutes }),
 	moneySetting("labor", "shift_minutes",
 		func(c *Config) *int64 { return &c.Labor.ShiftMinutes },
 		func(f *fileConfig) *int64 { return f.Labor.ShiftMinutes }),

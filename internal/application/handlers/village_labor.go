@@ -359,7 +359,7 @@ func (h *VillageHandler) startLaborShift(ctx context.Context, tx application.Tx,
 		}
 	}
 
-	sh.FinishAt = now.Add(h.scale.RealWait(time.Duration(h.labor.ShiftMinutes) * time.Minute))
+	sh.FinishAt = now.Add(h.shiftWait())
 	actionID, err := h.schedule(ctx, tx, application.SettlementWorkActionType, application.SettlementShiftItemReference, shiftID, s.CityID, now, sh.FinishAt)
 	if err != nil {
 		return err
@@ -1184,4 +1184,13 @@ func (h *VillageHandler) TrainerSeat(ctx context.Context, tx application.Tx, set
 		class = int64(r.WageBPS)
 	}
 	return m.line.Available, m.line.NPCWage * class / 10_000, nil
+}
+
+// shiftWait is how long one construction shift takes a player: the configured real
+// minutes, else the game clock's mapping of the work minutes.
+func (h *VillageHandler) shiftWait() time.Duration {
+	if h.labor.ShiftRealMinutes > 0 {
+		return time.Duration(h.labor.ShiftRealMinutes) * time.Minute
+	}
+	return h.scale.RealWait(time.Duration(h.labor.ShiftMinutes) * time.Minute)
 }

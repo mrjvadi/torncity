@@ -71,6 +71,8 @@ type VillageHandler struct {
 	homesPerCrew int64
 	// charterLimits are the caps of rail R4 (settlement.charter_*).
 	charterLimits charter.Limits
+	// tzCooldown is settlement.timezone_cooldown.
+	tzCooldown time.Duration
 	gridLotsByTier     map[string]int
 
 	// teachPeriod is how often the literacy diffusion tick runs, GAME
@@ -135,6 +137,8 @@ type VillageRules struct {
 	HomesPerBuildCrew int64
 	// CharterLimits are settlement.charter_* (zero: the defaults).
 	CharterLimits charter.Limits
+	// TimezoneCooldown is settlement.timezone_cooldown.
+	TimezoneCooldown time.Duration
 	TeachPeriod           time.Duration
 	TeachRateBPS          int64
 	BaseSchoolCapacityBPS int64
@@ -178,6 +182,7 @@ func NewVillageHandler(uow application.UnitOfWork, ids IDGenerator, msgs Transla
 		villageGridLots:       rules.VillageGridLots,
 		homesPerCrew:          rules.HomesPerBuildCrew,
 		charterLimits:         rules.CharterLimits,
+		tzCooldown:            rules.TimezoneCooldown,
 		concurrentBuildCap:    map[string]int{"village": settlementbuilding.ConcurrentCap("village"), "town": settlementbuilding.ConcurrentCap("town"), "city": settlementbuilding.ConcurrentCap("city")},
 		gridLotsByTier:        map[string]int{"village": rules.VillageGridLots, "town": 9, "city": 15},
 		teachPeriod:           rules.TeachPeriod,
@@ -512,7 +517,7 @@ func (h *VillageHandler) overview(ctx context.Context, meta envelope.Metadata, h
 		isHead, _ := h.holdsAnyOffice(ctx, tx, s, viewer.ID)
 		view = village.VillageOverviewView{
 			IsHead: isHead,
-			Name:   s.Name, Tier: application.TierCity, Population: residents, PopulationCap: cap,
+			Name:   s.Name, ZoneMinutes: int(s.Zone() / time.Minute), Tier: application.TierCity, Population: residents, PopulationCap: cap,
 			Resident: home == s.CityID, SettlementID: s.CityID,
 			Treasury:         treasury,
 			FoodPercent:      int(coverage["food_coverage_bps"] / 100),

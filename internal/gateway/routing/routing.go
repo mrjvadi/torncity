@@ -489,6 +489,7 @@ var argNames = map[string][]string{
 	"settlement.charter.appoint":      {"office", "player"},
 	"settlement.charter.dismiss":      {"office", "player"},
 	"settlement.charter.resign":       {"office"},
+	"settlement.timezone.set":         {"offset_minutes"},
 	"settlement.shop":                 {},
 	"settlement.shop.buy":             {"item", "qty", "method", "nonce"},
 	"settlement.shop.cap":             {"bps"},

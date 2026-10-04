@@ -50,45 +50,45 @@ places:
   - code: city_centre
     name: City centre
     default: true
-    move_time: 10m
+    move_time: 10s
     opportunity_bps: 10000
     security: 0
   # Stalls, shops and the market floor: the busiest place in town.
   - code: bazaar
     name: Bazaar
-    move_time: 15m
+    move_time: 15s
     services: [market]
     work_categories: [food]
     opportunity_bps: 12000
     security: 2
   - code: business_district
     name: Business district
-    move_time: 15m
+    move_time: 15s
     services: [bank, auction_house]
     work_categories: [commerce, finance, technology]
     opportunity_bps: 6000
     security: 6
   - code: university
     name: University quarter
-    move_time: 20m
+    move_time: 20s
     services: [university, training_center]
     opportunity_bps: 7000
     security: 4
   - code: city_hall
     name: Civic centre
-    move_time: 10m
+    move_time: 10s
     services: [city_hall]
     opportunity_bps: 5000
     security: 10
   - code: police_station
     name: Police station
-    move_time: 15m
+    move_time: 15s
     services: [police]
     opportunity_bps: 1000
     security: 40
   - code: bus_terminal
     name: Bus terminal
-    move_time: 15m
+    move_time: 15s
     requires: [bus_terminal]
     arrivals: [bus]
     opportunity_bps: 11000
@@ -97,14 +97,14 @@ places:
   # pickpocketing in town, and a transit police presence to match.
   - code: train_station
     name: Train station
-    move_time: 20m
+    move_time: 20s
     requires: [rail_station]
     arrivals: [train]
     opportunity_bps: 13000
     security: 3
   - code: airport
     name: Airport
-    move_time: 45m
+    move_time: 45s
     energy: 2
     requires: [airport]
     arrivals: [flight]
@@ -112,7 +112,7 @@ places:
     security: 12
   - code: industrial_zone
     name: Industrial zone
-    move_time: 30m
+    move_time: 30s
     work_categories: [transport, trades]
     opportunity_bps: 7000
     security: 2
@@ -120,13 +120,13 @@ places:
   # supply store sells seed.
   - code: farmland
     name: Farmland
-    move_time: 40m
+    move_time: 40s
     energy: 1
     opportunity_bps: 3000
     security: 1
   - code: hospital
     name: Hospital
-    move_time: 20m
+    move_time: 20s
     work_categories: [medical]
     opportunity_bps: 5000
     security: 8
@@ -135,17 +135,17 @@ places:
   # gate.
   - code: barracks
     name: Barracks
-    move_time: 30m
+    move_time: 30s
     work_categories: [military]
     opportunity_bps: 1000
     security: 45
   - code: residential_area
     name: Residential area
-    move_time: 25m
+    move_time: 25s
     opportunity_bps: 8000
     security: 3
   - code: park
     name: City park
-    move_time: 15m
+    move_time: 15s
     opportunity_bps: 9000
     security: 1

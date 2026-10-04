@@ -53,7 +53,7 @@ version: 1
 
 production_methods:
   - {method: extract,   setup: 15m, work_per_unit: 1h,  min_cycle: 2h}
-  - {method: grow,      setup: 30m, work_per_unit: 30m, min_cycle: 12h}
+  - {method: grow,      setup: 30m, work_per_unit: 30m, min_cycle: 72h}
   - {method: formulate, setup: 15m, work_per_unit: 20m}
   - {method: assemble,  setup: 30m, work_per_unit: 45m}
 

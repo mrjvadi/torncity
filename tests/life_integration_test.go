@@ -153,8 +153,8 @@ func TestNeedsDriftAndAMealAndANightBringThemDown(t *testing.T) {
 		t.Fatalf("a new life starts at %d hunger, %d sleep; content says %+v", life.Points(start.Hunger),
 			life.Points(start.Sleep), w.def.Needs.Start)
 	}
-	// Two game days go by: at scale 60, 48 real minutes.
-	w.now = w.now.Add(48 * time.Minute)
+	// Two game days go by: 48 real hours (game time is real time).
+	w.now = w.now.Add(48 * time.Hour)
 	w.ok(t, "life.me")(w.life.Me(ctx, w.meta(t, p, "life.me")))
 	later := w.lifeRow(t, p.ID)
 	wantHunger := min(w.def.Needs.Start.Hunger+int(2*w.def.Needs.HungerPerGameDay), life.MaxPoints)

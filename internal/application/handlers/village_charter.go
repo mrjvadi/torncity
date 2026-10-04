@@ -7,9 +7,11 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/domain/charter"
+	"github.com/mrjvadi/torncity/internal/domain/gametime"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/presentation"
 	"github.com/mrjvadi/torncity/internal/presentation/village"
@@ -212,20 +214,20 @@ type VillageCharterRequest struct {
 	Office string `json:"office,omitempty"`
 	// Title, Seats, Grants, Acquisition and TermDays are an office being saved.
 	Title       string                `json:"title,omitempty"`
-	Seats       charterInt            `json:"seats,omitempty"`
+	Seats       CharterInt            `json:"seats,omitempty"`
 	Grants      []VillageCharterGrant `json:"grants,omitempty"`
 	Acquisition string                `json:"acquisition,omitempty"`
-	TermDays    charterInt            `json:"term_days,omitempty"`
+	TermDays    CharterInt            `json:"term_days,omitempty"`
 	// Player is a resident's public code (appoint, dismiss).
 	Player string `json:"player,omitempty"`
 }
 
-// charterInt reads a whole number sent as a number or as a string: a client's
+// CharterInt reads a whole number sent as a number or as a string: a client's
 // arguments reach the handler as strings, like a button's.
-type charterInt int
+type CharterInt int
 
 // UnmarshalJSON accepts 3 and "3"; an empty string is 0.
-func (n *charterInt) UnmarshalJSON(b []byte) error {
+func (n *CharterInt) UnmarshalJSON(b []byte) error {
 	t := strings.Trim(strings.TrimSpace(string(b)), `"`)
 	if t == "" || t == "null" {
 		*n = 0
@@ -235,7 +237,7 @@ func (n *charterInt) UnmarshalJSON(b []byte) error {
 	if err != nil {
 		return err
 	}
-	*n = charterInt(v)
+	*n = CharterInt(v)
 	return nil
 }
 
@@ -246,7 +248,7 @@ func (g *VillageCharterGrant) UnmarshalJSON(b []byte) error {
 	if strings.HasPrefix(t, "{") {
 		var raw struct {
 			Permission string       `json:"permission"`
-			Limit      charterInt64 `json:"limit"`
+			Limit      CharterInt64 `json:"limit"`
 		}
 		if err := json.Unmarshal(b, &raw); err != nil {
 			return err
@@ -267,9 +269,9 @@ func (g *VillageCharterGrant) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-type charterInt64 int64
+type CharterInt64 int64
 
-func (n *charterInt64) UnmarshalJSON(b []byte) error {
+func (n *CharterInt64) UnmarshalJSON(b []byte) error {
 	t := strings.Trim(strings.TrimSpace(string(b)), `"`)
 	if t == "" || t == "null" {
 		*n = 0
@@ -279,7 +281,7 @@ func (n *charterInt64) UnmarshalJSON(b []byte) error {
 	if err != nil {
 		return err
 	}
-	*n = charterInt64(v)
+	*n = CharterInt64(v)
 	return nil
 }
 
@@ -330,6 +332,11 @@ func (h *VillageHandler) charterViewOf(ctx context.Context, tx application.Tx, s
 	_, v.CanEdit = held.Has(charter.OfficeEdit)
 	_, v.CanAppoint = held.Has(charter.OfficeAppoint)
 	_, v.CanDismiss = held.Has(charter.OfficeDismiss)
+	v.ZoneMinutes = int(s.Zone() / time.Minute)
+	_, v.CanSetZone = held.Has(charter.SettingsTimezone)
+	if next := s.TZSetAt.Add(h.tzCooldown); s.TZSetAt.Year() > 2000 && next.After(h.now()) {
+		v.ZoneNextChange = &next
+	}
 	for _, g := range sortedHeld(held) {
 		v.Mine = append(v.Mine, village.CharterGrantView{Permission: string(g.Permission), Limit: g.Limit})
 	}
@@ -474,6 +481,10 @@ func refuseCharter(err error) error {
 		kind = village.CharterSeatsFull
 	case stderrors.Is(err, charter.ErrAlreadySeated):
 		kind = village.CharterAlreadySeated
+	case stderrors.Is(err, errZoneInvalid):
+		kind = village.CharterZoneInvalid
+	case stderrors.Is(err, errZoneCooldown):
+		kind = village.CharterZoneCooldown
 	}
 	if kind == "" {
 		return err
@@ -906,4 +917,71 @@ func resolveOffice(st charterState, id string) string {
 		}
 	}
 	return id
+}
+
+var (
+	errZoneInvalid  = stderrors.New("charter: not a usable time zone")
+	errZoneCooldown = stderrors.New("charter: the time zone was changed too recently")
+)
+
+// VillageZoneRequest is the payload of settlement.timezone.set.
+type VillageZoneRequest struct {
+	// OffsetMinutes is the zone as minutes east of UTC, a multiple of 15, from -720
+	// to 840 (a number or a string).
+	OffsetMinutes CharterInt `json:"offset_minutes"`
+}
+
+// TimezoneSet handles settlement.timezone.set (the permission settings.timezone): the
+// settlement's own time zone, which its daily rhythms follow. It may be changed once
+// per settlement.timezone_cooldown; every change is in the charter log.
+func (h *VillageHandler) TimezoneSet(ctx context.Context, meta envelope.Metadata, req VillageZoneRequest) (*presentation.Response, error) {
+	lang := meta.Language
+	var done *village.CharterChangedView
+	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
+		p, l, err := h.viewer(ctx, tx, meta)
+		if err != nil {
+			return err
+		}
+		lang = l
+		s, err := h.settlementOf(ctx, tx, meta)
+		if err != nil {
+			return err
+		}
+		if err := tx.Charters().Lock(ctx, s.CityID); err != nil {
+			return err
+		}
+		if _, err := h.requireVillage(ctx, tx, s, p.ID, charter.SettingsTimezone); err != nil {
+			return err
+		}
+		if fresh, err := h.reserve(ctx, tx, p.ID, meta); err != nil {
+			return err
+		} else if !fresh {
+			return nil
+		}
+		// re-read under the lock: two replicas must not both pass the cooldown
+		s, err = tx.Settlements().ByID(ctx, s.CityID)
+		if err != nil {
+			return err
+		}
+		off := time.Duration(req.OffsetMinutes) * time.Minute
+		if !gametime.ValidOffset(off) || req.OffsetMinutes%15 != 0 {
+			return refuseCharter(errZoneInvalid)
+		}
+		now := h.now()
+		if s.TZSetAt.Year() > 2000 && now.Before(s.TZSetAt.Add(h.tzCooldown)) {
+			return refuseCharter(errZoneCooldown)
+		}
+		minutes := int(req.OffsetMinutes)
+		if err := tx.Settlements().SetTimezone(ctx, s.CityID, &minutes, now); err != nil {
+			return err
+		}
+		if err := tx.Charters().Audit(ctx, application.CharterAuditRow{ID: h.ids.NewID(), SettlementID: s.CityID, ActorID: p.ID,
+			Action: "timezone_changed", At: now, Detail: map[string]any{"from_minutes": int(s.Zone() / time.Minute), "to_minutes": minutes}}); err != nil {
+			return err
+		}
+		done = &village.CharterChangedView{Action: "timezone_changed", Title: ""}
+		return appendVillageEvent(ctx, tx, meta, "charter_changed", s.CityID, map[string]any{
+			"settlement_id": s.CityID, "action": "timezone_changed", "by": p.ID, "zone_minutes": minutes})
+	})
+	return h.charterAnswer(ctx, meta, lang, err, done)
 }

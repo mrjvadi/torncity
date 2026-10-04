@@ -645,6 +645,9 @@ export interface CharterView {
   can_edit: boolean
   can_appoint: boolean
   can_dismiss: boolean
+  zone_minutes: number
+  can_set_zone: boolean
+  zone_next_change: string | null | null
   permissions: CharterPermissionView[] | null
   audit: CharterAuditView[] | null
   limits: CharterLimitsView
@@ -5278,6 +5281,7 @@ export interface VillageNewsView {
 
 export interface VillageOverviewView {
   name: string
+  zone_minutes: number
   tier: string
   population: number
   population_cap: number
@@ -5367,6 +5371,7 @@ export interface VillageShopView {
   closed: string
   next_delivery: string | null
   delivery_hour: number
+  zone_minutes: number
   wage: number
   tax_bps: number
   tax_max_bps: number

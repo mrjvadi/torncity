@@ -25,7 +25,7 @@ func TestShippedConfigCarriesTheADR0046Defaults(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !clock.Epoch.Equal(time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)) || clock.Scale != 60 {
+	if !clock.Epoch.Equal(time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)) || clock.Scale != 1 || clock.LegacyScale != 60 || clock.Cutover.IsZero() {
 		t.Errorf("clock %+v", clock)
 	}
 }

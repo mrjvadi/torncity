@@ -1,0 +1,4 @@
+BEGIN;
+ALTER TABLE cities DROP COLUMN IF EXISTS tz_set_at;
+ALTER TABLE cities DROP COLUMN IF EXISTS tz_offset_minutes;
+COMMIT;

@@ -310,15 +310,30 @@ game:
   # time pass in one real second. Every gameplay duration the content writes
   # is GAME time — a journey, a course, a shift, a promotion's time in tier,
   # the fatigue window — and the player waits it divided by this. At 60 a
-  # game hour is a real minute: a 3-hour bus ride is a 3-minute wait, a 24h
-  # course takes 24 minutes, an 8h shift 8 minutes. Every screen shows the
+  # game hour is a real minute. At 1 (now) a game hour IS a real hour and content
+  # durations are written as real ones (docs/research/2026-10-05-realtime-clock.md).
+  # Every screen shows the
   # real wait. What is NOT game time: a policy's notice and cooldown, an
   # office term, energy regeneration, a mode's demand window and every
   # operational timeout in this file. It must be between 1 and 86400.
   # Changing it changes every activity still to start, never one already
   # under way: its real end was fixed when it began. (It used to be
   # travel.time_scale, which is still read if present; this key wins.)
-  time_scale: 60
+  time_scale: 1
+
+  # The cut-over from the compressed clock (a game day was 24 real minutes, scale 60)
+  # to real time (2026-10-05, owner: game time is real time, on UTC, worldwide). Until
+  # clock_cutover (a UTC midnight) days are counted by clock_epoch and
+  # clock_legacy_scale; from it a game day is a real day of the settlement's own time zone and the day number
+  # keeps counting up, so no stored day key collides or goes back. Set once and
+  # never moved: moving it renumbers days.
+  clock_legacy_scale: 60
+  clock_cutover: "2026-10-06T00:00:00Z"
+
+  # The scale of a journey between places. A trip is waited through in one
+  # sitting, so it stays compressed (a 3h bus ride is 3 minutes) while the rest of
+  # the clock is real. 1 makes it real.
+  travel_time_scale: 60
 
   # The real instant (RFC 3339) at which game day 0 began at 00:00. With
   # time_scale it makes the game's day and hour (gametime.Clock): what "once per
@@ -1153,6 +1168,8 @@ settlement:
   # How long, REAL time, a player who moved their home (joined a village or
   # went back to the neutral city) must wait before moving it again. It runs
   # from the last change of residence.
+  # How long a charter must wait before it changes the settlement's time zone again.
+  timezone_cooldown: 168h
   residence_cooldown: 72h
   # The content city a player returns to when they leave a village.
   home_city_code: support
@@ -1368,7 +1385,8 @@ training:
   gym_fee: 60   # session fee at the neutral city gym, minor units
 
 labor:
-  shift_minutes: 60            # one construction shift, GAME minutes
+  shift_minutes: 60            # one construction shift in WORK minutes (the unit build times and points are counted in)
+  shift_real_minutes: 1        # what a shift takes a player, REAL minutes (a sitting stays minutes)
   reference_crew: 4            # workers the content's build time assumes
   base_wage: 30                # NPC wage per shift in a balanced market
   min_wage_village: 10         # statutory floor per settlement tier

@@ -283,6 +283,7 @@ village:
       seat_filled: "someone was appointed to {title}"
       seat_dismissed: "someone was dismissed from {title}"
       seat_resigned: "someone resigned from {title}"
+      timezone_changed: "the city's time zone was changed"
       seat_ended: "someone left {title}"
     perm:
       treasury_spend: "spend from the treasury"
@@ -317,6 +318,7 @@ village:
       treaty_propose: "propose treaties"
       union_propose: "propose unions"
       raid_declare: "declare raids"
+      settings_timezone: "set the city's time zone"
       notice_post: "post notices"
   development:
     title: "📈 Growth of \"{village}\""
@@ -362,6 +364,8 @@ village:
     charter_acquisition: "🔒 That way of filling an office is not available yet."
     charter_seats_full: "🔒 That office has no free seat."
     charter_over_limit: "🔒 That costs more than your office may spend at once."
+    charter_zone_invalid: "🔒 That is not a usable time zone."
+    charter_zone_cooldown: "🔒 The city changed its time zone too recently; try again later."
     charter_already_seated: "🔒 That player already holds this office."
     no_settlement: "🏡 This group has not founded a city yet. Send \"found city\" to start."
     not_office_holder: "🔒 You hold no office that allows this."

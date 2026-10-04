@@ -11,7 +11,7 @@ import (
 // rules (docs/adr/0037-labor-market.md).
 func laborRules(c config.Labor) labor.Rules {
 	return labor.Rules{
-		ShiftMinutes: c.ShiftMinutes, ReferenceCrew: c.ReferenceCrew, BaseWage: c.BaseWage,
+		ShiftMinutes: c.ShiftMinutes, ShiftRealMinutes: c.ShiftRealMinutes, ReferenceCrew: c.ReferenceCrew, BaseWage: c.BaseWage,
 		MinWage: map[string]int64{"village": c.MinWageVillage, "town": c.MinWageTown, "city": c.MinWageCity},
 		Curve: []labor.Point{
 			{TightnessBPS: 0, WageBPS: c.WageSlackBPS},

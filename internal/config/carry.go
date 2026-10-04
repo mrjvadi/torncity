@@ -24,13 +24,21 @@ func (c *Config) CarryRules() carry.Rules {
 	}
 }
 
-// GameClock is the game's day and hour clock: the time scale from the epoch.
+// GameClock is the game's day and hour clock: real days (UTC, per-settlement local day) from the cut-over,
+// the legacy compressed days before it (see gametime.Clock).
 func (c *Config) GameClock() (gametime.Clock, error) {
 	epoch, err := time.Parse(time.RFC3339, c.Game.ClockEpoch)
 	if err != nil {
 		return gametime.Clock{}, fmt.Errorf("%w: game.clock_epoch %q is not an RFC 3339 instant", ErrInvalidValue, c.Game.ClockEpoch)
 	}
-	clock := gametime.Clock{Epoch: epoch.UTC(), Scale: gametime.Scale(c.Game.TimeScale)}
+	clock := gametime.Clock{Epoch: epoch.UTC(), Scale: gametime.Scale(c.Game.TimeScale), LegacyScale: gametime.Scale(c.Game.ClockLegacyScale)}
+	if c.Game.ClockCutover != "" {
+		cut, err := time.Parse(time.RFC3339, c.Game.ClockCutover)
+		if err != nil {
+			return gametime.Clock{}, fmt.Errorf("%w: game.clock_cutover %q is not an RFC 3339 instant", ErrInvalidValue, c.Game.ClockCutover)
+		}
+		clock.Cutover = cut.UTC()
+	}
 	if err := clock.Validate(); err != nil {
 		return gametime.Clock{}, fmt.Errorf("%w: game clock: %v", ErrInvalidValue, err)
 	}
@@ -42,8 +50,13 @@ func (c *Config) validateCarry() error {
 	if err := c.CarryRules().Validate(); err != nil {
 		return fmt.Errorf("%w: bag: %v", ErrInvalidValue, err)
 	}
-	if _, err := time.Parse(time.RFC3339, c.Game.ClockEpoch); err != nil {
-		return fmt.Errorf("%w: game.clock_epoch %q is not an RFC 3339 instant", ErrInvalidValue, c.Game.ClockEpoch)
+	if c.Game.TimeScale >= 1 && c.Game.TimeScale <= maxTimeScale {
+		if _, err := c.GameClock(); err != nil {
+			return err
+		}
+	}
+	if c.Game.TravelTimeScale < 1 || c.Game.TravelTimeScale > maxTimeScale {
+		return fmt.Errorf("%w: game.travel_time_scale is %d", ErrInvalidTimeScale, c.Game.TravelTimeScale)
 	}
 	m := c.Merchant
 	switch {

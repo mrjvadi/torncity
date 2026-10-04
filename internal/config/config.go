@@ -505,7 +505,8 @@ type Game struct {
 	// seconds of game time pass in one real second. Every gameplay duration
 	// content writes — a journey, a course, a shift, a promotion's time in
 	// tier, a fatigue window — is game time, and the player waits it
-	// divided by this. At 60 a 24h course is 24 real minutes.
+	// divided by this. At 1 (the default since 2026-10-05) game time IS real time;
+	// at 60 a 24h course would be 24 real minutes.
 	//
 	// The legacy key travel.time_scale (and TORN_TRAVEL_TIME_SCALE) still
 	// fills it, from before the clock was the whole game's; game.time_scale
@@ -517,6 +518,20 @@ type Game struct {
 	// Clock), so "once per game day at 06:00" means the same on every replica.
 	// Changing it, or the scale, renumbers the days.
 	ClockEpoch string // game.clock_epoch
+
+	// ClockLegacyScale and ClockCutover are the cut-over from the compressed clock
+	// (a game day was 24 real minutes at 60) to real time: until ClockCutover (a
+	// UTC midnight, RFC 3339) days are counted by the legacy rule - ClockEpoch
+	// and this scale - and from it a game day is a real day of the settlement's own zone, the day number
+	// continuing upward. Empty ClockCutover: no cut-over. Set once, never moved.
+	ClockLegacyScale int    // game.clock_legacy_scale
+	ClockCutover     string // game.clock_cutover
+
+	// TravelTimeScale is the scale of a journey between places (game time to the
+	// wait): a trip is a thing a player waits through in one sitting, so it stays
+	// compressed while the rest of the clock is real. 1 makes a 3-hour bus ride take
+	// 3 real hours.
+	TravelTimeScale int // game.travel_time_scale
 
 	// CommandTimeout is the most one command may run: its context is
 	// cancelled after it, the transaction rolled back and the message
@@ -759,6 +774,10 @@ type Settlement struct {
 	// settlement.join / settlement.leave. It runs from players.residence_since,
 	// which every change of residence stamps.
 	ResidenceCooldown time.Duration // settlement.residence_cooldown
+	// TimezoneCooldown is how long, REAL time, a charter must wait before it changes
+	// the settlement's time zone again: a zone change moves the settlement's day
+	// number by at most a day, and this keeps it from being played with.
+	TimezoneCooldown time.Duration // settlement.timezone_cooldown
 
 	// HomeCityCode is the content city a player returns to when they leave
 	// a village (settlement.leave): the neutral city, "support".
@@ -1268,6 +1287,7 @@ type Training struct {
 // every share is in basis points.
 type Labor struct {
 	ShiftMinutes       int64   // labor.shift_minutes
+	ShiftRealMinutes   int64   // labor.shift_real_minutes
 	ReferenceCrew      int64   // labor.reference_crew
 	BaseWage           int64   // labor.base_wage
 	MinWageVillage     int64   // labor.min_wage_village
@@ -1476,8 +1496,11 @@ func Defaults() *Config {
 			IdempotencyTTL:  24 * time.Hour,
 
 			ContentReloadInterval: 30 * time.Second,
-			TimeScale:             60,
+			TimeScale:             1,
 			ClockEpoch:            "2026-01-01T00:00:00Z",
+			ClockLegacyScale:      60,
+			ClockCutover:          "2026-10-06T00:00:00Z",
+			TravelTimeScale:       60,
 			CommandTimeout:        30 * time.Second,
 		},
 		Travel: Travel{
@@ -1636,6 +1659,7 @@ func Defaults() *Config {
 		Settlement: Settlement{
 			ProtectionWindow:    168 * time.Hour,
 			ResidenceCooldown:   72 * time.Hour,
+			TimezoneCooldown:    168 * time.Hour,
 			HomeCityCode:        "support",
 			PropertyHubMinStage: "town",
 			MinSpawnDistanceKm:  30,
@@ -1721,6 +1745,7 @@ func Defaults() *Config {
 		Training:    Training{EnergyCost: 10, StaminaGain: 6, StrengthXP: 30, DiminishStamina: 400, StaminaPerMaxEnergy: 50, MaxEnergyBonusCap: 30, YardBPS: 4000, GroundBPS: 6000, GymBPS: 10000, GroundFee: 20, GymFee: 60},
 		Labor: Labor{
 			ShiftMinutes:       60,
+			ShiftRealMinutes:   1,
 			ReferenceCrew:      4,
 			BaseWage:           30,
 			MinWageVillage:     10,

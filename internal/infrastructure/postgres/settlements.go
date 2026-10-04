@@ -11,6 +11,7 @@ import (
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/domain/charter"
+	"github.com/mrjvadi/torncity/internal/domain/gametime"
 	"github.com/mrjvadi/torncity/internal/domain/settlement"
 )
 
@@ -161,13 +162,14 @@ func (r *SettlementRepository) Found(ctx context.Context, f application.Founding
 		`INSERT INTO cities (id, code, name, tax_rate_bps, cost_of_living, population, jurisdiction_id,
 		        origin, tier, world_id, world_cell_id, founded_by_group_id, founded_at, protected_until,
 		        emblem_shape, emblem_color_a, emblem_color_b, emblem_icon, motto, name_key,
-		        grid_shift_x, grid_shift_y)
+		        grid_shift_x, grid_shift_y, tz_offset_minutes)
 		 VALUES ($1::uuid, $2, $3, 0, $4, 0, $5::uuid, 'founded', $6, $7::uuid, $8, $9, $10, $11,
-		        $12, $13, $14, $15, $16, $17, $18, $19)`,
+		        $12, $13, $14, $15, $16, $17, $18, $19, $20)`,
 		cityID, f.Code, f.Name, settlementFoundedCostOfLiving, jurisdictionID, f.Tier,
 		f.WorldID, f.WorldCellID, f.FoundedByGroupChatID, f.FoundedAt, f.ProtectedUntil,
 		nullIfEmpty(f.Emblem.Shape), nullIfEmpty(f.Emblem.ColorA), nullIfEmpty(f.Emblem.ColorB), nullIfEmpty(f.Emblem.Icon),
-		nullIfEmpty(f.Motto), nullIfEmpty(f.NameKey), f.GridShiftX, f.GridShiftY)
+		nullIfEmpty(f.Motto), nullIfEmpty(f.NameKey), f.GridShiftX, f.GridShiftY,
+		int16(gametime.OffsetFromLongitude(f.LonDeg)/time.Minute))
 	switch {
 	case violates(err, sqlstateUniqueViolation, citiesWorldCellUniqueIdx):
 		return out, application.ErrSpawnCellTaken
@@ -337,13 +339,14 @@ const settlementColumns = `c.id::text, c.code, c.name, c.jurisdiction_id::text, 
 	COALESCE(c.motto, ''),
 	COALESCE((SELECT v.code FROM village_currency_reservations v WHERE v.settlement_id = c.id), ''),
 	COALESCE((SELECT v.name FROM village_currency_reservations v WHERE v.settlement_id = c.id), ''),
-	COALESCE((SELECT v.symbol FROM village_currency_reservations v WHERE v.settlement_id = c.id), '')`
+	COALESCE((SELECT v.symbol FROM village_currency_reservations v WHERE v.settlement_id = c.id), ''),
+	c.tz_offset_minutes, COALESCE(c.tz_set_at, 'epoch'::timestamptz)`
 
 func scanSettlement(row pgx.Row, out *application.FoundedSettlement, extra ...any) error {
 	return row.Scan(append([]any{&out.CityID, &out.Code, &out.Name, &out.JurisdictionID, &out.Tier, &out.WorldID,
 		&out.WorldCellID, &out.FoundedAt, &out.ProtectedUntil, &out.GridShiftX, &out.GridShiftY, &out.GridGrowth,
 		&out.Emblem.Shape, &out.Emblem.ColorA, &out.Emblem.ColorB, &out.Emblem.Icon, &out.Motto,
-		&out.Currency.Code, &out.Currency.Name, &out.Currency.Symbol}, extra...)...)
+		&out.Currency.Code, &out.Currency.Name, &out.Currency.Symbol, &out.TZOffsetMinutes, &out.TZSetAt}, extra...)...)
 }
 
 // ByFoundingGroup returns the settlement this chat already founded, or
@@ -530,4 +533,16 @@ func (r *SettlementRepository) Promote(ctx context.Context, p application.Settle
 		return false, fmt.Errorf("postgres: writing the promotion audit row: %w", err)
 	}
 	return true, nil
+}
+
+// SetTimezone stores a settlement's time zone.
+func (r *SettlementRepository) SetTimezone(ctx context.Context, settlementID string, offsetMinutes *int, at time.Time) error {
+	var v any
+	if offsetMinutes != nil {
+		v = int16(*offsetMinutes)
+	}
+	if _, err := r.q.Exec(ctx, `UPDATE cities SET tz_offset_minutes = $2, tz_set_at = $3 WHERE id = $1::uuid AND origin = 'founded'`, settlementID, v, at); err != nil {
+		return fmt.Errorf("postgres: setting the time zone of %s: %w", settlementID, err)
+	}
+	return nil
 }

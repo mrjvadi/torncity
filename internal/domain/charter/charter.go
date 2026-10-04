@@ -73,6 +73,10 @@ const (
 	RaidDeclare   Permission = "raid.declare"
 
 	NoticePost Permission = "notice.post"
+
+	// SettingsTimezone changes the settlement's own time zone, which its daily
+	// rhythms (the shop's morning, the stores' day, the market day) follow.
+	SettingsTimezone Permission = "settings.timezone"
 )
 
 // Def describes one permission.
@@ -102,6 +106,7 @@ var catalogue = []Def{
 	{CharterAmend, "politics", false, true},
 	{TreatyPropose, "foreign", false, false}, {UnionPropose, "foreign", false, false}, {RaidDeclare, "foreign", false, false},
 	{NoticePost, "info", false, false},
+	{SettingsTimezone, "settings", false, true},
 }
 
 var byCode = func() map[Permission]Def {

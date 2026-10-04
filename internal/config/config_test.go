@@ -291,6 +291,9 @@ game:
   command_timeout: 31s
   time_scale: 61
   clock_epoch: "2026-02-01T00:00:00Z"
+  clock_legacy_scale: 61
+  clock_cutover: "2026-11-06T00:00:00Z"
+  travel_time_scale: 62
 travel:
   arrival_xp: 26
   city_locations: ["support=10.5:20.5"]
@@ -567,6 +570,7 @@ growth:
   flush_interval: 31s
 settlement:
   protection_window: 169h
+  timezone_cooldown: 169h
   residence_cooldown: 73h
   home_city_code: hearth
   property_hub_min_stage: city
@@ -658,6 +662,7 @@ training:
   gym_fee: 61
 labor:
   shift_minutes: 61
+  shift_real_minutes: 3
   reference_crew: 5
   base_wage: 31
   min_wage_village: 11
@@ -1066,6 +1071,7 @@ var envOverrides = map[string]string{
 	"TORN_SETTLEMENT_FOUNDING_CURRENCY_SYMBOL_MAX":  "5",
 	"TORN_SETTLEMENT_TEACH_PERIOD":                  "26h",
 	"TORN_SETTLEMENT_RESIDENCE_COOLDOWN":            "74h",
+	"TORN_SETTLEMENT_TIMEZONE_COOLDOWN":             "170h",
 	"TORN_SETTLEMENT_HOME_CITY_CODE":                "hearth2",
 	"TORN_SETTLEMENT_PROPERTY_HUB_MIN_STAGE":        "city",
 	"TORN_SETTLEMENT_TEACH_RATE_BPS":                "1502",
@@ -1078,6 +1084,9 @@ var envOverrides = map[string]string{
 	"TORN_SETTLEMENT_FOUNDING_GRANT":                "10002",
 	"TORN_SETTLEMENT_MATERIAL_MARKUP_BPS":           "12002",
 	"TORN_SETTLEMENT_STOCK_BASE_CAPACITY":           "62",
+	"TORN_GAME_CLOCK_LEGACY_SCALE":                  "63",
+	"TORN_GAME_CLOCK_CUTOVER":                       "2026-10-07T00:00:00Z",
+	"TORN_GAME_TRAVEL_TIME_SCALE":                   "64",
 	"TORN_SETTLEMENT_BUILD_HOMES_PER_CREW":          "17",
 	"TORN_SETTLEMENT_CHARTER_MAX_OFFICES":           "25",
 	"TORN_SETTLEMENT_CHARTER_MAX_SEATS":             "16",
@@ -1122,6 +1131,7 @@ var envOverrides = map[string]string{
 	"TORN_TRAINING_GROUND_FEE":                      "22",
 	"TORN_TRAINING_GYM_FEE":                         "62",
 	"TORN_LABOR_SHIFT_MINUTES":                      "62",
+	"TORN_LABOR_SHIFT_REAL_MINUTES":                 "4",
 	"TORN_LABOR_REFERENCE_CREW":                     "6",
 	"TORN_LABOR_BASE_WAGE":                          "32",
 	"TORN_LABOR_MIN_WAGE_VILLAGE":                   "12",
