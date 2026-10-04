@@ -164,7 +164,10 @@ type Office struct {
 	// holder of office.appoint).
 	AppointerID string
 	TermDays    int
-	Closed      bool
+	// Deputy marks the office that holds the founder's powers (less the ones an
+	// acting head may not use) while the head seat is vacant. At most one.
+	Deputy bool
+	Closed bool
 }
 
 // Limits are the caps of rail R4 (config charter.*).
