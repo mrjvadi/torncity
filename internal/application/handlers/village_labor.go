@@ -1170,3 +1170,27 @@ func (h *VillageHandler) LaborAvailable(ctx context.Context, tx application.Tx, 
 	}
 	return m.line.Available, nil
 }
+
+// TrainerSeat is what a training ground needs of the settlement today: whether an
+// NPC of the pool is free to coach, and the wage of one session (the trainer
+// role's wage class of the NPC wage). It is the TrainingHandler's seat reader.
+func (h *VillageHandler) TrainerSeat(ctx context.Context, tx application.Tx, settlementID string) (free, wage int64, err error) {
+	s, err := tx.Settlements().ByID(ctx, settlementID)
+	if err != nil {
+		return 0, 0, err
+	}
+	buildings, err := tx.SettlementBuildings().List(ctx, settlementID)
+	if err != nil {
+		return 0, 0, err
+	}
+	snap := h.content.Current()
+	m, err := h.laborMarket(ctx, tx, snap, s, buildings)
+	if err != nil {
+		return 0, 0, err
+	}
+	class := int64(10_000)
+	if r, ok := snap.StaffRole("trainer"); ok && r.WageBPS > 0 {
+		class = int64(r.WageBPS)
+	}
+	return m.line.Available, m.line.NPCWage * class / 10_000, nil
+}

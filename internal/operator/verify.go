@@ -159,6 +159,10 @@ func VerifyChecks(v postgres.LedgerVerification, cfg *config.Config) []Check {
 		out.add(t.TopupLedger == t.TopupRows && t.TopupMismatched == 0, fmt.Sprintf("operator top-ups of village treasuries in the ledger match the top-up rows (%d = %d), each the transaction its row names (%d mismatched)", t.TopupLedger, t.TopupRows, t.TopupMismatched))
 	}
 
+	if v.Village {
+		out.add(v.VillageInvariants.ServiceMisrouted == 0, fmt.Sprintf("training fees go from players to a treasury, trainers' wages from a treasury to the sink and bag repairs from players to the sink (%d legs elsewhere)", v.VillageInvariants.ServiceMisrouted))
+	}
+
 	if v.Village && v.Teaching {
 		t := v.VillageInvariants
 		out.add(t.CourseFeeLedger == t.CourseFeeRows, fmt.Sprintf("course fees paid to school treasuries in the ledger match the enrolments seated with a school teacher (%d = %d)", t.CourseFeeLedger, t.CourseFeeRows))

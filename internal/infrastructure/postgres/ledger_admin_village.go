@@ -79,6 +79,10 @@ type VillageInvariants struct {
 	TuitionLedger, TuitionRows         int64
 	TeacherWageLedger, TeacherWageRows int64
 	TeachMismatched                    int64
+	// ServiceMisrouted counts legs of training_fee (to a treasury, from a player),
+	// trainer_wage (treasury to the sink) and bag_repair (to the sink) that go
+	// anywhere else: those flows have no row table, so their routes are the check.
+	ServiceMisrouted int64
 }
 
 // TeachingOK reports whether the teaching checks hold.
@@ -94,7 +98,7 @@ func (v VillageInvariants) ok() bool {
 		v.MaterialLedger == v.MaterialRows && v.MaterialMismatched == 0 && v.MaterialItems == v.MaterialItemRows &&
 		v.WageLedger == v.WageRows && v.WageMismatched == 0 && v.ShiftItems == v.ShiftItemRows &&
 		v.LaborWageLedger == v.LaborWageRows && v.LaborMismatched == 0 && v.LaborEscrowLedger == v.LaborEscrowRows &&
-		v.LaborBuiltWithoutWork == 0 && v.LaborWorkUnbacked == 0 && v.TeachingOK()
+		v.LaborBuiltWithoutWork == 0 && v.LaborWorkUnbacked == 0 && v.ServiceMisrouted == 0 && v.TeachingOK()
 }
 
 // verifyVillage runs the village treasury's invariants.
@@ -189,6 +193,11 @@ func (a *EconomyAdmin) verifyVillage(ctx context.Context, v *LedgerVerification)
 		{&s.LaborEscrowLedger, "labour escrow", credited, []any{"labor_escrow"}},
 		{&s.LaborEscrowRows, "labour escrow rows", `
 			SELECT COALESCE(SUM(wage), 0)::bigint FROM settlement_shifts WHERE kind = 'construction' AND payer_kind = 'player'`, nil},
+		{&s.ServiceMisrouted, "training and repair routes", `
+			SELECT count(*) FROM ledger_entries e JOIN accounts a ON a.id = e.account_id
+			 WHERE (e.reason = 'training_fee' AND ((e.amount > 0 AND a.kind <> 'city_treasury') OR (e.amount < 0 AND a.kind <> 'player_cash')))
+			    OR (e.reason = 'trainer_wage' AND ((e.amount > 0 AND a.kind <> 'system_sink') OR (e.amount < 0 AND a.kind <> 'city_treasury')))
+			    OR (e.reason = 'bag_repair' AND ((e.amount > 0 AND a.kind <> 'system_sink') OR (e.amount < 0 AND a.kind NOT IN ('player_cash', 'player_bank'))))`, nil},
 		{&s.LaborBuiltWithoutWork, "buildings finished without their work", `
 			SELECT count(*) FROM settlement_buildings
 			 WHERE work_required > 0 AND status IN ('complete', 'demolished') AND completed_at IS NOT NULL AND work_done < work_required`, nil},

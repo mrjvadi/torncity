@@ -25,6 +25,8 @@ func renderTrainingHome(c Context, v life.TrainingHomeView) *presenter.Response 
 		args := map[string]any{"venue": c.T("training.venue."+venue.Code, nil),
 			"percent": FormatNumber(c, venue.EfficiencyBPS/100), "fee": FormatMoney(c, venue.Fee)}
 		switch {
+		case venue.Available && venue.Unkept:
+			lines = append(lines, c.T("training.venue_unkept", args))
 		case venue.Available && venue.Fee > 0:
 			lines = append(lines, c.T("training.venue_line_fee", args))
 		case venue.Available:

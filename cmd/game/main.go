@@ -485,6 +485,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	h.education.WithHomeCity(cfg.Settlement.HomeCityCode)
 	h.training = handlers.NewTrainingHandler(uow, uuidGenerator{}, messages, registry, cities, trainingRules(cfg.Training),
 		cfg.Settlement.HomeCityCode, cfg.Game.IdempotencyTTL, nil)
+	h.training.WithTrainer(h.village.TrainerSeat)
 	h.jobs.WithHomeCity(cfg.Settlement.HomeCityCode)
 	// The «not here» cards carry the way to the nearest place (fare and wait).
 	h.education.WithTrips(h.travel)

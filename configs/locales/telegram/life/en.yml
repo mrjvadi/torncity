@@ -941,6 +941,7 @@ training:
     gym: "Gym"
   venue_line: "• {venue} - {percent}% efficiency - free"
   venue_line_fee: "• {venue} - {percent}% efficiency - {fee} a session"
+  venue_unkept: "• {venue} - no trainer today; it trains like open ground ({percent}% efficiency) - free"
   venue_missing: "• {venue} - not here; the head must build a {building}"
   done: "✅ You trained at the {venue}."
   gain_stamina: "🫁 Stamina +{stamina}"

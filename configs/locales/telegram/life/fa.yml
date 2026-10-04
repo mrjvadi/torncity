@@ -959,6 +959,7 @@ training:
     gym: "باشگاه"
   venue_line: "• {venue} - {percent}٪ بازده - رایگان"
   venue_line_fee: "• {venue} - {percent}٪ بازده - هر جلسه {fee}"
+  venue_unkept: "• {venue} - مربی ندارد؛ مثل زمین باز تمرین می‌دهد ({percent}٪ بازده) - رایگان"
   venue_missing: "• {venue} - اینجا نیست؛ شهردار باید «{building}» بسازد"
   done: "✅ در {venue} تمرین کردی."
   gain_stamina: "🫁 استقامت +{stamina}"

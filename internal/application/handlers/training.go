@@ -51,6 +51,17 @@ type TrainingHandler struct {
 	home           string
 	idempotencyTTL time.Duration
 	now            func() time.Time
+	// seat reads the trainer's seat of a settlement (free labourers, a session's
+	// wage); nil: the ground always has its trainer (older wiring, tests).
+	seat func(ctx context.Context, tx application.Tx, settlementID string) (free, wage int64, err error)
+}
+
+// WithTrainer makes the training ground a working building: it trains at its own
+// rate only while an NPC of the pool coaches and the treasury pays the session's
+// wage; without one it trains like open ground (rule 1c).
+func (h *TrainingHandler) WithTrainer(seat func(ctx context.Context, tx application.Tx, settlementID string) (int64, int64, error)) *TrainingHandler {
+	h.seat = seat
+	return h
 }
 
 // NewTrainingHandler wires the handler.
@@ -112,6 +123,19 @@ func (h *TrainingHandler) venues(ctx context.Context, tx application.Tx, snap *c
 		stands = stands || (b.TypeCode == groundBuilding && b.Complete())
 	}
 	g := plife.TrainingVenue{Code: plife.VenueGround, EfficiencyBPS: h.rules.GroundBPS, Fee: h.rules.GroundFee, Available: stands}
+	if stands && h.seat != nil {
+		free, wage, err := h.seat(ctx, tx, city.ID)
+		if err != nil {
+			return nil, place, city, false, err
+		}
+		treasury, err := tx.Ledger().AccountFor(ctx, application.AccountCityTreasury, city.ID)
+		if err != nil {
+			return nil, place, city, false, err
+		}
+		if free < 1 || treasury.Balance.Minor() < wage {
+			g.EfficiencyBPS, g.Fee, g.Unkept = h.rules.YardBPS, 0, true
+		}
+	}
 	if !stands {
 		name := groundBuilding
 		if d, ok := snap.SettlementBuildingDef(groundBuilding); ok {
@@ -228,6 +252,11 @@ func (h *TrainingHandler) Start(ctx context.Context, meta envelope.Metadata, req
 				return err
 			}
 		}
+		if founded && venue.Code == plife.VenueGround && !venue.Unkept && h.seat != nil {
+			if err := h.payTrainer(ctx, tx, city, now); err != nil {
+				return err
+			}
+		}
 		out := storedStats(st, next)
 		if out.UpdatedAt.IsZero() {
 			out.UpdatedAt = now
@@ -289,6 +318,27 @@ func (h *TrainingHandler) payFee(ctx context.Context, tx application.Tx, playerI
 		Entries: []application.LedgerEntry{
 			{AccountID: cash.ID, Amount: money.FromMinor(-fee)},
 			{AccountID: to, Amount: money.FromMinor(fee)},
+		},
+	})
+	return err
+}
+
+// payTrainer pays the NPC trainer one session's wage from the treasury into the
+// sink (trainer_wage). The venue was judged kept, so the treasury can pay it.
+func (h *TrainingHandler) payTrainer(ctx context.Context, tx application.Tx, city *application.City, now time.Time) error {
+	_, wage, err := h.seat(ctx, tx, city.ID)
+	if err != nil || wage <= 0 {
+		return err
+	}
+	treasury, err := tx.Ledger().AccountFor(ctx, application.AccountCityTreasury, city.ID)
+	if err != nil {
+		return err
+	}
+	_, err = tx.Ledger().Post(ctx, application.LedgerTransaction{
+		Reason: application.ReasonTrainerWage, ReferenceType: "training", ReferenceID: h.ids.NewID(), CreatedAt: now,
+		Entries: []application.LedgerEntry{
+			{AccountID: treasury.ID, Amount: money.FromMinor(-wage)},
+			{AccountID: application.SystemSinkAccountID, Amount: money.FromMinor(wage)},
 		},
 	})
 	return err

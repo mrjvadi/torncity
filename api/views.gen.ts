@@ -4986,6 +4986,7 @@ export interface TrainingVenue {
   fee: number
   available: boolean
   missing: Named | null
+  unkept: boolean
 }
 
 export interface TravelArrivedView {

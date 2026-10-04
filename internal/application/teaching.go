@@ -18,4 +18,7 @@ const (
 	// ReasonTrainingFee moves a training session's fee from the player to the
 	// treasury of the settlement whose training ground it is.
 	ReasonTrainingFee Reason = "training_fee"
+	// ReasonTrainerWage pays the NPC trainer of a training ground one session's
+	// wage from the treasury into the sink (an NPC is not a player).
+	ReasonTrainerWage Reason = "trainer_wage"
 )
