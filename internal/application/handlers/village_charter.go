@@ -2,8 +2,10 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 	stderrors "errors"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/mrjvadi/torncity/internal/application"
@@ -48,6 +50,11 @@ func (h *VillageHandler) limits() charter.Limits {
 	}
 	return l
 }
+
+// FounderOfficeID is the id of the founder's office in the view while nothing is
+// written: save, close and appoint recognise it and write the charter down first, so
+// the founder can rename their title from the very first edit.
+const FounderOfficeID = "founder"
 
 // charterState is a settlement's charter as it stands: the open offices (the
 // default one when nothing is written), the active seats and whether the head
@@ -204,13 +211,76 @@ type VillageCharterRequest struct {
 	// Office names an office by id (save: empty creates a new one).
 	Office string `json:"office,omitempty"`
 	// Title, Seats, Grants, Acquisition and TermDays are an office being saved.
-	Title       string                 `json:"title,omitempty"`
-	Seats       int                    `json:"seats,omitempty"`
-	Grants      []VillageCharterGrant  `json:"grants,omitempty"`
-	Acquisition string                 `json:"acquisition,omitempty"`
-	TermDays    int                    `json:"term_days,omitempty"`
+	Title       string                `json:"title,omitempty"`
+	Seats       charterInt            `json:"seats,omitempty"`
+	Grants      []VillageCharterGrant `json:"grants,omitempty"`
+	Acquisition string                `json:"acquisition,omitempty"`
+	TermDays    charterInt            `json:"term_days,omitempty"`
 	// Player is a resident's public code (appoint, dismiss).
 	Player string `json:"player,omitempty"`
+}
+
+// charterInt reads a whole number sent as a number or as a string: a client's
+// arguments reach the handler as strings, like a button's.
+type charterInt int
+
+// UnmarshalJSON accepts 3 and "3"; an empty string is 0.
+func (n *charterInt) UnmarshalJSON(b []byte) error {
+	t := strings.Trim(strings.TrimSpace(string(b)), `"`)
+	if t == "" || t == "null" {
+		*n = 0
+		return nil
+	}
+	v, err := strconv.Atoi(t)
+	if err != nil {
+		return err
+	}
+	*n = charterInt(v)
+	return nil
+}
+
+// UnmarshalJSON reads a grant sent as {"permission", "limit"} or as the string
+// "permission" or "permission:limit" (the form a client's list arguments take).
+func (g *VillageCharterGrant) UnmarshalJSON(b []byte) error {
+	t := strings.TrimSpace(string(b))
+	if strings.HasPrefix(t, "{") {
+		var raw struct {
+			Permission string       `json:"permission"`
+			Limit      charterInt64 `json:"limit"`
+		}
+		if err := json.Unmarshal(b, &raw); err != nil {
+			return err
+		}
+		g.Permission, g.Limit = raw.Permission, int64(raw.Limit)
+		return nil
+	}
+	var s string
+	if err := json.Unmarshal(b, &s); err != nil {
+		return err
+	}
+	g.Permission, g.Limit = s, 0
+	if i := strings.LastIndex(s, ":"); i > 0 {
+		if v, err := strconv.ParseInt(s[i+1:], 10, 64); err == nil {
+			g.Permission, g.Limit = s[:i], v
+		}
+	}
+	return nil
+}
+
+type charterInt64 int64
+
+func (n *charterInt64) UnmarshalJSON(b []byte) error {
+	t := strings.Trim(strings.TrimSpace(string(b)), `"`)
+	if t == "" || t == "null" {
+		*n = 0
+		return nil
+	}
+	v, err := strconv.ParseInt(t, 10, 64)
+	if err != nil {
+		return err
+	}
+	*n = charterInt64(v)
+	return nil
 }
 
 // VillageCharterGrant is one permission with its ceiling.
@@ -291,8 +361,12 @@ func (h *VillageHandler) charterViewOf(ctx context.Context, tx application.Tx, s
 	titles := map[string]string{}
 	for _, o := range st.offices {
 		titles[o.ID] = o.Title
+		oid := o.ID
+		if oid == "" {
+			oid = FounderOfficeID
+		}
 		ov := village.CharterOfficeView{
-			ID: o.ID, Title: o.Title, Seats: o.Seats, Acquisition: string(o.Acquisition), TermDays: o.TermDays,
+			ID: oid, Title: o.Title, Seats: o.Seats, Acquisition: string(o.Acquisition), TermDays: o.TermDays,
 			Founder: o.Acquisition == charter.AcquireHead,
 			Manager: charter.IsManager(o.Grants),
 		}
@@ -452,6 +526,7 @@ func (h *VillageHandler) CharterOfficeSave(ctx context.Context, meta envelope.Me
 			return err
 		}
 		held := st.heldBy(p.ID)
+		req.Office = resolveOffice(st, req.Office)
 		creating := strings.TrimSpace(req.Office) == ""
 		need := charter.OfficeEdit
 		if creating {
@@ -468,6 +543,7 @@ func (h *VillageHandler) CharterOfficeSave(ctx context.Context, meta envelope.Me
 		if st, err = h.materialise(ctx, tx, s, st, p.ID, lang); err != nil {
 			return err
 		}
+		req.Office = resolveOffice(st, req.Office)
 		lim := h.limits()
 		grants, err := charter.NormaliseGrants(grantsOf(req.Grants))
 		if err != nil {
@@ -493,8 +569,8 @@ func (h *VillageHandler) CharterOfficeSave(ctx context.Context, meta envelope.Me
 		if err != nil {
 			return refuseCharter(err)
 		}
-		next := charter.Office{ID: h.ids.NewID(), Title: title, Seats: req.Seats, Grants: grants,
-			Acquisition: charter.Acquisition(req.Acquisition), TermDays: req.TermDays}
+		next := charter.Office{ID: h.ids.NewID(), Title: title, Seats: int(req.Seats), Grants: grants,
+			Acquisition: charter.Acquisition(req.Acquisition), TermDays: int(req.TermDays)}
 		if next.Seats == 0 {
 			next.Seats = 1
 		}
@@ -814,4 +890,20 @@ func (h *VillageHandler) charterSeat(ctx context.Context, meta envelope.Metadata
 			"settlement_id": s.CityID, "action": action, "office_id": target.ID, "holder_id": whom, "by": p.ID})
 	})
 	return h.charterAnswer(ctx, meta, lang, err, done)
+}
+
+// resolveOffice maps the founder's stable id to the head office's real id (when the
+// charter is written) or leaves it as "founder" (when it is not yet, so the caller
+// can still tell an edit from a creation).
+func resolveOffice(st charterState, id string) string {
+	id = strings.TrimSpace(id)
+	if id != FounderOfficeID {
+		return id
+	}
+	for _, o := range st.offices {
+		if o.Acquisition == charter.AcquireHead && o.ID != "" {
+			return o.ID
+		}
+	}
+	return id
 }

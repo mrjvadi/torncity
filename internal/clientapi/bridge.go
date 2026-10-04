@@ -454,6 +454,9 @@ func clientAlias(command string, args map[string]json.RawMessage) (string, map[s
 	if command == "settlement.road.plan" {
 		return command, roadPlanArgs(args)
 	}
+	if command == "settlement.charter.office.save" {
+		return command, charterSaveArgs(args)
+	}
 	return command, args
 }
 
@@ -562,5 +565,38 @@ func roadPlanArgs(args map[string]json.RawMessage) map[string]json.RawMessage {
 	}
 	pair("x", "y", "to")
 	pair("from_x", "from_y", "from")
+	return out
+}
+
+// charterSaveArgs lets a client send the grants of an office as a list of
+// {permission, limit?} objects: arguments reach the game as strings and lists of
+// strings, so each object becomes "permission" or "permission:limit" (the handler
+// reads both forms). Strings already in that form are left alone.
+func charterSaveArgs(args map[string]json.RawMessage) map[string]json.RawMessage {
+	raw, ok := args["grants"]
+	if !ok {
+		return args
+	}
+	var objs []struct {
+		Permission string          `json:"permission"`
+		Limit      json.RawMessage `json:"limit"`
+	}
+	if json.Unmarshal(raw, &objs) != nil {
+		return args // already strings, or not ours to judge
+	}
+	items := make([]string, 0, len(objs))
+	for _, o := range objs {
+		item := o.Permission
+		if l := strings.Trim(strings.TrimSpace(string(o.Limit)), `"`); l != "" && l != "null" && l != "0" {
+			item += ":" + l
+		}
+		items = append(items, item)
+	}
+	out := make(map[string]json.RawMessage, len(args))
+	for k, v := range args {
+		out[k] = v
+	}
+	b, _ := json.Marshal(items)
+	out["grants"] = b
 	return out
 }

@@ -548,3 +548,5 @@ type noSettlements struct {
 func (noSettlements) ByID(context.Context, string) (application.FoundedSettlement, error) {
 	return application.FoundedSettlement{}, application.ErrCityNotFound
 }
+
+func (noSettlements) IsFounded(context.Context, string) (bool, error) { return false, nil }

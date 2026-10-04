@@ -253,6 +253,9 @@ func renderCityGovernance(c Context, v CityGovView) *presenter.Response {
 			kb.Row(b, laws)
 		}
 	}
+	if v.Charter {
+		kb.Add(c.T("village.charter.button", nil), AddrVillageCharter)
+	}
 	if v.HoldsOffice {
 		kb.Add(c.T("gov.button.my_office", nil), AddrGovOffice)
 	}

@@ -174,6 +174,13 @@ func (h *GovernanceHandler) City(ctx context.Context, meta envelope.Metadata, re
 
 	view, err := h.cityView(ctx, city)
 	view.Tier = city.Tier
+	if err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
+		founded, ferr := tx.Settlements().IsFounded(ctx, city.ID)
+		view.Charter = founded
+		return ferr
+	}); err != nil {
+		return nil, err
+	}
 	view.Sections = sectionsAtStage(view.Sections, city.Tier)
 	if err != nil {
 		if g, ok := govRefusalOf(err, h.now()); ok {

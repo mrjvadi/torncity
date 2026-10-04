@@ -654,6 +654,7 @@ export interface CityGovView {
   city: GovPlace
   sections: GovSection[] | null
   holds_office: boolean
+  charter: boolean
   no_city: boolean
   tier: string
   military_open: boolean

@@ -87,6 +87,7 @@ const (
 	addrPay      = "bank:pay"
 	addrMinistry = "military:ministry"
 	addrBudget   = "city:budget"
+	addrCharter  = "settlement:charter.view"
 	addrLifeTop  = "life:top"
 
 	// Friends.
@@ -192,6 +193,9 @@ func CityGovernance(c presentation.Ctx, v CityGovView) *presentation.Response {
 	}
 	if v.Tier == "" || v.Tier == "city" {
 		a = append(a, act(addrBudget, v.City.Code).Named("gov.budget"), act(AddrBills).Named("gov.laws"))
+	}
+	if v.Charter {
+		a = append(a, act(addrCharter).Named("gov.charter"))
 	}
 	if v.HoldsOffice {
 		a = append(a, act(AddrGovOffice).Named("gov.my_office"))

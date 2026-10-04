@@ -3,6 +3,7 @@
     "title": "City hall",
     "screen": "city_governance",
     "view": {
+      "charter": false,
       "city": {
         "code": "ostmarch",
         "kind": "city",
@@ -185,6 +186,7 @@
     "title": "City hall · a deputy is acting",
     "screen": "city_governance",
     "view": {
+      "charter": false,
       "city": {
         "code": "ostmarch",
         "kind": "city",
@@ -224,6 +226,7 @@
     "title": "City hall · not in any city",
     "screen": "city_governance",
     "view": {
+      "charter": false,
       "city": {
         "code": "",
         "kind": "",

@@ -128,6 +128,27 @@ func TestCharterOfficesAndRails(t *testing.T) {
 		t.Errorf("reading wrote %d offices", n)
 	}
 
+	// 1b. The founder names their own title from the very first edit: the in-memory
+	// office is addressed by its stable id "founder", the first write materialises it.
+	if v.Offices[0].ID != handlers.FounderOfficeID {
+		t.Fatalf("the unwritten founder's office has id %q, want %q", v.Offices[0].ID, handlers.FounderOfficeID)
+	}
+	if k := save(founder, handlers.VillageCharterRequest{Office: handlers.FounderOfficeID, Title: "کدخدا"}); k != "" {
+		t.Fatalf("renaming the founder's office: %q", k)
+	}
+	v = view(founder)
+	if len(v.Offices) != 1 || v.Offices[0].Title != "کدخدا" || !v.Offices[0].Founder || v.Offices[0].ID == handlers.FounderOfficeID ||
+		len(v.Offices[0].Grants) != len(v.Permissions) {
+		t.Fatalf("after the rename: %+v", v.Offices)
+	}
+	if n := e.count(t, `SELECT count(*) FROM charter_offices WHERE settlement_id = $1::uuid`, cityID); n != 1 {
+		t.Fatalf("the rename wrote %d offices, want just the founder's", n)
+	}
+	// and a second rename by its real id, or by the old alias, still works
+	if k := save(founder, handlers.VillageCharterRequest{Office: handlers.FounderOfficeID, Title: "مختار"}); k != "" {
+		t.Errorf("renaming by the alias after the write: %q", k)
+	}
+
 	sheriffP, deputyP, strangerP := resident(), resident(), resident()
 	t.Cleanup(func() {
 		c := testCtx(t)
@@ -151,7 +172,7 @@ func TestCharterOfficesAndRails(t *testing.T) {
 		t.Fatalf("the founder could not create an office: %q", k)
 	}
 	if n := e.count(t, `SELECT count(*) FROM charter_offices WHERE settlement_id = $1::uuid`, cityID); n != 2 {
-		t.Fatalf("%d offices after the first edit, want the founder's and the sheriff", n)
+		t.Fatalf("%d offices, want the founder's and the sheriff", n)
 	}
 	v = view(founder)
 	var sheriff vpres.CharterOfficeView

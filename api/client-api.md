@@ -786,6 +786,9 @@ needs a group.
 | `settlement.build.place_many` | `code`, `lots` (`[{x, y}]`, or tokens `"3-1"`), or `from`/`to` (two ends of a line, along the row and then down the column), `confirm`? | lays several one-lot buildings **of a cap-exempt type (roads)** in ONE command; see "Building panels, batches, roads and land" |
 | `settlement.building.view` | `building_id`, `mode`? (`up` \| `dm` \| `cx`) | one placed building's own panel (`settlement_building_view`) |
 | `settlement.road.plan` | `x`, `y` (or `to`), `from`?, `class`?, `confirm`? | draws a road out of the first grid; without `confirm`: `settlement_road_quote`; with it: `settlement_road_planned`; see "Land: roads that open it" |
+| `settlement.charter.view` | - | the charter: offices, holders, what the viewer may do, the permission catalogue, the audit (`village_charter`); the founder's office is `id: "founder"` until the first write |
+| `settlement.charter.office.save` | `office`? (empty creates; `"founder"` or an id edits), `title`, `seats`?, `grants` (`[{permission, limit?}]`), `acquisition`?, `term_days`? | create or edit an office (`village_charter_changed`); numbers may be sent as numbers or strings |
+| `settlement.charter.office.close` / `.appoint` / `.dismiss` / `.resign` | `office`, `player`? (public code) | close an office, seat or unseat a resident, leave an office |
 | `settlement.road.cancel` | `id` | takes an unlaid, unsold road plan back (`settlement_road_cancelled`) |
 | `settlement.build.cancel` | `id` | calls off a building **under construction**; the spend is forfeited, the lot is free again |
 | `settlement.build.demolish` | `id` | removes a **finished** building; part of its cost returns to the treasury |

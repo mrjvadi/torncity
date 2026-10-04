@@ -730,6 +730,9 @@ type CityGovView struct {
 	Sections []GovSection
 	// HoldsOffice offers the viewer a way to their own office screen.
 	HoldsOffice bool
+	// Charter offers the settlement's charter (settlement.charter.view): set for a
+	// founded settlement, whose offices the players write themselves.
+	Charter bool
 	// NoCity means the viewer asked for their own city and is in none.
 	NoCity bool
 	// Tier is the settlement's stage ("village", "town", "city"; empty is a
