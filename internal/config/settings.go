@@ -405,6 +405,11 @@ type settlementSettings struct {
 	MaterialMarkupBPS      *int64  `yaml:"material_markup_bps"`
 	StockBaseCapacity      *int64  `yaml:"stock_base_capacity"`
 	BuildHomesPerCrew      *int64  `yaml:"build_homes_per_crew"`
+	CharterMaxOffices      *int64  `yaml:"charter_max_offices"`
+	CharterMaxSeats        *int64  `yaml:"charter_max_seats"`
+	CharterMaxPermissions  *int64  `yaml:"charter_max_permissions"`
+	CharterTitleMin        *int64  `yaml:"charter_title_min"`
+	CharterTitleMax        *int64  `yaml:"charter_title_max"`
 	StorageSpoilKeptBPS    *int64  `yaml:"storage_spoil_kept_bps"`
 	StorageSpoilUnkeptBPS  *int64  `yaml:"storage_spoil_unkept_bps"`
 	StorageKeeperRuleAt    *string `yaml:"storage_keeper_rule_at"`
@@ -1371,6 +1376,21 @@ var coreSettings = []setting{
 	moneySetting("settlement", "build_homes_per_crew",
 		func(c *Config) *int64 { return &c.Settlement.BuildHomesPerCrew },
 		func(f *fileConfig) *int64 { return f.Settlement.BuildHomesPerCrew }),
+	moneySetting("settlement", "charter_max_offices",
+		func(c *Config) *int64 { return &c.Settlement.CharterMaxOffices },
+		func(f *fileConfig) *int64 { return f.Settlement.CharterMaxOffices }),
+	moneySetting("settlement", "charter_max_seats",
+		func(c *Config) *int64 { return &c.Settlement.CharterMaxSeats },
+		func(f *fileConfig) *int64 { return f.Settlement.CharterMaxSeats }),
+	moneySetting("settlement", "charter_max_permissions",
+		func(c *Config) *int64 { return &c.Settlement.CharterMaxPermissions },
+		func(f *fileConfig) *int64 { return f.Settlement.CharterMaxPermissions }),
+	moneySetting("settlement", "charter_title_min",
+		func(c *Config) *int64 { return &c.Settlement.CharterTitleMin },
+		func(f *fileConfig) *int64 { return f.Settlement.CharterTitleMin }),
+	moneySetting("settlement", "charter_title_max",
+		func(c *Config) *int64 { return &c.Settlement.CharterTitleMax },
+		func(f *fileConfig) *int64 { return f.Settlement.CharterTitleMax }),
 	moneySetting("settlement", "storage_spoil_kept_bps",
 		func(c *Config) *int64 { return &c.Settlement.StorageSpoilKeptBPS },
 		func(f *fileConfig) *int64 { return f.Settlement.StorageSpoilKeptBPS }),

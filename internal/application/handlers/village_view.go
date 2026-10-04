@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/mrjvadi/torncity/internal/domain/charter"
 	"context"
 	stderrors "errors"
 	"github.com/mrjvadi/torncity/internal/presentation"
@@ -89,7 +90,7 @@ func (h *VillageHandler) BuildingView(ctx context.Context, meta envelope.Metadat
 			return refuseVillage(village.VillageNotFound)
 		}
 		head := true
-		if aerr := authorizeVillage(ctx, tx, s, p.ID); aerr != nil {
+		if _, aerr := h.requireVillage(ctx, tx, s, p.ID, charter.PublicBuild); aerr != nil {
 			if !stderrors.Is(aerr, application.ErrNotOfficeHolder) {
 				return aerr
 			}

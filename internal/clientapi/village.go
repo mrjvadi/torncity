@@ -120,10 +120,12 @@ type BootstrapSettlement struct {
 	// middle (the centre of that cell, the middle of the lot grid).
 	WorldCell int32  `json:"world_cell"`
 	Centre    *Place `json:"centre,omitempty"`
-	// IsHead is set when the player holds the settlement's top office, and
-	// only such a player places buildings; Resident when they live there.
-	IsHead   bool `json:"is_head"`
-	Resident bool `json:"resident"`
+	// IsHead is set when the player holds any office of the settlement's charter
+	// (some permission); Permissions lists what they hold, so a client shows an
+	// act only to the player who may make it. Resident when they live there.
+	IsHead      bool     `json:"is_head"`
+	Permissions []string `json:"permissions,omitempty"`
+	Resident    bool     `json:"resident"`
 	// GridLots is the side of the lot grid.
 	GridLots   int    `json:"grid_lots"`
 	LayoutPath string `json:"layout_path"`
@@ -161,7 +163,7 @@ func (v *VillageService) Mine(ctx context.Context, playerID string) (*BootstrapS
 		return nil, err
 	}
 	out := &BootstrapSettlement{ID: ps.CityID, Code: ps.Code, Name: ps.Name, Tier: application.TierCity, WorldCell: ps.WorldCellID,
-		IsHead: holdsHead(ps), Resident: ps.Resident, GridLots: v.gridLots(ps.Tier, ps.GridGrowth), LayoutPath: "/api/v1/settlements/" + ps.CityID + "/layout"}
+		IsHead: holdsHead(ps), Permissions: ps.Permissions, Resident: ps.Resident, GridLots: v.gridLots(ps.Tier, ps.GridGrowth), LayoutPath: "/api/v1/settlements/" + ps.CityID + "/layout"}
 	if _, w, err := v.World.active(ctx); err == nil {
 		out.Centre = centreOf(w, ps.WorldCellID)
 	}
@@ -175,15 +177,9 @@ func (v *VillageService) Mine(ctx context.Context, playerID string) (*BootstrapS
 	return out, nil
 }
 
-func holdsHead(ps application.PlayerSettlement) bool {
-	head := settlement.HeadOffice(ps.Tier)
-	for _, o := range ps.Offices {
-		if o == head {
-			return true
-		}
-	}
-	return false
-}
+// holdsHead reports that the player has a say in the settlement: some permission
+// of its charter (ADR 0044 section 6). The founder's office holds them all.
+func holdsHead(ps application.PlayerSettlement) bool { return ps.CanManage() }
 
 func (v *VillageService) gridLots(tier string, growth int) int {
 	return settlement.GridLotsGrown(tier, v.VillageGridLots, growth)

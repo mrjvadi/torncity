@@ -1516,3 +1516,7 @@ recipe:
 road_class:
   path: "Pack track"
   track: "Dirt road"
+
+# The default title of the founder's office in a settlement's charter; the players rename it.
+charter:
+  default_title: "Mayor"

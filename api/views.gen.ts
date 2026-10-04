@@ -584,6 +584,72 @@ export interface CasesView {
   cases: CaseLine[] | null
 }
 
+export interface CharterAuditView {
+  action: string
+  actor: string
+  office: string
+  title: string
+  at: string | null
+}
+
+export interface CharterChangedView {
+  action: string
+  title: string
+}
+
+export interface CharterGrantView {
+  permission: string
+  limit: number
+}
+
+export interface CharterLimitsView {
+  max_offices: number
+  max_seats: number
+  max_permissions: number
+  title_min: number
+  title_max: number
+}
+
+export interface CharterOfficeView {
+  id: string
+  title: string
+  seats: number
+  open: number
+  acquisition: string
+  term_days: number
+  founder: boolean
+  manager: boolean
+  mine: boolean
+  grants: CharterGrantView[] | null
+  holders: CharterPersonView[] | null
+}
+
+export interface CharterPermissionView {
+  code: string
+  group: string
+  limited: boolean
+  active: boolean
+}
+
+export interface CharterPersonView {
+  name: string
+  code: string
+}
+
+export interface CharterView {
+  village: string
+  settlement_id: string
+  offices: CharterOfficeView[] | null
+  mine: CharterGrantView[] | null
+  can_create: boolean
+  can_edit: boolean
+  can_appoint: boolean
+  can_dismiss: boolean
+  permissions: CharterPermissionView[] | null
+  audit: CharterAuditView[] | null
+  limits: CharterLimitsView
+}
+
 export interface CityGovView {
   city: GovPlace
   sections: GovSection[] | null
@@ -5841,6 +5907,8 @@ export interface ScreenViews {
   treaties: TreatiesView
   treaty_proposed_notice: TreatyView
   victim_notice: VictimView
+  village_charter: CharterView
+  village_charter_changed: CharterChangedView
   village_development: DevelopmentView
   village_donate_confirm: DonateView
   village_donate_done: DonateView

@@ -238,6 +238,9 @@ func (t *tx) VillageStorage() application.VillageStorageRepository {
 	return &VillageStorageRepository{q: t.q}
 }
 
+// Charters returns the offices, seats and audit of the settlements' charters (migration 0121).
+func (t *tx) Charters() application.CharterRepository { return &CharterRepository{q: t.q} }
+
 // Shops returns the shelves and sales of the city shops.
 func (t *tx) Shops() application.ShopRepository { return &ShopRepository{q: t.q} }
 

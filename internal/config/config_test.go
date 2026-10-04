@@ -611,6 +611,11 @@ settlement:
   material_markup_bps: 12001
   stock_base_capacity: 61
   build_homes_per_crew: 18
+  charter_max_offices: 125
+  charter_max_seats: 116
+  charter_max_permissions: 141
+  charter_title_min: 103
+  charter_title_max: 133
   storage_spoil_kept_bps: 6
   storage_spoil_unkept_bps: 31
   storage_keeper_rule_at: "2026-11-01T00:00:00Z"
@@ -1074,6 +1079,11 @@ var envOverrides = map[string]string{
 	"TORN_SETTLEMENT_MATERIAL_MARKUP_BPS":           "12002",
 	"TORN_SETTLEMENT_STOCK_BASE_CAPACITY":           "62",
 	"TORN_SETTLEMENT_BUILD_HOMES_PER_CREW":          "17",
+	"TORN_SETTLEMENT_CHARTER_MAX_OFFICES":           "25",
+	"TORN_SETTLEMENT_CHARTER_MAX_SEATS":             "16",
+	"TORN_SETTLEMENT_CHARTER_MAX_PERMISSIONS":       "41",
+	"TORN_SETTLEMENT_CHARTER_TITLE_MIN":             "3",
+	"TORN_SETTLEMENT_CHARTER_TITLE_MAX":             "33",
 	"TORN_SETTLEMENT_STORAGE_SPOIL_KEPT_BPS":        "7",
 	"TORN_SETTLEMENT_STORAGE_SPOIL_UNKEPT_BPS":      "32",
 	"TORN_SETTLEMENT_STORAGE_KEEPER_RULE_AT":        "2026-12-01T00:00:00Z",

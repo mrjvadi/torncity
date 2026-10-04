@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/mrjvadi/torncity/internal/domain/charter"
 	"context"
 	stderrors "errors"
 	"sort"
@@ -405,18 +406,10 @@ func (h *VillageHandler) planOuterRoads(p *landPicture, def settlementbuilding.D
 	return out, nil
 }
 
-// mayDrawRoads reports whether a player may draw roads out of the village: the
-// holder of its top office until the charter (ADR 0044 section 6) carries the
-// road.draw permission, then whoever holds it.
+// mayDrawRoads reports whether a player may draw roads out of the village: whoever
+// holds the charter's road.draw permission (ADR 0044 section 6).
 func (h *VillageHandler) mayDrawRoads(ctx context.Context, tx application.Tx, s application.FoundedSettlement, playerID string) (bool, error) {
-	err := authorizeVillage(ctx, tx, s, playerID)
-	switch {
-	case err == nil:
-		return true, nil
-	case stderrors.Is(err, application.ErrNotOfficeHolder):
-		return false, nil
-	}
-	return false, err
+	return h.mayVillage(ctx, tx, s, playerID, charter.RoadDraw)
 }
 
 // outerCells lists the land the roads opened for a viewer: every road cell

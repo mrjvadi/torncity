@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/mrjvadi/torncity/internal/domain/charter"
 	"context"
 	"strings"
 
@@ -58,7 +59,7 @@ func (h *VillageHandler) stockMove(ctx context.Context, meta envelope.Metadata, 
 			if p.CityID == nil || *p.CityID != s.CityID {
 				return refuseVillage(village.VillageNotResident, village.AddrMaterials)
 			}
-		} else if err := authorizeVillage(ctx, tx, s, p.ID); err != nil {
+		} else if _, err := h.requireVillage(ctx, tx, s, p.ID, charter.StorageTake); err != nil {
 			return err
 		}
 		code := strings.TrimSpace(req.Item)

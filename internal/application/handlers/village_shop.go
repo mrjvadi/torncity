@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/mrjvadi/torncity/internal/domain/charter"
 	"context"
 	stderrors "errors"
 	"strconv"
@@ -406,7 +407,7 @@ func (h *VillageHandler) shopView(ctx context.Context, tx application.Tx, meta e
 	if err != nil {
 		return village.VillageShopView{}, err
 	}
-	head := authorizeVillage(ctx, tx, s, p.ID) == nil
+	head := hasPermission(ctx, tx, s, p.ID, charter.FiscalShopPrice) || hasPermission(ctx, tx, s, p.ID, charter.FiscalSalesTax)
 	_, cash, err := playerCash(ctx, tx, p.ID)
 	if err != nil {
 		return village.VillageShopView{}, err
@@ -812,7 +813,11 @@ func (h *VillageHandler) shopTerm(ctx context.Context, meta envelope.Metadata, r
 		if err != nil {
 			return err
 		}
-		if err := authorizeVillage(ctx, tx, s, p.ID); err != nil {
+		perm := charter.FiscalSalesTax
+		if isCap {
+			perm = charter.FiscalShopPrice
+		}
+		if _, err := h.requireVillage(ctx, tx, s, p.ID, perm); err != nil {
 			return err
 		}
 		lo, hi, field := h.shop.Rules.MarkupMinBPS, h.shop.Rules.MarkupMaxBPS, "price_cap_bps"

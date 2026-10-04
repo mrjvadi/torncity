@@ -2,6 +2,7 @@ package screens
 
 import (
 	"github.com/mrjvadi/torncity/internal/presentation/village"
+	"strings"
 
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
@@ -68,6 +69,9 @@ func renderVillageRefusal(c Context, v VillageRefusalView) *presenter.Response {
 		}
 		if isCitizenRefusal(kind) {
 			return renderCitizenRefusal(c, v)
+		}
+		if strings.HasPrefix(kind, "charter_") {
+			break
 		}
 		kind = VillageNotFound
 	}

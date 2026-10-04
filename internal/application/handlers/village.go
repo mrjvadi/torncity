@@ -13,6 +13,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/domain/item"
 	"github.com/mrjvadi/torncity/internal/domain/labor"
 	wsettle "github.com/mrjvadi/torncity/internal/domain/settlement"
+	"github.com/mrjvadi/torncity/internal/domain/charter"
 	"github.com/mrjvadi/torncity/internal/domain/settlementbuilding"
 	"github.com/mrjvadi/torncity/internal/domain/settlementknowledge"
 	"github.com/mrjvadi/torncity/internal/domain/worldgen"
@@ -68,6 +69,8 @@ type VillageHandler struct {
 	concurrentBuildCap map[string]int
 	// homesPerCrew is settlement.build_homes_per_crew.
 	homesPerCrew int64
+	// charterLimits are the caps of rail R4 (settlement.charter_*).
+	charterLimits charter.Limits
 	gridLotsByTier     map[string]int
 
 	// teachPeriod is how often the literacy diffusion tick runs, GAME
@@ -130,6 +133,8 @@ type VillageRules struct {
 	VillageGridLots       int
 	// HomesPerBuildCrew is settlement.build_homes_per_crew.
 	HomesPerBuildCrew int64
+	// CharterLimits are settlement.charter_* (zero: the defaults).
+	CharterLimits charter.Limits
 	TeachPeriod           time.Duration
 	TeachRateBPS          int64
 	BaseSchoolCapacityBPS int64
@@ -172,6 +177,7 @@ func NewVillageHandler(uow application.UnitOfWork, ids IDGenerator, msgs Transla
 		uow: uow, ids: ids, msgs: msgs, content: source, worlds: worlds, cities: cities, scale: scale,
 		villageGridLots:       rules.VillageGridLots,
 		homesPerCrew:          rules.HomesPerBuildCrew,
+		charterLimits:         rules.CharterLimits,
 		concurrentBuildCap:    map[string]int{"village": settlementbuilding.ConcurrentCap("village"), "town": settlementbuilding.ConcurrentCap("town"), "city": settlementbuilding.ConcurrentCap("city")},
 		gridLotsByTier:        map[string]int{"village": rules.VillageGridLots, "town": 9, "city": 15},
 		teachPeriod:           rules.TeachPeriod,
@@ -503,7 +509,7 @@ func (h *VillageHandler) overview(ctx context.Context, meta envelope.Metadata, h
 			}
 		}
 
-		isHead := authorizeVillage(ctx, tx, s, viewer.ID) == nil
+		isHead, _ := h.holdsAnyOffice(ctx, tx, s, viewer.ID)
 		view = village.VillageOverviewView{
 			IsHead: isHead,
 			Name:   s.Name, Tier: application.TierCity, Population: residents, PopulationCap: cap,

@@ -13,7 +13,7 @@ import (
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/domain/player"
-	"github.com/mrjvadi/torncity/internal/domain/settlement"
+	"github.com/mrjvadi/torncity/internal/domain/charter"
 	"github.com/mrjvadi/torncity/internal/statesync"
 )
 
@@ -504,12 +504,11 @@ func (s *StateSync) readSettlements(ctx context.Context, q querier, playerID str
 		return err
 	}
 	isHead := false
+	builds := false
 	if mine.CityID != "" {
-		head := settlement.HeadOffice(mine.Tier)
-		for _, o := range mine.Offices {
-			if o == head {
-				isHead = true
-			}
+		isHead = mine.CanManage()
+		for _, p := range mine.Permissions {
+			builds = builds || p == string(charter.PublicBuild)
 		}
 		if kinds.Has(statesync.KindResidence) {
 			if err := add(statesync.KindResidence, statesync.SelfID, statesync.ResidenceData{
@@ -525,8 +524,8 @@ func (s *StateSync) readSettlements(ctx context.Context, q querier, playerID str
 	}
 	if mine.CityID != "" {
 		viewer := statesync.ViewerMember
-		if isHead {
-			viewer = statesync.ViewerHead
+		if builds {
+			viewer = statesync.ViewerHead // the map's manage verbs follow public.build
 		}
 		if err := s.addSettlement(ctx, q, playerID, mine.CityID, viewer, mine.Resident, add); err != nil {
 			return err

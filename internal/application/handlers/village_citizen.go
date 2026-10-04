@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/mrjvadi/torncity/internal/domain/charter"
 	"context"
 	stderrors "errors"
 	"github.com/mrjvadi/torncity/internal/presentation"
@@ -977,7 +978,8 @@ func (h *VillageHandler) mayChangeBuilding(ctx context.Context, tx application.T
 		}
 		return refuseVillage(village.CitizenLotPrivate)
 	case stderrors.Is(err, application.ErrPrivateBuildingNotFound):
-		return authorizeVillage(ctx, tx, s, playerID)
+		_, err := h.requireVillage(ctx, tx, s, playerID, charter.PublicDemolish)
+		return err
 	}
 	return err
 }
@@ -1379,7 +1381,7 @@ func (h *VillageHandler) Terms(ctx context.Context, meta envelope.Metadata, req 
 		if err != nil {
 			return err
 		}
-		if err := authorizeVillage(ctx, tx, sc.s, sc.p.ID); err != nil {
+		if _, err := h.requireVillage(ctx, tx, sc.s, sc.p.ID, charter.LotSell); err != nil {
 			return err
 		}
 		next := sc.terms

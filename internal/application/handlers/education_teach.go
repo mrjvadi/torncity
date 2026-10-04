@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/mrjvadi/torncity/internal/domain/charter"
 	"context"
 	stderrors "errors"
 	"time"
@@ -164,7 +165,7 @@ func (h *EducationHandler) TeacherHire(ctx context.Context, meta envelope.Metada
 	return h.teachCommand(ctx, meta, req, func(ctx context.Context, tx application.Tx, snap *content.Snapshot,
 		p *application.Player, c courseHere, now time.Time,
 	) (string, error) {
-		if err := authorizeVillage(ctx, tx, c.settlement, p.ID); err != nil {
+		if _, err := requirePermission(ctx, tx, c.settlement, p.ID, charter.StaffHire); err != nil {
 			if stderrors.Is(err, application.ErrNotOfficeHolder) {
 				return "", refuse(plife.RefusalCourseRequirements, []plife.Requirement{{Kind: presentation.ReqNotHead}})
 			}
@@ -252,7 +253,7 @@ func (h *EducationHandler) TeacherEnd(ctx context.Context, meta envelope.Metadat
 			if t.Employer != application.EmployerSettlement {
 				return "", refuse(plife.RefusalCourseRequirements, []plife.Requirement{{Kind: presentation.ReqNotTeaching}})
 			}
-			if err := authorizeVillage(ctx, tx, c.settlement, p.ID); err != nil {
+			if _, err := requirePermission(ctx, tx, c.settlement, p.ID, charter.StaffFire); err != nil {
 				if stderrors.Is(err, application.ErrNotOfficeHolder) {
 					return "", refuse(plife.RefusalCourseRequirements, []plife.Requirement{{Kind: presentation.ReqNotHead}})
 				}
@@ -338,7 +339,7 @@ func (h *EducationHandler) staffLines(ctx context.Context, tx application.Tx, sn
 	if err != nil {
 		return nil, nil, err
 	}
-	head := authorizeVillage(ctx, tx, c.settlement, p.ID) == nil
+	head := hasPermission(ctx, tx, c.settlement, p.ID, charter.StaffHire)
 	tv := &plife.TeachingView{SchoolWage: h.teach.wage(listFee), HireWage: h.teach.wage(listFee)}
 	if h.policy != nil {
 		if city, err := h.cities.ByID(ctx, c.settlement.CityID); err == nil {

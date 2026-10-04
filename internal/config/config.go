@@ -914,7 +914,12 @@ type Settlement struct {
 	StockBaseCapacity int64 // settlement.stock_base_capacity
 	// BuildHomesPerCrew is how many homes the settlement needs for each building
 	// it may raise at once beyond the first (no tier decides the cap any more).
-	BuildHomesPerCrew int64 // settlement.build_homes_per_crew
+	BuildHomesPerCrew     int64 // settlement.build_homes_per_crew
+	CharterMaxOffices     int64 // settlement.charter_max_offices (the caps of rail R4, ADR 0044 6.4)
+	CharterMaxSeats       int64 // settlement.charter_max_seats (the caps of rail R4, ADR 0044 6.4)
+	CharterMaxPermissions int64 // settlement.charter_max_permissions (the caps of rail R4, ADR 0044 6.4)
+	CharterTitleMin       int64 // settlement.charter_title_min (the caps of rail R4, ADR 0044 6.4)
+	CharterTitleMax       int64 // settlement.charter_title_max (the caps of rail R4, ADR 0044 6.4)
 	// StorageSpoilKeptBPS and StorageSpoilUnkeptBPS are the share of the food in
 	// a settlement's stock that spoils per game day, in basis points of the
 	// food: with a staffed granary keeping it, and with none (the open yard).
@@ -1677,6 +1682,11 @@ func Defaults() *Config {
 			MaterialMarkupBPS:      12000,
 			StockBaseCapacity:      60,
 			BuildHomesPerCrew:      16,
+			CharterMaxOffices:      24,
+			CharterMaxSeats:        15,
+			CharterMaxPermissions:  40,
+			CharterTitleMin:        2,
+			CharterTitleMax:        32,
 			StorageSpoilKeptBPS:    5,
 			StorageSpoilUnkeptBPS:  30,
 			StorageKeeperRuleAt:    "2026-10-03T00:00:00Z",

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/mrjvadi/torncity/internal/domain/charter"
 	"context"
 	stderrors "errors"
 	"github.com/mrjvadi/torncity/internal/presentation"
@@ -225,14 +226,7 @@ func (h *VillageHandler) mayEmploy(ctx context.Context, tx application.Tx, s app
 	if j.EmployerKind == application.LaborEmployerPlayer {
 		return j.EmployerID == playerID, nil
 	}
-	err := authorizeVillage(ctx, tx, s, playerID)
-	if err == nil {
-		return true, nil
-	}
-	if stderrors.Is(err, application.ErrNotOfficeHolder) {
-		return false, nil
-	}
-	return false, err
+	return h.mayVillage(ctx, tx, s, playerID, charter.JobsPost)
 }
 
 func (h *VillageHandler) presentHere(ctx context.Context, tx application.Tx, p *application.Player, s application.FoundedSettlement) (bool, error) {
@@ -561,7 +555,7 @@ func (h *VillageHandler) boardView(ctx context.Context, tx application.Tx, p *ap
 		}
 		view.Jobs = append(view.Jobs, line)
 	}
-	head := authorizeVillage(ctx, tx, s, p.ID) == nil
+	head := hasPermission(ctx, tx, s, p.ID, charter.JobsPost)
 	for _, b := range buildings {
 		if b.Status != "building" || !b.ByWork() || hasJob[b.ID] {
 			continue
@@ -930,14 +924,11 @@ func (h *VillageHandler) postable(ctx context.Context, tx application.Tx, s appl
 	if kind == application.LaborEmployerPlayer {
 		return kind, employer, jobKind, employer == p.ID, nil
 	}
-	aerr := authorizeVillage(ctx, tx, s, p.ID)
-	if aerr == nil {
-		return kind, employer, jobKind, true, nil
+	ok, aerr := h.mayVillage(ctx, tx, s, p.ID, charter.JobsPost)
+	if aerr != nil {
+		return "", "", "", false, aerr
 	}
-	if stderrors.Is(aerr, application.ErrNotOfficeHolder) {
-		return kind, employer, jobKind, false, nil
-	}
-	return "", "", "", false, aerr
+	return kind, employer, jobKind, ok, nil
 }
 
 // LaborPost handles settlement.labor.post: the employer posts the job of a

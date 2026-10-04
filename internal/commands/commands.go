@@ -471,6 +471,12 @@ var all = []Subscription{
 	{Domain: "settlement", Action: "materials.buy", Origin: FromPlayer},
 	{Domain: "settlement", Action: "stock.donate", Origin: FromPlayer},
 	{Domain: "settlement", Action: "stock.take", Origin: FromPlayer},
+	{Domain: "settlement", Action: "charter.view", Origin: FromPlayer},
+	{Domain: "settlement", Action: "charter.office.save", Origin: FromPlayer},
+	{Domain: "settlement", Action: "charter.office.close", Origin: FromPlayer},
+	{Domain: "settlement", Action: "charter.appoint", Origin: FromPlayer},
+	{Domain: "settlement", Action: "charter.dismiss", Origin: FromPlayer},
+	{Domain: "settlement", Action: "charter.resign", Origin: FromPlayer},
 	// The village shop (docs/adr/0046 section 5): the shelf, a purchase, the head's
 	// price cap and sales tax, and the mending counter.
 	{Domain: "settlement", Action: "shop", Origin: FromPlayer},

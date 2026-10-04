@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/mrjvadi/torncity/internal/domain/charter"
 	"context"
 	stderrors "errors"
 	"time"
@@ -142,7 +143,7 @@ func (h *VillageHandler) WorkHome(ctx context.Context, meta envelope.Metadata) (
 		view.Place = village.WorkHomePlace{Code: s.Code, Name: s.Name, Tier: tierStage(s.Tier)}
 		view.Resident = board.Resident
 		view.Working, view.Jobs, view.Workplaces, view.Market = board.Working, board.Jobs, places.Places, board.Market
-		view.IsHead = authorizeVillage(ctx, tx, s, p.ID) == nil
+		view.IsHead = hasPermission(ctx, tx, s, p.ID, charter.PublicBuild)
 		switch {
 		case !view.Resident:
 			view.Empty, view.Next = village.WorkEmptyNotResident, village.WorkNextJoin

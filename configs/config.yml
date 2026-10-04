@@ -1278,6 +1278,13 @@ settlement:
   # Homes a settlement needs for each building it may raise at once beyond the
   # first (the people who can raise them); 16 keeps a fresh city at one.
   build_homes_per_crew: 16
+  # The caps of the charter (ADR 0044 6.4 rail R4): offices per settlement, seats per
+  # office, permissions per office, and the length of an office title in characters.
+  charter_max_offices: 24
+  charter_max_seats: 15
+  charter_max_permissions: 40
+  charter_title_min: 2
+  charter_title_max: 32
   # Food in the stock spoils a share per game day (basis points of the food):
   # little with a staffed granary keeping it, more in the open yard.
   storage_spoil_kept_bps: 5

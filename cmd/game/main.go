@@ -38,6 +38,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/config"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/bank"
+	"github.com/mrjvadi/torncity/internal/domain/charter"
 	"github.com/mrjvadi/torncity/internal/domain/gametime"
 	wsettle "github.com/mrjvadi/torncity/internal/domain/settlement"
 	"github.com/mrjvadi/torncity/internal/domain/worldgen"
@@ -452,6 +453,8 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 				MaterialMarkupBPS:     cfg.Settlement.MaterialMarkupBPS,
 				StockBaseCapacity:     cfg.Settlement.StockBaseCapacity,
 				HomesPerBuildCrew:     cfg.Settlement.BuildHomesPerCrew,
+				CharterLimits: charter.Limits{MaxOffices: int(cfg.Settlement.CharterMaxOffices), MaxSeats: int(cfg.Settlement.CharterMaxSeats),
+					MaxPermissions: int(cfg.Settlement.CharterMaxPermissions), TitleMin: int(cfg.Settlement.CharterTitleMin), TitleMax: int(cfg.Settlement.CharterTitleMax)},
 				MaterialBuyMax:        cfg.Settlement.MaterialBuyMax,
 				MaterialBuyPresets:    cfg.Settlement.MaterialBuyPresets,
 				ResidenceCooldown:     cfg.Settlement.ResidenceCooldown,

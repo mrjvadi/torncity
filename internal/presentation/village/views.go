@@ -1300,6 +1300,101 @@ type DevelopmentNext struct {
 	Name string `json:"name,omitempty"`
 }
 
+// Refusal kinds of the charter acts (village_charter.go).
+const (
+	CharterTitle         = "charter_title"
+	CharterTitleTaken    = "charter_title_taken"
+	CharterCaps          = "charter_caps"
+	CharterGrant         = "charter_grant"
+	CharterNotHeld       = "charter_not_held"
+	CharterLastManager   = "charter_last_manager"
+	CharterHeldOffice    = "charter_founder_office"
+	CharterAcquisition   = "charter_acquisition"
+	CharterSeatsFull     = "charter_seats_full"
+	CharterAlreadySeated = "charter_already_seated"
+	// CharterOverLimit: the act costs more than the office's ceiling for one spend.
+	CharterOverLimit = "charter_over_limit"
+)
+
+// CharterGrantView is one permission with its ceiling (0: none).
+type CharterGrantView struct {
+	Permission string `json:"permission"`
+	Limit      int64  `json:"limit,omitempty"`
+}
+
+// CharterPermissionView is one entry of the permission catalogue for the editor.
+// Active says an act in the game asks for it today.
+type CharterPermissionView struct {
+	Code    string `json:"code"`
+	Group   string `json:"group"`
+	Limited bool   `json:"limited,omitempty"`
+	Active  bool   `json:"active"`
+}
+
+// CharterPersonView names a player by display name and public code, never an id.
+type CharterPersonView struct {
+	Name string `json:"name"`
+	Code string `json:"code"`
+}
+
+// CharterOfficeView is one office of the charter. Founder marks the head office
+// (its holder follows the governance head; it cannot be closed).
+type CharterOfficeView struct {
+	ID          string              `json:"id"`
+	Title       string              `json:"title"`
+	Seats       int                 `json:"seats"`
+	Open        int                 `json:"open"`
+	Acquisition string              `json:"acquisition"`
+	TermDays    int                 `json:"term_days,omitempty"`
+	Founder     bool                `json:"founder,omitempty"`
+	Manager     bool                `json:"manager,omitempty"`
+	Mine        bool                `json:"mine,omitempty"`
+	Grants      []CharterGrantView  `json:"grants"`
+	Holders     []CharterPersonView `json:"holders"`
+}
+
+// CharterAuditView is one line of the append-only log.
+type CharterAuditView struct {
+	Action string    `json:"action"`
+	Actor  string    `json:"actor,omitempty"`
+	Office string    `json:"office,omitempty"`
+	Title  string    `json:"title,omitempty"`
+	At     time.Time `json:"at"`
+}
+
+// CharterLimitsView are the caps of the charter (rail R4).
+type CharterLimitsView struct {
+	MaxOffices     int `json:"max_offices"`
+	MaxSeats       int `json:"max_seats"`
+	MaxPermissions int `json:"max_permissions"`
+	TitleMin       int `json:"title_min"`
+	TitleMax       int `json:"title_max"`
+}
+
+// CharterView is the charter of a settlement as one viewer sees it (ADR 0044 6).
+// The booleans say which acts the viewer may make; Mine is everything they hold.
+type CharterView struct {
+	Village      string                  `json:"village"`
+	SettlementID string                  `json:"settlement_id,omitempty"`
+	Offices      []CharterOfficeView     `json:"offices"`
+	Mine         []CharterGrantView      `json:"mine"`
+	CanCreate    bool                    `json:"can_create,omitempty"`
+	CanEdit      bool                    `json:"can_edit,omitempty"`
+	CanAppoint   bool                    `json:"can_appoint,omitempty"`
+	CanDismiss   bool                    `json:"can_dismiss,omitempty"`
+	Permissions  []CharterPermissionView `json:"permissions"`
+	Audit        []CharterAuditView      `json:"audit"`
+	Limits       CharterLimitsView       `json:"limits"`
+}
+
+// CharterChangedView is the answer to an act on the charter. Action is one of
+// charter_written, office_created, office_changed, office_closed, seat_filled,
+// seat_dismissed, seat_resigned.
+type CharterChangedView struct {
+	Action string `json:"action"`
+	Title  string `json:"title"`
+}
+
 // ResidenceConfirm is the "confirm" argument's value the second press carries.
 const ResidenceConfirm = "confirm"
 

@@ -1620,3 +1620,7 @@ recipe:
 road_class:
   path: "راه مالرو"
   track: "جادهٔ خاکی"
+
+# The default title of the founder's office in a settlement's charter; the players rename it.
+charter:
+  default_title: "شهردار"

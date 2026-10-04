@@ -4,11 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sort"
 	"time"
 
 	"github.com/jackc/pgx/v5"
 
 	"github.com/mrjvadi/torncity/internal/application"
+	"github.com/mrjvadi/torncity/internal/domain/charter"
+	"github.com/mrjvadi/torncity/internal/domain/settlement"
 )
 
 // This file implements the world registry and settlement founding
@@ -421,6 +424,54 @@ func (r *SettlementRepository) ByPlayer(ctx context.Context, playerID string) (a
 		return out, fmt.Errorf("postgres: reading the settlement of player %s: %w", playerID, err)
 	}
 	out.Offices = offices
+	perms, err := r.permissionsOf(ctx, out, playerID)
+	if err != nil {
+		return out, err
+	}
+	out.Permissions = perms
+	return out, nil
+}
+
+// permissionsOf lists the charter permissions the player holds in a settlement: all
+// of them for the head office's holder, else the grants of the offices they sit in.
+func (r *SettlementRepository) permissionsOf(ctx context.Context, ps application.PlayerSettlement, playerID string) ([]string, error) {
+	have := map[string]bool{}
+	head := settlement.HeadOffice(ps.Tier)
+	for _, o := range ps.Offices {
+		if o == head {
+			for _, g := range charter.AllPermissions() {
+				have[string(g.Permission)] = true
+			}
+		}
+	}
+	rows, err := r.q.Query(ctx, `SELECT o.grants FROM charter_offices o
+		JOIN charter_seats s ON s.office_id = o.id AND s.until IS NULL AND s.holder_id = $2::uuid
+		WHERE o.settlement_id = $1::uuid AND o.closed_at IS NULL`, ps.CityID, playerID)
+	if err != nil {
+		return nil, fmt.Errorf("postgres: reading the charter permissions of %s: %w", playerID, err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var raw []byte
+		if err := rows.Scan(&raw); err != nil {
+			return nil, fmt.Errorf("postgres: reading charter grants: %w", err)
+		}
+		gs, err := grantsFromJSON(raw)
+		if err != nil {
+			return nil, err
+		}
+		for _, g := range gs {
+			have[string(g.Permission)] = true
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	out := make([]string, 0, len(have))
+	for p := range have {
+		out = append(out, p)
+	}
+	sort.Strings(out)
 	return out, nil
 }
 
