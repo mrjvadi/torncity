@@ -43,7 +43,7 @@ func charterOfficeText(c Context, o village.CharterOfficeView) string {
 	}
 	who := c.T("village.charter.vacant", nil)
 	if len(holders) > 0 {
-		who = strings.Join(holders, "، ")
+		who = strings.Join(holders, c.T("village.charter.sep", nil))
 	}
 	perms := make([]string, 0, len(o.Grants))
 	for _, g := range o.Grants {
@@ -53,7 +53,7 @@ func charterOfficeText(c Context, o village.CharterOfficeView) string {
 		"title": o.Title, "seats": FormatNumber(c, int64(o.Seats)), "open": FormatNumber(c, int64(o.Open)),
 		"how": c.T("village.charter.acquisition."+o.Acquisition, nil), "who": who,
 	})
-	return body(head, c.T("village.charter.powers", map[string]any{"powers": strings.Join(perms, "، ")}))
+	return body(head, c.T("village.charter.powers", map[string]any{"powers": strings.Join(perms, c.T("village.charter.sep", nil))}))
 }
 
 // VillageCharter renders the charter.
@@ -66,6 +66,35 @@ func renderVillageCharter(c Context, v village.CharterView) *presenter.Response 
 	for _, o := range v.Offices {
 		blocks = append(blocks, charterOfficeText(c, o))
 	}
+	if v.Acting != nil {
+		blocks = append(blocks, c.T("village.charter.acting", map[string]any{
+			"name": v.Acting.Player.Name, "until": FormatDate(c, v.Acting.Ends), "cap": FormatMoney(c, v.Acting.SpendCap)}))
+	} else if v.HeadVacant {
+		blocks = append(blocks, c.T("village.charter.head_vacant", nil))
+	}
+	for _, b := range v.Ballots {
+		if b.Status != "open" && len(v.Ballots) > 4 {
+			continue
+		}
+		args := map[string]any{"office": b.Office, "until": FormatDate(c, b.ClosesAt), "eligible": FormatNumber(c, int64(b.Eligible))}
+		if b.Target != nil {
+			args["target"] = b.Target.Name
+		}
+		if b.Proposal != nil {
+			args["title"] = b.Proposal.Title
+		}
+		key := "village.charter.ballot." + b.Kind
+		if b.Status == "open" {
+			key += "." + b.Phase
+		} else {
+			key += ".closed." + b.Status
+		}
+		blocks = append(blocks, c.T(key, args))
+	}
+	for _, p := range v.Petitions {
+		blocks = append(blocks, c.T("village.charter.petition", map[string]any{
+			"target": p.Target.Name, "office": p.Office, "count": FormatNumber(c, int64(p.Signatures)), "need": FormatNumber(c, int64(p.Needed))}))
+	}
 	if len(v.Mine) == 0 {
 		blocks = append(blocks, c.T("village.charter.mine_none", nil))
 	} else {
@@ -74,8 +103,12 @@ func renderVillageCharter(c Context, v village.CharterView) *presenter.Response 
 	if len(v.Audit) > 0 {
 		lines := []string{c.T("village.charter.audit_title", nil)}
 		for _, a := range v.Audit {
+			by := ""
+			if a.Actor != "" {
+				by = " - " + a.Actor
+			}
 			lines = append(lines, c.T("village.charter.audit_line", map[string]any{
-				"action": c.T("village.charter.action."+a.Action, nil), "title": a.Title, "actor": a.Actor}))
+				"action": c.T("village.charter.action."+a.Action, map[string]any{"title": a.Title}), "by": by}))
 		}
 		blocks = append(blocks, body(lines...))
 	}

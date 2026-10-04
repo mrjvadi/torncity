@@ -584,6 +584,13 @@ export interface CasesView {
   cases: CaseLine[] | null
 }
 
+export interface CharterActingView {
+  player: CharterPersonView
+  office: string
+  ends: string | null
+  spend_cap: number
+}
+
 export interface CharterAuditView {
   action: string
   actor: string
@@ -592,9 +599,40 @@ export interface CharterAuditView {
   at: string | null
 }
 
+export interface CharterBallotView {
+  id: string
+  kind: string
+  office_id: string
+  office: string
+  target: CharterPersonView | null
+  phase: string
+  status: string
+  opens_at: string | null
+  candidacy_ends: string | null | null
+  closes_at: string | null
+  eligible: number
+  needed: number
+  candidates: CharterCandidateView[] | null
+  proposal: CharterProposalView | null
+  yes: number | null
+  no: number | null
+  winners: CharterPersonView[] | null
+  voted: boolean
+  standing: boolean
+  can_vote: boolean
+  can_stand: boolean
+}
+
+export interface CharterCandidateView {
+  name: string
+  code: string
+  votes: number | null
+}
+
 export interface CharterChangedView {
   action: string
   title: string
+  ballot_id: string
 }
 
 export interface CharterGrantView {
@@ -620,6 +658,9 @@ export interface CharterOfficeView {
   founder: boolean
   manager: boolean
   mine: boolean
+  deputy: boolean
+  term_ends: string | null | null
+  can_recall: boolean
   grants: CharterGrantView[] | null
   holders: CharterPersonView[] | null
 }
@@ -634,6 +675,38 @@ export interface CharterPermissionView {
 export interface CharterPersonView {
   name: string
   code: string
+}
+
+export interface CharterPetitionView {
+  id: string
+  office_id: string
+  office: string
+  target: CharterPersonView
+  signatures: number
+  needed: number
+  signed: boolean
+  can_sign: boolean
+}
+
+export interface CharterProposalView {
+  op: string
+  title: string
+  seats: number
+  acquisition: string
+  deputy: boolean
+  grants: CharterGrantView[] | null
+}
+
+export interface CharterRulesView {
+  election_term_days: number
+  candidacy_hours: number
+  voting_hours: number
+  recall_min_tenure_days: number
+  recall_signature_bps: number
+  recall_min_signatures: number
+  recall_vote_hours: number
+  amend_vote_hours: number
+  acting_days: number
 }
 
 export interface CharterView {
@@ -651,6 +724,12 @@ export interface CharterView {
   permissions: CharterPermissionView[] | null
   audit: CharterAuditView[] | null
   limits: CharterLimitsView
+  can_call_election: boolean
+  head_vacant: boolean
+  acting: CharterActingView | null
+  ballots: CharterBallotView[] | null
+  petitions: CharterPetitionView[] | null
+  rules: CharterRulesView
 }
 
 export interface CityGovView {
