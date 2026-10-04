@@ -53,4 +53,5 @@ No buildings stand here yet.
   [🧱 Stock and market] → settlement:materials
   [👥 People] → settlement:who
   [📈 Growth] → settlement:development.view
+  [📜 Charter] → settlement:charter.view
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → settlement:overview

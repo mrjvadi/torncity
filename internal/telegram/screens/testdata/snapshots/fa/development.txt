@@ -53,4 +53,5 @@
   [🧱 انبار و بازار] → settlement:materials
   [👥 اهالی] → settlement:who
   [📈 رشد] → settlement:development.view
+  [📜 منشور] → settlement:charter.view
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → settlement:overview

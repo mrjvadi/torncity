@@ -131,6 +131,7 @@ func VillageOverview(c presentation.Ctx, v VillageOverviewView) *presentation.Re
 	if v.Development {
 		a = append(a, act(AddrVillageDevelopment).Named("village.development"))
 	}
+	a = append(a, act(AddrVillageCharter).Named("village.charter"))
 	if v.Resident {
 		a = append(a, act(AddrVillageLeave).Named("village.leave").As(presentation.RoleDanger))
 	}

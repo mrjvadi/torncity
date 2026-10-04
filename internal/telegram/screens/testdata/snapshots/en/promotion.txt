@@ -30,6 +30,7 @@ No buildings stand here yet.
   [🧱 Stock and market] → settlement:materials
   [👥 People] → settlement:who
   [🧭 The way to a city] → settlement:promotion.view
+  [📜 Charter] → settlement:charter.view
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → settlement:overview
 
 ━━━ Village overview · ready to promote (the head) ━━━
@@ -67,6 +68,7 @@ No buildings stand here yet.
   [📚 City knowledge] → settlement:knowledge   │   [⏳ Build progress] → settlement:build.progress
   [🧱 Stock and market] → settlement:materials
   [🚀 Promote to city] → settlement:promote
+  [📜 Charter] → settlement:charter.view
   [🚪 Leave the city] → settlement:leave
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → settlement:overview
 
@@ -91,6 +93,7 @@ No buildings stand here yet.
   [📚 City knowledge] → settlement:knowledge   │   [⏳ Build progress] → settlement:build.progress
   [🧱 Stock and market] → settlement:materials
   [👥 People] → settlement:who
+  [📜 Charter] → settlement:charter.view
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → settlement:overview
 
 ━━━ The way forward · part way ━━━

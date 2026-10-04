@@ -30,6 +30,7 @@
   [🧱 انبار و بازار] → settlement:materials
   [👥 اهالی] → settlement:who
   [🧭 مسیر شهر شدن] → settlement:promotion.view
+  [📜 منشور] → settlement:charter.view
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → settlement:overview
 
 ━━━ Village overview · ready to promote (the head) ━━━
@@ -67,6 +68,7 @@
   [📚 دانش شهر] → settlement:knowledge   │   [⏳ پیشرفت ساخت] → settlement:build.progress
   [🧱 انبار و بازار] → settlement:materials
   [🚀 ارتقا به شهر] → settlement:promote
+  [📜 منشور] → settlement:charter.view
   [🚪 ترک شهر] → settlement:leave
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → settlement:overview
 
@@ -91,6 +93,7 @@
   [📚 دانش شهر] → settlement:knowledge   │   [⏳ پیشرفت ساخت] → settlement:build.progress
   [🧱 انبار و بازار] → settlement:materials
   [👥 اهالی] → settlement:who
+  [📜 منشور] → settlement:charter.view
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → settlement:overview
 
 ━━━ The way forward · part way ━━━
