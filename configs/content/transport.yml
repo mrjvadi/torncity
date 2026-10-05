@@ -64,6 +64,9 @@ facilities:
   - bus_terminal
   - rail_station
   - airport
+  # A harbour with a quay and a ferry or a cargo hall; no content city has one yet, a
+  # settlement that builds a port gets it (availability.yml).
+  - port
   # No content city has it: the walk and the cart serve the journeys the game
   # derives from the world (config travel.world_reach), never a content route.
   - village_road
@@ -86,12 +89,14 @@ transport_modes:
       step_bps: 0
       max_bps: 10000
 
-  # The village cart: cheap and slow, carts of the countryside. Same rules as
-  # the walk. Its fare is a little per kilometre.
+  # The village cart: a horse or ox cart of the countryside. Same rules as the walk. Real
+  # speeds (2026-10-05, journeys now take their real time): a walker makes about 5 km/h
+  # (4 to 6), an ox cart 3 to 4 and a horse wagon 6 to 10 km/h, so 8 km/h, 40 to 60 km a
+  # day. Its fare is a little per kilometre.
   - code: cart
     name: Cart
     requires: [village_road]
-    speed: 20
+    speed: 8
     boarding: 10m
     base_fare: 20
     fare_per_distance: 2
@@ -155,7 +160,7 @@ transport_modes:
     name: Flight
     requires: [airport]
     speed: 600
-    boarding: 1h
+    boarding: 2h
     base_fare: 400
     fare_per_distance: 8
     energy_cost: 4
@@ -164,3 +169,20 @@ transport_modes:
       free_departures: 2
       step_bps: 1000
       max_bps: 30000
+
+  # A ferry or a cargo-and-passenger ship between harbours: a cruising ship makes 15 to 20
+  # knots, about 28 to 37 km/h; boarding takes hours (check-in, loading, tides). It serves a
+  # route only where both ends have a port; no content city has one yet.
+  - code: ship
+    name: Ship
+    requires: [port]
+    speed: 33
+    boarding: 3h
+    base_fare: 250
+    fare_per_distance: 3
+    energy_cost: 3
+    demand:
+      window: 2h
+      free_departures: 2
+      step_bps: 800
+      max_bps: 25000

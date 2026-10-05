@@ -92,6 +92,7 @@ transport_mode:
   flight: هواپیما
   walk: پیاده
   cart: گاری
+  ship: کشتی
 
 skill:
   programming: برنامه‌نویسی

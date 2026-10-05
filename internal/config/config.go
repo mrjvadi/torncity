@@ -1528,7 +1528,7 @@ func Defaults() *Config {
 			ClockEpoch:            "2026-01-01T00:00:00Z",
 			ClockLegacyScale:      60,
 			ClockCutover:          "2026-10-06T00:00:00Z",
-			TravelTimeScale:       60,
+			TravelTimeScale:       1,
 			CommandTimeout:        30 * time.Second,
 		},
 		Travel: Travel{
@@ -1536,7 +1536,7 @@ func Defaults() *Config {
 			// Support, on the seed-42 world: a temperate lowland cell of the
 			// great continent, 940 km from any sea (ADR 0034).
 			CityLocations: []string{"support=32.30:-47.70"},
-			WorldReach:    []string{"walk=60", "cart=500", "car=21000"},
+			WorldReach:    []string{"walk=40", "cart=150", "car=21000"},
 		},
 		Player: Player{
 			DefaultLanguage: "fa",

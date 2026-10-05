@@ -421,10 +421,12 @@ availability:
   - {kind: transport_mode, code: bus, stage: town, growth: {deferred: building_missing, row: 265, note: "App. A: a transport L1 bus terminal building; the catalogue has none (ADR 0045)"}, requires: {}, elsewhere: [{where: support}]}
   - {kind: transport_mode, code: car, stage: town, requires: {personal: [{kind: certificate, code: driving_licence}]}, elsewhere: [{where: support}]}
   - {kind: transport_mode, code: train, stage: city, growth: {deferred: building_missing, row: 267, note: "App. A: rail station and laid route, ADR 0045 rail"}, requires: {}, elsewhere: [{where: support}]}
+  - {kind: transport_mode, code: ship, stage: city, requires: {buildings: [{code: port}]}, elsewhere: [{where: support}]}
   - {kind: transport_mode, code: flight, stage: city, requires: {buildings: [{code: airport}]}, elsewhere: [{where: support}]}
   - {kind: transport_facility, code: bus_terminal, stage: town, growth: {deferred: building_missing, row: 269, note: "App. A: a transport L1 bus terminal building; the catalogue has none (ADR 0045)"}, requires: {}, elsewhere: [{where: support}]}
   - {kind: transport_facility, code: rail_station, stage: city, growth: {deferred: building_missing, row: 270, note: "App. A: rail station and laid route, ADR 0045 rail"}, requires: {}, elsewhere: [{where: support}]}
   - {kind: transport_facility, code: airport, stage: city, requires: {buildings: [{code: airport}]}, elsewhere: [{where: support}]}
+  - {kind: transport_facility, code: port, stage: city, requires: {buildings: [{code: port}]}, elsewhere: [{where: support}]}
   - {kind: transport_facility, code: village_road, stage: village, requires: {buildings: [{code: road}]}}
 
   # ---- skills: the city-era ones, then the village crafts and farming (2026-10-03 follow-up, audit F-6)

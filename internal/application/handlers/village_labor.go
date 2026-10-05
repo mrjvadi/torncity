@@ -230,6 +230,10 @@ func (h *VillageHandler) mayEmploy(ctx context.Context, tx application.Tx, s app
 }
 
 func (h *VillageHandler) presentHere(ctx context.Context, tx application.Tx, p *application.Player, s application.FoundedSettlement) (bool, error) {
+	// A traveller is on the road, not in the village, however long the road is.
+	if on, err := h.travelling(ctx, tx, p.ID); err != nil || on {
+		return false, err
+	}
 	if p.CityID != nil && *p.CityID == s.CityID {
 		return true, nil
 	}
@@ -1193,4 +1197,16 @@ func (h *VillageHandler) shiftWait() time.Duration {
 		return time.Duration(h.labor.ShiftRealMinutes) * time.Minute
 	}
 	return h.scale.RealWait(time.Duration(h.labor.ShiftMinutes) * time.Minute)
+}
+
+// travelling says whether the player is on a journey. Journeys now take real time
+// (game.travel_time_scale 1: a bus ride is hours, a flight half a day), so what a player can
+// do in a village while on the road must follow: nothing that needs them to be there.
+func (h *VillageHandler) travelling(ctx context.Context, tx application.Tx, playerID string) (bool, error) {
+	if _, err := tx.Travels().Active(ctx, playerID); err == nil {
+		return true, nil
+	} else if !isSentinel(err, application.ErrNoActiveTravel) {
+		return false, err
+	}
+	return false, nil
 }
