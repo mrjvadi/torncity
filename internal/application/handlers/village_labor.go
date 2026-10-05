@@ -63,6 +63,12 @@ type laborMarket struct {
 	// free is the pool less the NPCs on a shift and the school's NPC teachers,
 	// before the shopkeeper and the storekeepers take their seats.
 	free int64
+	// staffFree is the pool less the school's NPC teachers only: the people the
+	// permanent posts (storekeepers, shopkeeper) are filled from. A day's keepers are
+	// judged once, at the first look of the day; if they had to wait for NPCs not on a
+	// shift, a busy construction day would leave every store unkept (room collapsing
+	// under its stock). The posts come first and the day labour takes what is left.
+	staffFree int64
 }
 
 // keeperSeats is how many people of the pool keep the shop and the stores:
@@ -165,14 +171,17 @@ func (h *VillageHandler) laborMarket(ctx context.Context, tx application.Tx, sna
 	if err != nil {
 		return laborMarket{}, err
 	}
+	teachersNPC := int64(0)
 	for _, t := range teachers {
 		if t.Kind == application.TeacherNPC {
 			npc++
+			teachersNPC++
 		}
 	}
 	free := max(pool-npc, 0)
+	staffFree := max(pool-teachersNPC, 0)
 	now := h.now()
-	shopSeat, storeSeats, until, err := h.keeperSeats(ctx, tx, snap, s, free, now)
+	shopSeat, storeSeats, until, err := h.keeperSeats(ctx, tx, snap, s, staffFree, now)
 	if err != nil {
 		return laborMarket{}, err
 	}
@@ -184,7 +193,7 @@ func (h *VillageHandler) laborMarket(ctx context.Context, tx application.Tx, sna
 	} else {
 		reservedFrom = &until
 	}
-	return laborMarket{pool: pool, free: free, line: village.LaborMarketLine{
+	return laborMarket{pool: pool, free: free, staffFree: staffFree, line: village.LaborMarketLine{
 		Housing: housing, Pool: pool, Available: available, Reserved: reserved, ReservedFrom: reservedFrom, Working: all, Vacancies: vacancies,
 		TightnessBPS: tight, Level: level, NPCWage: h.labor.NPCWage(s.Tier, tight), MinWage: h.labor.MinWage[s.Tier],
 	}}, nil
