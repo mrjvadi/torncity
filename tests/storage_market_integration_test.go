@@ -236,8 +236,8 @@ func TestWorkingStorehouse(t *testing.T) {
 	drain()
 	resettle()
 	v := view()
-	if _, c := room(v, "food"); c != 20 {
-		t.Errorf("food room with an unkept granary = %d, want the base 20", c)
+	if _, c := room(v, "food"); c != 120 {
+		t.Errorf("food room with an unkept granary = %d, want the base 20 plus the 100 the residents keep by rota", c)
 	}
 	if _, c := room(v, "bulk"); c != 60 {
 		t.Errorf("bulk room = %d, want the open yard 60", c)

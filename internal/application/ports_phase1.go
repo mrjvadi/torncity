@@ -34,17 +34,6 @@ type City struct {
 	// section 4): the city-only features (the budget, the city period) are
 	// offered to that tier alone.
 	Tier string
-	// TZOffsetMinutes is the place's own time zone, minutes east of UTC; nil until one is
-	// stored (a content city has none yet: UTC).
-	TZOffsetMinutes *int
-}
-
-// ZoneMinutes is the place's time zone in minutes east of UTC (0 when none is stored).
-func (c City) ZoneMinutes() int {
-	if c.TZOffsetMinutes == nil {
-		return 0
-	}
-	return *c.TZOffsetMinutes
 }
 
 // TierCity is the tier of a content city and of a grown settlement.
