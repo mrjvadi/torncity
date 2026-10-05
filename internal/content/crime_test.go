@@ -53,7 +53,7 @@ func TestShippedCrimes(t *testing.T) {
 		t.Errorf("pickpocketing: targets %v, timed %v", pick.Targets, pick.Timed())
 	}
 	burgle, _ := snap.Crime("home_burglary")
-	if burgle.Duration != 2*time.Hour || burgle.Hits(crime.TargetPlayer) {
+	if burgle.Duration != 2*time.Minute || burgle.Hits(crime.TargetPlayer) {
 		t.Errorf("home_burglary: %s, %v", burgle.Duration, burgle.Targets)
 	}
 	// The venue list and the domain's view of it agree index for index.

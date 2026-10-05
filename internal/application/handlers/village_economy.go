@@ -1,9 +1,9 @@
 package handlers
 
 import (
-	"github.com/mrjvadi/torncity/internal/domain/charter"
 	"context"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/domain/charter"
 	"github.com/mrjvadi/torncity/internal/presentation"
 	"github.com/mrjvadi/torncity/internal/presentation/village"
 	"sort"
@@ -13,8 +13,8 @@ import (
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
-	"github.com/mrjvadi/torncity/internal/domain/player"
 	"github.com/mrjvadi/torncity/internal/domain/item"
+	"github.com/mrjvadi/torncity/internal/domain/player"
 	"github.com/mrjvadi/torncity/internal/domain/settlementbuilding"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/shared/errors"

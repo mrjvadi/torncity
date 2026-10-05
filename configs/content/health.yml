@@ -60,16 +60,16 @@ health:
   floor: 1
   hospital_below: 20
   discharge_at: 60
-  recovery_per_hour: 8
-  rest_per_hour: 4
-  min_stay: 1h
-  max_stay: 16h
+  recovery_per_hour: 480
+  rest_per_hour: 240
+  min_stay: 1m
+  max_stay: 16m
   place: hospital
   medicine: medicine
   medicine_units: 1
   city_hospital:
     base_price: 300
-    per_hour: 90
+    per_hour: 5400
     care: {reduction_bps: 3500}
   injuries:
     war_strike: {chance_bps: 1500, min: 15, max: 60}

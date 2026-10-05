@@ -30,7 +30,7 @@ func TestBuildingSchemaSnapshotLookups(t *testing.T) {
 	if i, ok := snap.ItemStorage("bread"); !ok || i.FoodPoints != 4 || i.Class != "food" {
 		t.Fatalf("bread %+v", i)
 	}
-	if cl, ok := snap.Climate(); !ok || cl.GameYearDays != 420 {
+	if cl, ok := snap.Climate(); !ok || cl.GameYearDays != 28 {
 		t.Fatalf("climate %+v", cl)
 	}
 	if r, ok := snap.SettlementRaid(); !ok || r.MaxLeadHours != 48 || r.GraceDays != 7 {

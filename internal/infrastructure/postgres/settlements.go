@@ -11,6 +11,7 @@ import (
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/domain/charter"
+	"github.com/mrjvadi/torncity/internal/domain/gametime"
 	"github.com/mrjvadi/torncity/internal/domain/settlement"
 )
 
@@ -161,13 +162,14 @@ func (r *SettlementRepository) Found(ctx context.Context, f application.Founding
 		`INSERT INTO cities (id, code, name, tax_rate_bps, cost_of_living, population, jurisdiction_id,
 		        origin, tier, world_id, world_cell_id, founded_by_group_id, founded_at, protected_until,
 		        emblem_shape, emblem_color_a, emblem_color_b, emblem_icon, motto, name_key,
-		        grid_shift_x, grid_shift_y)
+		        grid_shift_x, grid_shift_y, tz_offset_minutes)
 		 VALUES ($1::uuid, $2, $3, 0, $4, 0, $5::uuid, 'founded', $6, $7::uuid, $8, $9, $10, $11,
-		        $12, $13, $14, $15, $16, $17, $18, $19)`,
+		        $12, $13, $14, $15, $16, $17, $18, $19, $20)`,
 		cityID, f.Code, f.Name, settlementFoundedCostOfLiving, jurisdictionID, f.Tier,
 		f.WorldID, f.WorldCellID, f.FoundedByGroupChatID, f.FoundedAt, f.ProtectedUntil,
 		nullIfEmpty(f.Emblem.Shape), nullIfEmpty(f.Emblem.ColorA), nullIfEmpty(f.Emblem.ColorB), nullIfEmpty(f.Emblem.Icon),
-		nullIfEmpty(f.Motto), nullIfEmpty(f.NameKey), f.GridShiftX, f.GridShiftY)
+		nullIfEmpty(f.Motto), nullIfEmpty(f.NameKey), f.GridShiftX, f.GridShiftY,
+		int16(gametime.OffsetFromLongitude(f.LonDeg)/time.Minute))
 	switch {
 	case violates(err, sqlstateUniqueViolation, citiesWorldCellUniqueIdx):
 		return out, application.ErrSpawnCellTaken
@@ -337,13 +339,14 @@ const settlementColumns = `c.id::text, c.code, c.name, c.jurisdiction_id::text, 
 	COALESCE(c.motto, ''),
 	COALESCE((SELECT v.code FROM village_currency_reservations v WHERE v.settlement_id = c.id), ''),
 	COALESCE((SELECT v.name FROM village_currency_reservations v WHERE v.settlement_id = c.id), ''),
-	COALESCE((SELECT v.symbol FROM village_currency_reservations v WHERE v.settlement_id = c.id), '')`
+	COALESCE((SELECT v.symbol FROM village_currency_reservations v WHERE v.settlement_id = c.id), ''),
+	c.tz_offset_minutes, COALESCE(c.tz_set_at, 'epoch'::timestamptz)`
 
 func scanSettlement(row pgx.Row, out *application.FoundedSettlement, extra ...any) error {
 	return row.Scan(append([]any{&out.CityID, &out.Code, &out.Name, &out.JurisdictionID, &out.Tier, &out.WorldID,
 		&out.WorldCellID, &out.FoundedAt, &out.ProtectedUntil, &out.GridShiftX, &out.GridShiftY, &out.GridGrowth,
 		&out.Emblem.Shape, &out.Emblem.ColorA, &out.Emblem.ColorB, &out.Emblem.Icon, &out.Motto,
-		&out.Currency.Code, &out.Currency.Name, &out.Currency.Symbol}, extra...)...)
+		&out.Currency.Code, &out.Currency.Name, &out.Currency.Symbol, &out.TZOffsetMinutes, &out.TZSetAt}, extra...)...)
 }
 
 // ByFoundingGroup returns the settlement this chat already founded, or
@@ -444,28 +447,77 @@ func (r *SettlementRepository) permissionsOf(ctx context.Context, ps application
 			}
 		}
 	}
-	rows, err := r.q.Query(ctx, `SELECT o.grants FROM charter_offices o
-		JOIN charter_seats s ON s.office_id = o.id AND s.until IS NULL AND s.holder_id = $2::uuid
-		WHERE o.settlement_id = $1::uuid AND o.closed_at IS NULL`, ps.CityID, playerID)
+	set, now := charter.RuntimeNow()
+	// the open offices and their active, unexpired seats
+	rows, err := r.q.Query(ctx, `SELECT o.id::text, o.grants, o.acquisition, o.deputy FROM charter_offices o
+		WHERE o.settlement_id = $1::uuid AND o.closed_at IS NULL`, ps.CityID)
 	if err != nil {
-		return nil, fmt.Errorf("postgres: reading the charter permissions of %s: %w", playerID, err)
+		return nil, fmt.Errorf("postgres: reading the charter offices of %s: %w", ps.CityID, err)
 	}
-	defer rows.Close()
+	var offices []charter.Office
 	for rows.Next() {
+		var o charter.Office
 		var raw []byte
-		if err := rows.Scan(&raw); err != nil {
+		var acq string
+		if err := rows.Scan(&o.ID, &raw, &acq, &o.Deputy); err != nil {
+			rows.Close()
 			return nil, fmt.Errorf("postgres: reading charter grants: %w", err)
 		}
-		gs, err := grantsFromJSON(raw)
-		if err != nil {
+		o.Acquisition = charter.Acquisition(acq)
+		if o.Grants, err = grantsFromJSON(raw); err != nil {
+			rows.Close()
 			return nil, err
 		}
-		for _, g := range gs {
-			have[string(g.Permission)] = true
-		}
+		offices = append(offices, o)
 	}
+	rows.Close()
 	if err := rows.Err(); err != nil {
 		return nil, err
+	}
+	seatRows, err := r.q.Query(ctx, `SELECT s.office_id::text, s.holder_id::text, s.since FROM charter_seats s
+		JOIN charter_offices o ON o.id = s.office_id
+		WHERE o.settlement_id = $1::uuid AND o.closed_at IS NULL AND s.until IS NULL AND (s.term_ends IS NULL OR s.term_ends > $2)`, ps.CityID, now)
+	if err != nil {
+		return nil, fmt.Errorf("postgres: reading charter seats: %w", err)
+	}
+	holders := map[string][]charter.SeatInfo{}
+	byID := map[string]charter.Office{}
+	for _, o := range offices {
+		byID[o.ID] = o
+	}
+	for seatRows.Next() {
+		var office, holder string
+		var since time.Time
+		if err := seatRows.Scan(&office, &holder, &since); err != nil {
+			seatRows.Close()
+			return nil, err
+		}
+		holders[office] = append(holders[office], charter.SeatInfo{PlayerID: holder, OfficeID: office, Since: since})
+		if holder == playerID {
+			for _, g := range byID[office].Grants {
+				have[string(g.Permission)] = true
+			}
+		}
+	}
+	seatRows.Close()
+	if err := seatRows.Err(); err != nil {
+		return nil, err
+	}
+	// a vacant head seat: whoever acts holds the founder's powers less the ones an acting head may not use
+	var headHolder *string
+	var headSince time.Time
+	if err := r.q.QueryRow(ctx, `SELECT holder_player_id::text, since FROM offices WHERE office_code = $1 AND jurisdiction_id = $2::uuid AND seat = 1`,
+		head, ps.JurisdictionID).Scan(&headHolder, &headSince); err == nil && headHolder == nil {
+		if len(offices) == 0 {
+			offices = []charter.Office{charter.FoundersOffice("", "")}
+		} else if !hasHeadOffice(offices) {
+			offices = append(offices, charter.FoundersOffice("", ""))
+		}
+		if acting, _, grants, _, ok := charter.ActingFor(offices, holders, headSince, set, now); ok && acting == playerID {
+			for _, g := range grants {
+				have[string(g.Permission)] = true
+			}
+		}
 	}
 	out := make([]string, 0, len(have))
 	for p := range have {
@@ -473,6 +525,15 @@ func (r *SettlementRepository) permissionsOf(ctx context.Context, ps application
 	}
 	sort.Strings(out)
 	return out, nil
+}
+
+func hasHeadOffice(offices []charter.Office) bool {
+	for _, o := range offices {
+		if o.Acquisition == charter.AcquireHead {
+			return true
+		}
+	}
+	return false
 }
 
 // ResidentCount is how many active players live in the settlement.
@@ -530,4 +591,16 @@ func (r *SettlementRepository) Promote(ctx context.Context, p application.Settle
 		return false, fmt.Errorf("postgres: writing the promotion audit row: %w", err)
 	}
 	return true, nil
+}
+
+// SetTimezone stores a settlement's time zone.
+func (r *SettlementRepository) SetTimezone(ctx context.Context, settlementID string, offsetMinutes *int, at time.Time) error {
+	var v any
+	if offsetMinutes != nil {
+		v = int16(*offsetMinutes)
+	}
+	if _, err := r.q.Exec(ctx, `UPDATE cities SET tz_offset_minutes = $2, tz_set_at = $3 WHERE id = $1::uuid AND origin = 'founded'`, settlementID, v, at); err != nil {
+		return fmt.Errorf("postgres: setting the time zone of %s: %w", settlementID, err)
+	}
+	return nil
 }

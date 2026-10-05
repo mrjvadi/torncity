@@ -1,0 +1,10 @@
+BEGIN;
+DROP TABLE IF EXISTS charter_petition_signatures;
+DROP TABLE IF EXISTS charter_petitions;
+DROP TABLE IF EXISTS charter_ballot_votes;
+DROP TABLE IF EXISTS charter_ballot_candidates;
+DROP TABLE IF EXISTS charter_ballots;
+ALTER TABLE charter_seats DROP COLUMN IF EXISTS term_ends;
+DROP INDEX IF EXISTS charter_offices_deputy_idx;
+ALTER TABLE charter_offices DROP COLUMN IF EXISTS deputy;
+COMMIT;

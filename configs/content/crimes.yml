@@ -130,9 +130,9 @@ crime_tiers:
 crime_categories:
   - {code: petty_theft,  name: Petty theft}
   - {code: street_crime, name: Street crime}
-  - {code: burglary,     name: Burglary,  cooldown: 2h}
+  - {code: burglary,     name: Burglary,  cooldown: 2m}
   - {code: fraud,        name: Fraud}
-  - {code: smuggling,    name: Smuggling, cooldown: 6h}
+  - {code: smuggling,    name: Smuggling, cooldown: 6m}
 
 crimes:
   # --- Tier 1: novice --------------------------------------------------------
@@ -148,7 +148,7 @@ crimes:
     tier: novice
     min_level: 1
     nerve: 2
-    cooldown: 15m
+    cooldown: 15s
     duration: 0s
     success:
       base_chance_bps: 6000
@@ -171,8 +171,8 @@ crimes:
       steal_item_bps: 1500
     failure:
       catch_chance_bps: 3500
-      jail_min: 2h
-      jail_max: 6h
+      jail_min: 2m
+      jail_max: 6m
       fine_min: 100
       fine_max: 400
       heat: 8
@@ -186,7 +186,7 @@ crimes:
     tier: novice
     min_level: 1
     nerve: 2
-    cooldown: 30m
+    cooldown: 30s
     duration: 0s
     success:
       base_chance_bps: 7000
@@ -204,8 +204,8 @@ crimes:
       loot: [{item: sandwich, chance_bps: 3000, min_qty: 1, max_qty: 2}, {item: energy_drink, chance_bps: 1500, min_qty: 1, max_qty: 1}]
     failure:
       catch_chance_bps: 3000
-      jail_min: 1h
-      jail_max: 3h
+      jail_min: 1m
+      jail_max: 3m
       fine_min: 50
       fine_max: 200
       heat: 6
@@ -218,7 +218,7 @@ crimes:
     tier: novice
     min_level: 2
     nerve: 3
-    cooldown: 30m
+    cooldown: 30s
     duration: 0s
     success:
       base_chance_bps: 6000
@@ -236,8 +236,8 @@ crimes:
       loot: [{item: phone, chance_bps: 1200, min_qty: 1, max_qty: 1, min_quality: 30, max_quality: 70}]
     failure:
       catch_chance_bps: 4500
-      jail_min: 3h
-      jail_max: 8h
+      jail_min: 3m
+      jail_max: 8m
       fine_min: 150
       fine_max: 500
       heat: 10
@@ -251,8 +251,8 @@ crimes:
     tier: novice
     min_level: 2
     nerve: 3
-    cooldown: 1h
-    duration: 20m
+    cooldown: 1m
+    duration: 20s
     success:
       base_chance_bps: 5500
       skill_weights: [{skill: deception, bps_per_level: 150}]
@@ -268,8 +268,8 @@ crimes:
       heat: 3
     failure:
       catch_chance_bps: 3000
-      jail_min: 2h
-      jail_max: 6h
+      jail_min: 2m
+      jail_max: 6m
       fine_min: 150
       fine_max: 600
       heat: 8
@@ -285,8 +285,8 @@ crimes:
     min_level: 3
     required_skills: [{skill: lockpicking, level: 1}]
     nerve: 4
-    cooldown: 2h
-    duration: 30m
+    cooldown: 2m
+    duration: 30s
     success:
       base_chance_bps: 5500
       skill_weights: [{skill: lockpicking, bps_per_level: 150}, {skill: stealth, bps_per_level: 50}]
@@ -303,8 +303,8 @@ crimes:
       loot: [{item: car_stereo, chance_bps: 3000, min_qty: 1, max_qty: 1, min_quality: 20, max_quality: 60}]
     failure:
       catch_chance_bps: 4500
-      jail_min: 4h
-      jail_max: 12h
+      jail_min: 4m
+      jail_max: 12m
       fine_min: 300
       fine_max: 1000
       heat: 12
@@ -320,8 +320,8 @@ crimes:
     required_skills: [{skill: lockpicking, level: 3}, {skill: stealth, level: 2}]
     required_tools: [lockpick_set]
     nerve: 6
-    cooldown: 6h
-    duration: 2h
+    cooldown: 6m
+    duration: 2m
     success:
       base_chance_bps: 5000
       skill_weights: [{skill: lockpicking, bps_per_level: 120}, {skill: stealth, bps_per_level: 100}]
@@ -338,8 +338,8 @@ crimes:
       loot: [{item: jewellery, chance_bps: 4000, min_qty: 1, max_qty: 3}, {item: watch, chance_bps: 1500, min_qty: 1, max_qty: 1, min_quality: 30, max_quality: 80}]
     failure:
       catch_chance_bps: 5000
-      jail_min: 8h
-      jail_max: 24h
+      jail_min: 8m
+      jail_max: 24m
       fine_min: 500
       fine_max: 2000
       heat: 18
@@ -354,8 +354,8 @@ crimes:
     min_level: 4
     required_skills: [{skill: deception, level: 2}]
     nerve: 5
-    cooldown: 3h
-    duration: 1h
+    cooldown: 3m
+    duration: 1m
     success:
       base_chance_bps: 5500
       skill_weights: [{skill: deception, bps_per_level: 120}, {skill: streetwise, bps_per_level: 60}]
@@ -371,8 +371,8 @@ crimes:
       heat: 6
     failure:
       catch_chance_bps: 4000
-      jail_min: 6h
-      jail_max: 18h
+      jail_min: 6m
+      jail_max: 18m
       fine_min: 400
       fine_max: 1500
       heat: 12
@@ -392,8 +392,8 @@ crimes:
     required_skills: [{skill: streetwise, level: 3}, {skill: deception, level: 2}]
     required_facilities: [rail_station]
     nerve: 8
-    cooldown: 8h
-    duration: 4h
+    cooldown: 8m
+    duration: 4m
     success:
       base_chance_bps: 5000
       skill_weights: [{skill: streetwise, bps_per_level: 100}, {skill: deception, bps_per_level: 80}]
@@ -409,8 +409,8 @@ crimes:
       heat: 12
     failure:
       catch_chance_bps: 5500
-      jail_min: 12h
-      jail_max: 36h
+      jail_min: 12m
+      jail_max: 36m
       fine_min: 1000
       fine_max: 4000
       heat: 20

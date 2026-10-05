@@ -35,10 +35,10 @@ import (
 // VillageMarketRules is the tuning of the village book (config trade.village_*,
 // trade.market_day_every_days) and the game clock market days are counted on.
 type VillageMarketRules struct {
-	StallsPost, StallsHall                 int
+	StallsPost, StallsHall                   int
 	StallsPerPlayerPost, StallsPerPlayerHall int
-	DayEveryDays                           int
-	Clock                                  gametime.Clock
+	DayEveryDays                             int
+	Clock                                    gametime.Clock
 }
 
 // WithVillageBook gives the market the village book's stalls, fees and market day.
@@ -77,6 +77,10 @@ func (h *MarketHandler) villageBookOf(ctx context.Context, tx application.Tx, sn
 	var vb villageBook
 	if founded, err := tx.Settlements().IsFounded(ctx, city.ID); err != nil || !founded {
 		return vb, err
+	}
+	zone := time.Duration(0)
+	if fs, err := tx.Settlements().ByID(ctx, city.ID); err == nil {
+		zone = fs.Zone()
 	}
 	here, err := judgeSettlementOf(ctx, tx, snap, city, h.home)
 	if err != nil {
@@ -123,7 +127,7 @@ func (h *MarketHandler) villageBookOf(ctx context.Context, tx application.Tx, sn
 			return vb, err
 		}
 		for _, o := range owned {
-			if o.Code == "periodic_market" && h.village.Clock.DayAt(now)%int64(h.village.DayEveryDays) == 0 {
+			if o.Code == "periodic_market" && h.village.Clock.DayAtIn(now, zone)%int64(h.village.DayEveryDays) == 0 {
 				vb.MarketDay = true
 				vb.ListingBPS, vb.DuesBPS = 0, vb.DuesBPS/2
 			}

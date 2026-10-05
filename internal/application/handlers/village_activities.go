@@ -1,9 +1,9 @@
 package handlers
 
 import (
-	"github.com/mrjvadi/torncity/internal/domain/charter"
 	"context"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/domain/charter"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"

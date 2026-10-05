@@ -1,9 +1,9 @@
 package handlers
 
 import (
-	"github.com/mrjvadi/torncity/internal/domain/charter"
 	"context"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/domain/charter"
 	"github.com/mrjvadi/torncity/internal/presentation"
 	"github.com/mrjvadi/torncity/internal/presentation/village"
 	"sort"
@@ -553,6 +553,10 @@ func (h *VillageHandler) PrivateMenu(ctx context.Context, meta envelope.Metadata
 		if err != nil {
 			return err
 		}
+		waitOf, err := h.buildWaiter(ctx, tx, snap, sc.s)
+		if err != nil {
+			return err
+		}
 		_, cash, err := playerCash(ctx, tx, sc.p.ID)
 		if err != nil {
 			return err
@@ -576,7 +580,8 @@ func (h *VillageHandler) PrivateMenu(ctx context.Context, meta envelope.Metadata
 			}
 			total := d.CostMoney + sc.fee + bill.boughtCost
 			view.Lines = append(view.Lines, village.PrivateLine{
-				Building: named(d.Code, d.Name), Home: d.Home, Class: d.PermitClass, CostMoney: d.CostMoney, PermitFee: sc.fee,
+				ExpectedWait: waitOf(def),
+				Building:     named(d.Code, d.Name), Home: d.Home, Class: d.PermitClass, CostMoney: d.CostMoney, PermitFee: sc.fee,
 				Materials: bill.screen(), BuildTime: h.scale.RealWait(def.BuildTime),
 				FootprintW: def.FootprintW, FootprintH: def.FootprintH, Total: total, Affordable: cash >= total,
 			})
@@ -775,8 +780,13 @@ func (h *VillageHandler) PrivatePlace(ctx context.Context, meta envelope.Metadat
 				return err
 			}
 			total := d.CostMoney + roadFee + sc.fee + bill.boughtCost
+			waitOf, werr := h.buildWaiter(ctx, tx, h.content.Current(), sc.s)
+			if werr != nil {
+				return werr
+			}
 			confirmView = &village.PrivateConfirmView{
-				Village: sc.s.Name, Building: named(d.Code, d.Name), X: x, Y: y, Rotated: rotated,
+				ExpectedWait: waitOf(def),
+				Village:      sc.s.Name, Building: named(d.Code, d.Name), X: x, Y: y, Rotated: rotated,
 				CostMoney: d.CostMoney + roadFee, PermitFee: sc.fee, Materials: bill.screen(), MaterialsCost: bill.boughtCost,
 				Total: total, Cash: cash, BuildTime: h.scale.RealWait(def.BuildTime),
 			}

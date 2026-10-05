@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"github.com/mrjvadi/torncity/internal/domain/charter"
 	"context"
+	"github.com/mrjvadi/torncity/internal/domain/charter"
 	"strings"
 
 	"github.com/mrjvadi/torncity/internal/application"

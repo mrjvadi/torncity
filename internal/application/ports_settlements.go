@@ -248,6 +248,22 @@ type FoundedSettlement struct {
 	FoundedAt      time.Time
 	ProtectedUntil time.Time
 	Buildings      []SettlementBuilding
+	// TZOffsetMinutes is the settlement's own time zone, minutes east of UTC,
+	// when its charter set one; nil means it follows its place on the world
+	// (gametime.OffsetFromLongitude).
+	TZOffsetMinutes *int
+	// TZSetAt is when the charter last changed the zone (zero: never).
+	TZSetAt time.Time
+}
+
+// Zone is the settlement's own time zone as an offset from UTC. A settlement whose
+// zone is not stored yet is on UTC until `admin settlement backfill-timezones`
+// (or a charter edit) writes it; founding always writes it.
+func (s FoundedSettlement) Zone() time.Duration {
+	if s.TZOffsetMinutes == nil {
+		return 0
+	}
+	return time.Duration(*s.TZOffsetMinutes) * time.Minute
 }
 
 // SettlementRepository is the transactional port behind founding a
@@ -255,6 +271,9 @@ type FoundedSettlement struct {
 // jurisdiction, cities row, vacant office seat, founding-kit buildings and
 // Telegram group link commit together or not at all.
 type SettlementRepository interface {
+	// SetTimezone stores the settlement's time zone (minutes east of UTC); nil
+	// returns it to the zone its place on the world gives.
+	SetTimezone(ctx context.Context, settlementID string, offsetMinutes *int, at time.Time) error
 	// Found writes one settlement: a jurisdictions row (level "village",
 	// under f.CountryJurisdictionID), a cities row (origin "founded"), a
 	// vacant seat for every village-level office of the active content

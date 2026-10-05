@@ -152,6 +152,10 @@ func (h *VillageHandler) BuildMenu(ctx context.Context, meta envelope.Metadata) 
 
 		view = village.BuildMenuView{Name: s.Name, Treasury: treasury, RunningBuilds: running,
 			ConcurrentCap: h.buildCap(snap, s, buildings)}
+		waitOf, werr := h.buildWaiter(ctx, tx, snap, s)
+		if werr != nil {
+			return werr
+		}
 		gg := buildingGate() // what the settlement has lists the buildings (the size label lists none)
 		var gcaps wsettle.Capabilities
 		var gfound bool
@@ -177,7 +181,7 @@ func (h *VillageHandler) BuildMenu(ctx context.Context, meta envelope.Metadata) 
 			if !listed {
 				continue
 			}
-			line := village.BuildLine{Building: named(d.Code, d.Name), Role: d.Role, Category: snap.BuildCategoryOf(d), CostMoney: d.CostMoney, BuildTime: h.scale.RealWait(def.BuildTime),
+			line := village.BuildLine{ExpectedWait: waitOf(def), Building: named(d.Code, d.Name), Role: d.Role, Category: snap.BuildCategoryOf(d), CostMoney: d.CostMoney, BuildTime: h.scale.RealWait(def.BuildTime),
 				Materials: materialLinesOf(snap, def.CostMaterials)}
 			ok := true
 			if def.RequiresBuildingRole != nil && built[*def.RequiresBuildingRole] < 1 {

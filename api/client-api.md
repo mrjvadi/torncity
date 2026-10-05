@@ -789,6 +789,12 @@ needs a group.
 | `settlement.charter.view` | - | the charter: offices, holders, what the viewer may do, the permission catalogue, the audit (`village_charter`); the founder's office is `id: "founder"` until the first write |
 | `settlement.charter.office.save` | `office`? (empty creates; `"founder"` or an id edits), `title`, `seats`?, `grants` (`[{permission, limit?}]`), `acquisition`?, `term_days`? | create or edit an office (`village_charter_changed`); numbers may be sent as numbers or strings |
 | `settlement.charter.office.close` / `.appoint` / `.dismiss` / `.resign` | `office`, `player`? (public code) | close an office, seat or unseat a resident, leave an office |
+| `settlement.timezone.set` | `offset_minutes` (multiple of 15, -720..840) | the charter changes the settlement's own time zone (permission `settings.timezone`, once per `settlement.timezone_cooldown`); answers `village_charter_changed` |
+| `settlement.charter.election.open` | `office` (`"founder"` for the head seat) | call an election for an elected office (or the vacant head seat); permission `election.call` |
+| `settlement.charter.stand` | `ballot` | put the player's name on an election during candidacy |
+| `settlement.charter.vote` | `ballot`, `choice` (a candidate's public code, or `yes`/`no`) | one secret, final vote |
+| `settlement.charter.recall.start` | `office`, `player` (public code) | open a recall petition about a holder after their first days |
+| `settlement.charter.recall.sign` | `petition` | sign a petition; the signature that reaches the threshold opens the vote |
 | `settlement.road.cancel` | `id` | takes an unlaid, unsold road plan back (`settlement_road_cancelled`) |
 | `settlement.build.cancel` | `id` | calls off a building **under construction**; the spend is forfeited, the lot is free again |
 | `settlement.build.demolish` | `id` | removes a **finished** building; part of its cost returns to the treasury |
@@ -1544,3 +1550,7 @@ device plays through.
 | `settlement.stock.donate` / `settlement.stock.take` | `item`, `qty` | `village_materials`; donate: any resident; take: the head's office; `village_not_enough`, `village_storage_full` (with `missing`) |
 
 Views: `inventory` gained `carry.reserved`, `home {capacity, used, here, lines}` and `claims`; `item_detail.can_store`; `village_materials` gained `classes [{class, used, capacity, reserved}]`, `stores [{building, kept}]`, `wage`, `spoil_bps`; `market`, `book` and `market_refusal` gained `unavailable` (no market post) and `village {stalls, stalls_used, per_player, mine, listing_bps, dues_bps, market_day}`; `order_placed.listing_fee`; market refusals `stalls_full`, `stall_limit`, `unavailable`. The village shop views are named `VillageShopView`, `VillageShopLine`, `VillageShopCheckoutView`, `VillageShopRefusalView` (the city shop keeps the plain names). The Economy hub lists entry `storehouse` (command `settlement.materials`).
+
+## Build wait
+
+`build_time` on the build menu, the lot confirm, the upgrade lines and the private-building menu is worker effort (worker-minutes of labour), not a wait. The same views carry `expected_wait` `{seconds, shifts, crew, shift_seconds}`: the estimated real wait with the crew the settlement has now (`ceil(shifts / crew) * shift_seconds`). Show `expected_wait.seconds`.

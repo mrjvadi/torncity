@@ -1,0 +1,53 @@
+━━━ Charter · elections, a petition, an amendment, an acting head ━━━
+(edits message 42)
+📜 Charter of Korendal
+
+🏛 Mayor - 1 seats, 0 open (founder's office)
+   Held by: vacant
+   May: draw roads
+
+🏛 Elder - 1 seats, 1 open (by election)
+   Held by: vacant
+   May: take from the city stock, spend from the treasury (up to 500 SUP)
+
+🕰 The head seat is vacant; Ali runs the day-to-day until 19 October 2026 (each spend up to 2,000 SUP, no changes to the charter).
+
+🗳 Election for Mayor: standing is open until voting starts (17 October 2026)
+
+🗳 Vote to recall Reza from Elder until 15 October 2026
+
+🗳 The change to Elder carried
+
+🗳 Reza stays in Elder
+
+✍️ Petition to recall Reza from Elder: 2 of 3 signatures
+
+You sit in no office.
+
+🗒 Latest changes:
+• election for Mayor opened - Ali
+• a vote was cast
+• the residents approved the change to Elder
+  ───
+  [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:charter.view
+
+━━━ Charter · an election opened ━━━
+(edits message 42)
+election for Elder opened
+  ───
+  [📜 Charter] → settlement:charter.view
+  [🔙 Back] → settlement:overview
+
+━━━ Charter · a vote cast ━━━
+(edits message 42)
+a vote was cast
+  ───
+  [📜 Charter] → settlement:charter.view
+  [🔙 Back] → settlement:overview
+
+━━━ Charter · an amendment proposed ━━━
+(edits message 42)
+a change to Elder went to the residents
+  ───
+  [📜 Charter] → settlement:charter.view
+  [🔙 Back] → settlement:overview

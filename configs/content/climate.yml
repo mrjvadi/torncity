@@ -27,7 +27,7 @@ climate:
   wind_insulation: 1
   heavy_work_insulation: -1
   thirst_per_game_day: 40
-  game_year_days: 420
+  game_year_days: 28
   seasons: 4
   needs_research: [seasonal_swing, night_dip, weather_odds_by_region, heat_work_thirst_multiplier, warmth_drift_rate, need_effect_sizes, garment_warmth_points]
-  note: "a game year of 420 game days is about a real week; seasons about two real days each (ADR 0018 game clock)"
+  note: "a game year is 28 real days, a season a real week (calendar compressed by decision of 2026-10-05; the day itself is a real day)"

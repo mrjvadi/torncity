@@ -1,9 +1,9 @@
 package handlers
 
 import (
-	"github.com/mrjvadi/torncity/internal/domain/charter"
 	"context"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/domain/charter"
 	"github.com/mrjvadi/torncity/internal/presentation"
 	"github.com/mrjvadi/torncity/internal/presentation/village"
 	"sort"
@@ -255,6 +255,10 @@ func (h *VillageHandler) upgradeLines(ctx context.Context, tx application.Tx, sn
 	if err != nil {
 		return nil, err
 	}
+	waitOf, err := h.buildWaiter(ctx, tx, snap, s)
+	if err != nil {
+		return nil, err
+	}
 	var out []village.BuildingUpgradeLine
 	for _, code := range sortedBuildingCodes(snap) {
 		o, _ := snap.SettlementBuildingDef(code)
@@ -263,7 +267,8 @@ func (h *VillageHandler) upgradeLines(ctx context.Context, tx application.Tx, sn
 			continue
 		}
 		line := village.BuildingUpgradeLine{
-			Building: named(o.Code, o.Name), Tier: o.Tier, CostMoney: o.CostMoney,
+			ExpectedWait: waitOf(def),
+			Building:     named(o.Code, o.Name), Tier: o.Tier, CostMoney: o.CostMoney,
 			BuildTime: h.scale.RealWait(def.BuildTime), Available: true,
 		}
 		// The step above the settlement's own tier is still revealed on

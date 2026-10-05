@@ -7,9 +7,12 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync/atomic"
+	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/domain/charter"
+	"github.com/mrjvadi/torncity/internal/domain/gametime"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/presentation"
 	"github.com/mrjvadi/torncity/internal/presentation/village"
@@ -65,6 +68,41 @@ type charterState struct {
 	stored    bool
 	headHeld  string // player id holding the governance head office, "" if none
 	headIsSet bool
+	// headSince is when the head seat took its present state (for a vacancy: when
+	// it fell vacant); acting is who acts for the head while it is vacant.
+	headSince time.Time
+	acting    *actingHead
+}
+
+// actingHead is the officer who runs the settlement while its head seat is vacant
+// (ADR 0044 6.5, research note section 1.5): the deputy office's longest-serving
+// holder, else the longest-serving holder of any office. Their powers are the
+// founder's less the ones that change the charter, capped on spending, and last at
+// most charter.acting_days from the vacancy; after that nothing they do is valid.
+type actingHead struct {
+	Player   string
+	OfficeID string
+	Ends     time.Time
+	Grants   []charter.Grant
+}
+
+// charterRuntime is the numbers and the clock the package-level checks (requirePermission
+// and its callers in other handlers) need. NewVillageHandler sets them.
+var (
+	charterSet atomic.Pointer[charter.Settings]
+	charterNow atomic.Pointer[func() time.Time]
+)
+
+func settingsNow() (charter.Settings, time.Time) {
+	set := charter.Defaults()
+	if p := charterSet.Load(); p != nil {
+		set = *p
+	}
+	now := time.Now().UTC()
+	if f := charterNow.Load(); f != nil {
+		now = (*f)()
+	}
+	return set, now
 }
 
 func (s charterState) held(o charter.Office) bool {
@@ -96,7 +134,11 @@ func loadCharterState(ctx context.Context, tx application.Tx, s application.Foun
 		if err != nil {
 			return st, err
 		}
+		_, now := settingsNow()
 		for _, seat := range seats {
+			if !seat.TermEnds.IsZero() && !now.Before(seat.TermEnds) {
+				continue // the term is over: the seat gives no powers, whether or not anyone has yet recorded it
+			}
 			st.seats[seat.OfficeID] = append(st.seats[seat.OfficeID], seat)
 		}
 	}
@@ -104,11 +146,32 @@ func loadCharterState(ctx context.Context, tx application.Tx, s application.Foun
 	if err != nil {
 		return st, err
 	}
+	st.headSince = seat.Since
 	if !seat.Vacant() {
 		st.headHeld = seat.HolderPlayerID
 	}
 	st.headIsSet = true
+	if st.headHeld == "" {
+		set, now := settingsNow()
+		st.acting = st.chooseActing(set, now)
+	}
 	return st, nil
+}
+
+// chooseActing picks the acting head and bounds their authority; nil when nobody can
+// act or the acting days are over.
+func (st charterState) chooseActing(set charter.Settings, now time.Time) *actingHead {
+	holders := map[string][]charter.SeatInfo{}
+	for _, o := range st.offices {
+		for _, seat := range st.seats[o.ID] {
+			holders[o.ID] = append(holders[o.ID], charter.SeatInfo{PlayerID: seat.HolderID, OfficeID: o.ID, Since: seat.Since})
+		}
+	}
+	player, officeID, grants, ends, ok := charter.ActingFor(st.offices, holders, st.headSince, set, now)
+	if !ok {
+		return nil
+	}
+	return &actingHead{Player: player, OfficeID: officeID, Ends: ends, Grants: grants}
 }
 
 func (h *VillageHandler) defaultTitle(lang string) string {
@@ -138,6 +201,9 @@ func (st charterState) heldBy(playerID string) charter.Held {
 		if in {
 			sets = append(sets, o.Grants)
 		}
+	}
+	if st.acting != nil && st.acting.Player == playerID {
+		sets = append(sets, st.acting.Grants)
 	}
 	return charter.HeldBy(sets...)
 }
@@ -212,20 +278,23 @@ type VillageCharterRequest struct {
 	Office string `json:"office,omitempty"`
 	// Title, Seats, Grants, Acquisition and TermDays are an office being saved.
 	Title       string                `json:"title,omitempty"`
-	Seats       charterInt            `json:"seats,omitempty"`
+	Seats       CharterInt            `json:"seats,omitempty"`
 	Grants      []VillageCharterGrant `json:"grants,omitempty"`
 	Acquisition string                `json:"acquisition,omitempty"`
-	TermDays    charterInt            `json:"term_days,omitempty"`
+	TermDays    CharterInt            `json:"term_days,omitempty"`
+	// Deputy marks the office that holds the founder's powers (less the ones an acting
+	// head may not use) while the head seat is vacant.
+	Deputy *bool `json:"deputy,omitempty"`
 	// Player is a resident's public code (appoint, dismiss).
 	Player string `json:"player,omitempty"`
 }
 
-// charterInt reads a whole number sent as a number or as a string: a client's
+// CharterInt reads a whole number sent as a number or as a string: a client's
 // arguments reach the handler as strings, like a button's.
-type charterInt int
+type CharterInt int
 
 // UnmarshalJSON accepts 3 and "3"; an empty string is 0.
-func (n *charterInt) UnmarshalJSON(b []byte) error {
+func (n *CharterInt) UnmarshalJSON(b []byte) error {
 	t := strings.Trim(strings.TrimSpace(string(b)), `"`)
 	if t == "" || t == "null" {
 		*n = 0
@@ -235,7 +304,7 @@ func (n *charterInt) UnmarshalJSON(b []byte) error {
 	if err != nil {
 		return err
 	}
-	*n = charterInt(v)
+	*n = CharterInt(v)
 	return nil
 }
 
@@ -246,7 +315,7 @@ func (g *VillageCharterGrant) UnmarshalJSON(b []byte) error {
 	if strings.HasPrefix(t, "{") {
 		var raw struct {
 			Permission string       `json:"permission"`
-			Limit      charterInt64 `json:"limit"`
+			Limit      CharterInt64 `json:"limit"`
 		}
 		if err := json.Unmarshal(b, &raw); err != nil {
 			return err
@@ -267,9 +336,9 @@ func (g *VillageCharterGrant) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-type charterInt64 int64
+type CharterInt64 int64
 
-func (n *charterInt64) UnmarshalJSON(b []byte) error {
+func (n *CharterInt64) UnmarshalJSON(b []byte) error {
 	t := strings.Trim(strings.TrimSpace(string(b)), `"`)
 	if t == "" || t == "null" {
 		*n = 0
@@ -279,7 +348,7 @@ func (n *charterInt64) UnmarshalJSON(b []byte) error {
 	if err != nil {
 		return err
 	}
-	*n = charterInt64(v)
+	*n = CharterInt64(v)
 	return nil
 }
 
@@ -315,7 +384,7 @@ func (h *VillageHandler) CharterView(ctx context.Context, meta envelope.Metadata
 
 func (h *VillageHandler) charterViewOf(ctx context.Context, tx application.Tx, s application.FoundedSettlement, viewerID, lang string,
 ) (village.CharterView, error) {
-	st, err := h.loadCharter(ctx, tx, s, lang)
+	st, err := h.charterTick(ctx, tx, s, lang)
 	if err != nil {
 		return village.CharterView{}, err
 	}
@@ -330,6 +399,11 @@ func (h *VillageHandler) charterViewOf(ctx context.Context, tx application.Tx, s
 	_, v.CanEdit = held.Has(charter.OfficeEdit)
 	_, v.CanAppoint = held.Has(charter.OfficeAppoint)
 	_, v.CanDismiss = held.Has(charter.OfficeDismiss)
+	v.ZoneMinutes = int(s.Zone() / time.Minute)
+	_, v.CanSetZone = held.Has(charter.SettingsTimezone)
+	if next := s.TZSetAt.Add(h.tzCooldown); s.TZSetAt.Year() > 2000 && next.After(h.now()) {
+		v.ZoneNextChange = &next
+	}
 	for _, g := range sortedHeld(held) {
 		v.Mine = append(v.Mine, village.CharterGrantView{Permission: string(g.Permission), Limit: g.Limit})
 	}
@@ -390,6 +464,9 @@ func (h *VillageHandler) charterViewOf(ctx context.Context, tx application.Tx, s
 	for _, a := range audit {
 		v.Audit = append(v.Audit, village.CharterAuditView{Action: a.Action, Actor: people[a.ActorID].Name, Office: titles[a.OfficeID],
 			Title: stringOf(a.Detail["title"]), At: a.At})
+	}
+	if err := h.charterPhase2View(ctx, tx, s, st, viewerID, held, &v); err != nil {
+		return v, err
 	}
 	return v, nil
 }
@@ -474,6 +551,10 @@ func refuseCharter(err error) error {
 		kind = village.CharterSeatsFull
 	case stderrors.Is(err, charter.ErrAlreadySeated):
 		kind = village.CharterAlreadySeated
+	case stderrors.Is(err, errZoneInvalid):
+		kind = village.CharterZoneInvalid
+	case stderrors.Is(err, errZoneCooldown):
+		kind = village.CharterZoneCooldown
 	}
 	if kind == "" {
 		return err
@@ -521,7 +602,7 @@ func (h *VillageHandler) CharterOfficeSave(ctx context.Context, meta envelope.Me
 		if err := tx.Charters().Lock(ctx, s.CityID); err != nil {
 			return err
 		}
-		st, err := h.loadCharter(ctx, tx, s, lang)
+		st, err := h.charterTick(ctx, tx, s, lang)
 		if err != nil {
 			return err
 		}
@@ -589,8 +670,27 @@ func (h *VillageHandler) CharterOfficeSave(ctx context.Context, meta envelope.Me
 				return refuseCharter(charter.ErrSeatsFull)
 			}
 		}
-		if next.Acquisition == charter.AcquireElection || (prev == nil && next.Acquisition == charter.AcquireHead) {
-			return refuseCharter(charter.ErrAcquisition) // elections are the next phase
+		if next.Acquisition == charter.AcquireHead && (prev == nil || prev.Acquisition != charter.AcquireHead) {
+			return refuseCharter(charter.ErrAcquisition) // only the founder's office is filled by the head seat
+		}
+		if next.Acquisition == charter.AcquireElection && next.TermDays == 0 {
+			next.TermDays = h.cset().ElectionTermDays
+		}
+		if prev != nil {
+			next.Deputy = prev.Deputy
+		}
+		if req.Deputy != nil {
+			next.Deputy = *req.Deputy
+		}
+		if next.Deputy {
+			if next.Acquisition == charter.AcquireHead {
+				return refuseCharter(charter.ErrAcquisition)
+			}
+			for _, o := range st.offices {
+				if o.Deputy && !o.Closed && (prev == nil || o.ID != prev.ID) {
+					return refuseVillage(village.CharterDeputyTaken, village.AddrVillageCharter)
+				}
+			}
 		}
 		open := len(st.offices)
 		if prev == nil {
@@ -616,6 +716,25 @@ func (h *VillageHandler) CharterOfficeSave(ctx context.Context, meta envelope.Me
 			return refuseCharter(err)
 		}
 		now := h.now()
+		// A structural change (a key permission, how the office is filled, the deputy) goes
+		// to the residents once there are enough of them to ask.
+		if prev != nil && charter.Structural(*prev, next) {
+			residents, err := tx.Settlements().ResidentCount(ctx, s.CityID)
+			if err != nil {
+				return err
+			}
+			if h.cset().NeedsVote(int(residents)) {
+				if _, ok := held.Has(charter.CharterAmend); !ok {
+					return application.ErrNotOfficeHolder.WithDetail("office", officeFor(s.Tier)).WithDetail("permission", string(charter.CharterAmend))
+				}
+				id, err := h.openAmendment(ctx, tx, s, "save", next, p.ID, now)
+				if err != nil {
+					return err
+				}
+				done = &village.CharterChangedView{Action: "amendment_proposed", Title: next.Title, BallotID: id}
+				return nil
+			}
+		}
 		if err := tx.Charters().SaveOffice(ctx, s.CityID, next, p.ID, now); err != nil {
 			return err
 		}
@@ -699,7 +818,7 @@ func (h *VillageHandler) CharterOfficeClose(ctx context.Context, meta envelope.M
 		if err := tx.Charters().Lock(ctx, s.CityID); err != nil {
 			return err
 		}
-		st, err := h.loadCharter(ctx, tx, s, lang)
+		st, err := h.charterTick(ctx, tx, s, lang)
 		if err != nil {
 			return err
 		}
@@ -734,6 +853,23 @@ func (h *VillageHandler) CharterOfficeClose(ctx context.Context, meta envelope.M
 			return refuseCharter(err)
 		}
 		now := h.now()
+		if charter.ClosingNeedsVote(*target) {
+			residents, err := tx.Settlements().ResidentCount(ctx, s.CityID)
+			if err != nil {
+				return err
+			}
+			if h.cset().NeedsVote(int(residents)) {
+				if _, ok := st.heldBy(p.ID).Has(charter.CharterAmend); !ok {
+					return application.ErrNotOfficeHolder.WithDetail("office", officeFor(s.Tier)).WithDetail("permission", string(charter.CharterAmend))
+				}
+				id, err := h.openAmendment(ctx, tx, s, "close", *target, p.ID, now)
+				if err != nil {
+					return err
+				}
+				done = &village.CharterChangedView{Action: "amendment_proposed", Title: target.Title, BallotID: id}
+				return nil
+			}
+		}
 		if err := tx.Charters().EndSeatsOf(ctx, target.ID, "office_closed", now); err != nil {
 			return err
 		}
@@ -785,7 +921,7 @@ func (h *VillageHandler) charterSeat(ctx context.Context, meta envelope.Metadata
 		if err := tx.Charters().Lock(ctx, s.CityID); err != nil {
 			return err
 		}
-		st, err := h.loadCharter(ctx, tx, s, lang)
+		st, err := h.charterTick(ctx, tx, s, lang)
 		if err != nil {
 			return err
 		}
@@ -837,6 +973,11 @@ func (h *VillageHandler) charterSeat(ctx context.Context, meta envelope.Metadata
 			}
 			if len(st.seats[target.ID]) >= target.Seats {
 				return refuseCharter(charter.ErrSeatsFull)
+			}
+			if recalled, err := tx.Charters().RecalledSince(ctx, target.ID, whom, now.Add(-time.Duration(h.cset().RecallCooldownDays)*24*time.Hour)); err != nil {
+				return err
+			} else if recalled {
+				return refuseVillage(village.CharterRecalledRecent, village.AddrVillageCharter)
 			}
 			ok, err := tx.Charters().Seat(ctx, application.CharterSeat{ID: h.ids.NewID(), OfficeID: target.ID, HolderID: whom, AppointedBy: p.ID, Since: now})
 			if err != nil {
@@ -906,4 +1047,104 @@ func resolveOffice(st charterState, id string) string {
 		}
 	}
 	return id
+}
+
+var (
+	errZoneInvalid  = stderrors.New("charter: not a usable time zone")
+	errZoneCooldown = stderrors.New("charter: the time zone was changed too recently")
+)
+
+// VillageZoneRequest is the payload of settlement.timezone.set.
+type VillageZoneRequest struct {
+	// OffsetMinutes is the zone as minutes east of UTC, a multiple of 15, from -720
+	// to 840 (a number or a string).
+	OffsetMinutes CharterInt `json:"offset_minutes"`
+}
+
+// TimezoneSet handles settlement.timezone.set (the permission settings.timezone): the
+// settlement's own time zone, which its daily rhythms follow. It may be changed once
+// per settlement.timezone_cooldown; every change is in the charter log.
+func (h *VillageHandler) TimezoneSet(ctx context.Context, meta envelope.Metadata, req VillageZoneRequest) (*presentation.Response, error) {
+	lang := meta.Language
+	var done *village.CharterChangedView
+	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
+		p, l, err := h.viewer(ctx, tx, meta)
+		if err != nil {
+			return err
+		}
+		lang = l
+		s, err := h.settlementOf(ctx, tx, meta)
+		if err != nil {
+			return err
+		}
+		if err := tx.Charters().Lock(ctx, s.CityID); err != nil {
+			return err
+		}
+		if _, err := h.requireVillage(ctx, tx, s, p.ID, charter.SettingsTimezone); err != nil {
+			return err
+		}
+		if fresh, err := h.reserve(ctx, tx, p.ID, meta); err != nil {
+			return err
+		} else if !fresh {
+			return nil
+		}
+		// re-read under the lock: two replicas must not both pass the cooldown
+		s, err = tx.Settlements().ByID(ctx, s.CityID)
+		if err != nil {
+			return err
+		}
+		off := time.Duration(req.OffsetMinutes) * time.Minute
+		if !gametime.ValidOffset(off) || req.OffsetMinutes%15 != 0 {
+			return refuseCharter(errZoneInvalid)
+		}
+		now := h.now()
+		if s.TZSetAt.Year() > 2000 && now.Before(s.TZSetAt.Add(h.tzCooldown)) {
+			return refuseCharter(errZoneCooldown)
+		}
+		minutes := int(req.OffsetMinutes)
+		if err := tx.Settlements().SetTimezone(ctx, s.CityID, &minutes, now); err != nil {
+			return err
+		}
+		if err := tx.Charters().Audit(ctx, application.CharterAuditRow{ID: h.ids.NewID(), SettlementID: s.CityID, ActorID: p.ID,
+			Action: "timezone_changed", At: now, Detail: map[string]any{"from_minutes": int(s.Zone() / time.Minute), "to_minutes": minutes}}); err != nil {
+			return err
+		}
+		done = &village.CharterChangedView{Action: "timezone_changed", Title: ""}
+		return appendVillageEvent(ctx, tx, meta, "charter_changed", s.CityID, map[string]any{
+			"settlement_id": s.CityID, "action": "timezone_changed", "by": p.ID, "zone_minutes": minutes})
+	})
+	return h.charterAnswer(ctx, meta, lang, err, done)
+}
+
+// openAmendment puts a structural change to the residents: the ballot carries the
+// change, which is checked against the rails again when it carries.
+func (h *VillageHandler) openAmendment(ctx context.Context, tx application.Tx, s application.FoundedSettlement, op string, o charter.Office, by string, now time.Time) (string, error) {
+	set := h.cset()
+	eligible, err := tx.Charters().Eligible(ctx, s.CityID, h.voterCut(now))
+	if err != nil {
+		return "", err
+	}
+	raw, err := json.Marshal(proposalJSON{Op: op, Office: officeToJSON(o), By: by})
+	if err != nil {
+		return "", err
+	}
+	id := h.ids.NewID()
+	closes := now.Add(time.Duration(set.AmendVoteHours) * time.Hour)
+	actionID, err := h.schedule(ctx, tx, application.CharterBallotActionType, application.CharterBallotReference, id, s.CityID, now, closes)
+	if err != nil {
+		return "", err
+	}
+	ok, err := tx.Charters().OpenBallot(ctx, application.CharterBallot{ID: id, SettlementID: s.CityID, Kind: string(charter.BallotAmendment),
+		OfficeID: o.ID, OpenedBy: by, Proposal: raw, OpensAt: now, ClosesAt: closes, Eligible: eligible, ActionID: actionID})
+	if err != nil {
+		return "", err
+	}
+	if !ok {
+		return "", refuseVillage(village.CharterVotePending, village.AddrVillageCharter)
+	}
+	if err := tx.Charters().Audit(ctx, application.CharterAuditRow{ID: h.ids.NewID(), SettlementID: s.CityID, ActorID: by,
+		Action: "amendment_proposed", OfficeID: o.ID, At: now, Detail: map[string]any{"ballot": id, "op": op, "title": o.Title, "eligible": eligible}}); err != nil {
+		return "", err
+	}
+	return id, nil
 }

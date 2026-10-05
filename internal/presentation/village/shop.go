@@ -113,6 +113,9 @@ type VillageShopView struct {
 	NextDelivery time.Time
 	// DeliveryHour is the game hour of the morning delivery.
 	DeliveryHour int
+	// ZoneMinutes is the settlement's own time zone, minutes east of UTC: the
+	// delivery hour is local time there.
+	ZoneMinutes int
 	// Wage is what a shopkeeper's day costs the treasury now.
 	Wage int64
 	// TaxBPS is the village's sales tax on a purchase.

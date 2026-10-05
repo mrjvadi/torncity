@@ -73,6 +73,10 @@ const (
 	RaidDeclare   Permission = "raid.declare"
 
 	NoticePost Permission = "notice.post"
+
+	// SettingsTimezone changes the settlement's own time zone, which its daily
+	// rhythms (the shop's morning, the stores' day, the market day) follow.
+	SettingsTimezone Permission = "settings.timezone"
 )
 
 // Def describes one permission.
@@ -102,6 +106,7 @@ var catalogue = []Def{
 	{CharterAmend, "politics", false, true},
 	{TreatyPropose, "foreign", false, false}, {UnionPropose, "foreign", false, false}, {RaidDeclare, "foreign", false, false},
 	{NoticePost, "info", false, false},
+	{SettingsTimezone, "settings", false, true},
 }
 
 var byCode = func() map[Permission]Def {
@@ -159,7 +164,10 @@ type Office struct {
 	// holder of office.appoint).
 	AppointerID string
 	TermDays    int
-	Closed      bool
+	// Deputy marks the office that holds the founder's powers (less the ones an
+	// acting head may not use) while the head seat is vacant. At most one.
+	Deputy bool
+	Closed bool
 }
 
 // Limits are the caps of rail R4 (config charter.*).

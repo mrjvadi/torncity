@@ -181,7 +181,7 @@ func renderBuildingUpgrade(c Context, v BuildingView, name string, blocks []stri
 	var lines []string
 	for _, u := range v.Upgrades {
 		args := map[string]any{
-			"building": c.SettlementBuildingName(u.Building), "cost": FormatMoney(c, u.CostMoney), "time": FormatDuration(c, u.BuildTime),
+			"building": c.SettlementBuildingName(u.Building), "cost": FormatMoney(c, u.CostMoney), "time": FormatDuration(c, buildWait(u.ExpectedWait, u.BuildTime)),
 		}
 		if u.Available {
 			lines = append(lines, c.T("building.upgrade.line", args))

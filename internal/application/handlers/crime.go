@@ -13,8 +13,8 @@ import (
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
-	"github.com/mrjvadi/torncity/internal/domain/crime"
 	"github.com/mrjvadi/torncity/internal/domain/carry"
+	"github.com/mrjvadi/torncity/internal/domain/crime"
 	"github.com/mrjvadi/torncity/internal/domain/gametime"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/subjects"

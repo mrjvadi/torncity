@@ -505,7 +505,8 @@ type Game struct {
 	// seconds of game time pass in one real second. Every gameplay duration
 	// content writes — a journey, a course, a shift, a promotion's time in
 	// tier, a fatigue window — is game time, and the player waits it
-	// divided by this. At 60 a 24h course is 24 real minutes.
+	// divided by this. At 1 (the default since 2026-10-05) game time IS real time;
+	// at 60 a 24h course would be 24 real minutes.
 	//
 	// The legacy key travel.time_scale (and TORN_TRAVEL_TIME_SCALE) still
 	// fills it, from before the clock was the whole game's; game.time_scale
@@ -517,6 +518,20 @@ type Game struct {
 	// Clock), so "once per game day at 06:00" means the same on every replica.
 	// Changing it, or the scale, renumbers the days.
 	ClockEpoch string // game.clock_epoch
+
+	// ClockLegacyScale and ClockCutover are the cut-over from the compressed clock
+	// (a game day was 24 real minutes at 60) to real time: until ClockCutover (a
+	// UTC midnight, RFC 3339) days are counted by the legacy rule - ClockEpoch
+	// and this scale - and from it a game day is a real day of the settlement's own zone, the day number
+	// continuing upward. Empty ClockCutover: no cut-over. Set once, never moved.
+	ClockLegacyScale int    // game.clock_legacy_scale
+	ClockCutover     string // game.clock_cutover
+
+	// TravelTimeScale is the scale of a journey between places (game time to the
+	// wait): a trip is a thing a player waits through in one sitting, so it stays
+	// compressed while the rest of the clock is real. 1 makes a 3-hour bus ride take
+	// 3 real hours.
+	TravelTimeScale int // game.travel_time_scale
 
 	// CommandTimeout is the most one command may run: its context is
 	// cancelled after it, the transaction rolled back and the message
@@ -759,6 +774,10 @@ type Settlement struct {
 	// settlement.join / settlement.leave. It runs from players.residence_since,
 	// which every change of residence stamps.
 	ResidenceCooldown time.Duration // settlement.residence_cooldown
+	// TimezoneCooldown is how long, REAL time, a charter must wait before it changes
+	// the settlement's time zone again: a zone change moves the settlement's day
+	// number by at most a day, and this keeps it from being played with.
+	TimezoneCooldown time.Duration // settlement.timezone_cooldown
 
 	// HomeCityCode is the content city a player returns to when they leave
 	// a village (settlement.leave): the neutral city, "support".
@@ -920,6 +939,34 @@ type Settlement struct {
 	CharterMaxPermissions int64 // settlement.charter_max_permissions (the caps of rail R4, ADR 0044 6.4)
 	CharterTitleMin       int64 // settlement.charter_title_min (the caps of rail R4, ADR 0044 6.4)
 	CharterTitleMax       int64 // settlement.charter_title_max (the caps of rail R4, ADR 0044 6.4)
+	// The term of an elected seat, REAL days
+	CharterElectionTermDays int64 // settlement.charter_election_term_days
+	// How long residents may stand in an election, REAL hours
+	CharterCandidacyHours int64 // settlement.charter_candidacy_hours
+	// How long an election votes, REAL hours
+	CharterVotingHours int64 // settlement.charter_voting_hours
+	// Days a holder must have served before a recall petition may start
+	CharterRecallMinTenureDays int64 // settlement.charter_recall_min_tenure_days
+	// Share of eligible residents that must sign a recall petition (2000 = 20 percent)
+	CharterRecallSignatureBPS int64 // settlement.charter_recall_signature_bps
+	// The floor of signatures for a tiny town (never more than everyone)
+	CharterRecallMinSignatures int64 // settlement.charter_recall_min_signatures
+	// How long a recall vote runs, REAL hours
+	CharterRecallVoteHours int64 // settlement.charter_recall_vote_hours
+	// Days a holder is left alone after a recall vote and cannot be re-appointed to that office if removed
+	CharterRecallCooldownDays int64 // settlement.charter_recall_cooldown_days
+	// How long an amendment vote runs, REAL hours
+	CharterAmendVoteHours int64 // settlement.charter_amend_vote_hours
+	// Share of eligible residents that must vote for an amendment to count
+	CharterAmendQuorumBPS int64 // settlement.charter_amend_quorum_bps
+	// Residents from which a structural change goes to a vote (below it the office holder decides)
+	CharterAmendVoteMinResidents int64 // settlement.charter_amend_vote_min_residents
+	// REAL days an acting head may act while the head seat is vacant
+	CharterActingDays int64 // settlement.charter_acting_days
+	// The most one spend of an acting head may be, minor units
+	CharterActingSpendCap int64 // settlement.charter_acting_spend_cap
+	// Days a resident must have lived in the settlement to vote or stand
+	CharterMinResidencyDays int64 // settlement.charter_min_residency_days
 	// StorageSpoilKeptBPS and StorageSpoilUnkeptBPS are the share of the food in
 	// a settlement's stock that spoils per game day, in basis points of the
 	// food: with a staffed granary keeping it, and with none (the open yard).
@@ -1268,6 +1315,7 @@ type Training struct {
 // every share is in basis points.
 type Labor struct {
 	ShiftMinutes       int64   // labor.shift_minutes
+	ShiftRealMinutes   int64   // labor.shift_real_minutes
 	ReferenceCrew      int64   // labor.reference_crew
 	BaseWage           int64   // labor.base_wage
 	MinWageVillage     int64   // labor.min_wage_village
@@ -1476,8 +1524,11 @@ func Defaults() *Config {
 			IdempotencyTTL:  24 * time.Hour,
 
 			ContentReloadInterval: 30 * time.Second,
-			TimeScale:             60,
+			TimeScale:             1,
 			ClockEpoch:            "2026-01-01T00:00:00Z",
+			ClockLegacyScale:      60,
+			ClockCutover:          "2026-10-06T00:00:00Z",
+			TravelTimeScale:       60,
 			CommandTimeout:        30 * time.Second,
 		},
 		Travel: Travel{
@@ -1636,6 +1687,7 @@ func Defaults() *Config {
 		Settlement: Settlement{
 			ProtectionWindow:    168 * time.Hour,
 			ResidenceCooldown:   72 * time.Hour,
+			TimezoneCooldown:    168 * time.Hour,
 			HomeCityCode:        "support",
 			PropertyHubMinStage: "town",
 			MinSpawnDistanceKm:  30,
@@ -1671,33 +1723,47 @@ func Defaults() *Config {
 			FoundingCurrencyCodeLen:   3,
 			FoundingCurrencySymbolMax: 3,
 
-			TeachPeriod:            24 * time.Hour,
-			TeachRateBPS:           1500,
-			BaseSchoolCapacityBPS:  8000,
-			ScarcityKBPS:           10000,
-			ScarcityFloorBPS:       3000,
-			ScarcityCapBPS:         80000,
-			SellerBandBPS:          500,
-			DemolitionSalvageBPS:   2000,
-			MaterialMarkupBPS:      12000,
-			StockBaseCapacity:      60,
-			BuildHomesPerCrew:      16,
-			CharterMaxOffices:      24,
-			CharterMaxSeats:        15,
-			CharterMaxPermissions:  40,
-			CharterTitleMin:        2,
-			CharterTitleMax:        32,
-			StorageSpoilKeptBPS:    5,
-			StorageSpoilUnkeptBPS:  30,
-			StorageKeeperRuleAt:    "2026-10-03T00:00:00Z",
-			StorageKeeperGraceDays: 14,
-			MaterialBuyMax:         200,
-			MaterialBuyPresets:     []int64{5, 20, 50},
-			FoundingGrant:          10_000,
-			DonationMin:            100,
-			DonationMax:            100_000,
-			DonationPresets:        []int64{250, 1000, 5000},
-			CitizenLotPrice:        400, CitizenLotPriceMin: 100, CitizenLotPriceMax: 5000,
+			TeachPeriod:                  24 * time.Hour,
+			TeachRateBPS:                 1500,
+			BaseSchoolCapacityBPS:        8000,
+			ScarcityKBPS:                 10000,
+			ScarcityFloorBPS:             3000,
+			ScarcityCapBPS:               80000,
+			SellerBandBPS:                500,
+			DemolitionSalvageBPS:         2000,
+			MaterialMarkupBPS:            12000,
+			StockBaseCapacity:            60,
+			BuildHomesPerCrew:            16,
+			CharterMaxOffices:            24,
+			CharterMaxSeats:              15,
+			CharterMaxPermissions:        40,
+			CharterTitleMin:              2,
+			CharterTitleMax:              32,
+			CharterElectionTermDays:      14,
+			CharterCandidacyHours:        48,
+			CharterVotingHours:           72,
+			CharterRecallMinTenureDays:   5,
+			CharterRecallSignatureBPS:    2000,
+			CharterRecallMinSignatures:   3,
+			CharterRecallVoteHours:       72,
+			CharterRecallCooldownDays:    14,
+			CharterAmendVoteHours:        72,
+			CharterAmendQuorumBPS:        3000,
+			CharterAmendVoteMinResidents: 6,
+			CharterActingDays:            7,
+			CharterActingSpendCap:        2000,
+			CharterMinResidencyDays:      3,
+			StorageSpoilKeptBPS:          5,
+			StorageSpoilUnkeptBPS:        30,
+			StorageKeeperRuleAt:          "2026-10-03T00:00:00Z",
+			StorageKeeperGraceDays:       14,
+			MaterialBuyMax:               200,
+			MaterialBuyPresets:           []int64{5, 20, 50},
+			FoundingGrant:                10_000,
+			DonationMin:                  100,
+			DonationMax:                  100_000,
+			DonationPresets:              []int64{250, 1000, 5000},
+			CitizenLotPrice:              400, CitizenLotPriceMin: 100, CitizenLotPriceMax: 5000,
 			CitizenPermitFee: 100, CitizenPermitFeeMax: 1000,
 			CitizenTaxBPS: 200, CitizenTaxBPSMax: 500, CitizenTaxPeriod: 24 * time.Hour,
 			CitizenMaterialMarkupBPS: 12000,
@@ -1721,6 +1787,7 @@ func Defaults() *Config {
 		Training:    Training{EnergyCost: 10, StaminaGain: 6, StrengthXP: 30, DiminishStamina: 400, StaminaPerMaxEnergy: 50, MaxEnergyBonusCap: 30, YardBPS: 4000, GroundBPS: 6000, GymBPS: 10000, GroundFee: 20, GymFee: 60},
 		Labor: Labor{
 			ShiftMinutes:       60,
+			ShiftRealMinutes:   1,
 			ReferenceCrew:      4,
 			BaseWage:           30,
 			MinWageVillage:     10,

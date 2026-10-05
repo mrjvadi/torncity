@@ -61,7 +61,7 @@ func workRegistry(t *testing.T, pool *postgres.Pool) *content.Registry {
 }
 
 // gameScale is the game clock the game ships with (config game.time_scale).
-const gameScale = 60
+const gameScale = 1
 
 type workIDs struct{ t *testing.T }
 
@@ -395,10 +395,10 @@ func TestWorkAndStudyEndToEnd(t *testing.T) {
 		  WHERE e.player_id = $1::uuid AND e.status = 'in_progress'`, p.ID).Scan(&enrollmentID, &actionType, &finishAt); err != nil {
 		t.Fatalf("reading the enrolment: %v", err)
 	}
-	// first_aid is a 2-hour course: two real minutes on the game clock.
+	// first_aid is a 2-hour course: two real hours (game time is real time).
 	if wait := finishAt.Sub(now()); actionType != application.EducationActionType ||
-		wait < 2*time.Minute-time.Second || wait > 2*time.Minute+time.Second {
-		t.Errorf("scheduled %q at %s, want education two real minutes out", actionType, finishAt)
+		wait < 2*time.Hour-time.Second || wait > 2*time.Hour+time.Second {
+		t.Errorf("scheduled %q at %s, want education two real hours out", actionType, finishAt)
 	}
 
 	clockMu.Lock()

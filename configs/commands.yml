@@ -453,6 +453,12 @@ commands:
   settlement.charter.appoint: {channel: group, client: true}
   settlement.charter.dismiss: {channel: group, client: true}
   settlement.charter.resign: {channel: group, client: true}
+  settlement.timezone.set: {channel: group, client: true}
+  settlement.charter.election.open: {channel: group, client: true}
+  settlement.charter.stand: {channel: group, client: true}
+  settlement.charter.vote: {channel: group, client: true}
+  settlement.charter.recall.start: {channel: group, client: true}
+  settlement.charter.recall.sign: {channel: group, client: true}
   settlement.shop: {channel: group, client: true}
   settlement.shop.buy: {channel: group, client: true}
   settlement.shop.cap: {channel: group, client: true}

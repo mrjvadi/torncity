@@ -207,7 +207,7 @@ func newFlowGame(t *testing.T, lang string) *flowGame {
 	search := bankSearch{players: g.w.tx.players}
 
 	g.profile = NewProfileHandler(g.w, ids, g.msgs, cities, testDefaultLanguage, testIdempotencyTTL, clock).WithWork(source, gov)
-	g.travel = NewTravelHandler(g.w, ids, g.msgs, cities, flowTransport(t), gov, int(workScale), testArrivalXP, testIdempotencyTTL, clock).
+	g.travel = NewTravelHandler(g.w, ids, g.msgs, cities, flowTransport(t), gov, 60, testArrivalXP, testIdempotencyTTL, clock).
 		WithPlaces(source)
 	g.places = NewPlacesHandler(g.w, ids, g.msgs, source, cities, workScale, testIdempotencyTTL, clock)
 	g.worldMap = NewMapHandler(g.w, g.msgs, cities, g.w.tx.travels, flowRoutes(t), DefaultPageSize, clock)

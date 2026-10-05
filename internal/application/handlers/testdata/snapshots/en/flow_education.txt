@@ -3,9 +3,9 @@
 <b>🎓 Education</b>
 
 Courses you can take here:
-• Reading and Writing Class - 200 SUP - 12m
-• First Aid - 600 SUP - 2m
-• Driving Licence - 900 SUP - 3m
+• Reading and Writing Class - 200 SUP - 3h
+• First Aid - 600 SUP - 2h
+• Driving Licence - 900 SUP - 3h
   ───
   [📖 Reading and Writing Class] → education:view:literacy_class
   [📖 First Aid] → education:view:first_aid
@@ -18,7 +18,7 @@ Courses you can take here:
 
 🏛 Training centre
 💰 Fee: 600 SUP
-⏳ Duration: 2m
+⏳ Duration: 2h
 
 On completion:
 🛠 Medicine: +150 XP
@@ -53,10 +53,10 @@ One press walks you to the university quarter (20s) and opens this page again th
 (edits message 42)
 ✅ You have enrolled in First Aid
 💰 Fee paid: 600 SUP
-⏳ Duration: 2m
+⏳ Duration: 2h
 The course finishes on its own, and you will be notified.
 💵 Paid from your cash.
-🕒 Course ends at 12:02
+🕒 Course ends at 14:00
   ───
   [🎓 Education] → education:list
   [🔙 Back] → player:profile.get
@@ -66,12 +66,13 @@ The course finishes on its own, and you will be notified.
 <b>🎓 Education</b>
 
 📖 Studying: First Aid
-⏳ Finishing any moment now.
+⏳ 25% done - 1h 30m to go
+🕒 Course ends at 14:00
 
 Courses you can take here:
-• Reading and Writing Class - 200 SUP - 12m
-• First Aid - 600 SUP - 2m
-• Driving Licence - 900 SUP - 3m
+• Reading and Writing Class - 200 SUP - 3h
+• First Aid - 600 SUP - 2h
+• Driving Licence - 900 SUP - 3h
   ───
   [📖 Reading and Writing Class] → education:view:literacy_class
   [📖 First Aid] → education:view:first_aid
@@ -88,7 +89,7 @@ Courses you can take here:
 ❤️ Health: 100 of 100
 
 💼 No job yet
-📖 First Aid - finishing any moment
+📖 First Aid - 1h 30m left
 
 💵 Cash: 4,400 SUP
 🏦 Bank balance: 0 SUP
@@ -120,7 +121,7 @@ You cannot enrol in this course yet:
 🏛 University
 📍 Taught in Fenwick Span
 💰 Fee: 6,000 SUP
-⏳ Duration: 24m
+⏳ Duration: 24h
 🪑 Seats left: 40
 
 On completion:
@@ -161,8 +162,8 @@ You cannot enrol in this course yet:
 📜 Certificates: First Aid
 
 Courses you can take here:
-• Reading and Writing Class - 200 SUP - 12m
-• Driving Licence - 900 SUP - 3m
+• Reading and Writing Class - 200 SUP - 3h
+• Driving Licence - 900 SUP - 3h
   ───
   [📖 Reading and Writing Class] → education:view:literacy_class
   [📖 Driving Licence] → education:view:driving_licence
@@ -201,7 +202,7 @@ Courses you can take here:
 
 🏛 Training centre
 💰 Fee: 1,200 SUP
-⏳ Duration: 4m
+⏳ Duration: 4h
 
 On completion:
 🛠 Finance: +250 XP

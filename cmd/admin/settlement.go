@@ -29,6 +29,9 @@ func settlementUsage() {
   grant --id SETTLEMENT_UUID --amount MINOR --reason "why" [--by NAME]
                           top up one founded village's treasury from the
                           system source; audited
+  backfill-timezones      give every founded settlement with no time zone the one its
+                          longitude on the world gives (one hour per 15 degrees); never
+                          touches a zone a charter set. Run it before game.clock_cutover
   check-sites             read-only: every founded settlement's cell, grid
                           slide, buildable-lot share and founding kit, and
                           whether it meets settlement.min_buildable_lot_share_bps
@@ -67,6 +70,8 @@ func settlementCommand(ctx context.Context, args []string) error {
 		return settlementRelocate(ctx, args[1:])
 	case "landlocked":
 		return settlementLandlocked(ctx)
+	case "backfill-timezones":
+		return settlementBackfillTimezones(ctx)
 	}
 	settlementUsage()
 	os.Exit(2)

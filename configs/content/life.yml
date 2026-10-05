@@ -42,7 +42,7 @@
 #   GAME time before sleeping at a spot again.
 #
 # age — start: the age a character joins at; game_days_per_year: GAME days
-#   a year of age takes (420 at scale 60 is a week of real time); stages:
+#   a year of age takes (7: a year of age is a real week, the same pace the compressed clock gave); stages:
 #   the stages of a life by the age they begin at (hooks for school,
 #   university and retirement).
 #
@@ -83,10 +83,10 @@ version: 1
 life:
   needs:
     start: {hunger: 20, sleep: 15, stress: 10}
-    hunger_per_game_day: 10
-    sleep_per_game_day: 8
-    stress_fall_per_game_day: 4
-    happy_stress_fall_per_game_day: 6
+    hunger_per_game_day: 72
+    sleep_per_game_day: 60
+    stress_fall_per_game_day: 24
+    happy_stress_fall_per_game_day: 36
     high: 70
     severe: 90
     high_bps: 800
@@ -102,7 +102,7 @@ life:
     achievement: 2
     achievement_cap: 10
     pressing_need: 10
-    per_game_day: 12
+    per_game_day: 144
     low: 30
     low_xp_bps: 1000
 
@@ -127,7 +127,7 @@ life:
 
   age:
     start: 18
-    game_days_per_year: 420
+    game_days_per_year: 7
     stages:
       - {code: youth,   name: Youth,   from: 18}
       - {code: adult,   name: Adult,   from: 26}

@@ -46,7 +46,7 @@ faction:
     member: [deposit, join]
   shares: {leader: 3, officer: 2, member: 1}
   crime_cut_bps: 1500
-  gather: 2h
+  gather: 2m
   organised_crimes:
     - code: warehouse_heist
       name: Warehouse heist
@@ -56,7 +56,7 @@ faction:
       tier: novice
       min_level: 3
       nerve: 5
-      duration: 3h
+      duration: 3m
       success:
         base_chance_bps: 4500
         skill_weights: [{skill: lockpicking, bps_per_level: 80}, {skill: stealth, bps_per_level: 60}]
@@ -72,8 +72,8 @@ faction:
         heat: 12
       failure:
         catch_chance_bps: 4500
-        jail_min: 6h
-        jail_max: 18h
+        jail_min: 6m
+        jail_max: 18m
         fine_min: 500
         fine_max: 2000
         heat: 20
@@ -88,7 +88,7 @@ faction:
       tier: hustler
       min_level: 5
       nerve: 8
-      duration: 4h
+      duration: 4m
       success:
         base_chance_bps: 3500
         skill_weights: [{skill: streetwise, bps_per_level: 100}, {skill: driving, bps_per_level: 80}]
@@ -104,8 +104,8 @@ faction:
         heat: 20
       failure:
         catch_chance_bps: 5500
-        jail_min: 12h
-        jail_max: 36h
+        jail_min: 12m
+        jail_max: 36m
         fine_min: 1500
         fine_max: 5000
         heat: 30

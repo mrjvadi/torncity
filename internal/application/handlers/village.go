@@ -10,10 +10,10 @@ import (
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
+	"github.com/mrjvadi/torncity/internal/domain/charter"
 	"github.com/mrjvadi/torncity/internal/domain/item"
 	"github.com/mrjvadi/torncity/internal/domain/labor"
 	wsettle "github.com/mrjvadi/torncity/internal/domain/settlement"
-	"github.com/mrjvadi/torncity/internal/domain/charter"
 	"github.com/mrjvadi/torncity/internal/domain/settlementbuilding"
 	"github.com/mrjvadi/torncity/internal/domain/settlementknowledge"
 	"github.com/mrjvadi/torncity/internal/domain/worldgen"
@@ -71,7 +71,11 @@ type VillageHandler struct {
 	homesPerCrew int64
 	// charterLimits are the caps of rail R4 (settlement.charter_*).
 	charterLimits charter.Limits
-	gridLotsByTier     map[string]int
+	// tzCooldown is settlement.timezone_cooldown.
+	tzCooldown time.Duration
+	// charterSet is the phase 2 numbers (settlement.charter_*).
+	charterSet     charter.Settings
+	gridLotsByTier map[string]int
 
 	// teachPeriod is how often the literacy diffusion tick runs, GAME
 	// time (config education.teach_period or a village-specific default);
@@ -86,11 +90,11 @@ type VillageHandler struct {
 	sellerBandBPS         int64
 	demolitionSalvageBPS  int64
 	// Roads (config.Settlement): the fee per automatic road lot.
-	autoRoadCost       int64
-	materialMarkupBPS  int64
-	stockBaseCapacity  int64
+	autoRoadCost      int64
+	materialMarkupBPS int64
+	stockBaseCapacity int64
 	// storage is the stores' keepers and spoilage (village_storage.go).
-	storage StorageRules
+	storage            StorageRules
 	materialBuyMax     int64
 	materialBuyPresets []int64
 	residenceCooldown  time.Duration
@@ -130,11 +134,16 @@ type gametimeScale interface {
 // knobs and the diffusion formula's own rates, ADR 0031 sections 4.4 and
 // 10 point 3).
 type VillageRules struct {
-	VillageGridLots       int
+	VillageGridLots int
 	// HomesPerBuildCrew is settlement.build_homes_per_crew.
 	HomesPerBuildCrew int64
 	// CharterLimits are settlement.charter_* (zero: the defaults).
 	CharterLimits charter.Limits
+	// TimezoneCooldown is settlement.timezone_cooldown.
+	TimezoneCooldown time.Duration
+	// CharterSettings are the elections, recall, amendment and acting numbers
+	// (zero: charter.Defaults).
+	CharterSettings       charter.Settings
 	TeachPeriod           time.Duration
 	TeachRateBPS          int64
 	BaseSchoolCapacityBPS int64
@@ -173,11 +182,20 @@ func NewVillageHandler(uow application.UnitOfWork, ids IDGenerator, msgs Transla
 	if now == nil {
 		now = func() time.Time { return time.Now().UTC() }
 	}
+	if rules.CharterSettings.ElectionTermDays == 0 {
+		rules.CharterSettings = charter.Defaults()
+	}
+	cs, nowFn := rules.CharterSettings, now
+	charter.SetRuntime(cs, nowFn)
+	charterSet.Store(&cs)
+	charterNow.Store(&nowFn)
 	return &VillageHandler{
 		uow: uow, ids: ids, msgs: msgs, content: source, worlds: worlds, cities: cities, scale: scale,
 		villageGridLots:       rules.VillageGridLots,
 		homesPerCrew:          rules.HomesPerBuildCrew,
 		charterLimits:         rules.CharterLimits,
+		tzCooldown:            rules.TimezoneCooldown,
+		charterSet:            rules.CharterSettings,
 		concurrentBuildCap:    map[string]int{"village": settlementbuilding.ConcurrentCap("village"), "town": settlementbuilding.ConcurrentCap("town"), "city": settlementbuilding.ConcurrentCap("city")},
 		gridLotsByTier:        map[string]int{"village": rules.VillageGridLots, "town": 9, "city": 15},
 		teachPeriod:           rules.TeachPeriod,
@@ -512,7 +530,7 @@ func (h *VillageHandler) overview(ctx context.Context, meta envelope.Metadata, h
 		isHead, _ := h.holdsAnyOffice(ctx, tx, s, viewer.ID)
 		view = village.VillageOverviewView{
 			IsHead: isHead,
-			Name:   s.Name, Tier: application.TierCity, Population: residents, PopulationCap: cap,
+			Name:   s.Name, ZoneMinutes: int(s.Zone() / time.Minute), Tier: application.TierCity, Population: residents, PopulationCap: cap,
 			Resident: home == s.CityID, SettlementID: s.CityID,
 			Treasury:         treasury,
 			FoodPercent:      int(coverage["food_coverage_bps"] / 100),

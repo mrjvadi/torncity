@@ -181,7 +181,7 @@ settlement_buildings:
     upkeep: 20
     produces: {timber: 4}
     workers: 3
-    shift: 1h
+    shift: 1m
     wage: 40
 
   # ---------------------------------------------------------------------
@@ -261,7 +261,7 @@ settlement_buildings:
     consumes: {timber: 3}
     produces: {plank: 2}
     workers: 2
-    shift: 1h30m
+    shift: 1m30s
     wage: 30
     trains: {skill: carpentry, xp: 20}
 
@@ -279,7 +279,7 @@ settlement_buildings:
     consumes: {stone: 3}
     produces: {brick: 2}
     workers: 2
-    shift: 1h30m
+    shift: 1m30s
     wage: 20
     trains: {skill: masonry, xp: 20}
 
@@ -309,7 +309,7 @@ settlement_buildings:
     consumes: {wool: 3}
     produces: {cloth: 2}
     workers: 2
-    shift: 1h30m
+    shift: 1m30s
     wage: 30
 
   - code: pottery_kiln
@@ -361,7 +361,7 @@ settlement_buildings:
     effects: [{target: job_coverage_bps, op: add, value: 100}]
     produces: {stone: 6}
     workers: 2
-    shift: 1h
+    shift: 1m
     wage: 25
 
   - code: mine
@@ -436,7 +436,7 @@ settlement_buildings:
     effects: [{target: food_coverage_bps, op: add, value: 600}]
     produces: {wheat: 20}
     workers: 4
-    shift: 2h
+    shift: 2m
     wage: 50
     trains: {skill: farming, xp: 15}
 
@@ -452,7 +452,7 @@ settlement_buildings:
     effects: [{target: food_coverage_bps, op: add, value: 600}]
     produces: {wheat: 20}
     workers: 4
-    shift: 2h
+    shift: 2m
     wage: 50
     trains: {skill: farming, xp: 15}
 
@@ -468,7 +468,7 @@ settlement_buildings:
     effects: [{target: food_coverage_bps, op: add, value: 600}]
     produces: {wheat: 20}
     workers: 4
-    shift: 2h
+    shift: 2m
     wage: 50
     trains: {skill: farming, xp: 15}
 
@@ -484,7 +484,7 @@ settlement_buildings:
     effects: [{target: food_coverage_bps, op: add, value: 600}]
     produces: {wheat: 20}
     workers: 4
-    shift: 2h
+    shift: 2m
     wage: 50
     trains: {skill: farming, xp: 15}
 
@@ -500,7 +500,7 @@ settlement_buildings:
     effects: [{target: food_coverage_bps, op: add, value: 550}]
     produces: {wool: 5}
     workers: 3
-    shift: 2h
+    shift: 2m
     wage: 45
 
   # ---------------------------------------------------------------------

@@ -159,9 +159,9 @@ func (f *fakeEmployment) ResidenceCityID(_ context.Context, playerID string) (st
 
 type fakeEducation struct {
 	application.TeacherRepository // unused here: the fakes teach nowhere (content city)
-	active    map[string]application.Enrollment
-	completed []application.Enrollment
-	certs     map[string][]application.Certification
+	active                        map[string]application.Enrollment
+	completed                     []application.Enrollment
+	certs                         map[string][]application.Certification
 }
 
 func (f *fakeEducation) snapshot() func() {
@@ -204,7 +204,9 @@ func (f *fakeEducation) Enroll(_ context.Context, e application.Enrollment) erro
 }
 
 // SeatOf: the fakes teach nowhere (a content city), so no class has a teacher to pay.
-func (f *fakeEducation) SeatOf(context.Context, string) (*application.ClassSeat, error) { return nil, nil }
+func (f *fakeEducation) SeatOf(context.Context, string) (*application.ClassSeat, error) {
+	return nil, nil
+}
 
 func (f *fakeEducation) Complete(_ context.Context, id string, at time.Time) error {
 	for k, e := range f.active {
@@ -397,7 +399,7 @@ const workTelegramID = 4242
 
 // workScale is the game clock these tests run on, the one the game ships
 // with: a game hour is a real minute.
-const workScale = 60
+const workScale = 1
 
 func newWorkHarness(t *testing.T) *workHarness {
 	t.Helper()
@@ -969,9 +971,9 @@ func TestEnrollThenComplete(t *testing.T) {
 		t.Fatalf("scheduled = %d actions, want 1", n)
 	}
 	action := h.uow.tx.actions.scheduled[0]
-	// first_aid is a 2-hour course: 2 real minutes on the game clock.
-	if action.ActionType != application.EducationActionType || !action.FinishAt.Equal(h.now.Add(2*time.Minute)) {
-		t.Errorf("action = %+v, want education due in 2 real minutes", action)
+	// first_aid is a 2-hour course: 2 real hours (game time is real time).
+	if action.ActionType != application.EducationActionType || !action.FinishAt.Equal(h.now.Add(2*time.Hour)) {
+		t.Errorf("action = %+v, want education due in 2 real hours", action)
 	}
 	enrolment := h.uow.w.edu.active[h.player.ID]
 
@@ -984,7 +986,7 @@ func TestEnrollThenComplete(t *testing.T) {
 		t.Errorf("a refused enrolment charged: cash = %d", got)
 	}
 
-	h.now = h.now.Add(2 * time.Minute)
+	h.now = h.now.Add(2 * time.Hour)
 	req := CompleteCourseRequest{ActorID: h.player.ID, ReferenceID: enrolment.ID, ReferenceType: "enrollments"}
 	sched := h.meta("dispatch-1", "education.complete")
 	sched.TelegramUserID = 0

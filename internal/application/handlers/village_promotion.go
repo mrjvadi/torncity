@@ -30,4 +30,3 @@ func (h *VillageHandler) PromotionView(ctx context.Context, meta envelope.Metada
 func (h *VillageHandler) Promote(ctx context.Context, meta envelope.Metadata, _ VillagePromoteRequest) (*presentation.Response, error) {
 	return h.DevelopmentView(ctx, meta)
 }
-
