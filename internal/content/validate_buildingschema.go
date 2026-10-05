@@ -549,6 +549,15 @@ func (l *schemaLint) functions() {
 			l.bad("%s: staffed but no food_points: every shift eats (ADR 0041 N2)", key)
 		}
 
+		switch f.IfUnstaffed {
+		case "", "idle", "base_room", "decays", "unheld":
+		default:
+			l.bad("%s: if_unstaffed %q is not idle, base_room, decays or unheld (a post nobody holds: the territory is not claimed)", key, f.IfUnstaffed)
+		}
+		if (f.Kind == FunctionProduction || f.Kind == FunctionExtraction || f.Kind == FunctionService) && len(f.Staff) == 0 && !hasResearch(f.NeedsResearch, "staff") {
+			l.bad("%s: a %s function has no staff: who works there (rule 1c)", key, f.Kind)
+		}
+
 		// what it produces, and where it goes
 		if pr := f.Produces; pr != nil {
 			for it, q := range pr.Outputs {
@@ -575,6 +584,11 @@ func (l *schemaLint) functions() {
 			for c, n := range s.Provides {
 				if !l.classes[c] || n < 0 {
 					l.bad("%s: provides room in unknown class %q", key, c)
+				}
+			}
+			for c, n := range s.Communal {
+				if n < 0 || n > s.Provides[c] {
+					l.bad("%s: communal room in %q must lie between 0 and what the store provides", key, c)
 				}
 			}
 			for c, n := range s.Needs {

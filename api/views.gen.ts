@@ -505,6 +505,7 @@ export interface BuildingView {
   has_upgrade: boolean
   upgrades: BuildingUpgradeLine[] | null
   shop: VillageShopView | null
+  work: WorkNode | null
 }
 
 export interface BuyView {
@@ -3208,6 +3209,8 @@ export interface MaterialsView {
   stock: MaterialStockLine[] | null
   used: number
   capacity: number
+  over: number
+  transition: StockTransition | null
   classes: StockClassLine[] | null
   stores: StockStoreLine[] | null
   wage: number
@@ -3997,6 +4000,7 @@ export interface ProfileView {
   travel_to_code: string
   travel_to: string
   travel_remaining_seconds: number
+  travel_zone_minutes: number
   work: ProfileWork | null
   jail: ProfileJail | null
   hospital: ProfileJail | null
@@ -4877,6 +4881,9 @@ export interface StockClassLine {
   used: number
   capacity: number
   reserved: number
+  over: number
+  borrowed: number
+  build: Named[] | null
 }
 
 export interface StockOrderView {
@@ -4927,7 +4934,12 @@ export interface StockPageView {
 export interface StockStoreLine {
   building: Named
   kept: boolean
+  communal_room: number
   grace_until: string | null
+}
+
+export interface StockTransition {
+  until: string | null
 }
 
 export interface StockView {
@@ -5214,6 +5226,7 @@ export interface TravelStartedView {
   mode_name: string
   duration_seconds: number
   arrives_at: string | null
+  zone_minutes: number
   energy: number
   fare: number
 }
@@ -5227,6 +5240,7 @@ export interface TravelStatusView {
   mode_name: string
   remaining_seconds: number
   arrives_at: string | null
+  zone_minutes: number
 }
 
 export interface TreatConfirmView {
@@ -5664,12 +5678,57 @@ export interface WorkHomeView {
   next: string
 }
 
+export interface WorkItemLine {
+  item: Named
+  qty: number
+}
+
+export interface WorkJob {
+  id: string
+  wage: number
+  npc_crew: number
+  shifts_left: number
+  priority: number
+  paused: string
+}
+
+export interface WorkNode {
+  kind: string
+  status: string
+  reasons: WorkReason[] | null
+  slots: WorkSlot[] | null
+  filled: number
+  max: number
+  shift_seconds: number
+  wage: number
+  inputs: WorkItemLine[] | null
+  outputs: WorkItemLine[] | null
+  storage_class: string
+  storage_free: number
+  job: WorkJob | null
+  if_unstaffed: string
+}
+
+export interface WorkReason {
+  code: string
+  item: Named | null
+  class: string
+  have: number
+  need: number
+}
+
 export interface WorkShiftLine {
   building: Named
   finish_at: string | null
   left_seconds: number
   wage: number
   produces: MaterialLine[] | null
+}
+
+export interface WorkSlot {
+  role: string
+  worker: string
+  name: string
 }
 
 export interface WorkView {

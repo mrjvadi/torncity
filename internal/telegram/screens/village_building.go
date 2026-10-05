@@ -1,8 +1,11 @@
 package screens
 
 import (
+	"fmt"
 	"github.com/mrjvadi/torncity/internal/presentation/village"
 	"sort"
+	"strings"
+	"time"
 
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
@@ -169,6 +172,7 @@ func buildingBody(c Context, v BuildingView) []string {
 	if len(effects) > 0 {
 		out = append(out, body(effects...))
 	}
+	out = append(out, workBlock(c, v)...)
 	if v.Upkeep > 0 {
 		out = append(out, c.T("building.view.upkeep", map[string]any{"amount": FormatMoney(c, v.Upkeep)}))
 	}
@@ -249,3 +253,56 @@ func renderLotBatchConfirm(c Context, v LotBatchConfirmView) *presenter.Response
 	return c.respond(text, kb.Build())
 }
 
+// workBlock is the building's work as a node: who works, what a shift uses and gives and why
+// it is idle (the view's Work block, rule 1c).
+func workBlock(c Context, v BuildingView) []string {
+	w := v.Work
+	if w == nil {
+		return nil
+	}
+	var out []string
+	if len(w.Reasons) == 1 && w.Reasons[0].Code == village.NodeReasonNoFunction {
+		return []string{c.T("building.work.no_function", nil)}
+	}
+	if w.Status == village.NodeWorking {
+		out = append(out, c.T("building.work.working", map[string]any{"filled": w.Filled, "max": w.Max}))
+	} else if w.Status == village.NodePaused {
+		out = append(out, c.T("building.work.paused", nil))
+	} else {
+		out = append(out, c.T("building.work.idle", nil))
+	}
+	if w.Job != nil && w.Job.NPCCrew > 0 {
+		out = append(out, c.T("building.work.crew", map[string]any{
+			"crew": w.Job.NPCCrew, "wage": FormatMoney(c, w.Job.Wage), "left": w.Job.ShiftsLeft}))
+	}
+	if w.ShiftSeconds > 0 {
+		out = append(out, c.T("building.work.shift", map[string]any{
+			"duration": FormatDuration(c, time.Duration(w.ShiftSeconds)*time.Second), "wage": FormatMoney(c, w.Wage)}))
+	}
+	items := func(ls []village.WorkItemLine) string {
+		var parts []string
+		for _, l := range ls {
+			parts = append(parts, fmt.Sprintf("%s %s", FormatNumber(c, l.Qty), c.ComponentName(l.Item)))
+		}
+		return strings.Join(parts, "، ")
+	}
+	if len(w.Inputs) > 0 {
+		out = append(out, c.T("building.work.inputs", map[string]any{"items": items(w.Inputs)}))
+	}
+	if len(w.Outputs) > 0 {
+		out = append(out, c.T("building.work.outputs", map[string]any{"items": items(w.Outputs)}))
+	}
+	var reasons []string
+	for _, r := range w.Reasons {
+		args := map[string]any{"have": FormatNumber(c, r.Have), "need": FormatNumber(c, r.Need)}
+		if r.Item != nil {
+			args["item"] = c.ComponentName(*r.Item)
+		}
+		args["class"] = c.coded("building.work.class.", r.Class, "building.work.class.bulk")
+		reasons = append(reasons, c.T("building.work."+r.Code, args))
+	}
+	if len(reasons) > 0 {
+		out = append(out, body(reasons...))
+	}
+	return out
+}

@@ -61,10 +61,10 @@ func (r *SettlementTreasuryRepository) StartShift(ctx context.Context, s applica
 	}
 	_, err = r.q.Exec(ctx, `
 		INSERT INTO settlement_shifts
-		       (id, settlement_id, building_id, player_id, status, wage, wage_paid, produced, consumed, game_action_id, started_at, finish_at, job_id)
-		VALUES ($1, $2, $3, $4, 'working', $5, 0, $6::jsonb, $7::jsonb, $8, $9, $10, NULLIF($11, '')::uuid)`,
+		       (id, settlement_id, building_id, player_id, status, wage, wage_paid, produced, consumed, game_action_id, started_at, finish_at, job_id, worker_kind)
+		VALUES ($1, $2, $3, NULLIF($4, '')::uuid, 'working', $5, 0, $6::jsonb, $7::jsonb, $8, $9, $10, NULLIF($11, '')::uuid, $12)`,
 		s.ID, s.SettlementID, s.BuildingID, s.PlayerID, s.Wage, string(produced), string(consumed), s.GameActionID,
-		s.StartedAt.UTC(), s.FinishAt.UTC(), s.JobID)
+		s.StartedAt.UTC(), s.FinishAt.UTC(), s.JobID, workerKindOf(s))
 	if violates(err, sqlstateUniqueViolation, settlementShiftsOneWorkingIdx) {
 		return application.ErrAlreadyWorking
 	}
@@ -160,4 +160,12 @@ func (r *SettlementTreasuryRepository) PlayerShift(ctx context.Context, playerID
 		return nil, fmt.Errorf("postgres: reading the player's shift: %w", err)
 	}
 	return &s, nil
+}
+
+// workerKindOf is the worker of a production shift: a player unless the shift says an NPC.
+func workerKindOf(s application.SettlementShift) string {
+	if s.WorkerKind == application.LaborWorkerNPC {
+		return application.LaborWorkerNPC
+	}
+	return application.LaborWorkerPlayer
 }

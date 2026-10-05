@@ -687,6 +687,7 @@ labor:
   npc_productivity_bps: 8501
   fee_bps: 501
   budget_slack_bps: 5001
+  npc_shifts_per_slot_day: 11
   journeyman_shifts: 7
   master_shifts: 31
   apprentice_bps: 7001
@@ -1170,6 +1171,7 @@ var envOverrides = map[string]string{
 	"TORN_LABOR_NPC_PRODUCTIVITY_BPS":                  "8502",
 	"TORN_LABOR_FEE_BPS":                               "502",
 	"TORN_LABOR_BUDGET_SLACK_BPS":                      "5002",
+	"TORN_LABOR_NPC_SHIFTS_PER_SLOT_DAY":               "12",
 	"TORN_LABOR_JOURNEYMAN_SHIFTS":                     "8",
 	"TORN_LABOR_MASTER_SHIFTS":                         "32",
 	"TORN_LABOR_APPRENTICE_BPS":                        "7002",

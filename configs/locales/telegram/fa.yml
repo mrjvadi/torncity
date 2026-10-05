@@ -519,6 +519,8 @@ village:
     treasury: "🏦 خزانه: {amount}"
     capacity: "📦 جای انبار: {used} از {capacity} جا"
     class_line: "• {class}: {used} از {capacity} جا"
+    class_over: "• {class}: {used} از {capacity} جا؛ {over} جا بیشتر از جای موجود است. برای جای بیشتر بساز: {build}"
+    transition: "ℹ️ انبارهای قدیمی تا {until} هنوز برای هر جنس جا حساب می‌شوند؛ بعد از آن هر جنس انبار خودش را می‌خواهد. چیزی از بین نمی‌رود."
     class_reserved: "• {class}: {used} از {capacity} جا ({reserved} جا برای شیفت‌های در جریان کنار است)"
     class_name:
       bulk: "حیاط و انبار روباز"
@@ -527,6 +529,7 @@ village:
       ore: "سنگ معدن"
     store_kept: "✅ {name}: انباردار دارد ({wage} در روز)"
     store_unkept: "⚠️ {name}: انباردار ندارد؛ جایش حساب نمی‌شود. خزانه باید دستمزد بدهد و یک نفر بیکار هم لازم است."
+    store_communal: "⚠️ {name}: انباردار ندارد؛ مردم خودشان به نوبت مراقبش هستند و {room} جا حساب می‌شود. برای جای کامل و خرابی کمتر انباردار بگیر: خزانه دستمزد می‌دهد و یک نفر بیکار هم لازم است."
     store_grace: "⚠️ {name}: انباردار ندارد. تا {until} جایش را حساب می‌کنیم؛ بعد از آن نه. برای نگه داشتنش یک انباردار بگیر: خزانه دستمزد می‌دهد و یک نفر بیکار هم لازم است."
     spoil: "🥬 غذای انبار هر روز {pct} خراب می‌شود."
     stock_title: "📥 موجود در انبار:"
@@ -770,6 +773,26 @@ construction:
 # The panel of one placed building (internal/telegram/screens/village_building.go):
 # what it is and what it does; demolishing is the last, quiet button.
 building:
+  work:
+    working: "👷 کار می‌کند: {filled} از {max} نفر سر کارند."
+    idle: "💤 الان کار نمی‌کند."
+    paused: "⏸ گروه کارگرها ایستاده است."
+    crew: "👥 کارگر روزمزد: {crew} نفر، دستمزد {wage}، {left} نوبت باقی است."
+    budget_spent: "• نوبت‌های امروز این جای کار یا بودجهٔ آگهی تمام شده است."
+    no_function: "ℹ️ این ساختمان هنوز کاری در بازی ندارد."
+    shift: "⏱ هر نوبت {duration} طول می‌کشد، دستمزد {wage}."
+    inputs: "📥 هر نوبت مصرف: {items}"
+    outputs: "📤 هر نوبت تولید: {items}"
+    no_staff: "• کسی سر کار نیست؛ از تابلوی کار کارگر بگیرید یا خودتان نوبت بزنید."
+    no_input: "• {item} کم است: {have} از {need}."
+    storage_full: "• جای خالی برای محصول در {class} نیست ({have} جا خالی از {need})."
+    employer_broke: "• خزانه پول دستمزد را ندارد ({have} از {need})."
+    no_keeper: "• انباردار ندارد؛ فقط جای مشترک مردم حساب می‌شود."
+    class:
+      bulk: "حیاط و انبار روباز"
+      food: "انبار غذا"
+      goods: "انبار سرپوشیده"
+      ore: "صندوق سنگ معدن"
   shop:
     open: "🛒 دکان‌دار سر کار است و بار امروز رسیده؛ {lines} قلم کالا روی پیشخوان است."
     closed: "⛔ دکان الان بسته است."

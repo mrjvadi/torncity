@@ -447,7 +447,8 @@
       "mode_code": "train",
       "mode_name": "Train",
       "to": "Brennhaven",
-      "to_code": "brennhaven"
+      "to_code": "brennhaven",
+      "zone_minutes": 0
     }
   },
   {
@@ -463,7 +464,8 @@
       "mode_code": "bus",
       "mode_name": "Bus",
       "to": "Fenwick Span",
-      "to_code": "fenwick_span"
+      "to_code": "fenwick_span",
+      "zone_minutes": 0
     }
   },
   {
@@ -477,7 +479,8 @@
       "mode_name": "Train",
       "remaining_seconds": 8100,
       "to": "Brennhaven",
-      "to_code": "brennhaven"
+      "to_code": "brennhaven",
+      "zone_minutes": 0
     }
   },
   {
@@ -493,7 +496,8 @@
       "mode_code": "train",
       "mode_name": "Train",
       "to": "Brennhaven",
-      "to_code": "brennhaven"
+      "to_code": "brennhaven",
+      "zone_minutes": 0
     }
   },
   {
@@ -507,7 +511,8 @@
       "mode_name": "Train",
       "remaining_seconds": 8100,
       "to": "Brennhaven",
-      "to_code": "brennhaven"
+      "to_code": "brennhaven",
+      "zone_minutes": 0
     }
   },
   {
@@ -521,7 +526,8 @@
       "mode_name": "",
       "remaining_seconds": 20,
       "to": "Brennhaven",
-      "to_code": "brennhaven"
+      "to_code": "brennhaven",
+      "zone_minutes": 0
     }
   },
   {

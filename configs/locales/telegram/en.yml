@@ -519,6 +519,8 @@ village:
     treasury: "🏦 Treasury: {amount}"
     capacity: "📦 Stock room: {used} of {capacity} space"
     class_line: "• {class}: {used} of {capacity} space"
+    class_over: "• {class}: {used} of {capacity} space; {over} over the room. Build more room: {build}"
+    transition: "ℹ️ The old stores still count for every kind of goods until {until}; after that each kind needs its own store. Nothing is lost."
     class_reserved: "• {class}: {used} of {capacity} space ({reserved} set aside for running shifts)"
     class_name:
       bulk: "Yard and open store"
@@ -527,6 +529,7 @@ village:
       ore: "Ore"
     store_kept: "✅ {name}: has a storekeeper ({wage} a day)"
     store_unkept: "⚠️ {name}: no storekeeper, its room does not count. The treasury must pay the wage and someone in the pool must be free."
+    store_communal: "⚠️ {name}: no storekeeper; the residents look after it by rota and {room} spaces count. Hire a keeper for the full room and less spoilage: the treasury pays the wage and someone in the pool must be free."
     store_grace: "⚠️ {name}: no storekeeper. Its room still counts until {until}, then it stops. Hire a keeper to keep it: the treasury pays the wage and someone in the pool must be free."
     spoil: "🥬 The food in the stock spoils {pct} a day."
     stock_title: "📥 In the stock:"
@@ -770,6 +773,26 @@ construction:
 # The panel of one placed building (internal/telegram/screens/village_building.go):
 # what it is and what it does; demolishing is the last, quiet button.
 building:
+  work:
+    working: "👷 Working: {filled} of {max} posts are filled."
+    idle: "💤 Not working right now."
+    paused: "⏸ The crew has stopped."
+    crew: "👥 Hired crew: {crew}, wage {wage}, {left} shifts left."
+    budget_spent: "• The posts' shifts for today, or the job's budget, are used up."
+    no_function: "ℹ️ This building has no work in the game yet."
+    shift: "⏱ One shift takes {duration}, wage {wage}."
+    inputs: "📥 Uses per shift: {items}"
+    outputs: "📤 Makes per shift: {items}"
+    no_staff: "• Nobody is working there; hire from the labour board or take a shift."
+    no_input: "• {item} is short: {have} of {need}."
+    storage_full: "• No room for the output in {class} ({have} free of {need})."
+    employer_broke: "• The treasury cannot pay the wage ({have} of {need})."
+    no_keeper: "• No keeper; only the residents' communal room counts."
+    class:
+      bulk: "open yard"
+      food: "food store"
+      goods: "covered store"
+      ore: "ore bin"
   shop:
     open: "🛒 The shopkeeper is at work and today's delivery is in; {lines} kinds of goods are on the counter."
     closed: "⛔ The shop is shut right now."

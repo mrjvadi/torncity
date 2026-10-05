@@ -303,6 +303,9 @@ func (h *ProfileHandler) condition(ctx context.Context, tx application.Tx, p *ap
 		if to, err := h.cities.ByID(ctx, t.ToCityID); err == nil {
 			view.TravelToCode = to.Code
 			view.TravelTo = to.Name
+			if view.TravelZoneMinutes, err = zoneOf(ctx, tx, to.ID, to.Code); err != nil {
+				return view, err
+			}
 		} else if !isSentinel(err, application.ErrCityNotFound) {
 			return view, err
 		}

@@ -239,6 +239,11 @@ type ProducesDef struct {
 // StorageDef is room provided (class -> spaces) and room needed free per cycle.
 type StorageDef struct {
 	Provides map[string]int `yaml:"provides,omitempty" json:"provides,omitempty"`
+	// Communal is the share of Provides (class -> spaces) the residents look after
+	// themselves, by a rota, with no paid keeper: a small village store is kept by its
+	// own people. It always counts; a hired keeper adds the rest of Provides and the
+	// lower spoilage. Never more than Provides.
+	Communal map[string]int `yaml:"communal,omitempty" json:"communal,omitempty"`
 	Needs    map[string]int `yaml:"needs,omitempty" json:"needs,omitempty"`
 }
 

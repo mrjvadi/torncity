@@ -69,6 +69,8 @@ type laborMarket struct {
 	// shift, a busy construction day would leave every store unkept (room collapsing
 	// under its stock). The posts come first and the day labour takes what is left.
 	staffFree int64
+	// claims is the seat ledger the numbers above are read from.
+	claims seatClaims
 }
 
 // keeperSeats is how many people of the pool keep the shop and the stores:
@@ -165,35 +167,32 @@ func (h *VillageHandler) laborMarket(ctx context.Context, tx application.Tx, sna
 	case tight >= h.labor.Curve[2].TightnessBPS:
 		level = village.MarketTight
 	}
-	// An NPC teacher of the school is a person of the pool who is not free for hire
-	// (docs/research/2026-10-03-activities-audit.md section 7).
+	// One ledger of the seats the pool's people hold (workforce.go).
 	teachers, err := tx.Education().SettlementTeachers(ctx, s.CityID)
 	if err != nil {
 		return laborMarket{}, err
 	}
-	teachersNPC := int64(0)
+	claims := seatClaims{Pool: pool, Shifts: npc}
 	for _, t := range teachers {
 		if t.Kind == application.TeacherNPC {
-			npc++
-			teachersNPC++
+			claims.Teachers++
 		}
 	}
-	free := max(pool-npc, 0)
-	staffFree := max(pool-teachersNPC, 0)
 	now := h.now()
-	shopSeat, storeSeats, until, err := h.keeperSeats(ctx, tx, snap, s, staffFree, now)
+	shopSeat, storeSeats, until, err := h.keeperSeats(ctx, tx, snap, s, claims.StaffFree(), now)
 	if err != nil {
 		return laborMarket{}, err
 	}
-	reserved := shopSeat + storeSeats
-	available := free
+	claims.Shop, claims.Keepers = shopSeat, storeSeats
+	reserved := claims.Reserved()
+	available := claims.Free()
 	var reservedFrom *time.Time
 	if !now.Before(until) {
-		available = max(free-reserved, 0)
+		available = claims.Available()
 	} else {
 		reservedFrom = &until
 	}
-	return laborMarket{pool: pool, free: free, staffFree: staffFree, line: village.LaborMarketLine{
+	return laborMarket{pool: pool, free: claims.Free(), staffFree: claims.StaffFree(), claims: claims, line: village.LaborMarketLine{
 		Housing: housing, Pool: pool, Available: available, Reserved: reserved, ReservedFrom: reservedFrom, Working: all, Vacancies: vacancies,
 		TightnessBPS: tight, Level: level, NPCWage: h.labor.NPCWage(s.Tier, tight), MinWage: h.labor.MinWage[s.Tier],
 	}}, nil
@@ -330,6 +329,27 @@ func (h *VillageHandler) startLaborShift(ctx context.Context, tx application.Tx,
 		}
 		sh.Kind = application.LaborKindConstruction
 		sh.WorkPoints = h.labor.Points(w.bps)
+	case application.LaborKindProduction:
+		// A standing workplace works for the treasury: NPCs only (a player takes it
+		// through settlement.work), and never past its posts' day.
+		if job.EmployerKind != application.LaborEmployerSettlement || !w.npc() {
+			return refuseVillage(village.LaborNoJob, village.AddrLaborBoard)
+		}
+		d, ok := snap.SettlementBuildingDef(b.TypeCode)
+		if !ok || b.Status != "complete" || len(d.Produces) == 0 {
+			return refuseVillage(village.LaborNoSite, village.AddrLaborBoard)
+		}
+		if cap := int64(d.Workers) * h.labor.NPCShiftsPerSlotDay; cap > 0 {
+			if n, err := repo.NPCShiftsSince(ctx, b.ID, localDayStart(now, s.Zone())); err != nil {
+				return err
+			} else if n >= cap {
+				return refuseVillage(village.LaborBudgetSpent, village.AddrLaborBoard)
+			}
+		}
+		if err := h.startProduction(ctx, tx, meta, snap, s, *b, d, nil, wage, job.ID); err != nil {
+			return err
+		}
+		return repo.CountStarted(ctx, job.ID)
 	default:
 		return refuseVillage(village.LaborNoJob, village.AddrLaborBoard)
 	}
@@ -399,14 +419,91 @@ func (h *VillageHandler) startLaborShift(ctx context.Context, tx application.Tx,
 func (h *VillageHandler) fillCrew(ctx context.Context, tx application.Tx, meta envelope.Metadata, snap *content.Snapshot,
 	s application.FoundedSettlement, jobID string,
 ) (started int, first error) {
+	started, first = h.fillCrewRun(ctx, tx, meta, snap, s, jobID)
+	// A crew that could not start is paused with the reason; one that started, or is full,
+	// runs again (the paused mark never blocks a refill: it is only the reason shown).
+	if perr := tx.SettlementTreasury().PauseJob(ctx, jobID, pauseReason(first, started)); perr != nil && first == nil {
+		first = perr
+	}
+	return started, first
+}
+
+// pauseReason maps what stopped a crew to the job's paused code ("" when nothing did).
+func pauseReason(err error, started int) string {
+	if started > 0 || err == nil {
+		return ""
+	}
+	var r *villageRefusal
+	if !stderrors.As(err, &r) {
+		return ""
+	}
+	switch r.kind {
+	case village.LaborNoNPC:
+		return "no_staff"
+	case village.VillageMaterials:
+		return "no_input"
+	case village.VillageStorageFull:
+		return "storage_full"
+	case village.LaborEmployerBroke, village.VillageInsufficient:
+		return "employer_broke"
+	case village.LaborBudgetSpent:
+		return "budget_spent"
+	}
+	return ""
+}
+
+// localDayStart is the start (as an instant) of the settlement's local day that holds now.
+func localDayStart(now time.Time, zone time.Duration) time.Time {
+	local := now.Add(zone)
+	return time.Date(local.Year(), local.Month(), local.Day(), 0, 0, 0, 0, time.UTC).Add(-zone)
+}
+
+// refillCrews tops up every open job's NPC crew of the settlement, the lower priority
+// numbers first, while people are free: it runs when something that stopped a crew has
+// changed (a shift finished, goods came in). A refusal pauses that job and goes on to the
+// next; only a real error stops it.
+func (h *VillageHandler) refillCrews(ctx context.Context, tx application.Tx, meta envelope.Metadata, snap *content.Snapshot,
+	s application.FoundedSettlement,
+) error {
+	jobs, err := tx.SettlementTreasury().OpenJobs(ctx, s.CityID)
+	if err != nil {
+		return err
+	}
+	for _, j := range jobs { // ordered by priority, then age
+		if j.NPCCrew == 0 || j.Kind != application.LaborKindProduction {
+			continue
+		}
+		if _, err := h.fillCrew(ctx, tx, meta, snap, s, j.ID); err != nil {
+			var r *villageRefusal
+			if !stderrors.As(err, &r) {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (h *VillageHandler) fillCrewRun(ctx context.Context, tx application.Tx, meta envelope.Metadata, snap *content.Snapshot,
+	s application.FoundedSettlement, jobID string,
+) (started int, first error) {
 	repo := tx.SettlementTreasury()
 	for {
 		job, err := repo.Job(ctx, jobID)
 		if err != nil || job.Status != application.LaborJobOpen {
 			return started, first
 		}
-		site, err := repo.SiteShifts(ctx, job.BuildingID)
-		if err != nil {
+		var site []application.SettlementShift
+		if job.Kind == application.LaborKindProduction {
+			all, err := repo.WorkingShifts(ctx, s.CityID)
+			if err != nil {
+				return started, err
+			}
+			for _, x := range all {
+				if x.BuildingID == job.BuildingID {
+					site = append(site, x)
+				}
+			}
+		} else if site, err = repo.SiteShifts(ctx, job.BuildingID); err != nil {
 			return started, err
 		}
 		npc := 0

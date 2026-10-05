@@ -530,13 +530,13 @@ building_functions:
     staff: [{role: storekeeper, slots: 1, shift_hours: 4, wage_bps: 11000}]
     if_unstaffed: base_room
     consumes: {food_points: 1}
-    storage: {provides: {food: 300}}
+    storage: {provides: {food: 300}, communal: {food: 100}}
     produces: {service: food_keeping, store: food}
     links: {from: [farm_canal, farm_shaft, farm_terrace, mill, bakery], to: [bakery]}
     ledger_reasons: [storekeeper_wage, storage_rent]
     replaces: [granary]
     needs_research: [decay_bps_per_day]
-    note: "kept 4 h a day the food spoils at 5 bps a day, unkept 30; without it the village holds 20 spaces of food"
+    note: "a small village granary is looked after by its own people by rota (communal: 100 of the 300 spaces count with no keeper, like the real communal granaries of villages); a hired keeper (4 h a day) opens the full room. Kept 4 h a day the food spoils at 5 bps a day, unkept 30; without it the village holds 20 spaces of food"
   - code: storehouse
     source: "ADR 0041 8.23"
     evidence: adr
@@ -552,13 +552,13 @@ building_functions:
     staff: [{role: storekeeper, slots: 1, shift_hours: 4}]
     if_unstaffed: base_room
     consumes: {food_points: 1}
-    storage: {provides: {bulk: 200, goods: 150}}
+    storage: {provides: {bulk: 200, goods: 150}, communal: {bulk: 60, goods: 40}}
     produces: {service: goods_keeping}
     links: {from: [woodcutter_yard, masonry_workshop, carpentry_workshop, weaving_shed, smithy], to: [carpentry_workshop]}
     ledger_reasons: [storekeeper_wage, storage_rent]
     replaces: [storehouse]
     needs_research: [decay_bps_per_day]
-    note: "kept, goods and timber do not spoil; the bulk class is the 60-space open yard without it. BUILT (storage and market audit P2): a kept storehouse adds its provides to the settlement stock, one NPC storekeeper per store from the labour pool, a day's wage from the treasury (storekeeper_wage)"
+    note: "the residents keep 60 bulk and 40 goods spaces by rota with no keeper (communal); a hired keeper opens the full room. Kept, goods and timber do not spoil; the bulk class is the 60-space open yard without it. BUILT (storage and market audit P2): a kept storehouse adds its provides to the settlement stock, one NPC storekeeper per store from the labour pool, a day's wage from the treasury (storekeeper_wage)"
 
   # ---- watch, warning and defence (ADR 0041 8.6, ADR 0042 8.1 to 8.3, ADR 0045 7) ----
   - code: watch_post

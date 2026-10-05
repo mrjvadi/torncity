@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/mrjvadi/torncity/internal/config"
 	"github.com/mrjvadi/torncity/internal/application/handlers"
+	"github.com/mrjvadi/torncity/internal/config"
 	"github.com/mrjvadi/torncity/internal/domain/labor"
 	"github.com/mrjvadi/torncity/internal/domain/player"
 )
@@ -20,7 +20,7 @@ func laborRules(c config.Labor) labor.Rules {
 			{TightnessBPS: c.TightShortBPS, WageBPS: c.WageShortBPS},
 		},
 		ParticipationBPS: c.ParticipationBPS, BaseHousing: c.BaseHousing, NPCProductivityBPS: c.NPCProductivityBPS,
-		FeeBPS: c.FeeBPS, BudgetSlackBPS: c.BudgetSlackBPS,
+		FeeBPS: c.FeeBPS, BudgetSlackBPS: c.BudgetSlackBPS, NPCShiftsPerSlotDay: c.NPCShiftsPerSlotDay,
 		Levels: []labor.Level{
 			{Code: "apprentice", MinShifts: 0, ProductivityBPS: c.ApprenticeBPS},
 			{Code: "journeyman", MinShifts: c.JourneymanShifts, ProductivityBPS: c.JourneymanBPS},

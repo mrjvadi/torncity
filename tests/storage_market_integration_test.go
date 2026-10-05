@@ -236,8 +236,8 @@ func TestWorkingStorehouse(t *testing.T) {
 	drain()
 	resettle()
 	v := view()
-	if _, c := room(v, "food"); c != 20 {
-		t.Errorf("food room with an unkept granary = %d, want the base 20", c)
+	if _, c := room(v, "food"); c != 120 {
+		t.Errorf("food room with an unkept granary = %d, want the base 20 plus the 100 the residents keep by rota", c)
 	}
 	if _, c := room(v, "bulk"); c != 60 {
 		t.Errorf("bulk room = %d, want the open yard 60", c)
@@ -655,6 +655,272 @@ func TestKeepersAreNotStarvedByBusyLabour(t *testing.T) {
 	for _, s := range v.Stores {
 		if !s.Kept {
 			t.Errorf("a store is unkept because the NPC labourers were all on shifts (%d of them): %+v", n, v.Stores)
+		}
+	}
+}
+
+// A new city has no free labourer to hire as keeper, yet its stock must fit its room
+// from the first day: the residents keep the small granary by rota (communal room),
+// so the room never collapses to the open yard.
+func TestAFreshCityHoldsItsStockWithoutAKeeper(t *testing.T) {
+	e := newFoundingEnv(t)
+	pool := e.pool
+	ctx := testCtx(t)
+	catalog, err := i18n.Load(filepath.Join("..", "configs", "locales"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	uow := postgres.NewUnitOfWork(pool, testDefaultLanguage)
+	clock := gametime.Clock{Epoch: e.clock.Now().Add(-100 * 24 * time.Hour), Scale: 1}
+	village := handlers.NewVillageHandler(uow, workIDs{t}, catalog, staticContentSource{snap: loadTestContent(t)}, e.cache,
+		postgres.NewCityRepository(pool), gametime.Scale(1),
+		handlers.VillageRules{
+			VillageGridLots: 5, TeachPeriod: time.Second, TeachRateBPS: 10_000,
+			BaseSchoolCapacityBPS: 10_000, ScarcityKBPS: 10_000, ScarcityFloorBPS: 3_000, ScarcityCapBPS: 80_000, SellerBandBPS: 500,
+			HomeCityCode: "support", MaterialMarkupBPS: 12_000, StockBaseCapacity: 60, MaterialBuyMax: 200,
+			MaterialBuyPresets: []int64{5, 20, 50},
+		}, time.Hour, e.clock.Now).
+		WithLabor(labor.Default(), []int64{1, 2, 4}, []int64{100, 125, 150, 200}).
+		WithStorage(handlers.StorageRules{Clock: clock, SpoilKeptBPS: 100, SpoilUnkeptBPS: 3000})
+	meta, founder := e.group(t)
+	foundVillage(t, pool, e.h, meta)
+	var cityID string
+	if err := pool.Raw().QueryRow(ctx, `SELECT id::text FROM cities WHERE founded_by_group_id = $1`, meta.TelegramChatID).Scan(&cityID); err != nil {
+		t.Fatal(err)
+	}
+	// no money in the treasury: no keeper can be paid
+	// every NPC labourer of the settlement is on a shift right now
+	var n int
+	for i := 0; i < 40; i++ {
+		if _, err := pool.Raw().Exec(ctx, `INSERT INTO settlement_shifts (id, settlement_id, building_id, player_id, status, wage, wage_paid, produced, consumed,
+			game_action_id, started_at, finish_at, kind, worker_kind) VALUES ($1::uuid, $2::uuid, $3::uuid, NULL, 'working', 0, 0, '{}', '{}', $4::uuid, now(), now() + interval '1 hour', 'construction', 'npc')`,
+			newUUID(t), cityID, newUUID(t), newUUID(t)); err != nil {
+			t.Fatal(err)
+		}
+		n++
+	}
+	t.Cleanup(func() {
+		_, _ = pool.Raw().Exec(testCtx(t), `DELETE FROM settlement_shifts WHERE settlement_id = $1::uuid`, cityID)
+	})
+	head := asPlayer(meta, founder)
+	head.Command = "settlement.materials"
+	head.RequestID = "req_" + randomToken(t, 16)
+	head.IdempotencyKey = "it-" + randomToken(t, 16)
+	e.clock.Advance(24*time.Hour + time.Minute)
+	resp, err := village.Materials(ctx, head)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var v vpres.MaterialsView
+	if err := presentation.DecodeView(resp.View, &v); err != nil {
+		t.Fatal(err)
+	}
+	if v.Used > v.Capacity {
+		t.Errorf("a fresh city is over capacity on day one: %d / %d", v.Used, v.Capacity)
+	}
+	var food int64
+	for _, c := range v.Classes {
+		if c.Class == "food" {
+			food = c.Capacity
+		}
+	}
+	if food < 120 {
+		t.Errorf("the granary gives no room without a keeper: food room %d, want at least 120 (base 20 + communal 100); n=%d", food, n)
+	}
+	for _, st := range v.Stores {
+		if st.Kept || st.CommunalRoom == 0 {
+			t.Errorf("a store must be unkept with a communal room here, no keeper can be paid: %+v", st)
+		}
+	}
+}
+
+// A city whose goods were stored under the old shared room (live finding 2026-10-05,
+// «مارکو پلو»: timber, stone and wool sit in the open yard, 43 spaces over its 60). Until
+// the grace ends the stores that stood before the classes rule lend their room to any
+// class; after it the class is named over with what to build, and nothing is destroyed.
+func TestOldSharedRoomLastsThroughTheGraceThenTheClassIsNamedOver(t *testing.T) {
+	e := newFoundingEnv(t)
+	pool := e.pool
+	ctx := testCtx(t)
+	catalog, err := i18n.Load(filepath.Join("..", "configs", "locales"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	uow := postgres.NewUnitOfWork(pool, testDefaultLanguage)
+	clock := gametime.Clock{Epoch: e.clock.Now().Add(-100 * 24 * time.Hour), Scale: 1}
+	rules := handlers.StorageRules{Clock: clock, SpoilKeptBPS: 100, SpoilUnkeptBPS: 0}
+	graceFrom := e.clock.Now().Add(48 * time.Hour) // the founding granary stood before the rule
+	rules.GraceFrom, rules.GraceDays = graceFrom, 14
+	village := handlers.NewVillageHandler(uow, workIDs{t}, catalog, staticContentSource{snap: loadTestContent(t)}, e.cache,
+		postgres.NewCityRepository(pool), gametime.Scale(1),
+		handlers.VillageRules{
+			VillageGridLots: 5, TeachPeriod: time.Second, TeachRateBPS: 10_000,
+			BaseSchoolCapacityBPS: 10_000, ScarcityKBPS: 10_000, ScarcityFloorBPS: 3_000, ScarcityCapBPS: 80_000, SellerBandBPS: 500,
+			HomeCityCode: "support", MaterialMarkupBPS: 12_000, StockBaseCapacity: 60, MaterialBuyMax: 200,
+			MaterialBuyPresets: []int64{5, 20, 50},
+		}, time.Hour, e.clock.Now).
+		WithLabor(labor.Default(), []int64{1, 2, 4}, []int64{100, 125, 150, 200}).
+		WithStorage(rules)
+	meta, founder := e.group(t)
+	foundVillage(t, pool, e.h, meta)
+	var cityID string
+	if err := pool.Raw().QueryRow(ctx, `SELECT id::text FROM cities WHERE founded_by_group_id = $1`, meta.TelegramChatID).Scan(&cityID); err != nil {
+		t.Fatal(err)
+	}
+	for item, qty := range map[string]int64{"timber": 53, "stone": 25, "wool": 25, "wheat": 40} {
+		item, qty := item, qty
+		if err := uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
+			return tx.Items().Move(ctx, application.ItemMove{
+				ID: newUUID(t), Item: item, Qty: qty,
+				ToOrg: application.SettlementOrg(cityID), ToHolding: application.HoldWarehouse,
+				Reason: application.ItemGrant, ReferenceType: "test", ReferenceID: newUUID(t), At: time.Now().UTC(),
+			})
+		}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	view := func() vpres.MaterialsView {
+		t.Helper()
+		m := asPlayer(meta, founder)
+		m.Command = "settlement.materials"
+		m.RequestID = "req_" + randomToken(t, 16)
+		m.IdempotencyKey = "it-" + randomToken(t, 16)
+		resp, err := village.Materials(ctx, m)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var v vpres.MaterialsView
+		if err := presentation.DecodeView(resp.View, &v); err != nil {
+			t.Fatal(err)
+		}
+		return v
+	}
+	class := func(v vpres.MaterialsView, code string) vpres.StockClassLine {
+		for _, c := range v.Classes {
+			if c.Class == code {
+				return c
+			}
+		}
+		t.Fatalf("no %s class in %+v", code, v.Classes)
+		return vpres.StockClassLine{}
+	}
+	v := view()
+	if b := class(v, "bulk"); b.Used != 156 || b.Over != 0 || b.Borrowed != 96 {
+		t.Errorf("during the grace the old shared room lends the bulk 96 spaces (timber and stone take 2 each): %+v", b)
+	}
+	if v.Over != 0 || v.Transition == nil {
+		t.Errorf("during the grace nothing is over and the notice stands: over %d, transition %v", v.Over, v.Transition)
+	}
+	// after the grace
+	e.clock.Advance(49*time.Hour + 15*24*time.Hour)
+	v = view()
+	b := class(v, "bulk")
+	if b.Used != 156 || b.Over != 96 || b.Borrowed != 0 || len(b.Build) == 0 {
+		t.Errorf("after the grace the bulk is 96 over and says what to build: %+v", b)
+	}
+	if v.Over != 101 || v.Transition != nil {
+		t.Errorf("the total over is the sum of the full classes and the notice is gone: over %d, transition %v", v.Over, v.Transition)
+	}
+	if f := class(v, "food"); f.Used != 40 || f.Over != 0 {
+		t.Errorf("the food still fits: %+v", f)
+	}
+}
+
+// Every standing building says what work it does and why it is idle (roadmap 2.2 phase 1,
+// rule 1c): a workplace nobody works at is idle with no_staff, a granary is a storage node,
+// a building the game gives no work to says so.
+func TestBuildingPanelCarriesItsWork(t *testing.T) {
+	e := newFoundingEnv(t)
+	pool := e.pool
+	ctx := testCtx(t)
+	catalog, err := i18n.Load(filepath.Join("..", "configs", "locales"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	uow := postgres.NewUnitOfWork(pool, testDefaultLanguage)
+	clock := gametime.Clock{Epoch: e.clock.Now().Add(-100 * 24 * time.Hour), Scale: 1}
+	village := handlers.NewVillageHandler(uow, workIDs{t}, catalog, staticContentSource{snap: loadTestContent(t)}, e.cache,
+		postgres.NewCityRepository(pool), gametime.Scale(1),
+		handlers.VillageRules{
+			VillageGridLots: 5, TeachPeriod: time.Second, TeachRateBPS: 10_000,
+			BaseSchoolCapacityBPS: 10_000, ScarcityKBPS: 10_000, ScarcityFloorBPS: 3_000, ScarcityCapBPS: 80_000, SellerBandBPS: 500,
+			HomeCityCode: "support", MaterialMarkupBPS: 12_000, StockBaseCapacity: 60, MaterialBuyMax: 200,
+			MaterialBuyPresets: []int64{5, 20, 50},
+		}, time.Hour, e.clock.Now).
+		WithLabor(labor.Default(), []int64{1, 2, 4}, []int64{100, 125, 150, 200}).
+		WithStorage(handlers.StorageRules{Clock: clock, SpoilKeptBPS: 100, SpoilUnkeptBPS: 3000})
+	meta, founder := e.group(t)
+	foundVillage(t, pool, e.h, meta)
+	var cityID string
+	if err := pool.Raw().QueryRow(ctx, `SELECT id::text FROM cities WHERE founded_by_group_id = $1`, meta.TelegramChatID).Scan(&cityID); err != nil {
+		t.Fatal(err)
+	}
+	campID := newUUID(t)
+	if _, err := pool.Raw().Exec(ctx, `INSERT INTO settlement_buildings (id, settlement_id, type_code, lot_x, lot_y, status, queued_at, completed_at)
+	    VALUES ($1::uuid, $2::uuid, 'woodcutter_camp', 81, 3, 'complete', now(), now())`, campID, cityID); err != nil {
+		t.Fatal(err)
+	}
+	work := func(id string) *vpres.WorkNode {
+		t.Helper()
+		m := asPlayer(meta, founder)
+		m.Command = "settlement.building.view"
+		m.RequestID = "req_" + randomToken(t, 16)
+		resp, err := village.BuildingView(ctx, m, handlers.VillageBuildingViewRequest{BuildingID: id})
+		if err != nil {
+			t.Fatal(err)
+		}
+		var v vpres.BuildingView
+		if err := presentation.DecodeView(resp.View, &v); err != nil {
+			t.Fatal(err)
+		}
+		if v.Work == nil {
+			t.Fatalf("building %s has no work block", id)
+		}
+		return v.Work
+	}
+	camp := work(campID)
+	if (camp.Kind != vpres.NodeKindProduction && camp.Kind != vpres.NodeKindExtraction) || camp.Status != vpres.NodeIdle || camp.Max == 0 || camp.Filled != 0 {
+		t.Errorf("an unworked camp is an idle production node with posts: %+v", camp)
+	}
+	has := func(w *vpres.WorkNode, code string) bool {
+		for _, r := range w.Reasons {
+			if r.Code == code {
+				return true
+			}
+		}
+		return false
+	}
+	if !has(camp, vpres.NodeReasonNoStaff) {
+		t.Errorf("an unworked camp says no_staff: %+v", camp.Reasons)
+	}
+	if len(camp.Outputs) == 0 || camp.ShiftSeconds == 0 {
+		t.Errorf("the camp says what a shift gives and takes: %+v", camp)
+	}
+	rows, err := pool.Raw().Query(ctx, `SELECT id::text, type_code FROM settlement_buildings WHERE settlement_id = $1::uuid AND status = 'complete'`, cityID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	type row struct{ id, code string }
+	var all []row
+	for rows.Next() {
+		var r row
+		if err := rows.Scan(&r.id, &r.code); err != nil {
+			t.Fatal(err)
+		}
+		all = append(all, r)
+	}
+	rows.Close()
+	for _, r := range all {
+		w := work(r.id)
+		switch r.code {
+		case "granary":
+			if w.Kind != vpres.NodeKindStorage {
+				t.Errorf("the granary is a storage node: %+v", w)
+			}
+		case "road":
+			if w.Kind != vpres.NodeKindNone || !has(w, vpres.NodeReasonNoFunction) {
+				t.Errorf("a road has no work and says so: %+v", w)
+			}
 		}
 	}
 }

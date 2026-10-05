@@ -793,17 +793,22 @@ func (h *TravelHandler) Start(ctx context.Context, meta envelope.Metadata, req S
 			return err
 		}
 
+		toZone, err := zoneOf(ctx, tx, t.to.ID, t.to.Code)
+		if err != nil {
+			return err
+		}
 		started = life.TravelStartedView{
-			FromCode:  t.from.Code,
-			From:      t.from.Name,
-			ToCode:    t.to.Code,
-			To:        t.to.Name,
-			ModeCode:  q.Mode,
-			ModeName:  chosen.name,
-			Duration:  journey.Duration(),
-			ArrivesAt: journey.ArrivesAt,
-			Energy:    q.Energy,
-			Fare:      q.Fare.Minor(),
+			FromCode:    t.from.Code,
+			From:        t.from.Name,
+			ToCode:      t.to.Code,
+			To:          t.to.Name,
+			ModeCode:    q.Mode,
+			ModeName:    chosen.name,
+			Duration:    journey.Duration(),
+			ArrivesAt:   journey.ArrivesAt,
+			ZoneMinutes: toZone,
+			Energy:      q.Energy,
+			Fare:        q.Fare.Minor(),
 		}
 		return nil
 	})
@@ -1022,14 +1027,19 @@ func (h *TravelHandler) Status(ctx context.Context, meta envelope.Metadata) (*pr
 			return err
 		}
 
+		toZone, err := zoneOf(ctx, tx, to.ID, to.Code)
+		if err != nil {
+			return err
+		}
 		view = life.TravelStatusView{
-			FromCode:  from.Code,
-			From:      from.Name,
-			ToCode:    to.Code,
-			To:        to.Name,
-			ModeCode:  t.Mode,
-			Remaining: travel.Remaining(journey, h.now()),
-			ArrivesAt: t.ArrivesAt,
+			FromCode:    from.Code,
+			From:        from.Name,
+			ToCode:      to.Code,
+			To:          to.Name,
+			ModeCode:    t.Mode,
+			Remaining:   travel.Remaining(journey, h.now()),
+			ArrivesAt:   t.ArrivesAt,
+			ZoneMinutes: toZone,
 		}
 		return nil
 	})
@@ -1258,4 +1268,20 @@ func refuseAtWork(ctx context.Context, tx application.Tx, playerID string) error
 		return application.ErrShiftInProgress
 	}
 	return nil
+}
+
+// zoneOf is the time zone of a place a journey ends at, minutes east of UTC: a founded
+// settlement's own zone; 0 for a place that has none stored (a content city).
+func zoneOf(ctx context.Context, tx application.Tx, cityID, code string) (int, error) {
+	if !strings.HasPrefix(code, "v-") { // a content city: no zone of its own yet
+		return 0, nil
+	}
+	s, err := tx.Settlements().ByID(ctx, cityID)
+	if isSentinel(err, application.ErrCityNotFound) {
+		return 0, nil
+	}
+	if err != nil {
+		return 0, err
+	}
+	return int(s.Zone() / time.Minute), nil
 }

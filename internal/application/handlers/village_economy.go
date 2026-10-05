@@ -318,11 +318,24 @@ func (h *VillageHandler) materialsView(ctx context.Context, tx application.Tx, m
 		if r.Capacity == 0 && r.Used == 0 {
 			continue
 		}
-		view.Classes = append(view.Classes, village.StockClassLine{Class: c, Used: r.Used, Capacity: r.Capacity, Reserved: r.Reserved})
+		line := village.StockClassLine{Class: c, Used: r.Used, Capacity: r.Capacity, Reserved: r.Reserved,
+			Over: stock.Over[c], Borrowed: stock.Flex[c]}
+		if line.Over > 0 {
+			for _, code := range snap.StorageProviders(c) {
+				if d, ok := snap.SettlementBuildingDef(code); ok {
+					line.Build = append(line.Build, named(d.Code, d.Name))
+				}
+			}
+		}
+		view.Over += line.Over
+		view.Classes = append(view.Classes, line)
+	}
+	if !stock.FlexUntil.IsZero() {
+		view.Transition = &village.StockTransition{Until: stock.FlexUntil}
 	}
 	for _, st := range stock.Stores {
 		d, _ := snap.SettlementBuildingDef(st.Type)
-		view.Stores = append(view.Stores, village.StockStoreLine{Building: named(d.Code, d.Name), Kept: st.Kept, GraceUntil: st.GraceUntil})
+		view.Stores = append(view.Stores, village.StockStoreLine{Building: named(d.Code, d.Name), Kept: st.Kept, CommunalRoom: st.communalRoom(), GraceUntil: st.GraceUntil})
 	}
 	codes := make([]string, 0, len(stock.Units))
 	for c := range stock.Units {
@@ -479,9 +492,13 @@ func (h *VillageHandler) MaterialsBuy(ctx context.Context, meta envelope.Metadat
 			return err
 		}
 		bought = &village.MaterialBought{Item: named(cd.Code, cd.Name), Qty: qty, Total: total}
-		return appendVillageEvent(ctx, tx, meta, "materials_bought", s.CityID, map[string]any{
+		if err := appendVillageEvent(ctx, tx, meta, "materials_bought", s.CityID, map[string]any{
 			"settlement_id": s.CityID, "item": code, "quantity": qty, "total": total, "bought_by": p.ID, "purchase_id": purchaseID,
-		})
+		}); err != nil {
+			return err
+		}
+		// new goods may restart a crew that waited for its inputs
+		return h.refillCrews(ctx, tx, meta, snap, s)
 	})
 	if resp, err := h.villageFinish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
@@ -658,7 +675,17 @@ func (h *VillageHandler) startShiftAt(ctx context.Context, tx application.Tx, me
 			return err
 		}
 	}
+	return h.startProduction(ctx, tx, meta, snap, s, *b, d, p, wageOverride, jobID)
+}
 
+// startProduction is the start of a production shift for a player or an NPC (p nil): the
+// stock lock, the inputs, the room for the output, the wage the treasury can pay, the
+// schedule and the row. A refusal precedes every write, so it leaves nothing behind.
+// It is the one start every worker takes (roadmap 2.2, ADR 0041 section 4).
+func (h *VillageHandler) startProduction(ctx context.Context, tx application.Tx, meta envelope.Metadata, snap *content.Snapshot,
+	s application.FoundedSettlement, b application.SettlementBuildingInstance, d content.SettlementBuildingDef,
+	p *application.Player, wageOverride int64, jobID string,
+) error {
 	if err := tx.Items().LockOrg(ctx, application.SettlementOrg(s.CityID)); err != nil {
 		return err
 	}
@@ -717,10 +744,15 @@ func (h *VillageHandler) startShiftAt(ctx context.Context, tx application.Tx, me
 	if err != nil {
 		return err
 	}
-	if err := tx.SettlementTreasury().StartShift(ctx, application.SettlementShift{
-		ID: shiftID, SettlementID: s.CityID, BuildingID: b.ID, PlayerID: p.ID, Wage: wage, JobID: jobID,
+	sh := application.SettlementShift{
+		ID: shiftID, SettlementID: s.CityID, BuildingID: b.ID, Wage: wage, JobID: jobID, WorkerKind: application.LaborWorkerNPC,
 		Produced: copyQty(d.Produces), Consumed: copyQty(d.Consumes), GameActionID: actionID, StartedAt: now, FinishAt: finish,
-	}, d.Workers); err != nil {
+	}
+	playerID := ""
+	if p != nil {
+		sh.PlayerID, sh.WorkerKind, playerID = p.ID, application.LaborWorkerPlayer, p.ID
+	}
+	if err := tx.SettlementTreasury().StartShift(ctx, sh, d.Workers); err != nil {
 		switch {
 		case stderrors.Is(err, application.ErrWorkplaceFull):
 			return refuseVillage(village.VillageWorkplaceFull, village.AddrWork)
@@ -730,8 +762,8 @@ func (h *VillageHandler) startShiftAt(ctx context.Context, tx application.Tx, me
 		return err
 	}
 	return appendVillageEvent(ctx, tx, meta, "shift_started", s.CityID, map[string]any{
-		"settlement_id": s.CityID, "shift_id": shiftID, "building_id": b.ID, "type_code": b.TypeCode, "player_id": p.ID,
-		"finish_at": finish.UTC().Format(time.RFC3339),
+		"settlement_id": s.CityID, "shift_id": shiftID, "building_id": b.ID, "type_code": b.TypeCode, "player_id": playerID,
+		"worker": sh.WorkerKind, "finish_at": finish.UTC().Format(time.RFC3339),
 	})
 }
 
@@ -845,16 +877,22 @@ func (h *VillageHandler) Worked(ctx context.Context, meta envelope.Metadata, req
 			if err != nil {
 				return err
 			}
-			cash, err := tx.Ledger().AccountFor(ctx, application.AccountPlayerCash, sh.PlayerID)
-			if err != nil {
-				return err
+			// a player is paid in cash; an NPC's wage leaves the economy (the sink), as a
+			// construction NPC's does
+			toAcct := application.SystemSinkAccountID
+			if sh.WorkerKind != application.LaborWorkerNPC {
+				cash, err := tx.Ledger().AccountFor(ctx, application.AccountPlayerCash, sh.PlayerID)
+				if err != nil {
+					return err
+				}
+				toAcct = cash.ID
 			}
 			if _, err := tx.Ledger().Post(ctx, application.LedgerTransaction{
 				ID: txID, Reason: application.ReasonSettlementWage, CreatedAt: now,
 				ReferenceType: application.SettlementShiftReference, ReferenceID: sh.ID,
 				Entries: []application.LedgerEntry{
 					{AccountID: treasuryAcct.ID, Amount: money.FromMinor(-pay)},
-					{AccountID: cash.ID, Amount: money.FromMinor(pay)},
+					{AccountID: toAcct, Amount: money.FromMinor(pay)},
 				},
 			}); err != nil {
 				return err
@@ -863,17 +901,23 @@ func (h *VillageHandler) Worked(ctx context.Context, meta envelope.Metadata, req
 		// The trade is learned by doing it: a workplace that trains a skill gives
 		// the worker its experience once, in the same transaction that finished
 		// the shift (FinishShift above returned fresh only once).
-		if err := h.trainOnShift(ctx, tx, snap, buildings, sh, now); err != nil {
-			return err
+		if sh.WorkerKind != application.LaborWorkerNPC {
+			if err := h.trainOnShift(ctx, tx, snap, buildings, sh, now); err != nil {
+				return err
+			}
 		}
 		s, err := tx.Settlements().ByID(ctx, sh.SettlementID)
 		if err != nil {
 			return err
 		}
-		return appendVillageEvent(ctx, tx, meta, "shift_done", s.CityID, map[string]any{
+		if err := appendVillageEvent(ctx, tx, meta, "shift_done", s.CityID, map[string]any{
 			"settlement_id": s.CityID, "shift_id": sh.ID, "building_id": sh.BuildingID, "player_id": sh.PlayerID,
-			"produced": made, "wage": pay,
-		})
+			"worker": sh.WorkerKind, "produced": made, "wage": pay,
+		}); err != nil {
+			return err
+		}
+		// the shift's goods and the people it freed may restart a paused crew
+		return h.refillCrews(ctx, tx, meta, snap, s)
 	})
 }
 

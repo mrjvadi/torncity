@@ -3,6 +3,7 @@ package screens
 import (
 	"github.com/mrjvadi/torncity/internal/presentation/village"
 	"strconv"
+	"strings"
 
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
@@ -22,6 +23,14 @@ const (
 	ScreenVillageWork        = village.ScreenVillageWork
 	ScreenVillageWorkStarted = village.ScreenVillageWorkStarted
 )
+
+// transitionNote says the old shared room is still counted and until when.
+func transitionNote(c Context, v village.MaterialsView) string {
+	if v.Transition == nil {
+		return ""
+	}
+	return c.T("village.materials.transition", map[string]any{"until": FormatDate(c, v.Transition.Until)})
+}
 
 // villageNeeds renders a refusal that carries needs.
 func renderVillageNeeds(c Context, v VillageRefusalView) *presenter.Response {
@@ -169,10 +178,19 @@ func renderVillageMaterials(c Context, v MaterialsView) *presenter.Response {
 		if cl.Reserved > 0 {
 			key = "village.materials.class_reserved"
 		}
-		classes = append(classes, c.T(key, map[string]any{
+		args := map[string]any{
 			"class": c.coded("village.materials.class_name.", cl.Class, "village.materials.class_name.bulk"),
-			"used":  cl.Used, "capacity": cl.Capacity, "reserved": cl.Reserved,
-		}))
+			"used":  cl.Used, "capacity": cl.Capacity, "reserved": cl.Reserved, "over": cl.Over,
+		}
+		if cl.Over > 0 {
+			key = "village.materials.class_over"
+			var names []string
+			for _, b := range cl.Build {
+				names = append(names, c.SettlementBuildingName(b))
+			}
+			args["build"] = strings.Join(names, "، ")
+		}
+		classes = append(classes, c.T(key, args))
 	}
 	var stores []string
 	for _, st := range v.Stores {
@@ -181,6 +199,9 @@ func renderVillageMaterials(c Context, v MaterialsView) *presenter.Response {
 		switch {
 		case st.Kept:
 			key = "village.materials.store_kept"
+		case st.CommunalRoom > 0:
+			key = "village.materials.store_communal"
+			args["room"] = st.CommunalRoom
 		case !st.GraceUntil.IsZero():
 			key = "village.materials.store_grace"
 			args["until"] = FormatDate(c, st.GraceUntil)
@@ -197,6 +218,7 @@ func renderVillageMaterials(c Context, v MaterialsView) *presenter.Response {
 		c.T("village.materials.treasury", map[string]any{"amount": FormatMoney(c, v.Treasury)}),
 		c.T("village.materials.capacity", map[string]any{"used": v.Used, "capacity": v.Capacity}),
 		body(classes...),
+		transitionNote(c, v),
 		body(stores...),
 		spoil,
 		c.T("village.materials.stock_title", nil)+"\n"+stockText,

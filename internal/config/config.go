@@ -1314,32 +1314,34 @@ type Training struct {
 // scarce labour is. Wages and minimums are minor units per construction shift;
 // every share is in basis points.
 type Labor struct {
-	ShiftMinutes       int64   // labor.shift_minutes
-	ShiftRealMinutes   int64   // labor.shift_real_minutes
-	ReferenceCrew      int64   // labor.reference_crew
-	BaseWage           int64   // labor.base_wage
-	MinWageVillage     int64   // labor.min_wage_village
-	MinWageTown        int64   // labor.min_wage_town
-	MinWageCity        int64   // labor.min_wage_city
-	ParticipationBPS   int64   // labor.participation_bps
-	BaseHousing        int64   // labor.base_housing
-	NPCProductivityBPS int64   // labor.npc_productivity_bps
-	FeeBPS             int64   // labor.fee_bps
-	BudgetSlackBPS     int64   // labor.budget_slack_bps
-	JourneymanShifts   int64   // labor.journeyman_shifts
-	MasterShifts       int64   // labor.master_shifts
-	ApprenticeBPS      int64   // labor.apprentice_bps
-	JourneymanBPS      int64   // labor.journeyman_bps
-	MasterBPS          int64   // labor.master_bps
-	TightBalancedBPS   int64   // labor.tight_balanced_bps
-	TightTightBPS      int64   // labor.tight_tight_bps
-	TightShortBPS      int64   // labor.tight_short_bps
-	WageSlackBPS       int64   // labor.wage_slack_bps
-	WageBalancedBPS    int64   // labor.wage_balanced_bps
-	WageTightBPS       int64   // labor.wage_tight_bps
-	WageShortBPS       int64   // labor.wage_short_bps
-	HirePresets        []int64 // labor.hire_presets
-	WagePresets        []int64 // labor.wage_presets
+	ShiftMinutes       int64 // labor.shift_minutes
+	ShiftRealMinutes   int64 // labor.shift_real_minutes
+	ReferenceCrew      int64 // labor.reference_crew
+	BaseWage           int64 // labor.base_wage
+	MinWageVillage     int64 // labor.min_wage_village
+	MinWageTown        int64 // labor.min_wage_town
+	MinWageCity        int64 // labor.min_wage_city
+	ParticipationBPS   int64 // labor.participation_bps
+	BaseHousing        int64 // labor.base_housing
+	NPCProductivityBPS int64 // labor.npc_productivity_bps
+	FeeBPS             int64 // labor.fee_bps
+	BudgetSlackBPS     int64 // labor.budget_slack_bps
+	// NPCShiftsPerSlotDay is how many shifts an NPC may work at one post per local day.
+	NPCShiftsPerSlotDay int64   // labor.npc_shifts_per_slot_day
+	JourneymanShifts    int64   // labor.journeyman_shifts
+	MasterShifts        int64   // labor.master_shifts
+	ApprenticeBPS       int64   // labor.apprentice_bps
+	JourneymanBPS       int64   // labor.journeyman_bps
+	MasterBPS           int64   // labor.master_bps
+	TightBalancedBPS    int64   // labor.tight_balanced_bps
+	TightTightBPS       int64   // labor.tight_tight_bps
+	TightShortBPS       int64   // labor.tight_short_bps
+	WageSlackBPS        int64   // labor.wage_slack_bps
+	WageBalancedBPS     int64   // labor.wage_balanced_bps
+	WageTightBPS        int64   // labor.wage_tight_bps
+	WageShortBPS        int64   // labor.wage_short_bps
+	HirePresets         []int64 // labor.hire_presets
+	WagePresets         []int64 // labor.wage_presets
 }
 
 // Legislature is the tuning of votes of a body
@@ -1786,32 +1788,33 @@ func Defaults() *Config {
 		Education:   Education{TeacherWageBPS: 6000, TeacherMinWage: 40, TeacherMaxStudents: 12},
 		Training:    Training{EnergyCost: 10, StaminaGain: 6, StrengthXP: 30, DiminishStamina: 400, StaminaPerMaxEnergy: 50, MaxEnergyBonusCap: 30, YardBPS: 4000, GroundBPS: 6000, GymBPS: 10000, GroundFee: 20, GymFee: 60},
 		Labor: Labor{
-			ShiftMinutes:       60,
-			ShiftRealMinutes:   1,
-			ReferenceCrew:      4,
-			BaseWage:           30,
-			MinWageVillage:     10,
-			MinWageTown:        15,
-			MinWageCity:        25,
-			ParticipationBPS:   6000,
-			BaseHousing:        8,
-			NPCProductivityBPS: 8500,
-			FeeBPS:             500,
-			BudgetSlackBPS:     5000,
-			JourneymanShifts:   6,
-			MasterShifts:       30,
-			ApprenticeBPS:      7000,
-			JourneymanBPS:      10000,
-			MasterBPS:          13000,
-			TightBalancedBPS:   5000,
-			TightTightBPS:      10000,
-			TightShortBPS:      20000,
-			WageSlackBPS:       7000,
-			WageBalancedBPS:    10000,
-			WageTightBPS:       15000,
-			WageShortBPS:       25000,
-			HirePresets:        []int64{1, 2, 4},
-			WagePresets:        []int64{100, 125, 150, 200},
+			ShiftMinutes:        60,
+			ShiftRealMinutes:    1,
+			ReferenceCrew:       4,
+			BaseWage:            30,
+			MinWageVillage:      10,
+			MinWageTown:         15,
+			MinWageCity:         25,
+			ParticipationBPS:    6000,
+			BaseHousing:         8,
+			NPCProductivityBPS:  8500,
+			FeeBPS:              500,
+			BudgetSlackBPS:      5000,
+			NPCShiftsPerSlotDay: 10,
+			JourneymanShifts:    6,
+			MasterShifts:        30,
+			ApprenticeBPS:       7000,
+			JourneymanBPS:       10000,
+			MasterBPS:           13000,
+			TightBalancedBPS:    5000,
+			TightTightBPS:       10000,
+			TightShortBPS:       20000,
+			WageSlackBPS:        7000,
+			WageBalancedBPS:     10000,
+			WageTightBPS:        15000,
+			WageShortBPS:        25000,
+			HirePresets:         []int64{1, 2, 4},
+			WagePresets:         []int64{100, 125, 150, 200},
 		},
 		City: City{Period: 24 * time.Hour},
 		Property: Property{ForeclosurePeriods: 3, EvictionPeriods: 2, MaxOwned: 5, MaxPrice: 100_000_000,
