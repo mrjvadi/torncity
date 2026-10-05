@@ -34,6 +34,7 @@
       "travel_remaining_seconds": 0,
       "travel_to": "",
       "travel_to_code": "",
+      "travel_zone_minutes": 0,
       "travelling": false,
       "village": null,
       "walk": null,
@@ -91,6 +92,7 @@
       "travel_remaining_seconds": 0,
       "travel_to": "",
       "travel_to_code": "",
+      "travel_zone_minutes": 0,
       "travelling": false,
       "village": null,
       "walk": {
