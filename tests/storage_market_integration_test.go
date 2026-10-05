@@ -592,3 +592,69 @@ func TestKeepersLeaveTheLabourPool(t *testing.T) {
 		t.Errorf("after the grace the two keepers are not free: %+v", m)
 	}
 }
+
+// A busy construction day must not leave the stores unkept: the day's keepers are judged
+// once, at the first look, and the permanent posts come before the day labour (live
+// finding 2026-10-05: a city's room fell to the open yard under its stock).
+func TestKeepersAreNotStarvedByBusyLabour(t *testing.T) {
+	e := newFoundingEnv(t)
+	pool := e.pool
+	ctx := testCtx(t)
+	catalog, err := i18n.Load(filepath.Join("..", "configs", "locales"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	uow := postgres.NewUnitOfWork(pool, testDefaultLanguage)
+	clock := gametime.Clock{Epoch: e.clock.Now().Add(-100 * 24 * time.Hour), Scale: 1}
+	village := handlers.NewVillageHandler(uow, workIDs{t}, catalog, staticContentSource{snap: loadTestContent(t)}, e.cache,
+		postgres.NewCityRepository(pool), gametime.Scale(1),
+		handlers.VillageRules{
+			VillageGridLots: 5, TeachPeriod: time.Second, TeachRateBPS: 10_000,
+			BaseSchoolCapacityBPS: 10_000, ScarcityKBPS: 10_000, ScarcityFloorBPS: 3_000, ScarcityCapBPS: 80_000, SellerBandBPS: 500,
+			HomeCityCode: "support", MaterialMarkupBPS: 12_000, StockBaseCapacity: 60, MaterialBuyMax: 200,
+			MaterialBuyPresets: []int64{5, 20, 50},
+		}, time.Hour, e.clock.Now).
+		WithLabor(labor.Default(), []int64{1, 2, 4}, []int64{100, 125, 150, 200}).
+		WithStorage(handlers.StorageRules{Clock: clock, SpoilKeptBPS: 100, SpoilUnkeptBPS: 3000})
+	meta, founder := e.group(t)
+	foundVillage(t, pool, e.h, meta)
+	var cityID string
+	if err := pool.Raw().QueryRow(ctx, `SELECT id::text FROM cities WHERE founded_by_group_id = $1`, meta.TelegramChatID).Scan(&cityID); err != nil {
+		t.Fatal(err)
+	}
+	seedTreasury(t, pool, cityID, 60_000)
+	// every NPC labourer of the settlement is on a shift right now
+	var n int
+	for i := 0; i < 40; i++ {
+		if _, err := pool.Raw().Exec(ctx, `INSERT INTO settlement_shifts (id, settlement_id, building_id, player_id, status, wage, wage_paid, produced, consumed,
+			game_action_id, started_at, finish_at, kind, worker_kind) VALUES ($1::uuid, $2::uuid, $3::uuid, NULL, 'working', 0, 0, '{}', '{}', $4::uuid, now(), now() + interval '1 hour', 'construction', 'npc')`,
+			newUUID(t), cityID, newUUID(t), newUUID(t)); err != nil {
+			t.Fatal(err)
+		}
+		n++
+	}
+	t.Cleanup(func() {
+		_, _ = pool.Raw().Exec(testCtx(t), `DELETE FROM settlement_shifts WHERE settlement_id = $1::uuid`, cityID)
+	})
+	head := asPlayer(meta, founder)
+	head.Command = "settlement.materials"
+	head.RequestID = "req_" + randomToken(t, 16)
+	head.IdempotencyKey = "it-" + randomToken(t, 16)
+	e.clock.Advance(24*time.Hour + time.Minute)
+	resp, err := village.Materials(ctx, head)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var v vpres.MaterialsView
+	if err := presentation.DecodeView(resp.View, &v); err != nil {
+		t.Fatal(err)
+	}
+	if len(v.Stores) == 0 {
+		t.Fatal("the founding kit has a granary")
+	}
+	for _, s := range v.Stores {
+		if !s.Kept {
+			t.Errorf("a store is unkept because the NPC labourers were all on shifts (%d of them): %+v", n, v.Stores)
+		}
+	}
+}

@@ -55,6 +55,11 @@ func (h *VillageHandler) stockMove(ctx context.Context, meta envelope.Metadata, 
 		if err != nil {
 			return err
 		}
+		if on, err := h.travelling(ctx, tx, p.ID); err != nil {
+			return err
+		} else if on {
+			return application.ErrAlreadyTravelling
+		}
 		if donate {
 			if p.CityID == nil || *p.CityID != s.CityID {
 				return refuseVillage(village.VillageNotResident, village.AddrMaterials)

@@ -42,7 +42,7 @@
 #   GAME time before sleeping at a spot again.
 #
 # age — start: the age a character joins at; game_days_per_year: GAME days
-#   a year of age takes (7: a year of age is a real week, the same pace the compressed clock gave); stages:
+#   a year of age takes (30: a year of age is a real month, owner decision 2026-10-05; stages begin at 18, 26, 45 and 65 years, so youth lasts 8 months, retirement comes after 47 months); stages:
 #   the stages of a life by the age they begin at (hooks for school,
 #   university and retirement).
 #
@@ -127,7 +127,7 @@ life:
 
   age:
     start: 18
-    game_days_per_year: 7
+    game_days_per_year: 30
     stages:
       - {code: youth,   name: Youth,   from: 18}
       - {code: adult,   name: Adult,   from: 26}

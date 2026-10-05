@@ -93,12 +93,12 @@ func TestDerivedQuotesFollowTheDistance(t *testing.T) {
 		wait   time.Duration
 		energy int
 	}{
-		// walk: 5 km/h, free, no boarding; cart: 20 km/h, 10m boarding,
+		// walk: 5 km/h, free, no boarding; cart: 8 km/h, 10m boarding,
 		// 20 + 2/km; car: 90 km/h, 5m boarding, 5/km.
 		{"walk", 42, 0, 8*time.Minute + 24*time.Second, 12},
-		{"cart", 42, 104, 2*time.Minute + 16*time.Second, 5},
+		{"cart", 42, 104, 5*time.Minute + 25*time.Second, 5},
 		{"car", 42, 210, 33 * time.Second, 14},
-		{"cart", 380, 780, 19*time.Minute + 10*time.Second, 5},
+		{"cart", 380, 780, 47*time.Minute + 40*time.Second, 5},
 		{"car", 1280, 6400, 14*time.Minute + 19*time.Second, 14},
 	} {
 		q := quote(tc.mode, tc.km)

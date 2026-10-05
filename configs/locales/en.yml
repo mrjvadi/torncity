@@ -28,6 +28,7 @@ transport_mode:
   flight: Flight
   walk: On foot
   cart: Cart
+  ship: Ship
 
 skill:
   programming: Programming

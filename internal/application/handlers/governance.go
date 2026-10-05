@@ -4,6 +4,7 @@ import (
 	"context"
 	stderrors "errors"
 	"github.com/mrjvadi/torncity/internal/content"
+	"github.com/mrjvadi/torncity/internal/domain/charter"
 	"sort"
 	"strconv"
 	"strings"
@@ -177,7 +178,10 @@ func (h *GovernanceHandler) City(ctx context.Context, meta envelope.Metadata, re
 	if err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		founded, ferr := tx.Settlements().IsFounded(ctx, city.ID)
 		view.Charter = founded
-		return ferr
+		if ferr != nil || !founded {
+			return ferr
+		}
+		return h.charterOffices(ctx, tx, city, lang, &view)
 	}); err != nil {
 		return nil, err
 	}
@@ -1136,4 +1140,64 @@ func (n nameSet) ids() []string {
 	}
 	sort.Strings(out)
 	return out
+}
+
+// charterOffices replaces the offices of a founded settlement's own section with the
+// offices of its charter and the titles its players gave them: the catalogue names
+// (mayor, deputy mayor) are not the settlement's to have. While the head seat is vacant the
+// acting officer is named under the head's office, with the deputy's own title.
+func (h *GovernanceHandler) charterOffices(ctx context.Context, tx application.Tx, city *application.City, lang string, view *society.CityGovView) error {
+	if len(view.Sections) == 0 {
+		return nil
+	}
+	s, err := tx.Settlements().ByID(ctx, city.ID)
+	if err != nil {
+		return err
+	}
+	title := "head"
+	if h.msgs != nil {
+		if t := h.msgs.T(lang, "charter.default_title", nil); t != "" && t != "charter.default_title" {
+			title = t
+		}
+	}
+	st, err := loadCharterState(ctx, tx, s, title)
+	if err != nil {
+		return err
+	}
+	who := func(id string) society.GovPlayer {
+		if id == "" {
+			return society.GovPlayer{}
+		}
+		p, err := tx.Players().GetByID(ctx, id)
+		if err != nil || p == nil {
+			return society.GovPlayer{}
+		}
+		return society.GovPlayer{Name: p.DisplayName, Code: p.PublicCode}
+	}
+	var offices []society.GovOffice
+	for _, o := range st.offices {
+		if o.Closed {
+			continue
+		}
+		g := society.GovOffice{Title: o.Title, Seats: o.Seats}
+		if o.Acquisition == charter.AcquireHead {
+			if st.headHeld != "" {
+				g.Holders = []society.GovPlayer{who(st.headHeld)}
+			} else if st.acting != nil {
+				g.Acting = []society.GovPlayer{who(st.acting.Player)}
+				for _, d := range st.offices {
+					if d.ID == st.acting.OfficeID {
+						g.ActingTitle = d.Title
+					}
+				}
+			}
+		} else {
+			for _, seat := range st.seats[o.ID] {
+				g.Holders = append(g.Holders, who(seat.HolderID))
+			}
+		}
+		offices = append(offices, g)
+	}
+	view.Sections[0].Offices = offices
+	return nil
 }

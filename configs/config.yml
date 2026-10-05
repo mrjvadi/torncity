@@ -330,10 +330,11 @@ game:
   clock_legacy_scale: 60
   clock_cutover: "2026-10-06T00:00:00Z"
 
-  # The scale of a journey between places. A trip is waited through in one
-  # sitting, so it stays compressed (a 3h bus ride is 3 minutes) while the rest of
-  # the clock is real. 1 makes it real.
-  travel_time_scale: 60
+  # The scale of a journey between places. 1 (owner, 2026-10-05): journeys take their real
+  # time, a 3h bus ride is 3 hours; the speeds of the modes in transport.yml are real
+  # speeds. A traveller is on the road: jobs, shops, village work and crime refuse them
+  # until they arrive. Journeys under way keep the end they were given.
+  travel_time_scale: 1
 
   # The real instant (RFC 3339) at which game day 0 began at 00:00. With
   # time_scale it makes the game's day and hour (gametime.Clock): what "once per
@@ -359,7 +360,8 @@ travel:
   # XP a player earns on landing.
   arrival_xp: 25
 
-  # How long a journey takes is the game clock's business: game.time_scale.
+  # How long a journey takes is the game clock's business: game.travel_time_scale (1 since
+  # 2026-10-05: a journey takes its real time; speeds in transport.yml are real).
 
   # Where a CONTENT city stands on the generated world ("code=lat:lon",
   # degrees). A founded village stands on its own world cell; Support has
@@ -376,8 +378,8 @@ travel:
   # speed and fare per kilometre come from transport.yml, so time and fare
   # grow with the distance. A destination beyond every listed mode is not offered.
   world_reach:
-    - "walk=60"
-    - "cart=500"
+    - "walk=40"
+    - "cart=150"
     - "car=21000"
 
 # Player-facing defaults.

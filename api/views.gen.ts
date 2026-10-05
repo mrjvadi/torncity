@@ -2136,6 +2136,8 @@ export interface GovLever {
 
 export interface GovOffice {
   code: string
+  title: string
+  acting_title: string
   seats: number
   holders: GovPlayer[] | null
   acting_code: string

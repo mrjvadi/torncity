@@ -63,6 +63,12 @@ type laborMarket struct {
 	// free is the pool less the NPCs on a shift and the school's NPC teachers,
 	// before the shopkeeper and the storekeepers take their seats.
 	free int64
+	// staffFree is the pool less the school's NPC teachers only: the people the
+	// permanent posts (storekeepers, shopkeeper) are filled from. A day's keepers are
+	// judged once, at the first look of the day; if they had to wait for NPCs not on a
+	// shift, a busy construction day would leave every store unkept (room collapsing
+	// under its stock). The posts come first and the day labour takes what is left.
+	staffFree int64
 }
 
 // keeperSeats is how many people of the pool keep the shop and the stores:
@@ -165,14 +171,17 @@ func (h *VillageHandler) laborMarket(ctx context.Context, tx application.Tx, sna
 	if err != nil {
 		return laborMarket{}, err
 	}
+	teachersNPC := int64(0)
 	for _, t := range teachers {
 		if t.Kind == application.TeacherNPC {
 			npc++
+			teachersNPC++
 		}
 	}
 	free := max(pool-npc, 0)
+	staffFree := max(pool-teachersNPC, 0)
 	now := h.now()
-	shopSeat, storeSeats, until, err := h.keeperSeats(ctx, tx, snap, s, free, now)
+	shopSeat, storeSeats, until, err := h.keeperSeats(ctx, tx, snap, s, staffFree, now)
 	if err != nil {
 		return laborMarket{}, err
 	}
@@ -184,7 +193,7 @@ func (h *VillageHandler) laborMarket(ctx context.Context, tx application.Tx, sna
 	} else {
 		reservedFrom = &until
 	}
-	return laborMarket{pool: pool, free: free, line: village.LaborMarketLine{
+	return laborMarket{pool: pool, free: free, staffFree: staffFree, line: village.LaborMarketLine{
 		Housing: housing, Pool: pool, Available: available, Reserved: reserved, ReservedFrom: reservedFrom, Working: all, Vacancies: vacancies,
 		TightnessBPS: tight, Level: level, NPCWage: h.labor.NPCWage(s.Tier, tight), MinWage: h.labor.MinWage[s.Tier],
 	}}, nil
@@ -230,6 +239,10 @@ func (h *VillageHandler) mayEmploy(ctx context.Context, tx application.Tx, s app
 }
 
 func (h *VillageHandler) presentHere(ctx context.Context, tx application.Tx, p *application.Player, s application.FoundedSettlement) (bool, error) {
+	// A traveller is on the road, not in the village, however long the road is.
+	if on, err := h.travelling(ctx, tx, p.ID); err != nil || on {
+		return false, err
+	}
 	if p.CityID != nil && *p.CityID == s.CityID {
 		return true, nil
 	}
@@ -1193,4 +1206,16 @@ func (h *VillageHandler) shiftWait() time.Duration {
 		return time.Duration(h.labor.ShiftRealMinutes) * time.Minute
 	}
 	return h.scale.RealWait(time.Duration(h.labor.ShiftMinutes) * time.Minute)
+}
+
+// travelling says whether the player is on a journey. Journeys now take real time
+// (game.travel_time_scale 1: a bus ride is hours, a flight half a day), so what a player can
+// do in a village while on the road must follow: nothing that needs them to be there.
+func (h *VillageHandler) travelling(ctx context.Context, tx application.Tx, playerID string) (bool, error) {
+	if _, err := tx.Travels().Active(ctx, playerID); err == nil {
+		return true, nil
+	} else if !isSentinel(err, application.ErrNoActiveTravel) {
+		return false, err
+	}
+	return false, nil
 }

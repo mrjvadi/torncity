@@ -291,6 +291,15 @@ func govSection(c Context, s GovSection) string {
 
 func govOfficeLine(c Context, o GovOffice) string {
 	name := c.OfficeName(o.Code)
+	if o.Title != "" {
+		name = o.Title
+	}
+	deputy := func() string {
+		if o.ActingTitle != "" {
+			return o.ActingTitle
+		}
+		return c.OfficeName(o.ActingCode)
+	}
 	switch {
 	case len(o.Holders) > 0 && o.Seats > 1:
 		return c.T("gov.office.seats", map[string]any{
@@ -298,9 +307,9 @@ func govOfficeLine(c Context, o GovOffice) string {
 		})
 	case len(o.Holders) > 0:
 		return c.T("gov.office.held", map[string]any{"office": name, "players": c.govPlayers(o.Holders)})
-	case o.ActingCode != "" && len(o.Acting) > 0:
+	case (o.ActingCode != "" || o.ActingTitle != "") && len(o.Acting) > 0:
 		return c.T("gov.office.acting", map[string]any{
-			"office": name, "deputy": c.OfficeName(o.ActingCode), "players": c.govPlayers(o.Acting),
+			"office": name, "deputy": deputy(), "players": c.govPlayers(o.Acting),
 		})
 	}
 	return c.T("gov.office.vacant", map[string]any{"office": name})

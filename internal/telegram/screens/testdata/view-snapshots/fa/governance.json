@@ -103,6 +103,7 @@
             {
               "acting": null,
               "acting_code": "",
+              "acting_title": "",
               "code": "mayor",
               "holders": [
                 {
@@ -110,18 +111,22 @@
                   "name": "سارا"
                 }
               ],
-              "seats": 1
+              "seats": 1,
+              "title": ""
             },
             {
               "acting": null,
               "acting_code": "",
+              "acting_title": "",
               "code": "deputy_mayor",
               "holders": null,
-              "seats": 1
+              "seats": 1,
+              "title": ""
             },
             {
               "acting": null,
               "acting_code": "",
+              "acting_title": "",
               "code": "city_council",
               "holders": [
                 {
@@ -133,7 +138,8 @@
                   "name": "نیلوفر"
                 }
               ],
-              "seats": 5
+              "seats": 5,
+              "title": ""
             }
           ],
           "place": {
@@ -167,9 +173,11 @@
             {
               "acting": null,
               "acting_code": "",
+              "acting_title": "",
               "code": "president",
               "holders": null,
-              "seats": 1
+              "seats": 1,
+              "title": ""
             }
           ],
           "place": {
@@ -207,9 +215,11 @@
                 }
               ],
               "acting_code": "deputy_mayor",
+              "acting_title": "",
               "code": "mayor",
               "holders": null,
-              "seats": 1
+              "seats": 1,
+              "title": ""
             }
           ],
           "place": {

@@ -620,6 +620,11 @@ func (h *VillageHandler) startShift(ctx context.Context, tx application.Tx, meta
 func (h *VillageHandler) startShiftAt(ctx context.Context, tx application.Tx, meta envelope.Metadata, snap *content.Snapshot,
 	p *application.Player, s application.FoundedSettlement, buildingID string, wageOverride int64, jobID string,
 ) error {
+	if on, err := h.travelling(ctx, tx, p.ID); err != nil {
+		return err
+	} else if on {
+		return application.ErrAlreadyTravelling
+	}
 	if ok, err := h.resident(ctx, tx, p.ID, s.CityID); err != nil {
 		return err
 	} else if !ok {
