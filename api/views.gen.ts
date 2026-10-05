@@ -4927,6 +4927,7 @@ export interface StockPageView {
 export interface StockStoreLine {
   building: Named
   kept: boolean
+  communal_room: number
   grace_until: string | null
 }
 

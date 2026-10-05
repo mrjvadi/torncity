@@ -1023,6 +1023,9 @@ type StockClassLine struct {
 type StockStoreLine struct {
 	Building presentation.Named
 	Kept     bool
+	// CommunalRoom is the room (spaces, all classes) the residents keep by rota with
+	// no keeper: it counts even when Kept is false; a hired keeper opens the rest.
+	CommunalRoom int64
 	// GraceUntil is set for a store that stood before the keeper rule and has
 	// none: until then its room counts all the same (null once it is over).
 	GraceUntil time.Time

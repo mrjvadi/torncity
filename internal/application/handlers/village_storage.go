@@ -93,11 +93,22 @@ func (c stockClassRoom) free() int64 {
 type storeBuilding struct {
 	ID, Type string
 	Provides map[string]int
+	// Communal is the part of Provides the residents keep by rota with no keeper.
+	Communal map[string]int
 	Kept     bool
 	Wage     int64
 	// GraceUntil is set for a store built before the keeper rule: until then its
 	// room counts even with no keeper.
 	GraceUntil time.Time
+}
+
+// communalRoom is the room the residents keep by rota, in spaces.
+func (s storeBuilding) communalRoom() int64 {
+	var n int64
+	for class, v := range s.Communal {
+		n += int64(min(v, s.Provides[class]))
+	}
+	return n
 }
 
 // counts reports whether the store's room counts at `now`.
@@ -206,7 +217,7 @@ func storeBuildings(snap *content.Snapshot, buildings []application.SettlementBu
 		if b.CompletedAt != nil {
 			since = *b.CompletedAt
 		}
-		out = append(out, storeBuilding{ID: b.ID, Type: b.TypeCode, Provides: def.Storage.Provides, Wage: wageBPS, GraceUntil: rules.graceUntil(since)})
+		out = append(out, storeBuilding{ID: b.ID, Type: b.TypeCode, Provides: def.Storage.Provides, Communal: def.Storage.Communal, Wage: wageBPS, GraceUntil: rules.graceUntil(since)})
 	}
 	sort.Slice(out, func(i, j int) bool {
 		if out[i].Type != out[j].Type {
@@ -268,10 +279,12 @@ func (h *VillageHandler) stockOf(ctx context.Context, tx application.Tx, snap *c
 		room("bulk").Capacity = h.stockBaseCapacity
 	}
 	for _, st := range stores {
-		if !st.counts(h.now()) {
-			continue
-		}
+		counted := st.counts(h.now())
 		for class, n := range st.Provides {
+			if !counted {
+				// no keeper: only what the residents look after by rota
+				n = min(n, st.Communal[class])
+			}
 			room(class).Capacity += int64(n)
 		}
 	}

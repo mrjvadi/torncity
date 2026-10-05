@@ -577,6 +577,11 @@ func (l *schemaLint) functions() {
 					l.bad("%s: provides room in unknown class %q", key, c)
 				}
 			}
+			for c, n := range s.Communal {
+				if n < 0 || n > s.Provides[c] {
+					l.bad("%s: communal room in %q must lie between 0 and what the store provides", key, c)
+				}
+			}
 			for c, n := range s.Needs {
 				if !l.classes[c] || n < 0 {
 					l.bad("%s: needs room in unknown class %q", key, c)

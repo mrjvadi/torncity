@@ -527,6 +527,7 @@ village:
       ore: "Ore"
     store_kept: "✅ {name}: has a storekeeper ({wage} a day)"
     store_unkept: "⚠️ {name}: no storekeeper, its room does not count. The treasury must pay the wage and someone in the pool must be free."
+    store_communal: "⚠️ {name}: no storekeeper; the residents look after it by rota and {room} spaces count. Hire a keeper for the full room and less spoilage: the treasury pays the wage and someone in the pool must be free."
     store_grace: "⚠️ {name}: no storekeeper. Its room still counts until {until}, then it stops. Hire a keeper to keep it: the treasury pays the wage and someone in the pool must be free."
     spoil: "🥬 The food in the stock spoils {pct} a day."
     stock_title: "📥 In the stock:"

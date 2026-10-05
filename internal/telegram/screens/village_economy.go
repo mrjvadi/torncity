@@ -181,6 +181,9 @@ func renderVillageMaterials(c Context, v MaterialsView) *presenter.Response {
 		switch {
 		case st.Kept:
 			key = "village.materials.store_kept"
+		case st.CommunalRoom > 0:
+			key = "village.materials.store_communal"
+			args["room"] = st.CommunalRoom
 		case !st.GraceUntil.IsZero():
 			key = "village.materials.store_grace"
 			args["until"] = FormatDate(c, st.GraceUntil)

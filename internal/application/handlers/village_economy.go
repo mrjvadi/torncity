@@ -322,7 +322,7 @@ func (h *VillageHandler) materialsView(ctx context.Context, tx application.Tx, m
 	}
 	for _, st := range stock.Stores {
 		d, _ := snap.SettlementBuildingDef(st.Type)
-		view.Stores = append(view.Stores, village.StockStoreLine{Building: named(d.Code, d.Name), Kept: st.Kept, GraceUntil: st.GraceUntil})
+		view.Stores = append(view.Stores, village.StockStoreLine{Building: named(d.Code, d.Name), Kept: st.Kept, CommunalRoom: st.communalRoom(), GraceUntil: st.GraceUntil})
 	}
 	codes := make([]string, 0, len(stock.Units))
 	for c := range stock.Units {
