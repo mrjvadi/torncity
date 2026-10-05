@@ -70,7 +70,13 @@ type LaborJob struct {
 	// ShiftsStarted how many have begun (players and NPCs alike).
 	ShiftsTotal, ShiftsStarted int
 	// NPCCrew is how many NPC labourers the employer keeps on the site.
-	NPCCrew   int
+	NPCCrew int
+	// Priority is 1 (first) to 4 (last): when the pool is short the crews of the lower
+	// numbers are filled first. Paused is the reason the crew stopped (a shift could not
+	// start: no_staff, no_input, storage_full, employer_broke, budget_spent); empty when
+	// it is running. A refilled crew clears it.
+	Priority  int
+	Paused    string
 	Status    string
 	CreatedBy string
 	CreatedAt time.Time
@@ -101,6 +107,10 @@ type LaborRepository interface {
 	OpenJobs(ctx context.Context, settlementID string) ([]LaborJob, error)
 	// JobOfBuilding is the building's open job, or nil.
 	JobOfBuilding(ctx context.Context, buildingID string) (*LaborJob, error)
+	// PauseJob records why a job's crew stopped; an empty reason clears it.
+	PauseJob(ctx context.Context, jobID, reason string) error
+	// NPCShiftsSince counts the NPC shifts a building started since an instant.
+	NPCShiftsSince(ctx context.Context, buildingID string, since time.Time) (int64, error)
 	// CountStarted adds one to the shifts a job has started.
 	CountStarted(ctx context.Context, jobID string) error
 	// UpdateJob sets an open job's wage, budget and crew.

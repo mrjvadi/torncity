@@ -1428,6 +1428,10 @@ labor:
   npc_productivity_bps: 8500   # an NPC labourer works at 85 %
   fee_bps: 500                 # the village's levy on a citizen employer's wage
   budget_slack_bps: 5000       # an automatic job pays 50 % more shifts than the work needs
+  # How many shifts an NPC may work at one post per local day of the settlement (ADR 0041
+  # N6 on the real clock): a post's daily output is slots x this x the shift's output, so
+  # tune it with the balance sheet, not with hours.
+  npc_shifts_per_slot_day: 10
   journeyman_shifts: 6         # skill ladder: apprentice, from this many shifts journeyman, then master
   master_shifts: 30
   apprentice_bps: 7000         # productivity of each rung

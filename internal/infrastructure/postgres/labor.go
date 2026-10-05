@@ -20,12 +20,12 @@ const laborJobsOneOpenIdx = "labor_jobs_one_open_idx"
 var _ application.LaborRepository = (*SettlementTreasuryRepository)(nil)
 
 const laborJobColumns = `id::text, settlement_id::text, building_id::text, kind, employer_kind, employer_id::text, wage,
-	shifts_total, shifts_started, npc_crew, status, created_by::text, created_at, closed_at`
+	shifts_total, shifts_started, npc_crew, priority, COALESCE(paused, ''), status, created_by::text, created_at, closed_at`
 
 func scanLaborJob(row pgx.Row) (application.LaborJob, error) {
 	var j application.LaborJob
 	err := row.Scan(&j.ID, &j.SettlementID, &j.BuildingID, &j.Kind, &j.EmployerKind, &j.EmployerID, &j.Wage,
-		&j.ShiftsTotal, &j.ShiftsStarted, &j.NPCCrew, &j.Status, &j.CreatedBy, &j.CreatedAt, &j.ClosedAt)
+		&j.ShiftsTotal, &j.ShiftsStarted, &j.NPCCrew, &j.Priority, &j.Paused, &j.Status, &j.CreatedBy, &j.CreatedAt, &j.ClosedAt)
 	return j, err
 }
 
@@ -69,7 +69,7 @@ func (r *SettlementTreasuryRepository) Job(ctx context.Context, id string) (*app
 // OpenJobs lists a settlement's open jobs.
 func (r *SettlementTreasuryRepository) OpenJobs(ctx context.Context, settlementID string) ([]application.LaborJob, error) {
 	rows, err := r.q.Query(ctx, `SELECT `+laborJobColumns+`
-		FROM labor_jobs WHERE settlement_id = $1::uuid AND status = 'open' ORDER BY created_at, id`, settlementID)
+		FROM labor_jobs WHERE settlement_id = $1::uuid AND status = 'open' ORDER BY priority, created_at, id`, settlementID)
 	if err != nil {
 		return nil, fmt.Errorf("postgres: listing jobs: %w", err)
 	}
@@ -96,6 +96,24 @@ func (r *SettlementTreasuryRepository) JobOfBuilding(ctx context.Context, buildi
 		return nil, fmt.Errorf("postgres: reading the building's job: %w", err)
 	}
 	return &j, nil
+}
+
+// PauseJob records why a job's crew stopped; an empty reason clears it.
+func (r *SettlementTreasuryRepository) PauseJob(ctx context.Context, jobID, reason string) error {
+	if _, err := r.q.Exec(ctx, `UPDATE labor_jobs SET paused = NULLIF($2, '') WHERE id = $1::uuid AND status = 'open'`, jobID, reason); err != nil {
+		return fmt.Errorf("postgres: pausing a job: %w", err)
+	}
+	return nil
+}
+
+// NPCShiftsSince counts the NPC shifts a building started since an instant.
+func (r *SettlementTreasuryRepository) NPCShiftsSince(ctx context.Context, buildingID string, since time.Time) (int64, error) {
+	var n int64
+	if err := r.q.QueryRow(ctx, `SELECT count(*) FROM settlement_shifts
+		WHERE building_id = $1::uuid AND worker_kind = 'npc' AND started_at >= $2`, buildingID, since.UTC()).Scan(&n); err != nil {
+		return 0, fmt.Errorf("postgres: counting a building's NPC shifts: %w", err)
+	}
+	return n, nil
 }
 
 // CountStarted adds one started shift to a job.

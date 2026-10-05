@@ -99,32 +99,33 @@ type trainingSettings struct {
 }
 
 type laborSettings struct {
-	ShiftMinutes       *int64  `yaml:"shift_minutes"`
-	ShiftRealMinutes   *int64  `yaml:"shift_real_minutes"`
-	ReferenceCrew      *int64  `yaml:"reference_crew"`
-	BaseWage           *int64  `yaml:"base_wage"`
-	MinWageVillage     *int64  `yaml:"min_wage_village"`
-	MinWageTown        *int64  `yaml:"min_wage_town"`
-	MinWageCity        *int64  `yaml:"min_wage_city"`
-	ParticipationBPS   *int64  `yaml:"participation_bps"`
-	BaseHousing        *int64  `yaml:"base_housing"`
-	NPCProductivityBPS *int64  `yaml:"npc_productivity_bps"`
-	FeeBPS             *int64  `yaml:"fee_bps"`
-	BudgetSlackBPS     *int64  `yaml:"budget_slack_bps"`
-	JourneymanShifts   *int64  `yaml:"journeyman_shifts"`
-	MasterShifts       *int64  `yaml:"master_shifts"`
-	ApprenticeBPS      *int64  `yaml:"apprentice_bps"`
-	JourneymanBPS      *int64  `yaml:"journeyman_bps"`
-	MasterBPS          *int64  `yaml:"master_bps"`
-	TightBalancedBPS   *int64  `yaml:"tight_balanced_bps"`
-	TightTightBPS      *int64  `yaml:"tight_tight_bps"`
-	TightShortBPS      *int64  `yaml:"tight_short_bps"`
-	WageSlackBPS       *int64  `yaml:"wage_slack_bps"`
-	WageBalancedBPS    *int64  `yaml:"wage_balanced_bps"`
-	WageTightBPS       *int64  `yaml:"wage_tight_bps"`
-	WageShortBPS       *int64  `yaml:"wage_short_bps"`
-	HirePresets        []int64 `yaml:"hire_presets"`
-	WagePresets        []int64 `yaml:"wage_presets"`
+	ShiftMinutes        *int64  `yaml:"shift_minutes"`
+	ShiftRealMinutes    *int64  `yaml:"shift_real_minutes"`
+	ReferenceCrew       *int64  `yaml:"reference_crew"`
+	BaseWage            *int64  `yaml:"base_wage"`
+	MinWageVillage      *int64  `yaml:"min_wage_village"`
+	MinWageTown         *int64  `yaml:"min_wage_town"`
+	MinWageCity         *int64  `yaml:"min_wage_city"`
+	ParticipationBPS    *int64  `yaml:"participation_bps"`
+	BaseHousing         *int64  `yaml:"base_housing"`
+	NPCProductivityBPS  *int64  `yaml:"npc_productivity_bps"`
+	FeeBPS              *int64  `yaml:"fee_bps"`
+	BudgetSlackBPS      *int64  `yaml:"budget_slack_bps"`
+	NPCShiftsPerSlotDay *int64  `yaml:"npc_shifts_per_slot_day"`
+	JourneymanShifts    *int64  `yaml:"journeyman_shifts"`
+	MasterShifts        *int64  `yaml:"master_shifts"`
+	ApprenticeBPS       *int64  `yaml:"apprentice_bps"`
+	JourneymanBPS       *int64  `yaml:"journeyman_bps"`
+	MasterBPS           *int64  `yaml:"master_bps"`
+	TightBalancedBPS    *int64  `yaml:"tight_balanced_bps"`
+	TightTightBPS       *int64  `yaml:"tight_tight_bps"`
+	TightShortBPS       *int64  `yaml:"tight_short_bps"`
+	WageSlackBPS        *int64  `yaml:"wage_slack_bps"`
+	WageBalancedBPS     *int64  `yaml:"wage_balanced_bps"`
+	WageTightBPS        *int64  `yaml:"wage_tight_bps"`
+	WageShortBPS        *int64  `yaml:"wage_short_bps"`
+	HirePresets         []int64 `yaml:"hire_presets"`
+	WagePresets         []int64 `yaml:"wage_presets"`
 }
 
 type postgresSettings struct {
@@ -1616,6 +1617,9 @@ var coreSettings = []setting{
 	moneySetting("labor", "budget_slack_bps",
 		func(c *Config) *int64 { return &c.Labor.BudgetSlackBPS },
 		func(f *fileConfig) *int64 { return f.Labor.BudgetSlackBPS }),
+	moneySetting("labor", "npc_shifts_per_slot_day",
+		func(c *Config) *int64 { return &c.Labor.NPCShiftsPerSlotDay },
+		func(f *fileConfig) *int64 { return f.Labor.NPCShiftsPerSlotDay }),
 	moneySetting("labor", "journeyman_shifts",
 		func(c *Config) *int64 { return &c.Labor.JourneymanShifts },
 		func(f *fileConfig) *int64 { return f.Labor.JourneymanShifts }),

@@ -5683,6 +5683,15 @@ export interface WorkItemLine {
   qty: number
 }
 
+export interface WorkJob {
+  id: string
+  wage: number
+  npc_crew: number
+  shifts_left: number
+  priority: number
+  paused: string
+}
+
 export interface WorkNode {
   kind: string
   status: string
@@ -5696,6 +5705,7 @@ export interface WorkNode {
   outputs: WorkItemLine[] | null
   storage_class: string
   storage_free: number
+  job: WorkJob | null
   if_unstaffed: string
 }
 

@@ -138,8 +138,26 @@ func (h *VillageHandler) nodeWork(ctx context.Context, tx application.Tx, snap *
 	if w.Max > 0 && w.Filled == 0 && w.Kind != village.NodeKindStorage {
 		w.Reasons = append([]village.WorkReason{{Code: village.NodeReasonNoStaff}}, w.Reasons...)
 	}
-	if w.Filled > 0 {
+	if job, err := tx.SettlementTreasury().JobOfBuilding(ctx, b.ID); err != nil {
+		return nil, err
+	} else if job != nil && job.Kind == application.LaborKindProduction {
+		w.Job = &village.WorkJob{ID: job.ID, Wage: job.Wage, NPCCrew: job.NPCCrew, ShiftsLeft: job.Left(), Priority: job.Priority, Paused: job.Paused}
+		if job.Paused != "" && w.Filled == 0 {
+			// the crew's own reason is told too, unless a reason above already says it
+			seen := false
+			for _, r := range w.Reasons {
+				seen = seen || r.Code == job.Paused
+			}
+			if !seen {
+				w.Reasons = append(w.Reasons, village.WorkReason{Code: job.Paused})
+			}
+		}
+	}
+	switch {
+	case w.Filled > 0:
 		w.Status = village.NodeWorking // running, possibly with something held back
+	case w.Job != nil && w.Job.Paused != "":
+		w.Status = village.NodePaused
 	}
 	return w, nil
 }

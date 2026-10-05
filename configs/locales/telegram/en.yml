@@ -776,6 +776,9 @@ building:
   work:
     working: "👷 Working: {filled} of {max} posts are filled."
     idle: "💤 Not working right now."
+    paused: "⏸ The crew has stopped."
+    crew: "👥 Hired crew: {crew}, wage {wage}, {left} shifts left."
+    budget_spent: "• The posts' shifts for today, or the job's budget, are used up."
     no_function: "ℹ️ This building has no work in the game yet."
     shift: "⏱ One shift takes {duration}, wage {wage}."
     inputs: "📥 Uses per shift: {items}"

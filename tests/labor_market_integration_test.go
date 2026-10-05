@@ -21,6 +21,8 @@ import (
 	"github.com/mrjvadi/torncity/internal/domain/labor"
 	"github.com/mrjvadi/torncity/internal/infrastructure/postgres"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	vpres "github.com/mrjvadi/torncity/internal/presentation/village"
 	"github.com/mrjvadi/torncity/internal/telegram/i18n"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 	"github.com/mrjvadi/torncity/internal/telegram/screens"
@@ -532,4 +534,126 @@ func insertSite(t *testing.T, l *laborEnv, lot int) string {
 		t.Fatal(err)
 	}
 	return id
+}
+
+// A standing workplace works with an NPC crew (roadmap 2.2 phase 2): the head posts the job
+// and hires labourers; they work production shifts, the goods enter the stock, their wage
+// leaves the treasury for the sink, a finished shift is replaced by the crew's next one,
+// and a post never works more than its day's shifts.
+func TestNPCCrewWorksAProductionJob(t *testing.T) {
+	l := newLaborEnv(t)
+	ctx := testCtx(t)
+	// the goods the shifts make enter the item journal, which is append-only: the shared
+	// test database must not keep movements whose shift rows the env's cleanup removes
+	t.Cleanup(func() {
+		c := testCtx(t)
+		for _, stmt := range []string{
+			`ALTER TABLE item_movements DISABLE TRIGGER item_movements_append_only`,
+			`DELETE FROM item_movements WHERE to_org = $1::uuid OR from_org = $1::uuid`,
+			`ALTER TABLE item_movements ENABLE TRIGGER item_movements_append_only`,
+			`DELETE FROM org_stacks WHERE org_kind = 'settlement' AND org_id = $1::uuid`,
+		} {
+			var args []any
+			if strings.Contains(stmt, "$1") {
+				args = append(args, l.cityID)
+			}
+			if _, err := l.pool.Raw().Exec(c, stmt, args...); err != nil {
+				t.Errorf("cleanup %q: %v", stmt, err)
+			}
+		}
+	})
+	v0, err := postgres.NewEconomyAdmin(l.pool).VerifyLedger(ctx, 10)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !v0.Village {
+		t.Skip("migration 0052 is not applied")
+	}
+	camp := newUUID(t)
+	if _, err := l.pool.Raw().Exec(ctx, `INSERT INTO settlement_buildings (id, settlement_id, type_code, lot_x, lot_y, status, queued_at, completed_at)
+	    VALUES ($1::uuid, $2::uuid, 'woodcutter_camp', 81, 3, 'complete', now(), now())`, camp, l.cityID); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := rrc(l.village.LaborPost(ctx, l.as(l.head, "settlement.labor.post", "labor.post"), handlers.VillageLaborRequest{ID: camp})); err != nil {
+		t.Fatal(err)
+	}
+	var jobID string
+	if err := l.pool.Raw().QueryRow(ctx, `SELECT id::text FROM labor_jobs WHERE building_id = $1::uuid AND status = 'open'`, camp).Scan(&jobID); err != nil {
+		t.Fatalf("no production job: %v", err)
+	}
+	sink0, treasury0 := l.sink(), treasuryOf(t, l.pool, l.cityID)
+	if _, err := rrc(l.village.LaborHire(ctx, l.as(l.head, "settlement.labor.hire", "labor.hire"), handlers.VillageLaborRequest{ID: jobID, N: "2"})); err != nil {
+		t.Fatal(err)
+	}
+	running := func() int64 {
+		return l.scalar(`SELECT count(*) FROM settlement_shifts WHERE building_id = $1::uuid AND kind = 'production' AND worker_kind = 'npc' AND player_id IS NULL AND status = 'working'`, camp)
+	}
+	if got := running(); got != 2 {
+		t.Fatalf("two NPC labourers should be working the camp, %d are", got)
+	}
+	// the work block says so
+	meta := l.as(l.head, "settlement.building.view", "building.view")
+	resp, err := rrc(l.village.BuildingView(ctx, meta, handlers.VillageBuildingViewRequest{BuildingID: camp}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var panel vpres.BuildingView
+	if err := presentation.DecodeView(resp.View, &panel); err != nil {
+		t.Fatal(err)
+	}
+	if panel.Work == nil || panel.Work.Filled != 2 || panel.Work.Status != vpres.NodeWorking {
+		t.Errorf("the camp's work block should show two filled posts: %+v", panel.Work)
+	}
+	// they finish: the goods enter the stock, the wage goes to the sink, the crew starts again
+	l.clock.Advance(time.Hour)
+	shifts := l.workingShifts(camp)
+	for _, s := range shifts {
+		l.end(s)
+	}
+	var timber int64
+	if err := l.pool.Raw().QueryRow(ctx, `SELECT COALESCE(SUM(quantity), 0)::bigint FROM org_stacks WHERE org_kind = 'settlement' AND org_id = $1::uuid AND item_code = 'timber'`, l.cityID).Scan(&timber); err != nil {
+		t.Fatal(err)
+	}
+	if timber < 8 {
+		t.Errorf("two shifts of 4 timber should be in the stock, %d are", timber)
+	}
+	paid := l.scalar(`SELECT COALESCE(SUM(wage_paid), 0)::bigint FROM settlement_shifts WHERE building_id = $1::uuid AND status = 'done'`, camp)
+	if paid == 0 || l.sink()-sink0 != paid || treasury0-treasuryOf(t, l.pool, l.cityID) != paid {
+		t.Errorf("the treasury should pay %d to the sink: sink +%d, treasury -%d", paid, l.sink()-sink0, treasury0-treasuryOf(t, l.pool, l.cityID))
+	}
+	if got := running(); got != 2 {
+		t.Errorf("a finished shift is replaced by the crew's next: %d running", got)
+	}
+	// a post works only so many shifts a day: with the day used up the crew stops, with the reason
+	l.clock.Advance(time.Hour)
+	for _, s := range l.workingShifts(camp) {
+		l.end(s)
+	}
+	for i := 0; i < 40; i++ {
+		if _, err := l.pool.Raw().Exec(ctx, `INSERT INTO settlement_shifts (id, settlement_id, building_id, player_id, status, wage, wage_paid, produced, consumed,
+			game_action_id, started_at, finish_at, finished_at, kind, worker_kind) VALUES ($1::uuid, $2::uuid, $3::uuid, NULL, 'done', 0, 0, '{}', '{}', $4::uuid, now(), now(), now(), 'production', 'npc')`,
+			newUUID(t), l.cityID, camp, newUUID(t)); err != nil {
+			t.Fatal(err)
+		}
+	}
+	l.clock.Advance(time.Hour)
+	for _, s := range l.workingShifts(camp) {
+		l.end(s)
+	}
+	if got := running(); got != 0 {
+		t.Errorf("a post past its day's shifts starts no more: %d running", got)
+	}
+	var paused string
+	if err := l.pool.Raw().QueryRow(ctx, `SELECT COALESCE(paused, '') FROM labor_jobs WHERE id = $1::uuid`, jobID).Scan(&paused); err != nil || paused != "budget_spent" {
+		t.Errorf("the crew should be paused with the reason: %q %v", paused, err)
+	}
+	// the ledger still balances
+	v, err := postgres.NewEconomyAdmin(l.pool).VerifyLedger(ctx, 10)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if v.VillageInvariants.WageMismatched != v0.VillageInvariants.WageMismatched ||
+		v.VillageInvariants.WageLedger-v.VillageInvariants.WageRows != v0.VillageInvariants.WageLedger-v0.VillageInvariants.WageRows {
+		t.Errorf("the production wage ledger drifted: before %+v, after %+v", v0.VillageInvariants, v.VillageInvariants)
+	}
 }

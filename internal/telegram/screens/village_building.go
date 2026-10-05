@@ -266,8 +266,14 @@ func workBlock(c Context, v BuildingView) []string {
 	}
 	if w.Status == village.NodeWorking {
 		out = append(out, c.T("building.work.working", map[string]any{"filled": w.Filled, "max": w.Max}))
+	} else if w.Status == village.NodePaused {
+		out = append(out, c.T("building.work.paused", nil))
 	} else {
 		out = append(out, c.T("building.work.idle", nil))
+	}
+	if w.Job != nil && w.Job.NPCCrew > 0 {
+		out = append(out, c.T("building.work.crew", map[string]any{
+			"crew": w.Job.NPCCrew, "wage": FormatMoney(c, w.Job.Wage), "left": w.Job.ShiftsLeft}))
 	}
 	if w.ShiftSeconds > 0 {
 		out = append(out, c.T("building.work.shift", map[string]any{
