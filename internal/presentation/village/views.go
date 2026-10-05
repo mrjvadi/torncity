@@ -515,6 +515,10 @@ type BuildingView struct {
 	// Shop is the shop building's panel (Kind "shop"): the same facts as the
 	// village_shop screen, so the panel draws the shelf without another page.
 	Shop *VillageShopView `json:"shop,omitempty"`
+
+	// Work is what the building does as a working node: staff, shift, inputs and
+	// outputs, and why it is idle (nil while it is under construction).
+	Work *WorkNode `json:"work,omitempty"`
 }
 
 // LotBatchLot is one lot of a batch.

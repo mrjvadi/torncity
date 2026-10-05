@@ -213,6 +213,12 @@ func (h *VillageHandler) BuildingView(ctx context.Context, meta envelope.Metadat
 			}
 		}
 
+		if all, lerr := tx.SettlementBuildings().List(ctx, s.CityID); lerr != nil {
+			return lerr
+		} else if view.Work, lerr = h.nodeWork(ctx, tx, snap, s, *b, d, all); lerr != nil {
+			return lerr
+		}
+
 		if d.Role != "" && head {
 			ups, err := h.upgradeLines(ctx, tx, snap, s, d)
 			if err != nil {

@@ -773,6 +773,23 @@ construction:
 # The panel of one placed building (internal/telegram/screens/village_building.go):
 # what it is and what it does; demolishing is the last, quiet button.
 building:
+  work:
+    working: "👷 Working: {filled} of {max} posts are filled."
+    idle: "💤 Not working right now."
+    no_function: "ℹ️ This building has no work in the game yet."
+    shift: "⏱ One shift takes {duration}, wage {wage}."
+    inputs: "📥 Uses per shift: {items}"
+    outputs: "📤 Makes per shift: {items}"
+    no_staff: "• Nobody is working there; hire from the labour board or take a shift."
+    no_input: "• {item} is short: {have} of {need}."
+    storage_full: "• No room for the output in {class} ({have} free of {need})."
+    employer_broke: "• The treasury cannot pay the wage ({have} of {need})."
+    no_keeper: "• No keeper; only the residents' communal room counts."
+    class:
+      bulk: "open yard"
+      food: "food store"
+      goods: "covered store"
+      ore: "ore bin"
   shop:
     open: "🛒 The shopkeeper is at work and today's delivery is in; {lines} kinds of goods are on the counter."
     closed: "⛔ The shop is shut right now."

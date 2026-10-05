@@ -773,6 +773,23 @@ construction:
 # The panel of one placed building (internal/telegram/screens/village_building.go):
 # what it is and what it does; demolishing is the last, quiet button.
 building:
+  work:
+    working: "👷 کار می‌کند: {filled} از {max} نفر سر کارند."
+    idle: "💤 الان کار نمی‌کند."
+    no_function: "ℹ️ این ساختمان هنوز کاری در بازی ندارد."
+    shift: "⏱ هر نوبت {duration} طول می‌کشد، دستمزد {wage}."
+    inputs: "📥 هر نوبت مصرف: {items}"
+    outputs: "📤 هر نوبت تولید: {items}"
+    no_staff: "• کسی سر کار نیست؛ از تابلوی کار کارگر بگیرید یا خودتان نوبت بزنید."
+    no_input: "• {item} کم است: {have} از {need}."
+    storage_full: "• جای خالی برای محصول در {class} نیست ({have} جا خالی از {need})."
+    employer_broke: "• خزانه پول دستمزد را ندارد ({have} از {need})."
+    no_keeper: "• انباردار ندارد؛ فقط جای مشترک مردم حساب می‌شود."
+    class:
+      bulk: "حیاط و انبار روباز"
+      food: "انبار غذا"
+      goods: "انبار سرپوشیده"
+      ore: "صندوق سنگ معدن"
   shop:
     open: "🛒 دکان‌دار سر کار است و بار امروز رسیده؛ {lines} قلم کالا روی پیشخوان است."
     closed: "⛔ دکان الان بسته است."

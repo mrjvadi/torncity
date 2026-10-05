@@ -505,6 +505,7 @@ export interface BuildingView {
   has_upgrade: boolean
   upgrades: BuildingUpgradeLine[] | null
   shop: VillageShopView | null
+  work: WorkNode | null
 }
 
 export interface BuyView {
@@ -5677,12 +5678,47 @@ export interface WorkHomeView {
   next: string
 }
 
+export interface WorkItemLine {
+  item: Named
+  qty: number
+}
+
+export interface WorkNode {
+  kind: string
+  status: string
+  reasons: WorkReason[] | null
+  slots: WorkSlot[] | null
+  filled: number
+  max: number
+  shift_seconds: number
+  wage: number
+  inputs: WorkItemLine[] | null
+  outputs: WorkItemLine[] | null
+  storage_class: string
+  storage_free: number
+  if_unstaffed: string
+}
+
+export interface WorkReason {
+  code: string
+  item: Named | null
+  class: string
+  have: number
+  need: number
+}
+
 export interface WorkShiftLine {
   building: Named
   finish_at: string | null
   left_seconds: number
   wage: number
   produces: MaterialLine[] | null
+}
+
+export interface WorkSlot {
+  role: string
+  worker: string
+  name: string
 }
 
 export interface WorkView {

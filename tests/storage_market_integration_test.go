@@ -825,3 +825,102 @@ func TestOldSharedRoomLastsThroughTheGraceThenTheClassIsNamedOver(t *testing.T) 
 		t.Errorf("the food still fits: %+v", f)
 	}
 }
+
+// Every standing building says what work it does and why it is idle (roadmap 2.2 phase 1,
+// rule 1c): a workplace nobody works at is idle with no_staff, a granary is a storage node,
+// a building the game gives no work to says so.
+func TestBuildingPanelCarriesItsWork(t *testing.T) {
+	e := newFoundingEnv(t)
+	pool := e.pool
+	ctx := testCtx(t)
+	catalog, err := i18n.Load(filepath.Join("..", "configs", "locales"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	uow := postgres.NewUnitOfWork(pool, testDefaultLanguage)
+	clock := gametime.Clock{Epoch: e.clock.Now().Add(-100 * 24 * time.Hour), Scale: 1}
+	village := handlers.NewVillageHandler(uow, workIDs{t}, catalog, staticContentSource{snap: loadTestContent(t)}, e.cache,
+		postgres.NewCityRepository(pool), gametime.Scale(1),
+		handlers.VillageRules{
+			VillageGridLots: 5, TeachPeriod: time.Second, TeachRateBPS: 10_000,
+			BaseSchoolCapacityBPS: 10_000, ScarcityKBPS: 10_000, ScarcityFloorBPS: 3_000, ScarcityCapBPS: 80_000, SellerBandBPS: 500,
+			HomeCityCode: "support", MaterialMarkupBPS: 12_000, StockBaseCapacity: 60, MaterialBuyMax: 200,
+			MaterialBuyPresets: []int64{5, 20, 50},
+		}, time.Hour, e.clock.Now).
+		WithLabor(labor.Default(), []int64{1, 2, 4}, []int64{100, 125, 150, 200}).
+		WithStorage(handlers.StorageRules{Clock: clock, SpoilKeptBPS: 100, SpoilUnkeptBPS: 3000})
+	meta, founder := e.group(t)
+	foundVillage(t, pool, e.h, meta)
+	var cityID string
+	if err := pool.Raw().QueryRow(ctx, `SELECT id::text FROM cities WHERE founded_by_group_id = $1`, meta.TelegramChatID).Scan(&cityID); err != nil {
+		t.Fatal(err)
+	}
+	campID := newUUID(t)
+	if _, err := pool.Raw().Exec(ctx, `INSERT INTO settlement_buildings (id, settlement_id, type_code, lot_x, lot_y, status, queued_at, completed_at)
+	    VALUES ($1::uuid, $2::uuid, 'woodcutter_camp', 81, 3, 'complete', now(), now())`, campID, cityID); err != nil {
+		t.Fatal(err)
+	}
+	work := func(id string) *vpres.WorkNode {
+		t.Helper()
+		m := asPlayer(meta, founder)
+		m.Command = "settlement.building.view"
+		m.RequestID = "req_" + randomToken(t, 16)
+		resp, err := village.BuildingView(ctx, m, handlers.VillageBuildingViewRequest{BuildingID: id})
+		if err != nil {
+			t.Fatal(err)
+		}
+		var v vpres.BuildingView
+		if err := presentation.DecodeView(resp.View, &v); err != nil {
+			t.Fatal(err)
+		}
+		if v.Work == nil {
+			t.Fatalf("building %s has no work block", id)
+		}
+		return v.Work
+	}
+	camp := work(campID)
+	if (camp.Kind != vpres.NodeKindProduction && camp.Kind != vpres.NodeKindExtraction) || camp.Status != vpres.NodeIdle || camp.Max == 0 || camp.Filled != 0 {
+		t.Errorf("an unworked camp is an idle production node with posts: %+v", camp)
+	}
+	has := func(w *vpres.WorkNode, code string) bool {
+		for _, r := range w.Reasons {
+			if r.Code == code {
+				return true
+			}
+		}
+		return false
+	}
+	if !has(camp, vpres.NodeReasonNoStaff) {
+		t.Errorf("an unworked camp says no_staff: %+v", camp.Reasons)
+	}
+	if len(camp.Outputs) == 0 || camp.ShiftSeconds == 0 {
+		t.Errorf("the camp says what a shift gives and takes: %+v", camp)
+	}
+	rows, err := pool.Raw().Query(ctx, `SELECT id::text, type_code FROM settlement_buildings WHERE settlement_id = $1::uuid AND status = 'complete'`, cityID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	type row struct{ id, code string }
+	var all []row
+	for rows.Next() {
+		var r row
+		if err := rows.Scan(&r.id, &r.code); err != nil {
+			t.Fatal(err)
+		}
+		all = append(all, r)
+	}
+	rows.Close()
+	for _, r := range all {
+		w := work(r.id)
+		switch r.code {
+		case "granary":
+			if w.Kind != vpres.NodeKindStorage {
+				t.Errorf("the granary is a storage node: %+v", w)
+			}
+		case "road":
+			if w.Kind != vpres.NodeKindNone || !has(w, vpres.NodeReasonNoFunction) {
+				t.Errorf("a road has no work and says so: %+v", w)
+			}
+		}
+	}
+}
