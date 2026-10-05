@@ -19,6 +19,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/infrastructure/postgres"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/presentation"
+	"github.com/mrjvadi/torncity/internal/presentation/society"
 	vpres "github.com/mrjvadi/torncity/internal/presentation/village"
 	"github.com/mrjvadi/torncity/internal/telegram/i18n"
 )
@@ -379,5 +380,78 @@ func TestSettlementTimezone(t *testing.T) {
 	}
 	if n := e.count(t, `SELECT count(*) FROM charter_audit WHERE settlement_id = $1::uuid AND action = 'timezone_changed'`, cityID); n != 2 {
 		t.Errorf("%d audit lines for 2 changes", n)
+	}
+}
+
+// The city hall page of a founded settlement shows the offices of its charter with the
+// titles its players gave them, not the catalogue's mayor and deputy mayor.
+func TestCityHallShowsTheCharterTitles(t *testing.T) {
+	e := newFoundingEnv(t)
+	pool := e.pool
+	ctx := testCtx(t)
+	catalog, err := i18n.Load(filepath.Join("..", "configs", "locales"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	uow := postgres.NewUnitOfWork(pool, testDefaultLanguage)
+	village := handlers.NewVillageHandler(uow, workIDs{t}, catalog, staticContentSource{snap: loadTestContent(t)}, e.cache,
+		postgres.NewCityRepository(pool), gametime.Scale(1),
+		handlers.VillageRules{
+			VillageGridLots: 5, TeachPeriod: time.Second, TeachRateBPS: 10_000,
+			BaseSchoolCapacityBPS: 10_000, ScarcityKBPS: 10_000, ScarcityFloorBPS: 3_000, ScarcityCapBPS: 80_000, SellerBandBPS: 500,
+			HomeCityCode: "support", MaterialMarkupBPS: 12_000, StockBaseCapacity: 60, MaterialBuyMax: 200,
+			MaterialBuyPresets: []int64{5, 20, 50},
+		}, time.Hour, e.clock.Now)
+	meta, founder := e.group(t)
+	foundVillage(t, pool, e.h, meta)
+	var cityCode string
+	if err := pool.Raw().QueryRow(ctx, `SELECT code FROM cities WHERE founded_by_group_id = $1`, meta.TelegramChatID).Scan(&cityCode); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		c := testCtx(t)
+		_, _ = pool.Raw().Exec(c, `ALTER TABLE charter_audit DISABLE TRIGGER charter_audit_no_change`)
+		_, _ = pool.Raw().Exec(c, `DELETE FROM charter_audit WHERE settlement_id = (SELECT id FROM cities WHERE code = $1)`, cityCode)
+		_, _ = pool.Raw().Exec(c, `ALTER TABLE charter_audit ENABLE TRIGGER charter_audit_no_change`)
+		_, _ = pool.Raw().Exec(c, `DELETE FROM charter_seats WHERE office_id IN (SELECT id FROM charter_offices WHERE settlement_id = (SELECT id FROM cities WHERE code = $1))`, cityCode)
+		_, _ = pool.Raw().Exec(c, `DELETE FROM charter_offices WHERE settlement_id = (SELECT id FROM cities WHERE code = $1)`, cityCode)
+	})
+	gov := handlers.NewGovernanceHandler(uow, catalog, postgres.NewCityRepository(pool), postgres.NewGovernanceDirectory(pool),
+		postgres.NewPolicyReader(pool, e.clock.Now), handlers.GovernanceSteps{FineDivisor: 100, CoarseDivisor: 10},
+		handlers.DefaultPageSize, time.Hour, e.clock.Now)
+	page := func() string {
+		t.Helper()
+		m := asPlayer(meta, founder)
+		m.Command = "gov.city"
+		m.Language = "fa"
+		resp, err := gov.City(ctx, m, handlers.GovCityRequest{City: cityCode})
+		if err != nil {
+			t.Fatal(err)
+		}
+		var v society.CityGovView
+		if err := presentation.DecodeView(resp.View, &v); err != nil {
+			t.Fatal(err)
+		}
+		var out []string
+		for _, sec := range v.Sections {
+			for _, o := range sec.Offices {
+				out = append(out, o.Code+"|"+o.Title)
+			}
+		}
+		return strings.Join(out, "\n")
+	}
+	if text := page(); !strings.Contains(text, "شهردار") {
+		t.Errorf("the default title of the founder's office is missing:\n%s", text)
+	}
+	m := asPlayer(meta, founder)
+	m.Command = "settlement.charter.office.save"
+	m.RequestID = "req_" + randomToken(t, 16)
+	m.IdempotencyKey = "it-" + randomToken(t, 16)
+	if _, err := village.CharterOfficeSave(ctx, m, handlers.VillageCharterRequest{Office: handlers.FounderOfficeID, Title: "کدخدا"}); err != nil {
+		t.Fatal(err)
+	}
+	text := page()
+	if !strings.Contains(text, "کدخدا") || strings.Contains(text, "شهردار") || strings.Contains(text, "office.mayor") {
+		t.Errorf("the city hall page does not show the players' title, or still shows the catalogue's:\n%s", text)
 	}
 }

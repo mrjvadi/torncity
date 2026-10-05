@@ -667,8 +667,13 @@ type GovPlace = presentation.GovPlace
 
 // GovOffice is one office of a place and who sits in it.
 type GovOffice struct {
-	Code  string
-	Seats int
+	Code string
+	// Title is the office's own name when the players chose it (a settlement's charter:
+	// «شهردار» is the default title the founder may rename); empty means the catalogue
+	// name of Code. ActingTitle is the same for the deputy that acts for it.
+	Title       string
+	ActingTitle string
+	Seats       int
 	// Holders are the players in its held seats.
 	Holders []GovPlayer
 	// ActingCode and Acting name the deputy office acting for this one
