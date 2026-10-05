@@ -1,9 +1,9 @@
 package handlers
 
 import (
-	"github.com/mrjvadi/torncity/internal/domain/charter"
 	"context"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/domain/charter"
 	"strconv"
 	"strings"
 	"time"
@@ -100,7 +100,9 @@ type VillageShopRequest struct {
 }
 
 // shopRefusal carries a refusal of the village shop out of a unit of work.
-type villageShopRefusal struct{ view village.VillageShopRefusalView }
+type villageShopRefusal struct {
+	view village.VillageShopRefusalView
+}
 
 func (r *villageShopRefusal) Error() string { return "handlers: village shop refused: " + r.view.Kind }
 

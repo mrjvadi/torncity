@@ -159,9 +159,9 @@ func (f *fakeEmployment) ResidenceCityID(_ context.Context, playerID string) (st
 
 type fakeEducation struct {
 	application.TeacherRepository // unused here: the fakes teach nowhere (content city)
-	active    map[string]application.Enrollment
-	completed []application.Enrollment
-	certs     map[string][]application.Certification
+	active                        map[string]application.Enrollment
+	completed                     []application.Enrollment
+	certs                         map[string][]application.Certification
 }
 
 func (f *fakeEducation) snapshot() func() {
@@ -204,7 +204,9 @@ func (f *fakeEducation) Enroll(_ context.Context, e application.Enrollment) erro
 }
 
 // SeatOf: the fakes teach nowhere (a content city), so no class has a teacher to pay.
-func (f *fakeEducation) SeatOf(context.Context, string) (*application.ClassSeat, error) { return nil, nil }
+func (f *fakeEducation) SeatOf(context.Context, string) (*application.ClassSeat, error) {
+	return nil, nil
+}
 
 func (f *fakeEducation) Complete(_ context.Context, id string, at time.Time) error {
 	for k, e := range f.active {

@@ -161,33 +161,17 @@ func loadCharterState(ctx context.Context, tx application.Tx, s application.Foun
 // chooseActing picks the acting head and bounds their authority; nil when nobody can
 // act or the acting days are over.
 func (st charterState) chooseActing(set charter.Settings, now time.Time) *actingHead {
-	ends := set.ActingEnds(st.headSince)
-	if st.headSince.IsZero() || !now.Before(ends) {
-		return nil
-	}
-	var seats []charter.SeatInfo
-	deputy := ""
-	var founder []charter.Grant
+	holders := map[string][]charter.SeatInfo{}
 	for _, o := range st.offices {
-		if o.Closed {
-			continue
-		}
-		if o.Acquisition == charter.AcquireHead {
-			founder = o.Grants
-			continue
-		}
-		if o.Deputy {
-			deputy = o.ID
-		}
 		for _, seat := range st.seats[o.ID] {
-			seats = append(seats, charter.SeatInfo{PlayerID: seat.HolderID, OfficeID: o.ID, Since: seat.Since})
+			holders[o.ID] = append(holders[o.ID], charter.SeatInfo{PlayerID: seat.HolderID, OfficeID: o.ID, Since: seat.Since})
 		}
 	}
-	pick, ok := charter.ActingHead(seats, deputy)
+	player, officeID, grants, ends, ok := charter.ActingFor(st.offices, holders, st.headSince, set, now)
 	if !ok {
 		return nil
 	}
-	return &actingHead{Player: pick.PlayerID, OfficeID: pick.OfficeID, Ends: ends, Grants: charter.ActingGrants(founder, set.ActingSpendCap)}
+	return &actingHead{Player: player, OfficeID: officeID, Ends: ends, Grants: grants}
 }
 
 func (h *VillageHandler) defaultTitle(lang string) string {

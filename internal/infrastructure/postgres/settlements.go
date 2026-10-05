@@ -447,28 +447,77 @@ func (r *SettlementRepository) permissionsOf(ctx context.Context, ps application
 			}
 		}
 	}
-	rows, err := r.q.Query(ctx, `SELECT o.grants FROM charter_offices o
-		JOIN charter_seats s ON s.office_id = o.id AND s.until IS NULL AND s.holder_id = $2::uuid
-		WHERE o.settlement_id = $1::uuid AND o.closed_at IS NULL`, ps.CityID, playerID)
+	set, now := charter.RuntimeNow()
+	// the open offices and their active, unexpired seats
+	rows, err := r.q.Query(ctx, `SELECT o.id::text, o.grants, o.acquisition, o.deputy FROM charter_offices o
+		WHERE o.settlement_id = $1::uuid AND o.closed_at IS NULL`, ps.CityID)
 	if err != nil {
-		return nil, fmt.Errorf("postgres: reading the charter permissions of %s: %w", playerID, err)
+		return nil, fmt.Errorf("postgres: reading the charter offices of %s: %w", ps.CityID, err)
 	}
-	defer rows.Close()
+	var offices []charter.Office
 	for rows.Next() {
+		var o charter.Office
 		var raw []byte
-		if err := rows.Scan(&raw); err != nil {
+		var acq string
+		if err := rows.Scan(&o.ID, &raw, &acq, &o.Deputy); err != nil {
+			rows.Close()
 			return nil, fmt.Errorf("postgres: reading charter grants: %w", err)
 		}
-		gs, err := grantsFromJSON(raw)
-		if err != nil {
+		o.Acquisition = charter.Acquisition(acq)
+		if o.Grants, err = grantsFromJSON(raw); err != nil {
+			rows.Close()
 			return nil, err
 		}
-		for _, g := range gs {
-			have[string(g.Permission)] = true
-		}
+		offices = append(offices, o)
 	}
+	rows.Close()
 	if err := rows.Err(); err != nil {
 		return nil, err
+	}
+	seatRows, err := r.q.Query(ctx, `SELECT s.office_id::text, s.holder_id::text, s.since FROM charter_seats s
+		JOIN charter_offices o ON o.id = s.office_id
+		WHERE o.settlement_id = $1::uuid AND o.closed_at IS NULL AND s.until IS NULL AND (s.term_ends IS NULL OR s.term_ends > $2)`, ps.CityID, now)
+	if err != nil {
+		return nil, fmt.Errorf("postgres: reading charter seats: %w", err)
+	}
+	holders := map[string][]charter.SeatInfo{}
+	byID := map[string]charter.Office{}
+	for _, o := range offices {
+		byID[o.ID] = o
+	}
+	for seatRows.Next() {
+		var office, holder string
+		var since time.Time
+		if err := seatRows.Scan(&office, &holder, &since); err != nil {
+			seatRows.Close()
+			return nil, err
+		}
+		holders[office] = append(holders[office], charter.SeatInfo{PlayerID: holder, OfficeID: office, Since: since})
+		if holder == playerID {
+			for _, g := range byID[office].Grants {
+				have[string(g.Permission)] = true
+			}
+		}
+	}
+	seatRows.Close()
+	if err := seatRows.Err(); err != nil {
+		return nil, err
+	}
+	// a vacant head seat: whoever acts holds the founder's powers less the ones an acting head may not use
+	var headHolder *string
+	var headSince time.Time
+	if err := r.q.QueryRow(ctx, `SELECT holder_player_id::text, since FROM offices WHERE office_code = $1 AND jurisdiction_id = $2::uuid AND seat = 1`,
+		head, ps.JurisdictionID).Scan(&headHolder, &headSince); err == nil && headHolder == nil {
+		if len(offices) == 0 {
+			offices = []charter.Office{charter.FoundersOffice("", "")}
+		} else if !hasHeadOffice(offices) {
+			offices = append(offices, charter.FoundersOffice("", ""))
+		}
+		if acting, _, grants, _, ok := charter.ActingFor(offices, holders, headSince, set, now); ok && acting == playerID {
+			for _, g := range grants {
+				have[string(g.Permission)] = true
+			}
+		}
 	}
 	out := make([]string, 0, len(have))
 	for p := range have {
@@ -476,6 +525,15 @@ func (r *SettlementRepository) permissionsOf(ctx context.Context, ps application
 	}
 	sort.Strings(out)
 	return out, nil
+}
+
+func hasHeadOffice(offices []charter.Office) bool {
+	for _, o := range offices {
+		if o.Acquisition == charter.AcquireHead {
+			return true
+		}
+	}
+	return false
 }
 
 // ResidentCount is how many active players live in the settlement.

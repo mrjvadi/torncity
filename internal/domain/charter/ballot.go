@@ -2,6 +2,7 @@ package charter
 
 import (
 	"sort"
+	"sync/atomic"
 	"time"
 )
 
@@ -266,4 +267,63 @@ func ActingHead(seats []SeatInfo, deputyOffice string) (SeatInfo, bool) {
 // acting days.
 func (s Settings) ActingEnds(vacantSince time.Time) time.Time {
 	return vacantSince.Add(time.Duration(s.ActingDays) * 24 * time.Hour)
+}
+
+// Runtime is the numbers and the clock that code outside the charter handler (the
+// bootstrap permissions a client reads) needs to judge who acts for a vacant head.
+// The village handler sets it when it is built.
+type runtimeCfg struct {
+	set Settings
+	now func() time.Time
+}
+
+var runtime atomic.Pointer[runtimeCfg]
+
+// SetRuntime installs the settings and the clock.
+func SetRuntime(set Settings, now func() time.Time) { runtime.Store(&runtimeCfg{set: set, now: now}) }
+
+// RuntimeNow returns the installed settings and the current instant (defaults and the
+// wall clock when nothing is installed).
+func RuntimeNow() (Settings, time.Time) {
+	if r := runtime.Load(); r != nil {
+		now := time.Now().UTC()
+		if r.now != nil {
+			now = r.now()
+		}
+		return r.set, now
+	}
+	return Defaults(), time.Now().UTC()
+}
+
+// ActingFor judges who acts for a vacant head seat. offices are the open offices of the
+// charter (the head office carries the founder's grants), holders the active seats of
+// each non-head office by office id, headSince when the head seat fell vacant. It returns
+// the acting player, their office, the extra grants they hold and when it ends; ok is
+// false when nobody can act or the acting days are over.
+func ActingFor(offices []Office, holders map[string][]SeatInfo, headSince time.Time, set Settings, now time.Time) (player, officeID string, grants []Grant, ends time.Time, ok bool) {
+	ends = set.ActingEnds(headSince)
+	if headSince.IsZero() || !now.Before(ends) {
+		return "", "", nil, ends, false
+	}
+	var seats []SeatInfo
+	deputy := ""
+	var founder []Grant
+	for _, o := range offices {
+		if o.Closed {
+			continue
+		}
+		if o.Acquisition == AcquireHead {
+			founder = o.Grants
+			continue
+		}
+		if o.Deputy {
+			deputy = o.ID
+		}
+		seats = append(seats, holders[o.ID]...)
+	}
+	pick, found := ActingHead(seats, deputy)
+	if !found {
+		return "", "", nil, ends, false
+	}
+	return pick.PlayerID, pick.OfficeID, ActingGrants(founder, set.ActingSpendCap), ends, true
 }

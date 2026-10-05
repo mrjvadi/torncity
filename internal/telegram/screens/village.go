@@ -3,6 +3,7 @@ package screens
 import (
 	"github.com/mrjvadi/torncity/internal/presentation/village"
 	"strings"
+	"time"
 
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
 	"github.com/mrjvadi/torncity/internal/telegram/presenter"
@@ -314,7 +315,7 @@ func renderBuildMenu(c Context, v BuildMenuView) *presenter.Response {
 		args := map[string]any{
 			"building": c.SettlementBuildingName(l.Building),
 			"cost":     FormatMoney(c, l.CostMoney),
-			"time":     FormatDuration(c, l.BuildTime),
+			"time":     FormatDuration(c, buildWait(l.ExpectedWait, l.BuildTime)),
 		}
 		key := "build.line.available"
 		if len(l.Materials) > 0 {
@@ -590,7 +591,7 @@ func renderLotConfirm(c Context, v LotConfirmView) *presenter.Response {
 	text := paragraphs(
 		c.T("build.confirm.title", map[string]any{"building": c.SettlementBuildingName(v.Building)}),
 		c.T("build.confirm.body", map[string]any{
-			"cost": FormatMoney(c, v.CostMoney), "time": FormatDuration(c, v.BuildTime),
+			"cost": FormatMoney(c, v.CostMoney), "time": FormatDuration(c, buildWait(v.ExpectedWait, v.BuildTime)),
 			"x": v.X + 1, "y": v.Y + 1,
 		}),
 		body(materialLines...),
@@ -644,4 +645,13 @@ func batchFailureList(c Context, lots []BatchLotFailure) string {
 		}))
 	}
 	return body(lines...)
+}
+
+// buildWait is the wait Telegram prints for a building: the expected wait with the crew
+// the settlement has, falling back to the build time when there is none.
+func buildWait(w village.BuildWaitView, effort time.Duration) time.Duration {
+	if w.Seconds > 0 {
+		return time.Duration(w.Seconds) * time.Second
+	}
+	return effort
 }

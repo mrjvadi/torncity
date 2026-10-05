@@ -393,6 +393,27 @@ func TestCharterPhase2(t *testing.T) {
 	if k := take(r4); k == vpres.VillageNotOfficeHolder {
 		t.Errorf("the acting head cannot run the day-to-day: %q", k)
 	}
+	// the permissions a client reads (bootstrap, state sync) follow the acting head too
+	permsOf := func(p *application.Player) map[string]bool {
+		t.Helper()
+		out := map[string]bool{}
+		if err := uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
+			ps, err := tx.Settlements().ByPlayer(ctx, p.ID)
+			for _, x := range ps.Permissions {
+				out[x] = true
+			}
+			return err
+		}); err != nil {
+			t.Fatal(err)
+		}
+		return out
+	}
+	if pr := permsOf(r4); !pr["storage.take"] || !pr["road.draw"] || !pr["public.build"] || pr["charter.amend"] || pr["settings.timezone"] || pr["office.edit"] {
+		t.Errorf("an acting head's permissions in the bootstrap: %v", pr)
+	}
+	if pr := permsOf(founder); len(pr) != 0 {
+		t.Errorf("a vacant head seat still lists its holder's permissions: %v", pr)
+	}
 	if resp, err := village.TimezoneSet(ctx, as(r4, "settlement.timezone.set"), handlers.VillageZoneRequest{OffsetMinutes: 60}); refusal(resp, err) != vpres.VillageNotOfficeHolder {
 		t.Errorf("the acting head changed the zone: %q", refusal(resp, err))
 	}
@@ -439,6 +460,9 @@ func TestCharterPhase2(t *testing.T) {
 	if k := take(r4); k != vpres.VillageNotOfficeHolder {
 		t.Errorf("an acting head acted after the acting days: %q", k)
 	}
+	if pr := permsOf(r4); pr["public.build"] || pr["settings.timezone"] {
+		t.Errorf("the acting powers stayed in the bootstrap after the acting days: %v", pr)
+	}
 	// every change is in the log, and the log says that people voted, never how
 	seen := map[string]bool{}
 	rows, err := pool.Raw().Query(ctx, `SELECT DISTINCT action FROM charter_audit WHERE settlement_id = $1::uuid`, cityID)
@@ -463,3 +487,59 @@ func TestCharterPhase2(t *testing.T) {
 }
 
 func init() { _ = context.Background }
+
+// A building's build_time is worker effort; the menu also says the wait to expect with the
+// crew the settlement has (shifts spread over the free labourers, a shift being minutes).
+func TestBuildMenuSaysTheExpectedWait(t *testing.T) {
+	e := newFoundingEnv(t)
+	pool := e.pool
+	ctx := testCtx(t)
+	catalog, err := i18n.Load(filepath.Join("..", "configs", "locales"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	uow := postgres.NewUnitOfWork(pool, testDefaultLanguage)
+	village := handlers.NewVillageHandler(uow, workIDs{t}, catalog, staticContentSource{snap: loadTestContent(t)}, e.cache,
+		postgres.NewCityRepository(pool), gametime.Scale(1),
+		handlers.VillageRules{
+			VillageGridLots: 5, TeachPeriod: time.Second, TeachRateBPS: 10_000,
+			BaseSchoolCapacityBPS: 10_000, ScarcityKBPS: 10_000, ScarcityFloorBPS: 3_000, ScarcityCapBPS: 80_000, SellerBandBPS: 500,
+			HomeCityCode: "support", MaterialMarkupBPS: 12_000, StockBaseCapacity: 60, MaterialBuyMax: 200,
+			MaterialBuyPresets: []int64{5, 20, 50},
+		}, time.Hour, e.clock.Now).
+		WithLabor(labor.Default(), []int64{1, 2, 4}, []int64{100, 125, 150, 200})
+	meta, founder := e.group(t)
+	foundVillage(t, pool, e.h, meta)
+	m := asPlayer(meta, founder)
+	m.Command = "settlement.build"
+	m.RequestID = "req_" + randomToken(t, 16)
+	m.IdempotencyKey = "it-" + randomToken(t, 16)
+	resp, err := village.BuildMenu(ctx, m)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var menu vpres.BuildMenuView
+	if err := presentation.DecodeView(resp.View, &menu); err != nil {
+		t.Fatal(err)
+	}
+	seen := 0
+	for _, l := range menu.Lines {
+		w := l.ExpectedWait
+		if l.BuildTime <= 0 {
+			continue
+		}
+		seen++
+		if w.Seconds <= 0 || w.Shifts <= 0 || w.Crew < 1 || w.ShiftSeconds != 60 {
+			t.Errorf("%s: build_time %v but the expected wait is %+v", l.Building.Code, l.BuildTime, w)
+		}
+		if want := (w.Shifts + w.Crew - 1) / w.Crew * w.ShiftSeconds; w.Seconds != want {
+			t.Errorf("%s: %d s is not %d shifts over %d workers of %d s", l.Building.Code, w.Seconds, w.Shifts, w.Crew, w.ShiftSeconds)
+		}
+		if time.Duration(w.Seconds)*time.Second > l.BuildTime {
+			t.Errorf("%s: the wait %ds is longer than the worker effort %v", l.Building.Code, w.Seconds, l.BuildTime)
+		}
+	}
+	if seen == 0 {
+		t.Fatal("the build menu lists no building with a build time")
+	}
+}

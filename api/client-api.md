@@ -1550,3 +1550,7 @@ device plays through.
 | `settlement.stock.donate` / `settlement.stock.take` | `item`, `qty` | `village_materials`; donate: any resident; take: the head's office; `village_not_enough`, `village_storage_full` (with `missing`) |
 
 Views: `inventory` gained `carry.reserved`, `home {capacity, used, here, lines}` and `claims`; `item_detail.can_store`; `village_materials` gained `classes [{class, used, capacity, reserved}]`, `stores [{building, kept}]`, `wage`, `spoil_bps`; `market`, `book` and `market_refusal` gained `unavailable` (no market post) and `village {stalls, stalls_used, per_player, mine, listing_bps, dues_bps, market_day}`; `order_placed.listing_fee`; market refusals `stalls_full`, `stall_limit`, `unavailable`. The village shop views are named `VillageShopView`, `VillageShopLine`, `VillageShopCheckoutView`, `VillageShopRefusalView` (the city shop keeps the plain names). The Economy hub lists entry `storehouse` (command `settlement.materials`).
+
+## Build wait
+
+`build_time` on the build menu, the lot confirm, the upgrade lines and the private-building menu is worker effort (worker-minutes of labour), not a wait. The same views carry `expected_wait` `{seconds, shifts, crew, shift_seconds}`: the estimated real wait with the crew the settlement has now (`ceil(shifts / crew) * shift_seconds`). Show `expected_wait.seconds`.

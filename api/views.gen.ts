@@ -424,6 +424,7 @@ export interface BuildLine {
   state: string
   cost_money: number
   build_time_seconds: number
+  expected_wait: BuildWaitView
   missing: Named[] | null
   missing_buildings: Named[] | null
   materials: MaterialLine[] | null
@@ -436,6 +437,13 @@ export interface BuildMenuView {
   running_builds: number
   concurrent_cap: number
   lines: BuildLine[] | null
+}
+
+export interface BuildWaitView {
+  seconds: number
+  shifts: number
+  crew: number
+  shift_seconds: number
 }
 
 export interface BuildingEffectLine {
@@ -460,6 +468,7 @@ export interface BuildingUpgradeLine {
   tier: number
   cost_money: number
   build_time_seconds: number
+  expected_wait: BuildWaitView
   available: boolean
   missing: Named[] | null
   needs_tier: string
@@ -3053,6 +3062,7 @@ export interface LotConfirmView {
   cost_money: number
   materials: MaterialLine[] | null
   build_time_seconds: number
+  expected_wait: BuildWaitView
   auto_roads: number
 }
 
@@ -3816,6 +3826,7 @@ export interface PrivateConfirmView {
   total: number
   cash: number
   build_time_seconds: number
+  expected_wait: BuildWaitView
 }
 
 export interface PrivateLine {
@@ -3826,6 +3837,7 @@ export interface PrivateLine {
   permit_fee: number
   materials: PrivateMaterial[] | null
   build_time_seconds: number
+  expected_wait: BuildWaitView
   footprint_w: number
   footprint_h: number
   total: number

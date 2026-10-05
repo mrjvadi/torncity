@@ -186,6 +186,7 @@ func NewVillageHandler(uow application.UnitOfWork, ids IDGenerator, msgs Transla
 		rules.CharterSettings = charter.Defaults()
 	}
 	cs, nowFn := rules.CharterSettings, now
+	charter.SetRuntime(cs, nowFn)
 	charterSet.Store(&cs)
 	charterNow.Store(&nowFn)
 	return &VillageHandler{

@@ -1,9 +1,9 @@
 package handlers
 
 import (
-	"github.com/mrjvadi/torncity/internal/domain/charter"
 	"context"
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/domain/charter"
 	"github.com/mrjvadi/torncity/internal/presentation"
 	"github.com/mrjvadi/torncity/internal/presentation/village"
 	"sort"
@@ -364,7 +364,11 @@ func (h *VillageHandler) Place(ctx context.Context, meta envelope.Metadata, req 
 		roadFee := autoRoads.Fee
 
 		if !req.confirmed() {
-			confirmView = &village.LotConfirmView{
+			waitOf, werr := h.buildWaiter(ctx, tx, h.content.Current(), s)
+			if werr != nil {
+				return werr
+			}
+			confirmView = &village.LotConfirmView{ExpectedWait: waitOf(def),
 				SettlementName: s.Name, Building: named(d.Code, d.Name), X: x, Y: y, Rotated: rotated,
 				CostMoney: d.CostMoney + roadFee, BuildTime: h.scale.RealWait(def.BuildTime),
 				Materials: materialLines(h.content.Current(), def), AutoRoads: len(autoRoads.Path),

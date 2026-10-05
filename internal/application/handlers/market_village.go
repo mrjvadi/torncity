@@ -35,10 +35,10 @@ import (
 // VillageMarketRules is the tuning of the village book (config trade.village_*,
 // trade.market_day_every_days) and the game clock market days are counted on.
 type VillageMarketRules struct {
-	StallsPost, StallsHall                 int
+	StallsPost, StallsHall                   int
 	StallsPerPlayerPost, StallsPerPlayerHall int
-	DayEveryDays                           int
-	Clock                                  gametime.Clock
+	DayEveryDays                             int
+	Clock                                    gametime.Clock
 }
 
 // WithVillageBook gives the market the village book's stalls, fees and market day.

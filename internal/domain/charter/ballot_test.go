@@ -130,3 +130,26 @@ func TestActingHeadIsTheDeputyThenTheLongestServing(t *testing.T) {
 		t.Error("an acting head acts for seven days")
 	}
 }
+
+func TestActingForJudgesTheVacancy(t *testing.T) {
+	set := Defaults()
+	offices := []Office{FoundersOffice("h", "head"), {ID: "d", Title: "deputy", Seats: 1, Acquisition: AcquireAppointment, Deputy: true, Grants: []Grant{{JobsPost, 0}}}}
+	holders := map[string][]SeatInfo{"d": {{PlayerID: "p", OfficeID: "d", Since: t0}}}
+	player, office, grants, ends, ok := ActingFor(offices, holders, t0, set, t0.Add(time.Hour))
+	if !ok || player != "p" || office != "d" || !ends.Equal(t0.Add(7*24*time.Hour)) {
+		t.Fatalf("%v %v %v %v", player, office, ends, ok)
+	}
+	got := Held{}
+	for _, g := range grants {
+		got[g.Permission] = g.Limit
+	}
+	if _, has := got[CharterAmend]; has || got[TreasurySpend] != 2000 {
+		t.Errorf("acting grants %+v", got)
+	}
+	if _, _, _, _, ok := ActingFor(offices, holders, t0, set, t0.Add(7*24*time.Hour)); ok {
+		t.Error("an acting head acted after the acting days")
+	}
+	if _, _, _, _, ok := ActingFor(offices, nil, t0, set, t0); ok {
+		t.Error("nobody holds a seat, nobody acts")
+	}
+}

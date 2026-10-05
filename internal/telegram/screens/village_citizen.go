@@ -184,7 +184,7 @@ func renderPrivateMenu(c Context, v PrivateMenuView) *presenter.Response {
 	for _, l := range v.Lines {
 		args := map[string]any{
 			"name": c.SettlementBuildingName(l.Building), "cost": FormatMoney(c, l.CostMoney), "permit": FormatMoney(c, l.PermitFee),
-			"total": FormatMoney(c, l.Total), "time": FormatDuration(c, l.BuildTime),
+			"total": FormatMoney(c, l.Total), "time": FormatDuration(c, buildWait(l.ExpectedWait, l.BuildTime)),
 			"w": FormatNumber(c, int64(l.FootprintW)), "h": FormatNumber(c, int64(l.FootprintH)),
 		}
 		block := body(c.T("citizen.private.line", args), privateMaterialsText(c, l.Materials))
@@ -255,7 +255,7 @@ func renderPrivateConfirm(c Context, v PrivateConfirmView) *presenter.Response {
 		"name": c.SettlementBuildingName(v.Building), "row": FormatNumber(c, int64(v.Y+1)), "col": FormatNumber(c, int64(v.X+1)),
 		"cost": FormatMoney(c, v.CostMoney), "permit": FormatMoney(c, v.PermitFee), "materials": FormatMoney(c, v.MaterialsCost),
 		"total": FormatMoney(c, v.Total), "cash": FormatMoney(c, v.Cash), "left": FormatMoney(c, v.Cash-v.Total),
-		"time": FormatDuration(c, v.BuildTime),
+		"time": FormatDuration(c, buildWait(v.ExpectedWait, v.BuildTime)),
 	}
 	kb := keyboards.New()
 	if b, ok := keyboards.Button(c.T("citizen.confirm.button_yes", args), AddrPrivatePlace, v.Building.Code,

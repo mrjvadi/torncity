@@ -224,6 +224,19 @@ const (
 	BuildLocked    = "locked"
 )
 
+// BuildWaitView is the wait a client shows for a building. A building's build_time is
+// the worker effort it needs (worker-minutes of labour, an hours-long figure), NOT a
+// wait; Seconds is the expected real wait with the crew the settlement has now: the
+// Shifts the effort needs, spread over Crew workers, each shift ShiftSeconds long. It
+// is an estimate (more hands shorten it; missing materials or money stop it). With no
+// labour market it is the build time itself and Shifts and Crew are zero.
+type BuildWaitView struct {
+	Seconds      int64 `json:"seconds"`
+	Shifts       int64 `json:"shifts,omitempty"`
+	Crew         int64 `json:"crew,omitempty"`
+	ShiftSeconds int64 `json:"shift_seconds,omitempty"`
+}
+
 // BuildLine is one building type of the menu.
 type BuildLine struct {
 	Building presentation.Named
@@ -235,6 +248,8 @@ type BuildLine struct {
 	State     string
 	CostMoney int64
 	BuildTime time.Duration
+	// ExpectedWait is the wait to show (BuildTime above is worker effort, not a wait).
+	ExpectedWait BuildWaitView
 	// Missing are unmet knowledge or role/tier prerequisites.
 	Missing []presentation.Named
 	// MissingBuildings are the buildings of the role a promotion still needs.
@@ -381,6 +396,8 @@ type LotConfirmView struct {
 	CostMoney      int64
 	Materials      []MaterialLine
 	BuildTime      time.Duration
+	// ExpectedWait is the wait to show (BuildTime above is worker effort, not a wait).
+	ExpectedWait BuildWaitView
 	// AutoRoads is how many lots of road the game lays with the building to
 	// connect it (0: it already touches the network).
 	AutoRoads int
@@ -439,6 +456,8 @@ type BuildingUpgradeLine struct {
 	Tier      int
 	CostMoney int64
 	BuildTime time.Duration
+	// ExpectedWait is the wait to show (BuildTime above is worker effort, not a wait).
+	ExpectedWait BuildWaitView
 	// Available is false while a prerequisite is missing; Missing names the
 	// knowledge items that are.
 	Available bool
@@ -769,15 +788,17 @@ type PrivateMaterial struct {
 
 // PrivateLine is one building of the citizen catalogue the village can build now.
 type PrivateLine struct {
-	Building   presentation.Named
-	Home       bool
-	Class      string
-	CostMoney  int64
-	PermitFee  int64
-	Materials  []PrivateMaterial
-	BuildTime  time.Duration
-	FootprintW int
-	FootprintH int
+	Building  presentation.Named
+	Home      bool
+	Class     string
+	CostMoney int64
+	PermitFee int64
+	Materials []PrivateMaterial
+	BuildTime time.Duration
+	// ExpectedWait is the wait to show (BuildTime above is worker effort, not a wait).
+	ExpectedWait BuildWaitView
+	FootprintW   int
+	FootprintH   int
 	// Total is everything the builder pays in cash: cost, permit and bought
 	// materials.
 	Total      int64
@@ -820,6 +841,8 @@ type PrivateConfirmView struct {
 	Total         int64
 	Cash          int64
 	BuildTime     time.Duration
+	// ExpectedWait is the wait to show (BuildTime above is worker effort, not a wait).
+	ExpectedWait BuildWaitView
 }
 
 // MineLot is one of the viewer's lots.
