@@ -197,7 +197,7 @@ func TestListingsReportARowError(t *testing.T) {
 // statement's must agree.
 func TestCityListScansTheStatementsColumns(t *testing.T) {
 	q := &fakeQuerier{rows: &fakeRows{vals: [][]any{
-		{testCityID, "TC", "Test City", "00000000-0000-4000-8000-0000000000aa", int64(1000), 42, "city"},
+		{testCityID, "TC", "Test City", "00000000-0000-4000-8000-0000000000aa", int64(1000), 42, "city", nil},
 	}}}
 
 	got, err := (&CityRepository{q: q}).List(context.Background())

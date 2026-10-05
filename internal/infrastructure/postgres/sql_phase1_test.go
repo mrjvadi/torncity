@@ -491,7 +491,7 @@ func TestCityStatementsAreReadOnlyAndOrderedByCode(t *testing.T) {
 		"by id":   normalize(selectCityByID),
 		"by code": normalize(selectCityByCode),
 	} {
-		if !strings.HasPrefix(sql, "SELECT id, code, name, COALESCE(jurisdiction_id::text, ''), cost_of_living, population, COALESCE(tier, 'city') FROM cities") {
+		if !strings.HasPrefix(sql, "SELECT id, code, name, COALESCE(jurisdiction_id::text, ''), cost_of_living, population, COALESCE(tier, 'city'), tz_offset_minutes FROM cities") {
 			t.Errorf("the city %s statement drifted from the schema:\n%s", name, sql)
 		}
 		if strings.Contains(sql, "treasury_account_id") {
