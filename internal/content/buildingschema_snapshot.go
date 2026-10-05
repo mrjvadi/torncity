@@ -78,6 +78,28 @@ func (s *Snapshot) BuildingFunction(code string) (BuildingFunctionDef, bool) {
 	return f, ok
 }
 
+// StorageProviders are the buildings (the legacy catalogue code a function replaces, else
+// the function code) that give room in a storage class, sorted: what to build when a class
+// is full.
+func (s *Snapshot) StorageProviders(class string) []string {
+	if s.schema == nil {
+		return nil
+	}
+	var out []string
+	for code, f := range s.schema.functions {
+		if f.Storage == nil || f.Storage.Provides[class] <= 0 {
+			continue
+		}
+		if len(f.Replaces) > 0 {
+			out = append(out, f.Replaces...)
+		} else {
+			out = append(out, code)
+		}
+	}
+	sort.Strings(out)
+	return out
+}
+
 // FunctionReplacing is the function that takes over a legacy catalogue building
 // (settlement_buildings.yml or the citizen catalogue): the key of the one
 // migration from `type_code` to a function code.

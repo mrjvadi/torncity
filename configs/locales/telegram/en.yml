@@ -519,6 +519,8 @@ village:
     treasury: "🏦 Treasury: {amount}"
     capacity: "📦 Stock room: {used} of {capacity} space"
     class_line: "• {class}: {used} of {capacity} space"
+    class_over: "• {class}: {used} of {capacity} space; {over} over the room. Build more room: {build}"
+    transition: "ℹ️ The old stores still count for every kind of goods until {until}; after that each kind needs its own store. Nothing is lost."
     class_reserved: "• {class}: {used} of {capacity} space ({reserved} set aside for running shifts)"
     class_name:
       bulk: "Yard and open store"

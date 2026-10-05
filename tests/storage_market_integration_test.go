@@ -733,3 +733,95 @@ func TestAFreshCityHoldsItsStockWithoutAKeeper(t *testing.T) {
 		}
 	}
 }
+
+// A city whose goods were stored under the old shared room (live finding 2026-10-05,
+// «مارکو پلو»: timber, stone and wool sit in the open yard, 43 spaces over its 60). Until
+// the grace ends the stores that stood before the classes rule lend their room to any
+// class; after it the class is named over with what to build, and nothing is destroyed.
+func TestOldSharedRoomLastsThroughTheGraceThenTheClassIsNamedOver(t *testing.T) {
+	e := newFoundingEnv(t)
+	pool := e.pool
+	ctx := testCtx(t)
+	catalog, err := i18n.Load(filepath.Join("..", "configs", "locales"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	uow := postgres.NewUnitOfWork(pool, testDefaultLanguage)
+	clock := gametime.Clock{Epoch: e.clock.Now().Add(-100 * 24 * time.Hour), Scale: 1}
+	rules := handlers.StorageRules{Clock: clock, SpoilKeptBPS: 100, SpoilUnkeptBPS: 0}
+	graceFrom := e.clock.Now().Add(48 * time.Hour) // the founding granary stood before the rule
+	rules.GraceFrom, rules.GraceDays = graceFrom, 14
+	village := handlers.NewVillageHandler(uow, workIDs{t}, catalog, staticContentSource{snap: loadTestContent(t)}, e.cache,
+		postgres.NewCityRepository(pool), gametime.Scale(1),
+		handlers.VillageRules{
+			VillageGridLots: 5, TeachPeriod: time.Second, TeachRateBPS: 10_000,
+			BaseSchoolCapacityBPS: 10_000, ScarcityKBPS: 10_000, ScarcityFloorBPS: 3_000, ScarcityCapBPS: 80_000, SellerBandBPS: 500,
+			HomeCityCode: "support", MaterialMarkupBPS: 12_000, StockBaseCapacity: 60, MaterialBuyMax: 200,
+			MaterialBuyPresets: []int64{5, 20, 50},
+		}, time.Hour, e.clock.Now).
+		WithLabor(labor.Default(), []int64{1, 2, 4}, []int64{100, 125, 150, 200}).
+		WithStorage(rules)
+	meta, founder := e.group(t)
+	foundVillage(t, pool, e.h, meta)
+	var cityID string
+	if err := pool.Raw().QueryRow(ctx, `SELECT id::text FROM cities WHERE founded_by_group_id = $1`, meta.TelegramChatID).Scan(&cityID); err != nil {
+		t.Fatal(err)
+	}
+	for item, qty := range map[string]int64{"timber": 53, "stone": 25, "wool": 25, "wheat": 40} {
+		item, qty := item, qty
+		if err := uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
+			return tx.Items().Move(ctx, application.ItemMove{
+				ID: newUUID(t), Item: item, Qty: qty,
+				ToOrg: application.SettlementOrg(cityID), ToHolding: application.HoldWarehouse,
+				Reason: application.ItemGrant, ReferenceType: "test", ReferenceID: newUUID(t), At: time.Now().UTC(),
+			})
+		}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	view := func() vpres.MaterialsView {
+		t.Helper()
+		m := asPlayer(meta, founder)
+		m.Command = "settlement.materials"
+		m.RequestID = "req_" + randomToken(t, 16)
+		m.IdempotencyKey = "it-" + randomToken(t, 16)
+		resp, err := village.Materials(ctx, m)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var v vpres.MaterialsView
+		if err := presentation.DecodeView(resp.View, &v); err != nil {
+			t.Fatal(err)
+		}
+		return v
+	}
+	class := func(v vpres.MaterialsView, code string) vpres.StockClassLine {
+		for _, c := range v.Classes {
+			if c.Class == code {
+				return c
+			}
+		}
+		t.Fatalf("no %s class in %+v", code, v.Classes)
+		return vpres.StockClassLine{}
+	}
+	v := view()
+	if b := class(v, "bulk"); b.Used != 156 || b.Over != 0 || b.Borrowed != 96 {
+		t.Errorf("during the grace the old shared room lends the bulk 96 spaces (timber and stone take 2 each): %+v", b)
+	}
+	if v.Over != 0 || v.Transition == nil {
+		t.Errorf("during the grace nothing is over and the notice stands: over %d, transition %v", v.Over, v.Transition)
+	}
+	// after the grace
+	e.clock.Advance(49*time.Hour + 15*24*time.Hour)
+	v = view()
+	b := class(v, "bulk")
+	if b.Used != 156 || b.Over != 96 || b.Borrowed != 0 || len(b.Build) == 0 {
+		t.Errorf("after the grace the bulk is 96 over and says what to build: %+v", b)
+	}
+	if v.Over != 101 || v.Transition != nil {
+		t.Errorf("the total over is the sum of the full classes and the notice is gone: over %d, transition %v", v.Over, v.Transition)
+	}
+	if f := class(v, "food"); f.Used != 40 || f.Over != 0 {
+		t.Errorf("the food still fits: %+v", f)
+	}
+}

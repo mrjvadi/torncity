@@ -995,6 +995,11 @@ type MaterialsView struct {
 	// Used and Capacity are the units held and the room there is (the base
 	// capacity plus every standing building's storage).
 	Used, Capacity int64
+	// Over is the total spaces over their room, summed over the classes that are full
+	// (the classes are not interchangeable: Used and Capacity are plain sums).
+	Over int64
+	// Transition is set while old shared room is still counted.
+	Transition *StockTransition `json:"transition,omitempty"`
 	// Classes is the same room by storage class (bulk, food, goods), in «جا»;
 	// Stores the standing storage buildings with whether a keeper keeps each
 	// (storage and market audit P2); Wage a keeper's day; SpoilBPS the share
@@ -1017,6 +1022,20 @@ type MaterialsView struct {
 type StockClassLine struct {
 	Class                    string
 	Used, Capacity, Reserved int64
+	// Over is the spaces held beyond the room (0 when it fits): the class named full.
+	Over int64
+	// Borrowed is the room lent from the old shared room of a store that stood before
+	// the classes rule (see StockTransition); it is already in Capacity.
+	Borrowed int64
+	// Build are the buildings that give room in this class: what to build when it is over.
+	Build []presentation.Named
+}
+
+// StockTransition says goods are held in the old shared room of stores that stood before
+// the storage classes: until Until their room counts for any class, then each class
+// needs a building of its own.
+type StockTransition struct {
+	Until time.Time
 }
 
 // StockStoreLine is a standing storage building and whether it has a keeper.

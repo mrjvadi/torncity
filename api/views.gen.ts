@@ -3208,6 +3208,8 @@ export interface MaterialsView {
   stock: MaterialStockLine[] | null
   used: number
   capacity: number
+  over: number
+  transition: StockTransition | null
   classes: StockClassLine[] | null
   stores: StockStoreLine[] | null
   wage: number
@@ -4878,6 +4880,9 @@ export interface StockClassLine {
   used: number
   capacity: number
   reserved: number
+  over: number
+  borrowed: number
+  build: Named[] | null
 }
 
 export interface StockOrderView {
@@ -4930,6 +4935,10 @@ export interface StockStoreLine {
   kept: boolean
   communal_room: number
   grace_until: string | null
+}
+
+export interface StockTransition {
+  until: string | null
 }
 
 export interface StockView {

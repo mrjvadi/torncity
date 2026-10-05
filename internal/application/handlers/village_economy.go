@@ -318,7 +318,20 @@ func (h *VillageHandler) materialsView(ctx context.Context, tx application.Tx, m
 		if r.Capacity == 0 && r.Used == 0 {
 			continue
 		}
-		view.Classes = append(view.Classes, village.StockClassLine{Class: c, Used: r.Used, Capacity: r.Capacity, Reserved: r.Reserved})
+		line := village.StockClassLine{Class: c, Used: r.Used, Capacity: r.Capacity, Reserved: r.Reserved,
+			Over: stock.Over[c], Borrowed: stock.Flex[c]}
+		if line.Over > 0 {
+			for _, code := range snap.StorageProviders(c) {
+				if d, ok := snap.SettlementBuildingDef(code); ok {
+					line.Build = append(line.Build, named(d.Code, d.Name))
+				}
+			}
+		}
+		view.Over += line.Over
+		view.Classes = append(view.Classes, line)
+	}
+	if !stock.FlexUntil.IsZero() {
+		view.Transition = &village.StockTransition{Until: stock.FlexUntil}
 	}
 	for _, st := range stock.Stores {
 		d, _ := snap.SettlementBuildingDef(st.Type)

@@ -128,6 +128,12 @@ type villageStock struct {
 	// Stores are the standing storage buildings; Kept how many had a keeper.
 	Stores []storeBuilding
 	Kept   int
+	// Over is the spaces held beyond the room, by class (only classes that are over).
+	Over map[string]int64
+	// Flex is the room the stores that stood before the classes rule still give to ANY
+	// class until FlexUntil (the old shared room), by the class it now holds, in spaces.
+	Flex      map[string]int64
+	FlexUntil time.Time
 	// Wage is a keeper's day.
 	Wage int64
 	// SpoilBPS is the share of the food that spoils per game day now.
@@ -307,6 +313,7 @@ func (h *VillageHandler) stockOf(ctx context.Context, tx application.Tx, snap *c
 			}
 		}
 	}
+	out.settleTransition(stores, h.now())
 	for _, c := range out.Classes {
 		out.Used += c.Used
 		out.Capacity += c.Capacity
@@ -321,6 +328,57 @@ func (h *VillageHandler) stockOf(ctx context.Context, tx application.Tx, snap *c
 		}
 	}
 	return out, nil
+}
+
+// settleTransition gives the stores that stood before the classes rule their old shared
+// room for ANY class while their grace lasts: before that rule one pool held everything,
+// so a settlement that stored timber in its granary does not find it homeless overnight.
+// The shared room is what those stores provide less what their own classes already use;
+// it is lent to the classes that are over their room, in class order. After the grace the
+// goods stay (nothing is destroyed); the class is simply over until its building stands.
+func (s *villageStock) settleTransition(stores []storeBuilding, now time.Time) {
+	prov := map[string]int64{}
+	var flex int64
+	for _, st := range stores {
+		if st.GraceUntil.IsZero() || !now.Before(st.GraceUntil) {
+			continue
+		}
+		if s.FlexUntil.IsZero() || st.GraceUntil.After(s.FlexUntil) {
+			s.FlexUntil = st.GraceUntil
+		}
+		for class, n := range st.Provides {
+			prov[class] += int64(n)
+			flex += int64(n)
+		}
+	}
+	for class, n := range prov {
+		if c := s.Classes[class]; c != nil {
+			flex -= min(c.Used, n)
+		}
+	}
+	codes := make([]string, 0, len(s.Classes))
+	for code := range s.Classes {
+		codes = append(codes, code)
+	}
+	sort.Strings(codes)
+	for _, code := range codes {
+		c := s.Classes[code]
+		if over := c.Used - c.Capacity; over > 0 && flex > 0 {
+			add := min(over, flex)
+			c.Capacity += add
+			flex -= add
+			if s.Flex == nil {
+				s.Flex = map[string]int64{}
+			}
+			s.Flex[code] = add
+		}
+		if over := c.Used - c.Capacity; over > 0 {
+			if s.Over == nil {
+				s.Over = map[string]int64{}
+			}
+			s.Over[code] = over
+		}
+	}
 }
 
 // settleStorageDay brings the settlement's stores up to today: if today has not

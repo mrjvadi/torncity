@@ -519,6 +519,8 @@ village:
     treasury: "🏦 خزانه: {amount}"
     capacity: "📦 جای انبار: {used} از {capacity} جا"
     class_line: "• {class}: {used} از {capacity} جا"
+    class_over: "• {class}: {used} از {capacity} جا؛ {over} جا بیشتر از جای موجود است. برای جای بیشتر بساز: {build}"
+    transition: "ℹ️ انبارهای قدیمی تا {until} هنوز برای هر جنس جا حساب می‌شوند؛ بعد از آن هر جنس انبار خودش را می‌خواهد. چیزی از بین نمی‌رود."
     class_reserved: "• {class}: {used} از {capacity} جا ({reserved} جا برای شیفت‌های در جریان کنار است)"
     class_name:
       bulk: "حیاط و انبار روباز"
