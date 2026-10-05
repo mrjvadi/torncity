@@ -191,7 +191,7 @@ type BagSlotLine struct {
 type CarryLine struct {
 	// Reserved is the room a listing in escrow and the open bids keep.
 	Used, Reserved, Capacity, Base int64
-	LoadG, ComfortG, HardG int64
+	LoadG, ComfortG, HardG         int64
 }
 
 // InventoryView is one page of the bag.
@@ -714,6 +714,9 @@ type ProfileView struct {
 	TravelToCode    string
 	TravelTo        string
 	TravelRemaining time.Duration
+	// TravelZoneMinutes is the destination's time zone (minutes east of UTC) so the
+	// client can show the local arrival time there.
+	TravelZoneMinutes int `json:"travel_zone_minutes"`
 
 	// Work is the player's job and studies. Nil means the caller did not
 	// look, and the profile says nothing about work either way; a non-nil
@@ -1106,8 +1109,10 @@ type TravelStartedView struct {
 	ModeName string
 	// Duration is the real wait until arrival.
 	Duration time.Duration
-	// ArrivesAt is when the journey lands; zero shows no clock line.
-	ArrivesAt time.Time
+	// ArrivesAt is when the journey lands; zero shows no clock line. ZoneMinutes is the
+	// destination's time zone, minutes east of UTC, for its local arrival time.
+	ArrivesAt   time.Time
+	ZoneMinutes int `json:"zone_minutes"`
 	// Energy is what the departure actually cost, as the domain charged it,
 	// not what the screen thinks it should have cost.
 	Energy int
@@ -1128,6 +1133,8 @@ type TravelStatusView struct {
 	ModeName  string
 	Remaining time.Duration
 	ArrivesAt time.Time
+	// ZoneMinutes is the destination's time zone, minutes east of UTC.
+	ZoneMinutes int `json:"zone_minutes"`
 }
 
 // TravelArrivedView is the notification a landed journey produces.

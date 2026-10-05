@@ -794,16 +794,17 @@ func (h *TravelHandler) Start(ctx context.Context, meta envelope.Metadata, req S
 		}
 
 		started = life.TravelStartedView{
-			FromCode:  t.from.Code,
-			From:      t.from.Name,
-			ToCode:    t.to.Code,
-			To:        t.to.Name,
-			ModeCode:  q.Mode,
-			ModeName:  chosen.name,
-			Duration:  journey.Duration(),
-			ArrivesAt: journey.ArrivesAt,
-			Energy:    q.Energy,
-			Fare:      q.Fare.Minor(),
+			FromCode:    t.from.Code,
+			From:        t.from.Name,
+			ToCode:      t.to.Code,
+			To:          t.to.Name,
+			ModeCode:    q.Mode,
+			ModeName:    chosen.name,
+			Duration:    journey.Duration(),
+			ArrivesAt:   journey.ArrivesAt,
+			ZoneMinutes: t.to.ZoneMinutes(),
+			Energy:      q.Energy,
+			Fare:        q.Fare.Minor(),
 		}
 		return nil
 	})
@@ -1023,13 +1024,14 @@ func (h *TravelHandler) Status(ctx context.Context, meta envelope.Metadata) (*pr
 		}
 
 		view = life.TravelStatusView{
-			FromCode:  from.Code,
-			From:      from.Name,
-			ToCode:    to.Code,
-			To:        to.Name,
-			ModeCode:  t.Mode,
-			Remaining: travel.Remaining(journey, h.now()),
-			ArrivesAt: t.ArrivesAt,
+			FromCode:    from.Code,
+			From:        from.Name,
+			ToCode:      to.Code,
+			To:          to.Name,
+			ModeCode:    t.Mode,
+			Remaining:   travel.Remaining(journey, h.now()),
+			ArrivesAt:   t.ArrivesAt,
+			ZoneMinutes: to.ZoneMinutes(),
 		}
 		return nil
 	})

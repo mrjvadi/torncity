@@ -38,7 +38,7 @@ func NewCityRepository(p *Pool) *CityRepository { return &CityRepository{q: p.sh
 // Selecting a column nothing can carry would only invite a scan that fails.
 
 const selectCities = `
-SELECT id, code, name, COALESCE(jurisdiction_id::text, ''), cost_of_living, population, COALESCE(tier, 'city')
+SELECT id, code, name, COALESCE(jurisdiction_id::text, ''), cost_of_living, population, COALESCE(tier, 'city'), tz_offset_minutes
 FROM cities
 ORDER BY code`
 
@@ -57,7 +57,7 @@ func (r *CityRepository) List(ctx context.Context) ([]application.City, error) {
 	var out []application.City
 	for rows.Next() {
 		var c application.City
-		if err := rows.Scan(&c.ID, &c.Code, &c.Name, &c.JurisdictionID, &c.CostOfLiving, &c.Population, &c.Tier); err != nil {
+		if err := rows.Scan(&c.ID, &c.Code, &c.Name, &c.JurisdictionID, &c.CostOfLiving, &c.Population, &c.Tier, &c.TZOffsetMinutes); err != nil {
 			return nil, fmt.Errorf("postgres: scanning city row: %w", err)
 		}
 		out = append(out, c)
@@ -70,7 +70,7 @@ func (r *CityRepository) List(ctx context.Context) ([]application.City, error) {
 }
 
 const selectCityByID = `
-SELECT id, code, name, COALESCE(jurisdiction_id::text, ''), cost_of_living, population, COALESCE(tier, 'city')
+SELECT id, code, name, COALESCE(jurisdiction_id::text, ''), cost_of_living, population, COALESCE(tier, 'city'), tz_offset_minutes
 FROM cities
 WHERE id = $1::uuid`
 
@@ -86,7 +86,7 @@ func (r *CityRepository) ByID(ctx context.Context, id string) (*application.City
 	var c application.City
 
 	err := r.q.QueryRow(ctx, selectCityByID, id).Scan(
-		&c.ID, &c.Code, &c.Name, &c.JurisdictionID, &c.CostOfLiving, &c.Population, &c.Tier,
+		&c.ID, &c.Code, &c.Name, &c.JurisdictionID, &c.CostOfLiving, &c.Population, &c.Tier, &c.TZOffsetMinutes,
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) || isInvalidUUIDText(err) {
@@ -99,7 +99,7 @@ func (r *CityRepository) ByID(ctx context.Context, id string) (*application.City
 }
 
 const selectCityByCode = `
-SELECT id, code, name, COALESCE(jurisdiction_id::text, ''), cost_of_living, population, COALESCE(tier, 'city')
+SELECT id, code, name, COALESCE(jurisdiction_id::text, ''), cost_of_living, population, COALESCE(tier, 'city'), tz_offset_minutes
 FROM cities
 WHERE code = $1`
 
@@ -113,7 +113,7 @@ func (r *CityRepository) ByCode(ctx context.Context, code string) (*application.
 	var c application.City
 
 	err := r.q.QueryRow(ctx, selectCityByCode, code).Scan(
-		&c.ID, &c.Code, &c.Name, &c.JurisdictionID, &c.CostOfLiving, &c.Population, &c.Tier,
+		&c.ID, &c.Code, &c.Name, &c.JurisdictionID, &c.CostOfLiving, &c.Population, &c.Tier, &c.TZOffsetMinutes,
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {

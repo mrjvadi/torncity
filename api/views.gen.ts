@@ -3997,6 +3997,7 @@ export interface ProfileView {
   travel_to_code: string
   travel_to: string
   travel_remaining_seconds: number
+  travel_zone_minutes: number
   work: ProfileWork | null
   jail: ProfileJail | null
   hospital: ProfileJail | null
@@ -5215,6 +5216,7 @@ export interface TravelStartedView {
   mode_name: string
   duration_seconds: number
   arrives_at: string | null
+  zone_minutes: number
   energy: number
   fare: number
 }
@@ -5228,6 +5230,7 @@ export interface TravelStatusView {
   mode_name: string
   remaining_seconds: number
   arrives_at: string | null
+  zone_minutes: number
 }
 
 export interface TreatConfirmView {
