@@ -83,6 +83,13 @@ type Rules struct {
 	NPCShiftsPerSlotDay int64
 	// HungryOutputBPS and HungryShiftHunger: see config labor.hungry_*.
 	HungryOutputBPS, HungryShiftHunger int64
+	RepairMaterialShareBPS             int64
+	RepairShiftsFull                   int64
+	WornOutputBPS                      int64
+	ClosedBPS                          int64
+	WornBPS                            int64
+	RepairBelowBPS                     int64
+	DecayBPSPerDay                     int64
 }
 
 // Enabled reports whether construction is done by work at all: a zero Rules
@@ -249,7 +256,7 @@ func Default() Rules {
 		ShiftMinutes: 60, ShiftRealMinutes: 1, ReferenceCrew: 4, BaseWage: 30,
 		MinWage:          map[string]int64{"village": 10, "town": 15, "city": 25},
 		Curve:            []Point{{0, 7_000}, {5_000, 10_000}, {10_000, 15_000}, {20_000, 25_000}},
-		ParticipationBPS: 6_000, BaseHousing: 8, NPCProductivityBPS: 8_500, FeeBPS: 500, BudgetSlackBPS: 5_000, NPCShiftsPerSlotDay: 10, HungryOutputBPS: 5_000, HungryShiftHunger: 5,
+		ParticipationBPS: 6_000, BaseHousing: 8, NPCProductivityBPS: 8_500, FeeBPS: 500, BudgetSlackBPS: 5_000, NPCShiftsPerSlotDay: 10, HungryOutputBPS: 5_000, HungryShiftHunger: 5, RepairMaterialShareBPS: 2000, RepairShiftsFull: 10, WornOutputBPS: 7500, ClosedBPS: 2500, WornBPS: 5000, RepairBelowBPS: 7000, DecayBPSPerDay: 50,
 		Levels: []Level{{"apprentice", 0, 7_000}, {"journeyman", 6, 10_000}, {"master", 30, 13_000}},
 	}
 }

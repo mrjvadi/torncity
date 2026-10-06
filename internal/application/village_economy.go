@@ -88,6 +88,8 @@ type SettlementShift struct {
 	// MealPoints is the food the worker ate when the shift started (0: exempt or hungry),
 	// Fed whether they were fed, OutputBPS the productivity the output is scaled by
 	// (rung x fed, ADR 0041 6.3): 10000 is the full base.
+	// ConditionGain is the condition (bps) a repair shift restores when it finishes.
+	ConditionGain           int64
 	MealPoints              int64
 	Fed                     bool
 	OutputBPS               int64

@@ -163,6 +163,16 @@ func VerifyChecks(v postgres.LedgerVerification, cfg *config.Config) []Check {
 		out.add(v.VillageInvariants.ServiceMisrouted == 0, fmt.Sprintf("training fees go from players to a treasury, trainers' wages from a treasury to the sink and bag repairs from players to the sink (%d legs elsewhere)", v.VillageInvariants.ServiceMisrouted))
 	}
 
+	if v.Village && v.WorkNodes {
+		t := v.VillageInvariants
+		out.add(t.MealOpenedRows == t.MealOpenedKitchen && t.MealEatenShifts == t.MealEatenKitchen, fmt.Sprintf("kitchens: the points opened (%d = %d) and eaten (%d = %d) match the meal rows and the shifts that ate", t.MealOpenedRows, t.MealOpenedKitchen, t.MealEatenShifts, t.MealEatenKitchen))
+		out.add(t.MealJournalUnits == t.MealRowUnits, fmt.Sprintf("food units opened for meals in the item journal match the opening rows (%d = %d)", t.MealJournalUnits, t.MealRowUnits))
+		out.add(t.NPCShiftsWithoutJob == 0 && t.NPCHungry == 0 && t.CarryOutOfRange == 0, fmt.Sprintf("every NPC production shift has its job (%d without), none started unfed (%d), and every workplace's carried fraction is below one unit (%d out of range)", t.NPCShiftsWithoutJob, t.NPCHungry, t.CarryOutOfRange))
+		if t.Repairs {
+			out.add(t.RepairWithoutJob == 0 && t.DamageOutOfRange == 0, fmt.Sprintf("every repair shift has its repair job and restores something (%d without), and every building's damage lies within 0..10000 (%d outside)", t.RepairWithoutJob, t.DamageOutOfRange))
+		}
+	}
+
 	if v.Village && v.Teaching {
 		t := v.VillageInvariants
 		out.add(t.CourseFeeLedger == t.CourseFeeRows, fmt.Sprintf("course fees paid to school treasuries in the ledger match the enrolments seated with a school teacher (%d = %d)", t.CourseFeeLedger, t.CourseFeeRows))

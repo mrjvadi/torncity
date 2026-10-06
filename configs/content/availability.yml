@@ -59,8 +59,8 @@ staff_roles:
   # has it, audit M-04), `wage_bps` the wage class as basis points of the market wage.
   - {code: labourer, skill: "", wage_bps: 10000, support_npc: true, note: "ADR 0041 5.1"}
   - {code: woodcutter, skill: forestry, wage_bps: 10000, support_npc: true, note: "ADR 0041 5.1"}
-  - {code: carpenter, skill: carpentry, wage_bps: 12500, personal: [{kind: level, min: 2}], support_npc: true, note: "ADR 0041 5.1"}
-  - {code: mason, skill: masonry, wage_bps: 12500, personal: [{kind: level, min: 2}], support_npc: true, note: "ADR 0041 5.1"}
+  - {code: carpenter, crew: true, skill: carpentry, wage_bps: 12500, personal: [{kind: level, min: 2}], support_npc: true, note: "ADR 0041 5.1"}
+  - {code: mason, crew: true, skill: masonry, wage_bps: 12500, personal: [{kind: level, min: 2}], support_npc: true, note: "ADR 0041 5.1"}
   - {code: smith, skill: smithing, wage_bps: 14000, personal: [{kind: level, min: 3}], support_npc: true, note: "ADR 0041 5.1"}
   - {code: weaver, skill: weaving, wage_bps: 11000, support_npc: true, note: "ADR 0041 5.1"}
   - {code: potter, skill: pottery, wage_bps: 11000, support_npc: true, note: "ADR 0041 5.1"}
@@ -346,7 +346,7 @@ availability:
   - {kind: component, code: silica, stage: village, growth: {open: true, founding: true, row: 194}, requires: {}}
   - {kind: component, code: iron_ore, stage: town, requires: {buildings: [{role: extraction, tier: 2}]}}
   - {kind: component, code: crude_oil, stage: town, requires: {buildings: [{role: extraction, tier: 2}]}}
-  - {kind: component, code: wheat, stage: village, growth: {open: true, founding: true, row: 197}, requires: {}}
+  - {kind: component, code: wheat, stage: village, growth: {open: true, founding: true, row: 197}, requires: {}, elsewhere: [{where: support}], note: "bought from Support by a village (village_buy), the food of its hired crews"}
   - {kind: component, code: cotton, stage: village, growth: {open: true, founding: true, row: 198}, requires: {}}
   - {kind: component, code: timber, stage: village, growth: {open: true, founding: true, row: 199}, requires: {}, elsewhere: [{where: support}], note: bought from Support by a village (village_buy)}
   - {kind: component, code: stone, stage: village, growth: {open: true, founding: true, row: 200}, requires: {}, elsewhere: [{where: support}], note: bought from Support by a village (village_buy)}

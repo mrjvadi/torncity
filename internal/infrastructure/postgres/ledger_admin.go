@@ -378,6 +378,9 @@ func (a *EconomyAdmin) VerifyLedger(ctx context.Context, limit int) (LedgerVerif
 			return v, err
 		}
 	}
+	if err := a.verifyWorkNodes(ctx, &v); err != nil {
+		return v, err
+	}
 	if err := a.verifyTeaching(ctx, &v); err != nil {
 		return v, err
 	}

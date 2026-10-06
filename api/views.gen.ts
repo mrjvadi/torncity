@@ -5658,6 +5658,17 @@ export interface WhoLine {
   place: string
 }
 
+export interface WorkCondition {
+  bps: number
+  decay_bps_per_day: number
+  output_bps: number
+  closed: boolean
+  can_repair: boolean
+  repair_shifts: number
+  repair_materials: WorkItemLine[] | null
+  repair_job: WorkJob | null
+}
+
 export interface WorkHomePlace {
   code: string
   name: string
@@ -5707,6 +5718,7 @@ export interface WorkNode {
   storage_free: number
   meal_points: number
   food_shifts: number
+  condition: WorkCondition | null
   job: WorkJob | null
   if_unstaffed: string
 }

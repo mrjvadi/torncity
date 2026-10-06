@@ -1437,6 +1437,20 @@ labor:
   # rises by this many points. An NPC refuses a shift with no food.
   hungry_output_bps: 5000
   hungry_shift_hunger: 5
+  # Condition, decay and repair of a production workplace (ADR 0041 6.10; owner decision 2 of
+  # 2026-10-01: money upkeep is replaced by decay and repair in kind). A workplace loses
+  # decay_bps_per_day of its condition per whole local day (10000 is new). From worn_bps down
+  # it works at worn_output_bps of its output; under closed_bps it is closed (needs repair).
+  # The head posts a repair job under repair_below_bps: repair_shifts_full labourer shifts
+  # restore a ruined workplace, the missing share of them a worn one, and the materials are
+  # the building's cost_materials x the missing share x repair_material_share_bps.
+  decay_bps_per_day: 50
+  repair_below_bps: 7000
+  worn_bps: 5000
+  closed_bps: 2500
+  worn_output_bps: 7500
+  repair_shifts_full: 10
+  repair_material_share_bps: 2000
   journeyman_shifts: 6         # skill ladder: apprentice, from this many shifts journeyman, then master
   master_shifts: 30
   apprentice_bps: 7000         # productivity of each rung

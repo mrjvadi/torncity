@@ -1115,7 +1115,9 @@ const (
 	LaborNotEmployer  = "labor_not_employer"
 	LaborNoNPC        = "labor_no_npc"
 	// LaborNoFood: the village kitchen cannot feed the NPC's shift (it does not start).
-	LaborNoFood        = "labor_no_food"
+	LaborNoFood = "labor_no_food"
+	// LaborNeedsRepair: the workplace is too worn to work until a repair job restores it.
+	LaborNeedsRepair   = "labor_needs_repair"
 	LaborWageTooLow    = "labor_wage_too_low"
 	LaborEmployerBroke = "labor_employer_broke"
 	LaborNoSite        = "labor_no_site"

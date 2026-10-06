@@ -724,6 +724,13 @@ func (h *VillageHandler) startProduction(ctx context.Context, tx application.Tx,
 	if treasury < wage {
 		return refuseVillage(village.VillageInsufficient, village.AddrWork)
 	}
+	// The workplace's condition (phase 5): worn it works at a share, ruined it is closed.
+	zone := s.Zone()
+	damage := h.damageNow(b, h.decayOf(snap, d), h.now(), zone)
+	condFactor, closed := h.conditionFactor(labor.BPS - damage)
+	if closed {
+		return refuseVillage(village.LaborNeedsRepair, village.AddrWork)
+	}
 	// The meal (phase 3): fed from the kitchen; an NPC with no food does not start, a player
 	// starts hungry at a share of the output. The rung scales the output the same way.
 	// A wiring without the labour rules (the older tests) has no meals and no rungs: the
@@ -758,6 +765,9 @@ func (h *VillageHandler) startProduction(ctx context.Context, tx application.Tx,
 	outputBPS := rung
 	if !fed {
 		outputBPS = rung * h.labor.HungryOutputBPS / labor.BPS
+	}
+	if rules {
+		outputBPS = outputBPS * condFactor / labor.BPS
 	}
 
 	now := h.now()
@@ -801,6 +811,9 @@ func (h *VillageHandler) startProduction(ctx context.Context, tx application.Tx,
 		case stderrors.Is(err, application.ErrAlreadyWorking):
 			return refuseVillage(village.VillageAlreadyWorking, village.AddrWork)
 		}
+		return err
+	}
+	if err := h.persistWear(ctx, tx, b, damage, now, zone); err != nil {
 		return err
 	}
 	if !fed && p != nil {
@@ -858,7 +871,7 @@ func (h *VillageHandler) Worked(ctx context.Context, meta envelope.Metadata, req
 		if now.Before(sh.FinishAt) {
 			return errors.Internal(stderrors.New("handlers: a village shift finished before its time"))
 		}
-		if sh.Kind == application.LaborKindConstruction {
+		if sh.Kind == application.LaborKindConstruction || sh.Kind == application.LaborKindRepair {
 			return h.workedSite(ctx, tx, meta, snap, sh, now)
 		}
 		org := application.SettlementOrg(sh.SettlementID)

@@ -41,6 +41,8 @@ const (
 	NodeReasonEmployerBroke = "employer_broke"
 	// NodeReasonNoFood: the village kitchen cannot feed a shift (an NPC does not start).
 	NodeReasonNoFood = "no_food"
+	// NodeReasonNeedsRepair: the workplace is too worn to work (closed).
+	NodeReasonNeedsRepair = "needs_repair"
 	// NodeReasonBudgetSpent: the job's shifts, or the posts' shifts for the local day, are used up.
 	NodeReasonBudgetSpent = "budget_spent"
 	// NodeReasonNoKeeper: a store with no keeper gives only its communal room.
@@ -69,6 +71,22 @@ type WorkSlot struct {
 type WorkItemLine struct {
 	Item presentation.Named
 	Qty  int64
+}
+
+// WorkCondition is a workplace's wear (ADR 0041 6.10): BPS is its condition (10000 new),
+// DecayBPSPerDay the wear per local day, OutputBPS the share of its output it still gives (0
+// when Closed). CanRepair is true once a repair job may be posted (the head posts it with
+// settlement.labor.post); RepairShifts and RepairMaterials are what it would take.
+type WorkCondition struct {
+	BPS             int64
+	DecayBPSPerDay  int64
+	OutputBPS       int64
+	Closed          bool
+	CanRepair       bool
+	RepairShifts    int
+	RepairMaterials []WorkItemLine
+	// RepairJob is the open repair job (nil when none): its id is taken on the labour board.
+	RepairJob *WorkJob `json:"repair_job,omitempty"`
 }
 
 // WorkJob is the hiring-board job of a standing workplace: its NPC crew and why it stopped.
@@ -107,6 +125,8 @@ type WorkNode struct {
 	// FoodShifts how many such shifts the kitchen pot and the stock's food feed.
 	MealPoints int64 `json:"meal_points,omitempty"`
 	FoodShifts int64 `json:"food_shifts,omitempty"`
+	// Condition is the wear of a production workplace (nil for a building that does not wear).
+	Condition *WorkCondition `json:"condition,omitempty"`
 	// Job is the posted job of the workplace (nil when the head has not posted one).
 	Job *WorkJob `json:"job,omitempty"`
 	// IfUnstaffed is what the content says stands without staff: idle, base_room, decays.

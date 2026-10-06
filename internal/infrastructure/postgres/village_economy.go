@@ -78,7 +78,7 @@ func (r *SettlementTreasuryRepository) StartShift(ctx context.Context, s applica
 const shiftColumns = `id::text, settlement_id::text, building_id::text, COALESCE(player_id::text, ''), status, wage, wage_paid,
 	produced, consumed, game_action_id::text, started_at, finish_at, finished_at,
 	kind, COALESCE(job_id::text, ''), worker_kind, work_points, payer_kind, COALESCE(payer_id::text, ''), fee,
-	meal_points, fed, output_bps`
+	meal_points, fed, output_bps, condition_gain`
 
 func scanShift(row pgx.Row) (application.SettlementShift, error) {
 	var (
@@ -88,7 +88,7 @@ func scanShift(row pgx.Row) (application.SettlementShift, error) {
 	if err := row.Scan(&s.ID, &s.SettlementID, &s.BuildingID, &s.PlayerID, &s.Status, &s.Wage, &s.WagePaid,
 		&produced, &consumed, &s.GameActionID, &s.StartedAt, &s.FinishAt, &s.FinishedAt,
 		&s.Kind, &s.JobID, &s.WorkerKind, &s.WorkPoints, &s.PayerKind, &s.PayerID, &s.Fee,
-		&s.MealPoints, &s.Fed, &s.OutputBPS); err != nil {
+		&s.MealPoints, &s.Fed, &s.OutputBPS, &s.ConditionGain); err != nil {
 		return s, err
 	}
 	if err := json.Unmarshal(produced, &s.Produced); err != nil {

@@ -727,3 +727,51 @@ func (h *VillageHandler) HomeIfVillage(ctx context.Context, meta envelope.Metada
 func (h *VillageHandler) buildCap(snap *content.Snapshot, s application.FoundedSettlement, buildings []application.SettlementBuildingInstance) int {
 	return settlementbuilding.CrewCap(s.Tier, housingOf(snap, buildings), h.homesPerCrew)
 }
+
+// buildCapOf is the buildings a settlement may raise at once, from the crews it has staffed
+// (roadmap 2.2 phase 6, ADR 0044 4.1): what its homes give (buildCap, which stays the floor,
+// so no settlement loses capacity) plus one for each standing workshop of a builder trade
+// (a role marked crew in availability.yml: carpenter, mason) that has its post filled: a
+// shift running there, or a hired crew on its posted job. A workshop nobody works in adds
+// nothing, so staffing it is what grows the capacity.
+func (h *VillageHandler) buildCapOf(ctx context.Context, tx application.Tx, snap *content.Snapshot, s application.FoundedSettlement,
+	buildings []application.SettlementBuildingInstance,
+) (int, error) {
+	floor := h.buildCap(snap, s, buildings)
+	staffed := map[string]bool{}
+	shifts, err := tx.SettlementTreasury().WorkingShifts(ctx, s.CityID)
+	if err != nil {
+		return 0, err
+	}
+	for _, sh := range shifts {
+		if sh.Kind == application.LaborKindProduction {
+			staffed[sh.BuildingID] = true
+		}
+	}
+	jobs, err := tx.SettlementTreasury().OpenJobs(ctx, s.CityID)
+	if err != nil {
+		return 0, err
+	}
+	for _, j := range jobs {
+		if j.Kind == application.LaborKindProduction && j.NPCCrew > 0 {
+			staffed[j.BuildingID] = true
+		}
+	}
+	crews := 0
+	for _, b := range buildings {
+		if b.Status != "complete" || !staffed[b.ID] {
+			continue
+		}
+		if code, ok := snap.FunctionReplacing(b.TypeCode); ok {
+			if f, ok := snap.BuildingFunction(code); ok {
+				for _, st := range f.Staff {
+					if r, ok := snap.StaffRole(st.Role); ok && r.Crew {
+						crews++
+						break
+					}
+				}
+			}
+		}
+	}
+	return max(floor, floor+crews), nil
+}

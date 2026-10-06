@@ -150,8 +150,12 @@ func (h *VillageHandler) BuildMenu(ctx context.Context, meta envelope.Metadata) 
 		}
 		pc := pathContext{snap: snap, tier: s.Tier, owned: st.Owned, caps: capabilities, standing: standingCodes(buildings), stock: stock.Units, markup: h.materialMarkupBPS}
 
+		capNow, cerr := h.buildCapOf(ctx, tx, snap, s, buildings)
+		if cerr != nil {
+			return cerr
+		}
 		view = village.BuildMenuView{Name: s.Name, Treasury: treasury, RunningBuilds: running,
-			ConcurrentCap: h.buildCap(snap, s, buildings)}
+			ConcurrentCap: capNow}
 		waitOf, werr := h.buildWaiter(ctx, tx, snap, s)
 		if werr != nil {
 			return werr

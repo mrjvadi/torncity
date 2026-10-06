@@ -150,9 +150,14 @@ func (h *VillageHandler) buildPlacementContext(ctx context.Context, tx applicati
 		err = rerr2
 		return
 	}
+	capNow, cerr := h.buildCapOf(ctx, tx, snap, s, rows)
+	if cerr != nil {
+		err = cerr
+		return
+	}
 	standing = settlementbuilding.Standing{
 		Knowledge: st.Owned, KnowledgeCapabilities: capabilities, Built: built,
-		RunningBuilds: running, ConcurrentCap: h.buildCap(snap, s, rows), LiteracyShareBPS: st.LiteracyShareBPS,
+		RunningBuilds: running, ConcurrentCap: capNow, LiteracyShareBPS: st.LiteracyShareBPS,
 		SettlementTier: s.Tier,
 	}
 	return

@@ -35,6 +35,9 @@ const LaborShiftReference = SettlementShiftReference
 const (
 	LaborKindConstruction = "construction"
 	LaborKindProduction   = "production"
+	// LaborKindRepair restores a worn workplace (ADR 0041 6.10): labourers work shifts that
+	// each give back a share of its condition.
+	LaborKindRepair = "repair"
 
 	LaborEmployerSettlement = "settlement"
 	LaborEmployerPlayer     = "player"
@@ -105,8 +108,10 @@ type LaborRepository interface {
 	Job(ctx context.Context, id string) (*LaborJob, error)
 	// OpenJobs lists a settlement's open jobs, oldest first.
 	OpenJobs(ctx context.Context, settlementID string) ([]LaborJob, error)
-	// JobOfBuilding is the building's open job, or nil.
+	// JobOfBuilding is the building's oldest open job, or nil.
 	JobOfBuilding(ctx context.Context, buildingID string) (*LaborJob, error)
+	// JobOfBuildingKind is the building's open job of one kind, or nil.
+	JobOfBuildingKind(ctx context.Context, buildingID, kind string) (*LaborJob, error)
 	// PauseJob records why a job's crew stopped; an empty reason clears it.
 	PauseJob(ctx context.Context, jobID, reason string) error
 	// NPCShiftsSince counts the NPC shifts a building started since an instant.

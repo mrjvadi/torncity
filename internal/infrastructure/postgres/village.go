@@ -244,12 +244,12 @@ type SettlementBuildingRepository struct{ q querier }
 var _ application.SettlementBuildingRepository = (*SettlementBuildingRepository)(nil)
 
 const selectSettlementBuildingColumns = `id::text, settlement_id::text, type_code, lot_x, lot_y, status,
-	queued_at, completed_at, demolished_at, cancelled_at, rotated, finish_at, damage_bps, work_required, work_done, COALESCE(employer_player_id::text, '')`
+	queued_at, completed_at, demolished_at, cancelled_at, rotated, finish_at, damage_bps, damage_at, work_required, work_done, COALESCE(employer_player_id::text, '')`
 
 func scanSettlementBuilding(row pgx.Row) (application.SettlementBuildingInstance, error) {
 	var b application.SettlementBuildingInstance
 	err := row.Scan(&b.ID, &b.SettlementID, &b.TypeCode, &b.LotX, &b.LotY, &b.Status,
-		&b.QueuedAt, &b.CompletedAt, &b.DemolishedAt, &b.CancelledAt, &b.Rotated, &b.FinishAt, &b.DamageBPS, &b.WorkRequired, &b.WorkDone, &b.EmployerPlayerID)
+		&b.QueuedAt, &b.CompletedAt, &b.DemolishedAt, &b.CancelledAt, &b.Rotated, &b.FinishAt, &b.DamageBPS, &b.DamageAt, &b.WorkRequired, &b.WorkDone, &b.EmployerPlayerID)
 	return b, err
 }
 
@@ -363,6 +363,14 @@ func (r *SettlementBuildingRepository) Cancel(ctx context.Context, id string, at
 	}
 	if tag.RowsAffected() == 0 {
 		return application.ErrBuildingNotCancellable
+	}
+	return nil
+}
+
+// SetDamage writes a building's damage and the instant it is true.
+func (r *SettlementBuildingRepository) SetDamage(ctx context.Context, id string, damageBPS int, at time.Time) error {
+	if _, err := r.q.Exec(ctx, `UPDATE settlement_buildings SET damage_bps = $2, damage_at = $3 WHERE id = $1::uuid`, id, damageBPS, at.UTC()); err != nil {
+		return fmt.Errorf("postgres: writing a building's damage: %w", err)
 	}
 	return nil
 }

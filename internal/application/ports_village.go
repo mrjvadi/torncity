@@ -132,8 +132,11 @@ type SettlementBuildingInstance struct {
 	// FinishAt is when construction ends on the real clock, nil for the
 	// founding kit and for rows written before migration 0049.
 	FinishAt *time.Time
-	// DamageBPS is 0..10000; no rule damages a building yet.
+	// DamageBPS is 0..10000 (0 intact, 10000 a ruin): a production workplace wears with the
+	// days (ADR 0041 6.10) and a repair job restores it; DamageAt is the instant the stored
+	// damage was last true (nil: since it was completed).
 	DamageBPS int
+	DamageAt  *time.Time
 	// WorkRequired and WorkDone are the worker-minutes construction needs and
 	// has had (migration 0059, ADR 0037). WorkRequired zero is a building of
 	// the older timer, finished by FinishAt.
@@ -248,6 +251,8 @@ type SettlementBuildingRepository interface {
 	// Complete marks a building complete, idempotently: called again on an
 	// already-complete (or demolished) row, it changes nothing.
 	Complete(ctx context.Context, id string, at time.Time) error
+	// SetDamage writes a building's damage (bps) and the instant it is true.
+	SetDamage(ctx context.Context, id string, damageBPS int, at time.Time) error
 
 	// Demolish marks a complete building demolished. Refuses
 	// ErrBuildingNotDemolishable for anything not currently "complete".

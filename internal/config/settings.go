@@ -99,35 +99,42 @@ type trainingSettings struct {
 }
 
 type laborSettings struct {
-	ShiftMinutes        *int64  `yaml:"shift_minutes"`
-	ShiftRealMinutes    *int64  `yaml:"shift_real_minutes"`
-	ReferenceCrew       *int64  `yaml:"reference_crew"`
-	BaseWage            *int64  `yaml:"base_wage"`
-	MinWageVillage      *int64  `yaml:"min_wage_village"`
-	MinWageTown         *int64  `yaml:"min_wage_town"`
-	MinWageCity         *int64  `yaml:"min_wage_city"`
-	ParticipationBPS    *int64  `yaml:"participation_bps"`
-	BaseHousing         *int64  `yaml:"base_housing"`
-	NPCProductivityBPS  *int64  `yaml:"npc_productivity_bps"`
-	FeeBPS              *int64  `yaml:"fee_bps"`
-	BudgetSlackBPS      *int64  `yaml:"budget_slack_bps"`
-	NPCShiftsPerSlotDay *int64  `yaml:"npc_shifts_per_slot_day"`
-	HungryOutputBPS     *int64  `yaml:"hungry_output_bps"`
-	HungryShiftHunger   *int64  `yaml:"hungry_shift_hunger"`
-	JourneymanShifts    *int64  `yaml:"journeyman_shifts"`
-	MasterShifts        *int64  `yaml:"master_shifts"`
-	ApprenticeBPS       *int64  `yaml:"apprentice_bps"`
-	JourneymanBPS       *int64  `yaml:"journeyman_bps"`
-	MasterBPS           *int64  `yaml:"master_bps"`
-	TightBalancedBPS    *int64  `yaml:"tight_balanced_bps"`
-	TightTightBPS       *int64  `yaml:"tight_tight_bps"`
-	TightShortBPS       *int64  `yaml:"tight_short_bps"`
-	WageSlackBPS        *int64  `yaml:"wage_slack_bps"`
-	WageBalancedBPS     *int64  `yaml:"wage_balanced_bps"`
-	WageTightBPS        *int64  `yaml:"wage_tight_bps"`
-	WageShortBPS        *int64  `yaml:"wage_short_bps"`
-	HirePresets         []int64 `yaml:"hire_presets"`
-	WagePresets         []int64 `yaml:"wage_presets"`
+	ShiftMinutes           *int64  `yaml:"shift_minutes"`
+	ShiftRealMinutes       *int64  `yaml:"shift_real_minutes"`
+	ReferenceCrew          *int64  `yaml:"reference_crew"`
+	BaseWage               *int64  `yaml:"base_wage"`
+	MinWageVillage         *int64  `yaml:"min_wage_village"`
+	MinWageTown            *int64  `yaml:"min_wage_town"`
+	MinWageCity            *int64  `yaml:"min_wage_city"`
+	ParticipationBPS       *int64  `yaml:"participation_bps"`
+	BaseHousing            *int64  `yaml:"base_housing"`
+	NPCProductivityBPS     *int64  `yaml:"npc_productivity_bps"`
+	FeeBPS                 *int64  `yaml:"fee_bps"`
+	BudgetSlackBPS         *int64  `yaml:"budget_slack_bps"`
+	NPCShiftsPerSlotDay    *int64  `yaml:"npc_shifts_per_slot_day"`
+	HungryOutputBPS        *int64  `yaml:"hungry_output_bps"`
+	HungryShiftHunger      *int64  `yaml:"hungry_shift_hunger"`
+	RepairMaterialShareBPS *int64  `yaml:"repair_material_share_bps"`
+	RepairShiftsFull       *int64  `yaml:"repair_shifts_full"`
+	WornOutputBPS          *int64  `yaml:"worn_output_bps"`
+	ClosedBPS              *int64  `yaml:"closed_bps"`
+	WornBPS                *int64  `yaml:"worn_bps"`
+	RepairBelowBPS         *int64  `yaml:"repair_below_bps"`
+	DecayBPSPerDay         *int64  `yaml:"decay_bps_per_day"`
+	JourneymanShifts       *int64  `yaml:"journeyman_shifts"`
+	MasterShifts           *int64  `yaml:"master_shifts"`
+	ApprenticeBPS          *int64  `yaml:"apprentice_bps"`
+	JourneymanBPS          *int64  `yaml:"journeyman_bps"`
+	MasterBPS              *int64  `yaml:"master_bps"`
+	TightBalancedBPS       *int64  `yaml:"tight_balanced_bps"`
+	TightTightBPS          *int64  `yaml:"tight_tight_bps"`
+	TightShortBPS          *int64  `yaml:"tight_short_bps"`
+	WageSlackBPS           *int64  `yaml:"wage_slack_bps"`
+	WageBalancedBPS        *int64  `yaml:"wage_balanced_bps"`
+	WageTightBPS           *int64  `yaml:"wage_tight_bps"`
+	WageShortBPS           *int64  `yaml:"wage_short_bps"`
+	HirePresets            []int64 `yaml:"hire_presets"`
+	WagePresets            []int64 `yaml:"wage_presets"`
 }
 
 type postgresSettings struct {
@@ -1622,6 +1629,27 @@ var coreSettings = []setting{
 	moneySetting("labor", "hungry_output_bps",
 		func(c *Config) *int64 { return &c.Labor.HungryOutputBPS },
 		func(f *fileConfig) *int64 { return f.Labor.HungryOutputBPS }),
+	moneySetting("labor", "decay_bps_per_day",
+		func(c *Config) *int64 { return &c.Labor.DecayBPSPerDay },
+		func(f *fileConfig) *int64 { return f.Labor.DecayBPSPerDay }),
+	moneySetting("labor", "repair_below_bps",
+		func(c *Config) *int64 { return &c.Labor.RepairBelowBPS },
+		func(f *fileConfig) *int64 { return f.Labor.RepairBelowBPS }),
+	moneySetting("labor", "worn_bps",
+		func(c *Config) *int64 { return &c.Labor.WornBPS },
+		func(f *fileConfig) *int64 { return f.Labor.WornBPS }),
+	moneySetting("labor", "closed_bps",
+		func(c *Config) *int64 { return &c.Labor.ClosedBPS },
+		func(f *fileConfig) *int64 { return f.Labor.ClosedBPS }),
+	moneySetting("labor", "worn_output_bps",
+		func(c *Config) *int64 { return &c.Labor.WornOutputBPS },
+		func(f *fileConfig) *int64 { return f.Labor.WornOutputBPS }),
+	moneySetting("labor", "repair_shifts_full",
+		func(c *Config) *int64 { return &c.Labor.RepairShiftsFull },
+		func(f *fileConfig) *int64 { return f.Labor.RepairShiftsFull }),
+	moneySetting("labor", "repair_material_share_bps",
+		func(c *Config) *int64 { return &c.Labor.RepairMaterialShareBPS },
+		func(f *fileConfig) *int64 { return f.Labor.RepairMaterialShareBPS }),
 	moneySetting("labor", "hungry_shift_hunger",
 		func(c *Config) *int64 { return &c.Labor.HungryShiftHunger },
 		func(f *fileConfig) *int64 { return f.Labor.HungryShiftHunger }),

@@ -79,10 +79,35 @@ type VillageInvariants struct {
 	TuitionLedger, TuitionRows         int64
 	TeacherWageLedger, TeacherWageRows int64
 	TeachMismatched                    int64
+	// Working nodes (migration 0125, roadmap 2.2 phase 3). Meals: the food points the
+	// settlement_meals rows opened into kitchens (units x points) against the kitchens' own
+	// opened_points; the points the shifts ate against the kitchens' eaten_points; the food
+	// units the item journal says were eaten (reason meal_eaten) against the rows' units.
+	// NPCShiftsWithoutJob counts NPC production shifts no job posted; NPCHungry NPC shifts
+	// that started unfed (an NPC never does); CarryOutOfRange workplaces whose carried
+	// fraction is not within [0, 10000).
+	WorkNodes                                       bool
+	MealOpenedRows, MealOpenedKitchen               int64
+	MealEatenShifts, MealEatenKitchen               int64
+	MealJournalUnits, MealRowUnits                  int64
+	NPCShiftsWithoutJob, NPCHungry, CarryOutOfRange int64
+	// Condition (migration 0126): Repairs is whether the columns exist; RepairWithoutJob counts
+	// repair shifts no repair job posted or that restore nothing; DamageOutOfRange buildings
+	// whose damage is outside 0..10000; RepairUnpaid finished repair shifts with a gain but
+	// whose wage has no transaction while it was positive.
+	Repairs                            bool
+	RepairWithoutJob, DamageOutOfRange int64
 	// ServiceMisrouted counts legs of training_fee (to a treasury, from a player),
 	// trainer_wage (treasury to the sink) and bag_repair (to the sink) that go
 	// anywhere else: those flows have no row table, so their routes are the check.
 	ServiceMisrouted int64
+}
+
+// WorkNodesOK reports whether the working-node checks hold.
+func (v VillageInvariants) WorkNodesOK() bool {
+	return !v.WorkNodes || (v.MealOpenedRows == v.MealOpenedKitchen && v.MealEatenShifts == v.MealEatenKitchen &&
+		v.MealJournalUnits == v.MealRowUnits && v.NPCShiftsWithoutJob == 0 && v.NPCHungry == 0 && v.CarryOutOfRange == 0 &&
+		(!v.Repairs || (v.RepairWithoutJob == 0 && v.DamageOutOfRange == 0)))
 }
 
 // TeachingOK reports whether the teaching checks hold.
@@ -98,7 +123,7 @@ func (v VillageInvariants) ok() bool {
 		v.MaterialLedger == v.MaterialRows && v.MaterialMismatched == 0 && v.MaterialItems == v.MaterialItemRows &&
 		v.WageLedger == v.WageRows && v.WageMismatched == 0 && v.ShiftItems == v.ShiftItemRows &&
 		v.LaborWageLedger == v.LaborWageRows && v.LaborMismatched == 0 && v.LaborEscrowLedger == v.LaborEscrowRows &&
-		v.LaborBuiltWithoutWork == 0 && v.LaborWorkUnbacked == 0 && v.ServiceMisrouted == 0 && v.TeachingOK()
+		v.LaborBuiltWithoutWork == 0 && v.LaborWorkUnbacked == 0 && v.ServiceMisrouted == 0 && v.TeachingOK() && v.WorkNodesOK()
 }
 
 // verifyVillage runs the village treasury's invariants.
@@ -179,10 +204,10 @@ func (a *EconomyAdmin) verifyVillage(ctx context.Context, v *LedgerVerification)
 		{&s.LaborWageLedger, "labour wages", `
 			SELECT COALESCE(SUM(amount), 0)::bigint FROM ledger_entries WHERE reason IN ('labor_wage', 'labor_wage_npc') AND amount > 0`, nil},
 		{&s.LaborWageRows, "labour wage rows", `
-			SELECT COALESCE(SUM(wage_paid), 0)::bigint FROM settlement_shifts WHERE status = 'done' AND kind = 'construction'`, nil},
+			SELECT COALESCE(SUM(wage_paid), 0)::bigint FROM settlement_shifts WHERE status = 'done' AND kind IN ('construction', 'repair')`, nil},
 		{&s.LaborMismatched, "labour wage transactions", `
 			SELECT count(*) FROM settlement_shifts s
-			 WHERE s.status = 'done' AND s.kind = 'construction'
+			 WHERE s.status = 'done' AND s.kind IN ('construction', 'repair')
 			   AND ((s.wage_paid > 0
 			         AND ((SELECT count(*) FROM ledger_entries e
 			                WHERE e.transaction_id = s.ledger_transaction_id AND e.reason IN ('labor_wage', 'labor_wage_npc')
@@ -247,6 +272,63 @@ func (a *EconomyAdmin) verifyTeaching(ctx context.Context, v *LedgerVerification
 			    OR (e.status = 'completed' AND c.wage_paid_at IS NULL)`, nil},
 	} {
 		if err := a.q.QueryRow(ctx, c.sql, c.args...).Scan(c.into); err != nil {
+			return fmt.Errorf("postgres: checking %s: %w", c.what, err)
+		}
+	}
+	return nil
+}
+
+// verifyWorkNodes runs the working-node checks when migration 0125 is applied.
+func (a *EconomyAdmin) verifyWorkNodes(ctx context.Context, v *LedgerVerification) error {
+	if err := a.q.QueryRow(ctx, `SELECT to_regclass('public.settlement_kitchen') IS NOT NULL`).Scan(&v.VillageInvariants.WorkNodes); err != nil {
+		return fmt.Errorf("postgres: looking for the kitchens: %w", err)
+	}
+	if !v.VillageInvariants.WorkNodes {
+		return nil
+	}
+	s := &v.VillageInvariants
+	for _, c := range []struct {
+		into *int64
+		what string
+		sql  string
+	}{
+		{&s.MealOpenedRows, "meal openings", `SELECT COALESCE(SUM(units * points_each), 0)::bigint FROM settlement_meals`},
+		{&s.MealOpenedKitchen, "kitchen opened points", `SELECT COALESCE(SUM(opened_points), 0)::bigint FROM settlement_kitchen`},
+		{&s.MealEatenShifts, "points the shifts ate", `SELECT COALESCE(SUM(meal_points), 0)::bigint FROM settlement_shifts`},
+		{&s.MealEatenKitchen, "kitchen eaten points", `SELECT COALESCE(SUM(eaten_points), 0)::bigint FROM settlement_kitchen`},
+		{&s.MealJournalUnits, "meal units in the item journal", `SELECT COALESCE(SUM(quantity), 0)::bigint FROM item_movements WHERE reason = 'meal_eaten'`},
+		{&s.MealRowUnits, "meal units in the opening rows", `SELECT COALESCE(SUM(units), 0)::bigint FROM settlement_meals`},
+		{&s.NPCShiftsWithoutJob, "NPC production shifts without a job", `
+			SELECT count(*) FROM settlement_shifts WHERE kind = 'production' AND worker_kind = 'npc' AND job_id IS NULL`},
+		{&s.NPCHungry, "NPC shifts that started unfed", `
+			SELECT count(*) FROM settlement_shifts WHERE worker_kind = 'npc' AND kind = 'production' AND NOT fed`},
+		{&s.CarryOutOfRange, "workplaces whose carry is out of range", `
+			SELECT count(*) FROM settlement_buildings b, jsonb_each_text(b.carry) c
+			 WHERE c.value::bigint < 0 OR c.value::bigint >= 10000`},
+	} {
+		if err := a.q.QueryRow(ctx, c.sql).Scan(c.into); err != nil {
+			return fmt.Errorf("postgres: checking %s: %w", c.what, err)
+		}
+	}
+	if err := a.q.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM information_schema.columns
+		WHERE table_name = 'settlement_shifts' AND column_name = 'condition_gain')`).Scan(&s.Repairs); err != nil {
+		return fmt.Errorf("postgres: looking for repairs: %w", err)
+	}
+	if !s.Repairs {
+		return nil
+	}
+	for _, c := range []struct {
+		into *int64
+		what string
+		sql  string
+	}{
+		{&s.RepairWithoutJob, "repair shifts without a repair job", `
+			SELECT count(*) FROM settlement_shifts s
+			 WHERE s.kind = 'repair' AND (s.condition_gain <= 0 OR NOT EXISTS
+			       (SELECT 1 FROM labor_jobs j WHERE j.id = s.job_id AND j.kind = 'repair'))`},
+		{&s.DamageOutOfRange, "buildings with damage out of range", `SELECT count(*) FROM settlement_buildings WHERE damage_bps < 0 OR damage_bps > 10000`},
+	} {
+		if err := a.q.QueryRow(ctx, c.sql).Scan(c.into); err != nil {
 			return fmt.Errorf("postgres: checking %s: %w", c.what, err)
 		}
 	}
