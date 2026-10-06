@@ -14,6 +14,7 @@ import (
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/application/handlers"
+	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/presentation"
 	"github.com/mrjvadi/torncity/internal/shared/money"
 	vpres "github.com/mrjvadi/torncity/internal/presentation/village"
@@ -921,6 +922,143 @@ func TestBuildingPanelCarriesItsWork(t *testing.T) {
 			if w.Kind != vpres.NodeKindNone || !has(w, vpres.NodeReasonNoFunction) {
 				t.Errorf("a road has no work and says so: %+v", w)
 			}
+		}
+	}
+}
+
+// The live shape of «مارکو پلو» (2026-10-06): two granaries built before the classes rule, a
+// barter post and a civic hall, no storehouse, stock timber 53, stone 25, wool 25, wheat 40, no
+// research beyond a fresh founding, and the content read the way every service reads it, from
+// the DATABASE (not from the files). The view must carry the classes (wheat in food against the
+// granaries, wool in goods, timber and stone in bulk), the granaries as stores, and the old
+// shared room during the grace: never one flat yard of 60.
+func TestMarcoPoloShapeReadsItsClassesFromTheDatabaseContent(t *testing.T) {
+	e := newFoundingEnv(t)
+	pool := e.pool
+	ctx := testCtx(t)
+	// the content exactly as a booted service reads it
+	pack, err := postgres.NewContentStore(pool).LoadActive(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	snap, err := content.BuildSnapshot(pack.Version, pack)
+	if err != nil {
+		t.Fatal(err)
+	}
+	catalog, err := i18n.Load(filepath.Join("..", "configs", "locales"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	uow := postgres.NewUnitOfWork(pool, testDefaultLanguage)
+	clock := gametime.Clock{Epoch: e.clock.Now().Add(-100 * 24 * time.Hour), Scale: 1}
+	rules := handlers.StorageRules{Clock: clock, SpoilKeptBPS: 100, SpoilUnkeptBPS: 3000}
+	graceFrom := e.clock.Now().Add(-3 * 24 * time.Hour) // the keeper rule began three days ago
+	rules.GraceFrom, rules.GraceDays = graceFrom, 14
+	village := handlers.NewVillageHandler(uow, workIDs{t}, catalog, staticContentSource{snap: snap}, e.cache,
+		postgres.NewCityRepository(pool), gametime.Scale(1),
+		handlers.VillageRules{
+			VillageGridLots: 5, TeachPeriod: time.Second, TeachRateBPS: 10_000,
+			BaseSchoolCapacityBPS: 10_000, ScarcityKBPS: 10_000, ScarcityFloorBPS: 3_000, ScarcityCapBPS: 80_000, SellerBandBPS: 500,
+			HomeCityCode: "support", MaterialMarkupBPS: 12_000, StockBaseCapacity: 60, MaterialBuyMax: 200,
+			MaterialBuyPresets: []int64{5, 20, 50},
+		}, time.Hour, e.clock.Now).
+		WithLabor(labor.Default(), []int64{1, 2, 4}, []int64{100, 125, 150, 200}).
+		WithStorage(rules)
+	meta, founder := e.group(t)
+	foundVillage(t, pool, e.h, meta)
+	var cityID string
+	if err := pool.Raw().QueryRow(ctx, `SELECT id::text FROM cities WHERE founded_by_group_id = $1`, meta.TelegramChatID).Scan(&cityID); err != nil {
+		t.Fatal(err)
+	}
+	// both granaries stood before the rule: the founding kit's and a second one
+	if _, err := pool.Raw().Exec(ctx, `UPDATE settlement_buildings SET completed_at = $2 WHERE settlement_id = $1::uuid AND status = 'complete'`,
+		cityID, graceFrom.Add(-24*time.Hour)); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := pool.Raw().Exec(ctx, `INSERT INTO settlement_buildings (id, settlement_id, type_code, lot_x, lot_y, status, queued_at, completed_at)
+	    VALUES ($1::uuid, $2::uuid, 'granary', 83, 3, 'complete', $3, $3)`, newUUID(t), cityID, graceFrom.Add(-24*time.Hour)); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		c := testCtx(t)
+		for _, stmt := range []string{
+			`ALTER TABLE item_movements DISABLE TRIGGER item_movements_append_only`,
+			`DELETE FROM item_movements WHERE to_org = $1::uuid OR from_org = $1::uuid`,
+			`ALTER TABLE item_movements ENABLE TRIGGER item_movements_append_only`,
+			`DELETE FROM org_stacks WHERE org_kind = 'settlement' AND org_id = $1::uuid`,
+			`DELETE FROM village_storage_days WHERE settlement_id = $1::uuid`,
+		} {
+			var args []any
+			if strings.Contains(stmt, "$1") {
+				args = append(args, cityID)
+			}
+			if _, err := pool.Raw().Exec(c, stmt, args...); err != nil {
+				t.Errorf("cleanup %q: %v", stmt, err)
+			}
+		}
+		purgeLedgerFor(t, pool, cityID)
+	})
+	for item, qty := range map[string]int64{"timber": 53, "stone": 25, "wool": 25, "wheat": 40} {
+		item, qty := item, qty
+		if err := uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
+			return tx.Items().Move(ctx, application.ItemMove{
+				ID: newUUID(t), Item: item, Qty: qty, ToOrg: application.SettlementOrg(cityID), ToHolding: application.HoldWarehouse,
+				Reason: application.ItemGrant, ReferenceType: "test", ReferenceID: newUUID(t), At: time.Now().UTC(),
+			})
+		}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	m := asPlayer(meta, founder)
+	m.Command = "settlement.materials"
+	m.RequestID = "req_" + randomToken(t, 16)
+	m.IdempotencyKey = "it-" + randomToken(t, 16)
+	resp, err := village.Materials(ctx, m)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var v vpres.MaterialsView
+	if err := presentation.DecodeView(resp.View, &v); err != nil {
+		t.Fatal(err)
+	}
+	byClass := map[string]vpres.StockClassLine{}
+	for _, c := range v.Classes {
+		byClass[c.Class] = c
+	}
+	for _, class := range []string{"bulk", "food", "goods"} {
+		if _, ok := byClass[class]; !ok {
+			t.Fatalf("the view has no %s class: the content read from the database has no storage classes? %+v", class, v.Classes)
+		}
+	}
+	if f := byClass["food"]; f.Used != 40 || f.Capacity < 120 || f.Over != 0 {
+		t.Errorf("the wheat is in the food class against the granaries (base 20 + at least their communal 100 each): %+v", f)
+	}
+	if g := byClass["goods"]; g.Used != 25 || g.Over != 0 {
+		t.Errorf("the wool is in goods, which the old shared room covers during the grace: %+v", g)
+	}
+	if b := byClass["bulk"]; b.Used != 156 || b.Over != 0 || b.Borrowed == 0 {
+		t.Errorf("timber and stone (2 spaces a unit) are 156 in bulk, covered by the old shared room during the grace: %+v", b)
+	}
+	if len(v.Stores) != 2 {
+		t.Errorf("the two granaries are the stores: %+v", v.Stores)
+	}
+	if v.Transition == nil || v.Over != 0 {
+		t.Errorf("the grace notice stands and nothing is over: transition %v over %d", v.Transition, v.Over)
+	}
+	// after the grace the bulk is over and the view says what to build
+	e.clock.Advance(15 * 24 * time.Hour)
+	m.RequestID, m.IdempotencyKey = "req_"+randomToken(t, 16), "it-"+randomToken(t, 16)
+	resp, err = village.Materials(ctx, m)
+	if err != nil {
+		t.Fatal(err)
+	}
+	v = vpres.MaterialsView{}
+	if err := presentation.DecodeView(resp.View, &v); err != nil {
+		t.Fatal(err)
+	}
+	for _, c := range v.Classes {
+		if c.Class == "bulk" && (c.Over != 96 || len(c.Build) == 0) {
+			t.Errorf("after the grace bulk is 96 over (156 in 60) and names the storehouse: %+v", c)
 		}
 	}
 }
