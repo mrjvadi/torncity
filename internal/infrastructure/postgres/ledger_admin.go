@@ -780,3 +780,21 @@ func (a *EconomyAdmin) AppendAudit(ctx context.Context, e AuditEntry) error {
 func (a *EconomyAdmin) PlayerByCode(ctx context.Context, code string) (id, label string, err error) {
 	return activePlayerByCode(ctx, a.q, code)
 }
+
+// PlayerPlaceRow is where a player lives and stands, for an operator's before and after.
+type PlayerPlaceRow struct {
+	CityID, PlaceCode, Residence string
+	ResidenceSince               *string
+}
+
+// PlayerPlace reads where a player stands (city and place) and where they live.
+func (a *EconomyAdmin) PlayerPlace(ctx context.Context, playerID string) (PlayerPlaceRow, error) {
+	var r PlayerPlaceRow
+	err := a.q.QueryRow(ctx, `SELECT COALESCE(city_id::text, ''), COALESCE(place_code, ''), COALESCE(residence_city_id::text, ''),
+		to_char(residence_since AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') FROM players WHERE id = $1::uuid`, playerID).
+		Scan(&r.CityID, &r.PlaceCode, &r.Residence, &r.ResidenceSince)
+	if err != nil {
+		return r, fmt.Errorf("postgres: reading a player's place: %w", err)
+	}
+	return r, nil
+}
