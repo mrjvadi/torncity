@@ -1,10 +1,10 @@
 package notification
 
 import (
-	plife "github.com/mrjvadi/torncity/internal/presentation/life"
-	"github.com/mrjvadi/torncity/internal/presentation"
 	"context"
 	"encoding/json"
+	"github.com/mrjvadi/torncity/internal/presentation"
+	plife "github.com/mrjvadi/torncity/internal/presentation/life"
 
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	apperrors "github.com/mrjvadi/torncity/internal/shared/errors"

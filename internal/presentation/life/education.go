@@ -119,7 +119,6 @@ type TeachingView struct {
 	TaxBPS int
 }
 
-
 // EnrolledView is a successful enrolment.
 type EnrolledView struct {
 	Course CourseRef

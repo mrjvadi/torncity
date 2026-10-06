@@ -15,16 +15,6 @@ import (
 // A ballot is secret: no screen says who voted for whom, and the counts are
 // shown only after the count.
 
-
-
-
-
-
-
-
-
-
-
 // electionTitle names an election: the usual name of an office's election
 // (election.name.<office>), or the office and the place.
 func (c Context) electionTitle(office string, place GovPlace) string {
@@ -106,10 +96,6 @@ func renderElections(c Context, v ElectionsView) *presenter.Response {
 	return c.respond(paragraphs(c.T("election.title", map[string]any{"place": c.PlaceName(v.Place)}), body(lines...),
 		c.T("election.hint", nil)), kb.Build())
 }
-
-
-
-
 
 // Election renders one election.
 func Election(c Context, v ElectionView) *presenter.Response {
@@ -207,8 +193,6 @@ func renderElection(c Context, v ElectionView) *presenter.Response {
 	), kb.Build())
 }
 
-
-
 // Stood renders a candidacy registered.
 func Stood(c Context, v StoodView) *presenter.Response {
 	return c.withView(renderStood(c, v), ScreenStood, v)
@@ -227,8 +211,6 @@ func renderStood(c Context, v StoodView) *presenter.Response {
 	return c.respond(body(lines...), kb.Build()).MarkPrivate()
 }
 
-
-
 // Voted renders a vote cast. It is private: whom a player voted for is
 // theirs alone.
 func Voted(c Context, v VotedView) *presenter.Response {
@@ -246,10 +228,6 @@ func renderVoted(c Context, v VotedView) *presenter.Response {
 		electionWhen(c, "election.count_at", "election.count_in", v.CountAt, v.CountIn),
 	), kb.Build()).MarkPrivate()
 }
-
-
-
-
 
 // ElectionRefusal renders a refused election request.
 func ElectionRefusal(c Context, v ElectionRefusalView) *presenter.Response {

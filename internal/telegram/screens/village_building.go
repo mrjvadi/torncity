@@ -279,6 +279,9 @@ func workBlock(c Context, v BuildingView) []string {
 		out = append(out, c.T("building.work.shift", map[string]any{
 			"duration": FormatDuration(c, time.Duration(w.ShiftSeconds)*time.Second), "wage": FormatMoney(c, w.Wage)}))
 	}
+	if w.MealPoints > 0 {
+		out = append(out, c.T("building.work.food", map[string]any{"points": w.MealPoints, "shifts": w.FoodShifts}))
+	}
 	items := func(ls []village.WorkItemLine) string {
 		var parts []string
 		for _, l := range ls {

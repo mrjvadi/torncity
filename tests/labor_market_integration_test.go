@@ -552,6 +552,8 @@ func TestNPCCrewWorksAProductionJob(t *testing.T) {
 			`DELETE FROM item_movements WHERE to_org = $1::uuid OR from_org = $1::uuid`,
 			`ALTER TABLE item_movements ENABLE TRIGGER item_movements_append_only`,
 			`DELETE FROM org_stacks WHERE org_kind = 'settlement' AND org_id = $1::uuid`,
+			`DELETE FROM settlement_meals WHERE settlement_id = $1::uuid`,
+			`DELETE FROM settlement_kitchen WHERE settlement_id = $1::uuid`,
 		} {
 			var args []any
 			if strings.Contains(stmt, "$1") {
@@ -582,12 +584,33 @@ func TestNPCCrewWorksAProductionJob(t *testing.T) {
 		t.Fatalf("no production job: %v", err)
 	}
 	sink0, treasury0 := l.sink(), treasuryOf(t, l.pool, l.cityID)
-	if _, err := rrc(l.village.LaborHire(ctx, l.as(l.head, "settlement.labor.hire", "labor.hire"), handlers.VillageLaborRequest{ID: jobID, N: "2"})); err != nil {
-		t.Fatal(err)
+	hire := func() {
+		t.Helper()
+		_, _ = rrc(l.village.LaborHire(ctx, l.as(l.head, "settlement.labor.hire", "labor.hire"), handlers.VillageLaborRequest{ID: jobID, N: "2"}))
 	}
 	running := func() int64 {
 		return l.scalar(`SELECT count(*) FROM settlement_shifts WHERE building_id = $1::uuid AND kind = 'production' AND worker_kind = 'npc' AND player_id IS NULL AND status = 'working'`, camp)
 	}
+	// no food in the village: the labourers do not start, the crew is paused with the reason
+	hire()
+	if got := running(); got != 0 {
+		t.Fatalf("an NPC must not start a shift with no food: %d running", got)
+	}
+	var paused string
+	if err := l.pool.Raw().QueryRow(ctx, `SELECT COALESCE(paused, '') FROM labor_jobs WHERE id = $1::uuid`, jobID).Scan(&paused); err != nil || paused != "no_food" {
+		t.Fatalf("the crew should be paused for food: %q %v", paused, err)
+	}
+	// wheat arrives (2 points a unit): the crew starts, one wheat feeds two one-hour shifts
+	uow := postgres.NewUnitOfWork(l.pool, testDefaultLanguage)
+	if err := uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
+		return tx.Items().Move(ctx, application.ItemMove{
+			ID: newUUID(t), Item: "wheat", Qty: 10, ToOrg: application.SettlementOrg(l.cityID), ToHolding: application.HoldWarehouse,
+			Reason: application.ItemGrant, ReferenceType: "test", ReferenceID: newUUID(t), At: time.Now().UTC(),
+		})
+	}); err != nil {
+		t.Fatal(err)
+	}
+	hire()
 	if got := running(); got != 2 {
 		t.Fatalf("two NPC labourers should be working the camp, %d are", got)
 	}
@@ -614,8 +637,19 @@ func TestNPCCrewWorksAProductionJob(t *testing.T) {
 	if err := l.pool.Raw().QueryRow(ctx, `SELECT COALESCE(SUM(quantity), 0)::bigint FROM org_stacks WHERE org_kind = 'settlement' AND org_id = $1::uuid AND item_code = 'timber'`, l.cityID).Scan(&timber); err != nil {
 		t.Fatal(err)
 	}
-	if timber < 8 {
-		t.Errorf("two shifts of 4 timber should be in the stock, %d are", timber)
+	// an NPC works at 85 percent: two shifts of 4 timber deliver 3 + 3 and carry 0.8
+	if timber != 6 {
+		t.Errorf("two NPC shifts of 4 timber at 85 percent should deliver 6, %d are in the stock", timber)
+	}
+	if carry := l.scalar(`SELECT COALESCE((carry->>'timber')::bigint, 0) FROM settlement_buildings WHERE id = $1::uuid`, camp); carry != 8000 {
+		t.Errorf("the camp should carry 8000 ten-thousandths of a timber, it carries %d", carry)
+	}
+	var wheat int64
+	if err := l.pool.Raw().QueryRow(ctx, `SELECT COALESCE(SUM(quantity), 0)::bigint FROM org_stacks WHERE org_kind = 'settlement' AND org_id = $1::uuid AND item_code = 'wheat'`, l.cityID).Scan(&wheat); err != nil {
+		t.Fatal(err)
+	}
+	if wheat > 9 || wheat < 7 {
+		t.Errorf("the meals should have taken one or two wheat of ten, %d are left", wheat)
 	}
 	paid := l.scalar(`SELECT COALESCE(SUM(wage_paid), 0)::bigint FROM settlement_shifts WHERE building_id = $1::uuid AND status = 'done'`, camp)
 	if paid == 0 || l.sink()-sink0 != paid || treasury0-treasuryOf(t, l.pool, l.cityID) != paid {
@@ -643,7 +677,6 @@ func TestNPCCrewWorksAProductionJob(t *testing.T) {
 	if got := running(); got != 0 {
 		t.Errorf("a post past its day's shifts starts no more: %d running", got)
 	}
-	var paused string
 	if err := l.pool.Raw().QueryRow(ctx, `SELECT COALESCE(paused, '') FROM labor_jobs WHERE id = $1::uuid`, jobID).Scan(&paused); err != nil || paused != "budget_spent" {
 		t.Errorf("the crew should be paused with the reason: %q %v", paused, err)
 	}
@@ -655,5 +688,103 @@ func TestNPCCrewWorksAProductionJob(t *testing.T) {
 	if v.VillageInvariants.WageMismatched != v0.VillageInvariants.WageMismatched ||
 		v.VillageInvariants.WageLedger-v.VillageInvariants.WageRows != v0.VillageInvariants.WageLedger-v0.VillageInvariants.WageRows {
 		t.Errorf("the production wage ledger drifted: before %+v, after %+v", v0.VillageInvariants, v.VillageInvariants)
+	}
+}
+
+// A player may work with the village out of food, hungry, at half the output of their rung;
+// fed from the kitchen they work at the full rung (roadmap 2.2 phase 3).
+func TestAHungryPlayerWorksHalfAndAFedOneFull(t *testing.T) {
+	l := newLaborEnv(t)
+	ctx := testCtx(t)
+	t.Cleanup(func() {
+		c := testCtx(t)
+		for _, stmt := range []string{
+			`ALTER TABLE item_movements DISABLE TRIGGER item_movements_append_only`,
+			`DELETE FROM item_movements WHERE to_org = $1::uuid OR from_org = $1::uuid`,
+			`ALTER TABLE item_movements ENABLE TRIGGER item_movements_append_only`,
+			`DELETE FROM org_stacks WHERE org_kind = 'settlement' AND org_id = $1::uuid`,
+			`DELETE FROM settlement_meals WHERE settlement_id = $1::uuid`,
+			`DELETE FROM settlement_kitchen WHERE settlement_id = $1::uuid`,
+		} {
+			var args []any
+			if strings.Contains(stmt, "$1") {
+				args = append(args, l.cityID)
+			}
+			if _, err := l.pool.Raw().Exec(c, stmt, args...); err != nil {
+				t.Errorf("cleanup %q: %v", stmt, err)
+			}
+		}
+	})
+	camp := newUUID(t)
+	if _, err := l.pool.Raw().Exec(ctx, `INSERT INTO settlement_buildings (id, settlement_id, type_code, lot_x, lot_y, status, queued_at, completed_at)
+	    VALUES ($1::uuid, $2::uuid, 'woodcutter_camp', 81, 3, 'complete', now(), now())`, camp, l.cityID); err != nil {
+		t.Fatal(err)
+	}
+	worker := l.resident()
+	work := func() {
+		t.Helper()
+		m := l.as(worker, "settlement.work", "work")
+		if _, err := rrc(l.village.Work(ctx, m, handlers.VillageWorkRequest{ID: camp})); err != nil {
+			t.Fatal(err)
+		}
+	}
+	finish := func() {
+		t.Helper()
+		l.clock.Advance(time.Hour)
+		for _, s := range l.workingShifts(camp) {
+			l.end(s)
+		}
+	}
+	timber := func() int64 {
+		var n int64
+		if err := l.pool.Raw().QueryRow(ctx, `SELECT COALESCE(SUM(quantity), 0)::bigint FROM org_stacks WHERE org_kind = 'settlement' AND org_id = $1::uuid AND item_code = 'timber'`, l.cityID).Scan(&n); err != nil {
+			t.Fatal(err)
+		}
+		return n
+	}
+	last := func() (fed bool, meal, bps int64) {
+		t.Helper()
+		if err := l.pool.Raw().QueryRow(ctx, `SELECT fed, meal_points, output_bps FROM settlement_shifts WHERE building_id = $1::uuid ORDER BY started_at DESC, id LIMIT 1`, camp).Scan(&fed, &meal, &bps); err != nil {
+			t.Fatal(err)
+		}
+		return
+	}
+	// 1. no food: hungry, half the rung's output (apprentice 7000 x 5000 = 3500)
+	work()
+	if fed, meal, bps := last(); fed || meal != 0 || bps != 3500 {
+		t.Errorf("a hungry apprentice: fed=%v meal=%d bps=%d, want false 0 3500", fed, meal, bps)
+	}
+	finish()
+	if got := timber(); got != 1 {
+		t.Errorf("4 timber at 35 percent deliver 1, %d did", got)
+	}
+	// 2. food in the village: fed, the full rung (7000), one point of meal
+	if err := postgres.NewUnitOfWork(l.pool, testDefaultLanguage).Do(ctx, func(ctx context.Context, tx application.Tx) error {
+		return tx.Items().Move(ctx, application.ItemMove{
+			ID: newUUID(t), Item: "wheat", Qty: 4, ToOrg: application.SettlementOrg(l.cityID), ToHolding: application.HoldWarehouse,
+			Reason: application.ItemGrant, ReferenceType: "test", ReferenceID: newUUID(t), At: time.Now().UTC(),
+		})
+	}); err != nil {
+		t.Fatal(err)
+	}
+	work()
+	if fed, meal, bps := last(); !fed || meal != 1 || bps != 7000 {
+		t.Errorf("a fed apprentice: fed=%v meal=%d bps=%d, want true 1 7000", fed, meal, bps)
+	}
+	finish()
+	// the kitchen: one wheat opened (2 points), one eaten, one left in the pot
+	var pot, opened, eaten int64
+	if err := l.pool.Raw().QueryRow(ctx, `SELECT pot, opened_points, eaten_points FROM settlement_kitchen WHERE settlement_id = $1::uuid`, l.cityID).Scan(&pot, &opened, &eaten); err != nil {
+		t.Fatal(err)
+	}
+	if opened != 2 || eaten != 1 || pot != 1 {
+		t.Errorf("the kitchen: opened %d, eaten %d, pot %d, want 2 1 1", opened, eaten, pot)
+	}
+	v, err := postgres.NewEconomyAdmin(l.pool).VerifyLedger(ctx, 10)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !v.Goods || len(v.DriftedStacks) != 0 {
+		t.Errorf("the item journal drifted from the stacks: %+v", v.DriftedStacks)
 	}
 }

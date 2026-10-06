@@ -85,6 +85,12 @@ type SettlementShift struct {
 	// WorkerKind "player" or "npc" (then PlayerID is empty); JobID the hiring-
 	// board job it was taken from; WorkPoints the work a construction shift
 	// adds; PayerKind/PayerID who pays the wage; Fee the village's levy.
+	// MealPoints is the food the worker ate when the shift started (0: exempt or hungry),
+	// Fed whether they were fed, OutputBPS the productivity the output is scaled by
+	// (rung x fed, ADR 0041 6.3): 10000 is the full base.
+	MealPoints              int64
+	Fed                     bool
+	OutputBPS               int64
 	Kind, WorkerKind, JobID string
 	WorkPoints              int64
 	PayerKind, PayerID      string
@@ -116,6 +122,27 @@ type SettlementEconomyRepository interface {
 	WorkingShifts(ctx context.Context, settlementID string) ([]SettlementShift, error)
 	// PlayerShift is the player's shift in progress, or nil.
 	PlayerShift(ctx context.Context, playerID string) (*SettlementShift, error)
+
+	// Pot is the village kitchen's food points not yet eaten, under the settlement's row lock
+	// (the row is made on first sight).
+	Pot(ctx context.Context, settlementID string) (int64, error)
+	// Eat takes `points` from the pot after opening the given food units into it: one row per
+	// opening (the item journal's meal_eaten movements reference them). It refuses a draw the
+	// pot cannot cover.
+	Eat(ctx context.Context, settlementID, shiftID string, points int64, openings []MealOpening, at time.Time) error
+	// Carry is a workplace's undelivered fractions (item -> ten-thousandths of a unit), under
+	// the building's row lock; SetCarry writes them back.
+	Carry(ctx context.Context, buildingID string) (map[string]int64, error)
+	SetCarry(ctx context.Context, buildingID string, carry map[string]int64) error
+}
+
+// MealOpening is food opened from the stock into the kitchen pot: Units of Item, each worth
+// PointsEach food points; ID is the reference of its item movement.
+type MealOpening struct {
+	ID         string
+	Item       string
+	Units      int64
+	PointsEach int64
 }
 
 // ErrShiftNotFound means the shift named does not exist.

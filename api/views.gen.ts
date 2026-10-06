@@ -5705,6 +5705,8 @@ export interface WorkNode {
   outputs: WorkItemLine[] | null
   storage_class: string
   storage_free: number
+  meal_points: number
+  food_shifts: number
   job: WorkJob | null
   if_unstaffed: string
 }

@@ -70,9 +70,9 @@ const (
 // AppointRefusalView is a refused appointment or removal: a governance
 // sentinel (Err), or one of the kinds above.
 type AppointRefusalView struct {
-	Kind   string
+	Kind string
 	// Gov is the governance refusal, when the refusal is one of its own.
-	Gov *GovRefusal
+	Gov    *GovRefusal
 	Office string
 }
 
@@ -1107,7 +1107,6 @@ type BoardView struct {
 	// none: it is what the "village" board lists the residents of.
 	Village *presentation.Named
 }
-
 
 // Addresses of the faction screens.
 const (

@@ -13,13 +13,9 @@ import (
 // office may remove its holder vacates it. Both from «my office», privately;
 // the country's or city's groups read one line of each.
 
-
-
 // commandAppoint is the command a «✏️ appoint» button asks a player's code or
 // username for (configs/commands.yml, section input).
 const commandAppoint = "gov.appoint"
-
-
 
 // appointeeLines renders the seats a viewer's office appoints and removes,
 // and adds their buttons.
@@ -49,8 +45,6 @@ func appointeeLines(c Context, kb *keyboards.Builder, list []GovAppointee) []str
 	return lines
 }
 
-
-
 // AppointConfirm renders the confirmation of an appointment.
 func AppointConfirm(c Context, v AppointView) *presenter.Response {
 	return c.withView(renderAppointConfirm(c, v), ScreenAppointConfirm, v)
@@ -64,8 +58,6 @@ func renderAppointConfirm(c Context, v AppointView) *presenter.Response {
 		"office": c.OfficeName(v.Office), "place": c.PlaceName(v.Place)}), kb.Build())
 }
 
-
-
 // DismissConfirm renders the confirmation of a removal.
 func DismissConfirm(c Context, v DismissView) *presenter.Response {
 	return c.withView(renderDismissConfirm(c, v), ScreenDismissConfirm, v)
@@ -78,8 +70,6 @@ func renderDismissConfirm(c Context, v DismissView) *presenter.Response {
 	return c.respond(c.T("gov.dismiss.confirm", map[string]any{"player": c.govPlayer(&v.Holder),
 		"office": c.OfficeName(v.Office), "place": c.PlaceName(v.Place)}), kb.Build())
 }
-
-
 
 // AppointDone renders an appointment or a removal made.
 func AppointDone(c Context, v AppointDoneView) *presenter.Response {
@@ -101,10 +91,6 @@ func renderAppointDone(c Context, v AppointDoneView) *presenter.Response {
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrGovCity}))
 	return c.respond(body(lines...), kb.Build())
 }
-
-
-
-
 
 // AppointRefusal renders a refused appointment or removal.
 func AppointRefusal(c Context, v AppointRefusalView) *presenter.Response {

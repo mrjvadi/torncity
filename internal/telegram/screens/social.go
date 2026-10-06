@@ -20,20 +20,12 @@ func (c Context) playerName(name string) string {
 	return name
 }
 
-
-
-
-
 // searchNotFoundKeys maps each form to its "not found" line.
 var searchNotFoundKeys = map[SearchBy]string{
 	SearchByUsername:   "social.search.not_found_username",
 	SearchByTelegramID: "social.search.not_found_id",
 	SearchByCode:       "social.search.not_found_code",
 }
-
-
-
-
 
 // Search renders the answer to a search: the one player it found, a "not
 // found" line for the form that was used, or how to search at all.
@@ -96,8 +88,6 @@ func renderSearch(c Context, v SearchView) *presenter.Response {
 	return c.respond(text, kb.Build())
 }
 
-
-
 // friendLineKeys maps a stored edge status to its line. An accepted friend
 // needs no label on a list titled "friends"; anything not listed here renders
 // as a plain name rather than leaking the stored word.
@@ -105,8 +95,6 @@ var friendLineKeys = map[string]string{
 	"pending": "social.friends.line_pending",
 	"blocked": "social.friends.line_blocked",
 }
-
-
 
 // Friends renders the friend list.
 func Friends(c Context, v FriendsView) *presenter.Response {

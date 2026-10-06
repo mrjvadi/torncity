@@ -81,6 +81,8 @@ type Rules struct {
 	BudgetSlackBPS int64
 	// NPCShiftsPerSlotDay is how many shifts an NPC may work at one post per local day.
 	NPCShiftsPerSlotDay int64
+	// HungryOutputBPS and HungryShiftHunger: see config labor.hungry_*.
+	HungryOutputBPS, HungryShiftHunger int64
 }
 
 // Enabled reports whether construction is done by work at all: a zero Rules
@@ -247,7 +249,7 @@ func Default() Rules {
 		ShiftMinutes: 60, ShiftRealMinutes: 1, ReferenceCrew: 4, BaseWage: 30,
 		MinWage:          map[string]int64{"village": 10, "town": 15, "city": 25},
 		Curve:            []Point{{0, 7_000}, {5_000, 10_000}, {10_000, 15_000}, {20_000, 25_000}},
-		ParticipationBPS: 6_000, BaseHousing: 8, NPCProductivityBPS: 8_500, FeeBPS: 500, BudgetSlackBPS: 5_000, NPCShiftsPerSlotDay: 10,
+		ParticipationBPS: 6_000, BaseHousing: 8, NPCProductivityBPS: 8_500, FeeBPS: 500, BudgetSlackBPS: 5_000, NPCShiftsPerSlotDay: 10, HungryOutputBPS: 5_000, HungryShiftHunger: 5,
 		Levels: []Level{{"apprentice", 0, 7_000}, {"journeyman", 6, 10_000}, {"master", 30, 13_000}},
 	}
 }

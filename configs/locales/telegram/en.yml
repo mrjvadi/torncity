@@ -776,6 +776,8 @@ building:
   work:
     working: "👷 Working: {filled} of {max} posts are filled."
     idle: "💤 Not working right now."
+    no_food: "• No food for the workers; hired labourers do not start a shift without it."
+    food: "🍞 A shift eats {points} food points; the food on hand feeds {shifts} shifts."
     paused: "⏸ The crew has stopped."
     crew: "👥 Hired crew: {crew}, wage {wage}, {left} shifts left."
     budget_spent: "• The posts' shifts for today, or the job's budget, are used up."

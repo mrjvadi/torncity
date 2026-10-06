@@ -1432,6 +1432,11 @@ labor:
   # N6 on the real clock): a post's daily output is slots x this x the shift's output, so
   # tune it with the balance sheet, not with hours.
   npc_shifts_per_slot_day: 10
+  # A player may start a workplace shift with the village out of food (ADR 0041 owner
+  # decision 3): they work hungry at this share of the output, and their own hunger need
+  # rises by this many points. An NPC refuses a shift with no food.
+  hungry_output_bps: 5000
+  hungry_shift_hunger: 5
   journeyman_shifts: 6         # skill ladder: apprentice, from this many shifts journeyman, then master
   master_shifts: 30
   apprentice_bps: 7000         # productivity of each rung

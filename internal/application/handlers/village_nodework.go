@@ -101,6 +101,17 @@ func (h *VillageHandler) nodeWork(ctx context.Context, tx application.Tx, snap *
 		return nil, err
 	}
 	if produces {
+		if w.MealPoints = mealPointsOf(snap, d); w.MealPoints > 0 {
+			pot, err := tx.SettlementTreasury().Pot(ctx, s.CityID)
+			if err != nil {
+				return nil, err
+			}
+			total := pot
+			for _, f := range snap.MealFoods() {
+				total += stock.Units[f.Item] * f.Points
+			}
+			w.FoodShifts = total / w.MealPoints
+		}
 		for _, c := range materialCodes(d.Consumes) {
 			if have := stock.Units[c]; have < d.Consumes[c] {
 				item := materialLineOf(snap, c, d.Consumes[c]).Component
@@ -170,4 +181,3 @@ func (h *VillageHandler) nodeLines(snap *content.Snapshot, m map[string]int64) [
 	}
 	return out
 }
-

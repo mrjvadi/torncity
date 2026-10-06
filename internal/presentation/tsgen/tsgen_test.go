@@ -6,13 +6,13 @@ import (
 	"testing"
 
 	"github.com/mrjvadi/torncity/internal/presentation"
-	_ "github.com/mrjvadi/torncity/internal/presentation/life"
-	"github.com/mrjvadi/torncity/internal/presentation/tsgen"
-	_ "github.com/mrjvadi/torncity/internal/presentation/society"
-	_ "github.com/mrjvadi/torncity/internal/presentation/economy"
 	_ "github.com/mrjvadi/torncity/internal/presentation/companies"
+	_ "github.com/mrjvadi/torncity/internal/presentation/economy"
+	_ "github.com/mrjvadi/torncity/internal/presentation/life"
 	_ "github.com/mrjvadi/torncity/internal/presentation/military"
 	_ "github.com/mrjvadi/torncity/internal/presentation/notices"
+	_ "github.com/mrjvadi/torncity/internal/presentation/society"
+	"github.com/mrjvadi/torncity/internal/presentation/tsgen"
 	_ "github.com/mrjvadi/torncity/internal/presentation/village"
 )
 

@@ -1327,21 +1327,25 @@ type Labor struct {
 	FeeBPS             int64 // labor.fee_bps
 	BudgetSlackBPS     int64 // labor.budget_slack_bps
 	// NPCShiftsPerSlotDay is how many shifts an NPC may work at one post per local day.
-	NPCShiftsPerSlotDay int64   // labor.npc_shifts_per_slot_day
-	JourneymanShifts    int64   // labor.journeyman_shifts
-	MasterShifts        int64   // labor.master_shifts
-	ApprenticeBPS       int64   // labor.apprentice_bps
-	JourneymanBPS       int64   // labor.journeyman_bps
-	MasterBPS           int64   // labor.master_bps
-	TightBalancedBPS    int64   // labor.tight_balanced_bps
-	TightTightBPS       int64   // labor.tight_tight_bps
-	TightShortBPS       int64   // labor.tight_short_bps
-	WageSlackBPS        int64   // labor.wage_slack_bps
-	WageBalancedBPS     int64   // labor.wage_balanced_bps
-	WageTightBPS        int64   // labor.wage_tight_bps
-	WageShortBPS        int64   // labor.wage_short_bps
-	HirePresets         []int64 // labor.hire_presets
-	WagePresets         []int64 // labor.wage_presets
+	NPCShiftsPerSlotDay int64 // labor.npc_shifts_per_slot_day
+	// HungryOutputBPS is a hungry player's output at a workplace (they ate nothing);
+	// HungryShiftHunger the hunger points such a shift adds to their own need.
+	HungryOutputBPS   int64   // labor.hungry_output_bps
+	HungryShiftHunger int64   // labor.hungry_shift_hunger
+	JourneymanShifts  int64   // labor.journeyman_shifts
+	MasterShifts      int64   // labor.master_shifts
+	ApprenticeBPS     int64   // labor.apprentice_bps
+	JourneymanBPS     int64   // labor.journeyman_bps
+	MasterBPS         int64   // labor.master_bps
+	TightBalancedBPS  int64   // labor.tight_balanced_bps
+	TightTightBPS     int64   // labor.tight_tight_bps
+	TightShortBPS     int64   // labor.tight_short_bps
+	WageSlackBPS      int64   // labor.wage_slack_bps
+	WageBalancedBPS   int64   // labor.wage_balanced_bps
+	WageTightBPS      int64   // labor.wage_tight_bps
+	WageShortBPS      int64   // labor.wage_short_bps
+	HirePresets       []int64 // labor.hire_presets
+	WagePresets       []int64 // labor.wage_presets
 }
 
 // Legislature is the tuning of votes of a body
@@ -1801,6 +1805,8 @@ func Defaults() *Config {
 			FeeBPS:              500,
 			BudgetSlackBPS:      5000,
 			NPCShiftsPerSlotDay: 10,
+			HungryOutputBPS:     5000,
+			HungryShiftHunger:   5,
 			JourneymanShifts:    6,
 			MasterShifts:        30,
 			ApprenticeBPS:       7000,

@@ -7,13 +7,16 @@ const AddrGovAppoint = society.AddrGovAppoint
 const AddrGovSeat = society.AddrGovSeat
 const AddrGovDismiss = society.AddrGovDismiss
 const AddrGovUnseat = society.AddrGovUnseat
+
 type GovAppointee = society.GovAppointee
 type AppointView = society.AppointView
 type DismissView = society.DismissView
 type AppointDoneView = society.AppointDoneView
+
 const AppointRefusedNotAppointer = society.AppointRefusedNotAppointer
 const AppointRefusedNoPlayer = society.AppointRefusedNoPlayer
 const AppointRefusedNoSeat = society.AppointRefusedNoSeat
+
 type AppointRefusalView = society.AppointRefusalView
 
 // diplomacy.go
@@ -29,6 +32,7 @@ const DiplomacyConfirm = society.DiplomacyConfirm
 const ChooseGround = society.ChooseGround
 const AnswerAccept = society.AnswerAccept
 const AnswerDecline = society.AnswerDecline
+
 type SanctionLine = society.SanctionLine
 type SanctionsView = society.SanctionsView
 type MeasureToggle = society.MeasureToggle
@@ -40,6 +44,7 @@ type ProposeView = society.ProposeView
 type EndTreatyView = society.EndTreatyView
 type DiplomacyEntry = society.DiplomacyEntry
 type DiplomacyHistoryView = society.DiplomacyHistoryView
+
 const DiplomacyRefusedNotFound = society.DiplomacyRefusedNotFound
 const DiplomacyRefusedNotHolder = society.DiplomacyRefusedNotHolder
 const DiplomacyRefusedSelf = society.DiplomacyRefusedSelf
@@ -48,6 +53,7 @@ const DiplomacyRefusedTooSoon = society.DiplomacyRefusedTooSoon
 const DiplomacyRefusedOpen = society.DiplomacyRefusedOpen
 const DiplomacyRefusedState = society.DiplomacyRefusedState
 const DiplomacyRefusedNoCountry = society.DiplomacyRefusedNoCountry
+
 type DiplomacyRefusalView = society.DiplomacyRefusalView
 type SanctionBlockedView = society.SanctionBlockedView
 
@@ -60,23 +66,27 @@ const ElectionCounted = society.ElectionCounted
 const ElectionCandidacy = society.ElectionCandidacy
 const ElectionVoting = society.ElectionVoting
 const ElectionCounting = society.ElectionCounting
+
 type ElectionLine = society.ElectionLine
 type ElectionsView = society.ElectionsView
 type CandidateLine = society.CandidateLine
 type ElectionView = society.ElectionView
 type StoodView = society.StoodView
 type VotedView = society.VotedView
+
 const ElectionRefusedNone = society.ElectionRefusedNone
 const ElectionRefusedNotStanding = society.ElectionRefusedNotStanding
 const ElectionRefusedNotVoting = society.ElectionRefusedNotVoting
 const ElectionRefusedAway = society.ElectionRefusedAway
 const ElectionRefusedNoCandidate = society.ElectionRefusedNoCandidate
+
 type ElectionRefusalView = society.ElectionRefusalView
 
 // factions.go
 const FactionYes = society.FactionYes
 const FactionAccept = society.FactionAccept
 const FactionDecline = society.FactionDecline
+
 type FactionRef = society.FactionRef
 type FactionLine = society.FactionLine
 type FactionListView = society.FactionListView
@@ -88,10 +98,12 @@ type FactionHomeView = society.FactionHomeView
 type FactionRequestLine = society.FactionRequestLine
 type FactionMembersView = society.FactionMembersView
 type FactionAnsweredView = society.FactionAnsweredView
+
 const FactionConfirmKick = society.FactionConfirmKick
 const FactionConfirmLead = society.FactionConfirmLead
 const FactionConfirmLeave = society.FactionConfirmLeave
 const FactionConfirmDisband = society.FactionConfirmDisband
+
 type FactionConfirmView = society.FactionConfirmView
 type FactionLeftView = society.FactionLeftView
 type FactionLinkedView = society.FactionLinkedView
@@ -99,11 +111,14 @@ type FactionMoneyDone = society.FactionMoneyDone
 type FactionBankView = society.FactionBankView
 type FactionOperationLine = society.FactionOperationLine
 type FactionPlanLine = society.FactionPlanLine
+
 const FactionNoticePlanned = society.FactionNoticePlanned
 const FactionNoticeJoined = society.FactionNoticeJoined
 const FactionNoticeLaunched = society.FactionNoticeLaunched
 const FactionNoticeCalledOff = society.FactionNoticeCalledOff
+
 type FactionCrimeBoardView = society.FactionCrimeBoardView
+
 const FactionRefusedNone = society.FactionRefusedNone
 const FactionRefusedNotMember = society.FactionRefusedNotMember
 const FactionRefusedRank = society.FactionRefusedRank
@@ -132,6 +147,7 @@ const FactionRefusedNoOperation = society.FactionRefusedNoOperation
 const FactionRefusedCrewFull = society.FactionRefusedCrewFull
 const FactionRefusedElsewhere = society.FactionRefusedElsewhere
 const FactionRefusedCrewShort = society.FactionRefusedCrewShort
+
 type FactionRefusalView = society.FactionRefusalView
 
 // governance.go
@@ -144,6 +160,7 @@ const AddrGovSet = society.AddrGovSet
 const AddrGovAlloc = society.AddrGovAlloc
 const AddrGovAllocConfirm = society.AddrGovAllocConfirm
 const AddrGovAllocSet = society.AddrGovAllocSet
+
 type GovOffice = society.GovOffice
 type GovLever = society.GovLever
 type GovPending = society.GovPending
@@ -165,24 +182,31 @@ type AllocationConfirmView = society.AllocationConfirmView
 const AddrBills = society.AddrBills
 const AddrBill = society.AddrBill
 const AddrBillVot = society.AddrBillVot
+
 type BillSubject = society.BillSubject
 type BillVoteLine = society.BillVoteLine
 type BillView = society.BillView
+
 const BillNoticeSubmitted = society.BillNoticeSubmitted
 const BillNoticeVoted = society.BillNoticeVoted
 const BillNoticeAlreadyVoted = society.BillNoticeAlreadyVoted
 const BillNoticeClosed = society.BillNoticeClosed
+
 type BillsView = society.BillsView
+
 const BillRefusedNotFound = society.BillRefusedNotFound
 const BillRefusedNotMember = society.BillRefusedNotMember
 const BillRefusedUnderWay = society.BillRefusedUnderWay
+
 type BillRefusalView = society.BillRefusalView
 
 // social.go
 type SearchBy = society.SearchBy
+
 const SearchByUsername = society.SearchByUsername
 const SearchByTelegramID = society.SearchByTelegramID
 const SearchByCode = society.SearchByCode
+
 type SearchResult = society.SearchResult
 type SearchView = society.SearchView
 type FriendLine = society.FriendLine

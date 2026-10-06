@@ -287,8 +287,8 @@ const (
 	// GoalSourcePromotion is retired (no ladder); kept so old goals decode.
 	GoalSourcePromotion = "promotion"
 	// GoalSourceGrowth is the next research or building within reach.
-	GoalSourceGrowth = "growth"
-	GoalSourceMission   = "mission"
+	GoalSourceGrowth  = "growth"
+	GoalSourceMission = "mission"
 )
 
 // GoalData is KindGoal: the next thing worth doing, for the quest strip. It

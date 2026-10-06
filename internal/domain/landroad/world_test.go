@@ -128,7 +128,9 @@ func TestPlan_AcrossTheRealWorldReachesFarAndWestOfTheGrid(t *testing.T) {
 			Class:   Class{Code: "path", MaxGradeBPS: 2500, BridgeMaxSpanM: 10, Fords: true},
 			Planner: roads.DefaultParams(),
 			From:    Lot{2, 2}, To: to,
-			Blocked: func(l Lot) bool { return l.X >= 0 && l.X < side && l.Y >= 0 && l.Y < side && l != (Lot{2, 2}) && l.X == 3 },
+			Blocked: func(l Lot) bool {
+				return l.X >= 0 && l.X < side && l.Y >= 0 && l.Y < side && l != (Lot{2, 2}) && l.X == 3
+			},
 			MaxLots: 2000, StreamRun: 2, CorridorRing: 1,
 		}
 		path, route, err := Plan(req)

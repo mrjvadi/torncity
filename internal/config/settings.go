@@ -112,6 +112,8 @@ type laborSettings struct {
 	FeeBPS              *int64  `yaml:"fee_bps"`
 	BudgetSlackBPS      *int64  `yaml:"budget_slack_bps"`
 	NPCShiftsPerSlotDay *int64  `yaml:"npc_shifts_per_slot_day"`
+	HungryOutputBPS     *int64  `yaml:"hungry_output_bps"`
+	HungryShiftHunger   *int64  `yaml:"hungry_shift_hunger"`
 	JourneymanShifts    *int64  `yaml:"journeyman_shifts"`
 	MasterShifts        *int64  `yaml:"master_shifts"`
 	ApprenticeBPS       *int64  `yaml:"apprentice_bps"`
@@ -1617,6 +1619,12 @@ var coreSettings = []setting{
 	moneySetting("labor", "budget_slack_bps",
 		func(c *Config) *int64 { return &c.Labor.BudgetSlackBPS },
 		func(f *fileConfig) *int64 { return f.Labor.BudgetSlackBPS }),
+	moneySetting("labor", "hungry_output_bps",
+		func(c *Config) *int64 { return &c.Labor.HungryOutputBPS },
+		func(f *fileConfig) *int64 { return f.Labor.HungryOutputBPS }),
+	moneySetting("labor", "hungry_shift_hunger",
+		func(c *Config) *int64 { return &c.Labor.HungryShiftHunger },
+		func(f *fileConfig) *int64 { return f.Labor.HungryShiftHunger }),
 	moneySetting("labor", "npc_shifts_per_slot_day",
 		func(c *Config) *int64 { return &c.Labor.NPCShiftsPerSlotDay },
 		func(f *fileConfig) *int64 { return f.Labor.NPCShiftsPerSlotDay }),

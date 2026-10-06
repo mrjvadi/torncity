@@ -199,8 +199,8 @@ type LeaderboardsDef struct {
 	// viewer's own settlement) shows.
 	VillageSize int `yaml:"village_size" json:"village_size"`
 	// HiddenNames are the game's own accounts, never listed on a board.
-	HiddenNames []string `yaml:"hidden_names" json:"hidden_names"`
-	CityScore CityScoreDef `yaml:"city_score" json:"city_score"`
+	HiddenNames []string     `yaml:"hidden_names" json:"hidden_names"`
+	CityScore   CityScoreDef `yaml:"city_score" json:"city_score"`
 }
 
 // handleInName finds a Telegram @handle written inside a display name.

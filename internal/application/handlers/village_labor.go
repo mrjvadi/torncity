@@ -440,6 +440,8 @@ func pauseReason(err error, started int) string {
 	switch r.kind {
 	case village.LaborNoNPC:
 		return "no_staff"
+	case village.LaborNoFood:
+		return "no_food"
 	case village.VillageMaterials:
 		return "no_input"
 	case village.VillageStorageFull:
@@ -938,7 +940,10 @@ func (h *VillageHandler) LaborHire(ctx context.Context, meta envelope.Metadata, 
 			return "", "", err
 		}
 		started, ferr := h.fillCrew(ctx, tx, meta, h.content.Current(), s, job.ID)
-		if started == 0 && n > 0 && ferr != nil {
+		// A standing workplace keeps the crew it was asked for even when it cannot start
+		// now: the job is paused with the reason and restarts by itself (nothing is lost by
+		// waiting); a construction site tells the employer at once.
+		if started == 0 && n > 0 && ferr != nil && job.Kind != application.LaborKindProduction {
 			return "", "", ferr
 		}
 		return job.BuildingID, "hired", nil

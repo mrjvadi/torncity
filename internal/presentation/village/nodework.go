@@ -39,6 +39,8 @@ const (
 	NodeReasonStorageFull = "storage_full"
 	// NodeReasonEmployerBroke: the treasury cannot pay the wage (Have balance, Need wage).
 	NodeReasonEmployerBroke = "employer_broke"
+	// NodeReasonNoFood: the village kitchen cannot feed a shift (an NPC does not start).
+	NodeReasonNoFood = "no_food"
 	// NodeReasonBudgetSpent: the job's shifts, or the posts' shifts for the local day, are used up.
 	NodeReasonBudgetSpent = "budget_spent"
 	// NodeReasonNoKeeper: a store with no keeper gives only its communal room.
@@ -101,6 +103,10 @@ type WorkNode struct {
 	// output).
 	StorageClass string `json:"storage_class,omitempty"`
 	StorageFree  int64  `json:"storage_free,omitempty"`
+	// MealPoints is the food a shift eats (0: exempt, its worker eats from the produce),
+	// FoodShifts how many such shifts the kitchen pot and the stock's food feed.
+	MealPoints int64 `json:"meal_points,omitempty"`
+	FoodShifts int64 `json:"food_shifts,omitempty"`
 	// Job is the posted job of the workplace (nil when the head has not posted one).
 	Job *WorkJob `json:"job,omitempty"`
 	// IfUnstaffed is what the content says stands without staff: idle, base_room, decays.

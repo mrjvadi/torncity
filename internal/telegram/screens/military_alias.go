@@ -9,6 +9,7 @@ const AddrStation = military.AddrStation
 const AddrProcure = military.AddrProcure
 const AddrArmsBuy = military.AddrArmsBuy
 const MilitaryConfirm = military.MilitaryConfirm
+
 type ForceClassLine = military.ForceClassLine
 type BranchForces = military.BranchForces
 type PeriodLine = military.PeriodLine
@@ -20,10 +21,13 @@ type MoveLine = military.MoveLine
 type BranchView = military.BranchView
 type StationView = military.StationView
 type ProcureOffer = military.ProcureOffer
+
 const ProcureBlockedExport = military.ProcureBlockedExport
 const ProcureBlockedEmbargo = military.ProcureBlockedEmbargo
+
 type ProcureView = military.ProcureView
 type ArmsBuyView = military.ArmsBuyView
+
 const MilitaryRefusedNotFound = military.MilitaryRefusedNotFound
 const MilitaryRefusedNotHolder = military.MilitaryRefusedNotHolder
 const MilitaryRefusedNotArms = military.MilitaryRefusedNotArms
@@ -33,8 +37,10 @@ const MilitaryRefusedStock = military.MilitaryRefusedStock
 const MilitaryRefusedCity = military.MilitaryRefusedCity
 const MilitaryRefusedNoCountry = military.MilitaryRefusedNoCountry
 const MilitaryRefusedLicenceState = military.MilitaryRefusedLicenceState
+
 type MilitaryRefusalView = military.MilitaryRefusalView
 type MilitaryNoticeView = military.MilitaryNoticeView
+
 const AddrWarBoard = military.AddrWarBoard
 const AddrWarDeclare = military.AddrWarDeclare
 const AddrWarJoin = military.AddrWarJoin
@@ -46,6 +52,7 @@ const AddrWarTarget = military.AddrWarTarget
 const AddrWarLaunch = military.AddrWarLaunch
 const WarConfirm = military.WarConfirm
 const WarAllUnits = military.WarAllUnits
+
 type ProposalLine = military.ProposalLine
 type WarLine = military.WarLine
 type JoinLine = military.JoinLine
@@ -63,6 +70,7 @@ type Estimate = military.Estimate
 type LaunchView = military.LaunchView
 type StrikeReportView = military.StrikeReportView
 type WarNoticeView = military.WarNoticeView
+
 const WarRefusedNotHolder = military.WarRefusedNotHolder
 const WarRefusedNoCountry = military.WarRefusedNoCountry
 const WarRefusedNotFound = military.WarRefusedNotFound
@@ -76,8 +84,10 @@ const WarRefusedNoMunition = military.WarRefusedNoMunition
 const WarRefusedOpen = military.WarRefusedOpen
 const WarRefusedNoAlly = military.WarRefusedNoAlly
 const WarRefusedStock = military.WarRefusedStock
+
 type WarRefusalView = military.WarRefusalView
 type WarBlockedView = military.WarBlockedView
+
 const AddrCompanyDefence = military.AddrCompanyDefence
 const AddrLicences = military.AddrLicences
 const AddrLicence = military.AddrLicence
@@ -85,6 +95,7 @@ const LicenceApprove = military.LicenceApprove
 const LicenceReject = military.LicenceReject
 const LicenceRevoke = military.LicenceRevoke
 const CompanyRefusedDefence = military.CompanyRefusedDefence
+
 type LicenceEntry = military.LicenceEntry
 type CompanyDefenceView = military.CompanyDefenceView
 type LicencesView = military.LicencesView

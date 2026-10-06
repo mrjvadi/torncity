@@ -125,7 +125,7 @@ type LedgerVerification struct {
 
 	// Shop is whether the village shop's and the bags' tables exist (migrations
 	// 0108 to 0110); ShopInvariants their checks (ledger_admin_shop.go).
-	Shop bool
+	Shop      bool
 	ShopCheck ShopInvariants
 
 	// Citizen is whether the citizen loop's tables exist (migration 0058);

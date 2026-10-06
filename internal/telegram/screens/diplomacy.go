@@ -19,10 +19,6 @@ import (
 // is named diplomacy.measure.<code>, a ground diplomacy.ground.<code>, a kind
 // of treaty diplomacy.treaty.<code>.
 
-
-
-
-
 // MeasureName names a sanction measure.
 func (c Context) MeasureName(code string) string { return c.named("diplomacy.measure."+code, code) }
 
@@ -43,10 +39,6 @@ func (c Context) measureList(ms []string) string {
 	}
 	return out
 }
-
-
-
-
 
 // diplomacyNotice words what a board says just happened.
 func (c Context) diplomacyNotice(n DiplomacyNotice) string {
@@ -120,10 +112,6 @@ func renderSanctions(c Context, v SanctionsView) *presenter.Response {
 	return c.respond(paragraphs(blocks...), kb.Build())
 }
 
-
-
-
-
 // Impose renders the impose flow.
 func Impose(c Context, v ImposeView) *presenter.Response {
 	return c.withView(renderImpose(c, v), ScreenImpose, v)
@@ -183,8 +171,6 @@ func renderImpose(c Context, v ImposeView) *presenter.Response {
 	return c.respond(body(lines...), kb.Build())
 }
 
-
-
 // Lift renders the confirmation of lifting a sanction.
 func Lift(c Context, v LiftView) *presenter.Response {
 	return c.withView(renderLift(c, v), ScreenLift, v)
@@ -198,10 +184,6 @@ func renderLift(c Context, v LiftView) *presenter.Response {
 	return c.respond(c.T("diplomacy.lift.confirm", map[string]any{"no": s.No, "target": c.PlaceName(s.Target),
 		"measures": c.measureList(s.Measures)}), kb.Build())
 }
-
-
-
-
 
 // Treaties renders a country's treaties board.
 func Treaties(c Context, v TreatiesView) *presenter.Response {
@@ -258,8 +240,6 @@ func renderTreaties(c Context, v TreatiesView) *presenter.Response {
 	return c.respond(paragraphs(blocks...), kb.Build())
 }
 
-
-
 // Propose renders the propose flow.
 func Propose(c Context, v ProposeView) *presenter.Response {
 	return c.withView(renderPropose(c, v), ScreenPropose, v)
@@ -294,8 +274,6 @@ func renderPropose(c Context, v ProposeView) *presenter.Response {
 	return c.respond(body(lines...), kb.Build())
 }
 
-
-
 // EndTreaty renders the confirmation of withdrawing or ending a treaty.
 func EndTreaty(c Context, v EndTreatyView) *presenter.Response {
 	return c.withView(renderEndTreaty(c, v), ScreenEndTreaty, v)
@@ -313,10 +291,6 @@ func renderEndTreaty(c Context, v EndTreatyView) *presenter.Response {
 	return c.respond(c.T(key, map[string]any{"no": t.No, "kind": c.TreatyName(t.Kind), "country": c.PlaceName(t.Other)}),
 		kb.Build())
 }
-
-
-
-
 
 // DiplomacyHistory renders the public record.
 func DiplomacyHistory(c Context, v DiplomacyHistoryView) *presenter.Response {
@@ -344,10 +318,6 @@ func renderDiplomacyHistory(c Context, v DiplomacyHistoryView) *presenter.Respon
 	return c.respond(body(lines...), kb.Build())
 }
 
-
-
-
-
 // DiplomacyRefusal renders a refused diplomacy command.
 func DiplomacyRefusal(c Context, v DiplomacyRefusalView) *presenter.Response {
 	return c.withView(renderDiplomacyRefusal(c, v), ScreenDiplomacyRefusal, v)
@@ -366,8 +336,6 @@ func renderDiplomacyRefusal(c Context, v DiplomacyRefusalView) *presenter.Respon
 	return c.respond(c.T("diplomacy.refused."+v.Kind, map[string]any{"country": c.PlaceName(v.Country),
 		"office": c.OfficeName(v.Office), "in": FormatSpan(c, v.In)}), kb.Build())
 }
-
-
 
 // SanctionBlocked renders the refusal every blocked cross-border action
 // answers with: which measure of whose sanction on whom.

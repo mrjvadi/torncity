@@ -23,12 +23,6 @@ import (
 // band war.damage.<code>, an operation war.op.<kind>, an objective
 // war.objective.<code>.
 
-
-
-
-
-
-
 // WarGroundName names the ground a war was declared on.
 func (c Context) WarGroundName(code string) string { return c.named("war.ground."+code, code) }
 
@@ -40,20 +34,6 @@ func (c Context) OperationName(kind string) string { return c.named("war.op."+ki
 
 // ObjectiveName names an operation's objective.
 func (c Context) ObjectiveName(code string) string { return c.named("war.objective."+code, code) }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // warStatusKey words a war's status.
 func warLine(c Context, w WarLine) []string {
@@ -227,8 +207,6 @@ func WarBoard(c Context, v WarBoardView) *presenter.Response {
 	return c.respond(paragraphs(blocks...), kb.Build())
 }
 
-
-
 // Declare renders the declaration flow.
 func Declare(c Context, v DeclareView) *presenter.Response {
 	if v.Unavailable != nil {
@@ -273,8 +251,6 @@ func Declare(c Context, v DeclareView) *presenter.Response {
 	return c.respond(body(lines...), kb.Build())
 }
 
-
-
 // WarDecision renders the confirmation of a decision of war.
 func WarDecision(c Context, v WarDecisionView) *presenter.Response {
 	no := strconv.FormatInt(v.WarNo, 10)
@@ -292,10 +268,6 @@ func WarDecision(c Context, v WarDecisionView) *presenter.Response {
 	kb.Nav(c.nav(keyboards.Nav{BackData: keyboards.Data(AddrWarBoard, v.Country.Code)}))
 	return c.respond(c.T("war.decide."+v.Kind, args), kb.Build())
 }
-
-
-
-
 
 // WarRoom renders the war room.
 func WarRoom(c Context, v WarRoomView) *presenter.Response {
@@ -341,12 +313,6 @@ func WarRoom(c Context, v WarRoomView) *presenter.Response {
 	return c.respond(paragraphs(blocks...), kb.Build())
 }
 
-
-
-
-
-
-
 // WarTarget renders a target.
 func WarTarget(c Context, v WarTargetView) *presenter.Response {
 	t := v.Target
@@ -383,10 +349,6 @@ func WarTarget(c Context, v WarTargetView) *presenter.Response {
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrWarRoom, RefreshData: keyboards.Data(AddrWarTarget, t.CityCode)}))
 	return c.respond(paragraphs(body(lines...), body(opts...), c.T("war.target.footer", nil)), kb.Build())
 }
-
-
-
-
 
 // WarLaunch renders the launch flow.
 func WarLaunch(c Context, v LaunchView) *presenter.Response {
@@ -444,8 +406,6 @@ func WarLaunch(c Context, v LaunchView) *presenter.Response {
 	kb.Nav(c.nav(keyboards.Nav{BackData: back}))
 	return c.respond(body(lines...), kb.Build())
 }
-
-
 
 // StrikeReport renders an operation's report.
 func StrikeReport(c Context, v StrikeReportView) *presenter.Response {
@@ -509,8 +469,6 @@ func StrikeReport(c Context, v StrikeReportView) *presenter.Response {
 	return c.respond(body(lines...), kb.Build())
 }
 
-
-
 // WarNotice renders a private notice of war.
 func WarNotice(c Context, v WarNoticeView) *presenter.Response {
 	args := map[string]any{"country": c.PlaceName(v.Country), "other": c.PlaceName(v.Other), "ally": c.PlaceName(v.Ally),
@@ -543,10 +501,6 @@ func WarNotice(c Context, v WarNoticeView) *presenter.Response {
 	return c.respond(text, kb.Build())
 }
 
-
-
-
-
 // WarRefusal renders a refused decision of war.
 func WarRefusal(c Context, v WarRefusalView) *presenter.Response {
 	kb := keyboards.New()
@@ -561,8 +515,6 @@ func WarRefusal(c Context, v WarRefusalView) *presenter.Response {
 	return c.respond(c.T("war.refused."+v.Kind, map[string]any{"country": c.PlaceName(v.Country),
 		"office": c.OfficeName(v.Office), "in": FormatDuration(c, v.In), "max": FormatNumber(c, v.Max)}), kb.Build())
 }
-
-
 
 // WarBlocked renders a journey the war closes.
 func WarBlocked(c Context, v WarBlockedView) *presenter.Response {
