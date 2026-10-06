@@ -183,3 +183,47 @@ func ValidR0(r0 int64) bool {
 	}
 	return false
 }
+
+// Desk fee bounds (ADR 0033 6.8: village.fx_fee_bps, 10 to 300 bps, default 30).
+const (
+	MinDeskFeeBPS     = 10
+	MaxDeskFeeBPS     = 300
+	DefaultDeskFeeBPS = 30
+)
+
+// ValidDeskFee reports whether a head may set this fee.
+func ValidDeskFee(bps int64) bool { return bps >= MinDeskFeeBPS && bps <= MaxDeskFeeBPS }
+
+// DeskBuy is what a player gets when they pay supIn SUP to the desk for the currency's units: the
+// desk keeps the fee out of the SUP (rounded up), and the units are the rest at the live rate
+// (rounded down).
+func DeskBuy(supIn int64, r Rate, feeBPS int64) (units, feeSUP int64) {
+	if supIn <= 0 || !r.Valid() || feeBPS < 0 || feeBPS > BPS {
+		return 0, 0
+	}
+	fee, rem, ok := mulDiv(supIn, feeBPS, BPS)
+	if !ok {
+		return 0, 0
+	}
+	if rem > 0 {
+		fee++
+	}
+	return r.ToLocalFloor(supIn - fee), fee
+}
+
+// DeskSell is the SUP a player gets when they give unitsIn units to the desk: the desk keeps the fee out
+// of the units (rounded up), and the SUP is the rest at the live rate (rounded down). feeUnits is what
+// the treasury keeps of the units.
+func DeskSell(unitsIn int64, r Rate, feeBPS int64) (supOut, feeUnits int64) {
+	if unitsIn <= 0 || !r.Valid() || feeBPS < 0 || feeBPS > BPS {
+		return 0, 0
+	}
+	fee, rem, ok := mulDiv(unitsIn, feeBPS, BPS)
+	if !ok {
+		return 0, 0
+	}
+	if rem > 0 {
+		fee++
+	}
+	return r.ToSUPFloor(unitsIn - fee), fee
+}

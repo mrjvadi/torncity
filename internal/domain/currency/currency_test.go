@@ -86,3 +86,27 @@ func TestRateOptions(t *testing.T) {
 		t.Error("the options are 1, 10 and 100")
 	}
 }
+
+func TestDeskQuotesKeepTheFeeAndRoundAgainstTheTaker(t *testing.T) {
+	r := Rate{R0: 10, XRefPPM: PPM}
+	// 100 SUP at 30 bps: fee ceil(0.3) = 1, 99 SUP x 10 = 990 units
+	if u, f := DeskBuy(100, r, 30); u != 990 || f != 1 {
+		t.Errorf("buy: %d units, fee %d", u, f)
+	}
+	// 1000 units at 30 bps: fee ceil(3) = 3 units, 997 units = 99.7 SUP, floor 99
+	if s, f := DeskSell(1000, r, 30); s != 99 || f != 3 {
+		t.Errorf("sell: %d SUP, fee %d units", s, f)
+	}
+	// buying and selling the same amount back never makes money
+	units, _ := DeskBuy(1000, r, 30)
+	back, _ := DeskSell(units, r, 30)
+	if back >= 1000 {
+		t.Errorf("a round trip must lose the fee: %d", back)
+	}
+	if u, _ := DeskBuy(0, r, 30); u != 0 {
+		t.Error("nothing bought for nothing")
+	}
+	if !ValidDeskFee(30) || ValidDeskFee(9) || ValidDeskFee(301) {
+		t.Error("the fee is 10 to 300 bps")
+	}
+}

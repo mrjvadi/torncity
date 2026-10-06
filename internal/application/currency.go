@@ -62,8 +62,10 @@ type CurrencyState struct {
 	// MintedUnits and BurntUnits give the supply; BasisSUP the SUP value of the units
 	// outstanding at issue; DepositedSUP and ReleasedSUP what the pot took in and gave out.
 	MintedUnits, BurntUnits, BasisSUP, DepositedSUP, ReleasedSUP int64
-	CharteredAt                                                  time.Time
-	CharteredBy                                                  string
+	// FXFeeBPS is the desk's fee (10..300), set by the head.
+	FXFeeBPS    int64
+	CharteredAt time.Time
+	CharteredBy string
 }
 
 // Rate is the currency's live rate.
@@ -98,6 +100,14 @@ type CurrencyRepository interface {
 	// Displays reads the display currency of each settlement in the list: those that are
 	// chartered, keyed by settlement id.
 	Displays(ctx context.Context, settlementIDs []string) (map[string]CurrencyState, error)
+	// LocalPaymentOf is the local payment of one flow row and direction, or nil.
+	LocalPaymentOf(ctx context.Context, refType, refID, direction string) (*LocalPaymentRow, error)
+	// RecordLocalPayment writes one local_payments row.
+	RecordLocalPayment(ctx context.Context, p LocalPaymentRow) error
+	// RecordDeskTrade writes one currency_desk_trades row.
+	RecordDeskTrade(ctx context.Context, t DeskTrade) error
+	// SetFXFee sets the desk's fee.
+	SetFXFee(ctx context.Context, settlementID string, bps int64) error
 	// Name is a chartered currency's reserved name and symbol by settlement.
 	Names(ctx context.Context, settlementIDs []string) (map[string]CurrencyReservation, error)
 }
@@ -110,6 +120,10 @@ type CurrencyRules struct {
 	Terms currency.Terms
 	// MintFeeBPS is the issuance fee kept in the pot.
 	MintFeeBPS int64
+	// DeskSlippageBPS is how far the desk's price may move between the quote and the confirm;
+	// DeskPresets the SUP amounts its menu offers.
+	DeskSlippageBPS int64
+	DeskPresets     []int64
 }
 
 // Enabled reports whether charters are configured.

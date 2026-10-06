@@ -442,9 +442,35 @@ func (h *EducationHandler) payTeacher(ctx context.Context, tx application.Tx, en
 		return err
 	}
 	pay := min(seat.Wage, max(treasury.Balance.Minor(), 0))
+	// A player teacher is paid in the settlement's own money when it has one and the treasury holds the
+	// units (docs/adr/0033 6.9); asked first, paid once the seat is paid exactly once.
+	localPay := application.LocalPayment{SettlementID: seat.SettlementID, PlayerID: t.PlayerID, Direction: application.LocalPay,
+		Flow: application.ReasonTeacherWage, SUP: seat.Wage, RefType: "class_seats", RefID: enrollmentID, At: now}
+	local := false
+	if t.Kind != application.TeacherNPC {
+		dry := localPay
+		dry.DryRun = true
+		r, err := application.PayLocal(ctx, tx, h.ids.NewID, dry)
+		if err != nil {
+			return err
+		}
+		if local = r.Paid; local {
+			pay = seat.Wage
+		}
+	}
 	fresh, err := tx.Education().PaySeat(ctx, enrollmentID, now, pay)
 	if err != nil || !fresh || pay <= 0 {
 		return err
+	}
+	if local {
+		r, err := application.PayLocal(ctx, tx, h.ids.NewID, localPay)
+		if err != nil {
+			return err
+		}
+		if !r.Paid {
+			return errors.Internal(stderrors.New("handlers: a wage the settlement's money was checked for was not paid"))
+		}
+		return nil
 	}
 	var payee application.Account
 	reason := application.ReasonTeacherWage

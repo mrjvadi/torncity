@@ -1654,6 +1654,12 @@ var coreSettings = []setting{
 	moneySetting("labor", "hungry_shift_hunger",
 		func(c *Config) *int64 { return &c.Labor.HungryShiftHunger },
 		func(f *fileConfig) *int64 { return f.Labor.HungryShiftHunger }),
+	moneySetting("currency", "desk_slippage_bps",
+		func(c *Config) *int64 { return &c.Currency.DeskSlippageBPS },
+		func(f *fileConfig) *int64 { return f.Currency.DeskSlippageBPS }),
+	moneyListSetting("currency", "desk_presets",
+		func(c *Config) *[]int64 { return &c.Currency.DeskPresets },
+		func(f *fileConfig) []int64 { return f.Currency.DeskPresets }),
 	moneySetting("currency", "charter_r0",
 		func(c *Config) *int64 { return &c.Currency.CharterR0 },
 		func(f *fileConfig) *int64 { return f.Currency.CharterR0 }),
@@ -2141,10 +2147,12 @@ var coreSettings = []setting{
 }
 
 type currencySettings struct {
-	CharterR0           *int64 `yaml:"charter_r0"`
-	CharterFee          *int64 `yaml:"charter_fee"`
-	CharterMinDeposit   *int64 `yaml:"charter_min_deposit"`
-	MintFeeBPS          *int64 `yaml:"mint_fee_bps"`
-	AutoCharterShareBPS *int64 `yaml:"auto_charter_share_bps"`
-	AutoCharterFloor    *int64 `yaml:"auto_charter_floor"`
+	CharterR0           *int64  `yaml:"charter_r0"`
+	CharterFee          *int64  `yaml:"charter_fee"`
+	CharterMinDeposit   *int64  `yaml:"charter_min_deposit"`
+	MintFeeBPS          *int64  `yaml:"mint_fee_bps"`
+	AutoCharterShareBPS *int64  `yaml:"auto_charter_share_bps"`
+	AutoCharterFloor    *int64  `yaml:"auto_charter_floor"`
+	DeskSlippageBPS     *int64  `yaml:"desk_slippage_bps"`
+	DeskPresets         []int64 `yaml:"desk_presets"`
 }

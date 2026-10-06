@@ -42,6 +42,8 @@ func currencyCleanup(t *testing.T, pool *postgres.Pool, cityID string) {
 		_ = pool.Raw().QueryRow(c, `SELECT currency_code FROM village_currency_state WHERE settlement_id = $1::uuid`, cityID).Scan(&code)
 		purgeLedgerFor(t, pool, cityID)
 		_, _ = pool.Raw().Exec(c, `DELETE FROM settlement_grants WHERE settlement_id = $1::uuid`, cityID)
+		_, _ = pool.Raw().Exec(c, `DELETE FROM local_payments WHERE settlement_id = $1::uuid`, cityID)
+		_, _ = pool.Raw().Exec(c, `DELETE FROM currency_desk_trades WHERE settlement_id = $1::uuid`, cityID)
 		_, _ = pool.Raw().Exec(c, `DELETE FROM currency_issuance_log WHERE settlement_id = $1::uuid`, cityID)
 		_, _ = pool.Raw().Exec(c, `DELETE FROM village_currency_state WHERE settlement_id = $1::uuid`, cityID)
 		if code != "" && code != "SUP" && code != "NIL" {

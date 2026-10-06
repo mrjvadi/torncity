@@ -15,6 +15,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/domain/item"
 	"github.com/mrjvadi/torncity/internal/domain/labor"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
+	"github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/shared/money"
 )
 
@@ -1182,6 +1183,21 @@ func (h *VillageHandler) workedSite(ctx context.Context, tx application.Tx, meta
 	repo := tx.SettlementTreasury()
 	pay, fee := sh.Wage, int64(0)
 	source := ""
+	// A player paid by the settlement's treasury is paid in the settlement's own money when it has
+	// one and the treasury holds the units (docs/adr/0033 6.9); asked first, paid once the shift is
+	// finished exactly once. The citizen employer's escrow and an NPC's wage stay SUP.
+	localPay := application.LocalPayment{SettlementID: sh.SettlementID, PlayerID: sh.PlayerID, Direction: application.LocalPay,
+		Flow: application.ReasonLaborWage, SUP: pay, RefType: application.LaborShiftReference, RefID: sh.ID, At: now}
+	local := false
+	if sh.PayerKind != application.LaborEmployerPlayer && sh.WorkerKind == application.LaborWorkerPlayer && pay > 0 {
+		dry := localPay
+		dry.DryRun = true
+		r, err := application.PayLocal(ctx, tx, h.ids.NewID, dry)
+		if err != nil {
+			return err
+		}
+		local = r.Paid
+	}
 	if sh.PayerKind == application.LaborEmployerPlayer {
 		fee = h.labor.Fee(pay)
 		acct, err := tx.Ledger().AccountFor(ctx, application.AccountPlayerEscrow, sh.PayerID)
@@ -1194,7 +1210,7 @@ func (h *VillageHandler) workedSite(ctx context.Context, tx application.Tx, meta
 		if err != nil {
 			return err
 		}
-		if bal < pay {
+		if !local && bal < pay {
 			pay = bal
 		}
 		acct, err := tx.Ledger().AccountFor(ctx, application.AccountCityTreasury, sh.SettlementID)
@@ -1212,7 +1228,15 @@ func (h *VillageHandler) workedSite(ctx context.Context, tx application.Tx, meta
 		return err
 	}
 	net := pay - fee
-	if pay > 0 {
+	if local {
+		localPay.TxID = txID
+		if r, err := application.PayLocal(ctx, tx, h.ids.NewID, localPay); err != nil {
+			return err
+		} else if !r.Paid {
+			return errors.Internal(stderrors.New("handlers: a wage the settlement's money was checked for was not paid"))
+		}
+	}
+	if pay > 0 && !local {
 		reason := application.ReasonLaborWage
 		to := application.SystemSinkAccountID
 		if sh.WorkerKind == application.LaborWorkerPlayer {

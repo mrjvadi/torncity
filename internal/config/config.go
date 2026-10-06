@@ -1806,7 +1806,8 @@ func Defaults() *Config {
 			CharterMinDeposit:   5000,
 			MintFeeBPS:          50,
 			AutoCharterShareBPS: 5000,
-			AutoCharterFloor:    500,
+			DeskSlippageBPS:     100, DeskPresets: []int64{100, 500, 2000},
+			AutoCharterFloor: 500,
 		},
 		Labor: Labor{
 			ShiftMinutes:           60,
@@ -2320,4 +2321,8 @@ type Currency struct {
 	MintFeeBPS          int64 // currency.mint_fee_bps: the issuance fee, kept in the reserve pot
 	AutoCharterShareBPS int64 // currency.auto_charter_share_bps: the share of the treasury beyond the fee an automatic charter of an existing settlement may deposit
 	AutoCharterFloor    int64 // currency.auto_charter_floor: the least deposit an automatic charter is worth making for
+	// DeskSlippageBPS is how far the desk's price may move between the quote and the confirm.
+	DeskSlippageBPS int64 // currency.desk_slippage_bps
+	// DeskPresets are the SUP amounts the desk's menu offers.
+	DeskPresets []int64 // currency.desk_presets
 }

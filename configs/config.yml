@@ -1553,3 +1553,8 @@ currency:
   # and this share of what is left; under the floor the charter is skipped and the head keeps the offer.
   auto_charter_share_bps: 5000
   auto_charter_floor: 500
+  # The village desk (ADR 0033 6.8, 6.10): how far its price may move between the quote and the
+  # confirm (price protection), and the SUP amounts its menu offers. Its fee is the head's lever,
+  # 10 to 300 bps, stored on the money (default 30).
+  desk_slippage_bps: 100
+  desk_presets: [100, 500, 2000]

@@ -199,7 +199,7 @@ func settlementCharterCurrencies(ctx context.Context, args []string) error {
 	rules := application.CurrencyRules{
 		CharterR0:  c.CharterR0,
 		Terms:      currency.Terms{Fee: c.CharterFee, MinDeposit: c.CharterMinDeposit, ShareBPS: c.AutoCharterShareBPS, Floor: c.AutoCharterFloor},
-		MintFeeBPS: c.MintFeeBPS,
+		MintFeeBPS: c.MintFeeBPS, DeskSlippageBPS: c.DeskSlippageBPS, DeskPresets: c.DeskPresets,
 	}
 	reports, err := ops.CharterCurrencies(ctx, rules, operator.Actor{Name: who, Reason: *reason, At: time.Now()})
 	done := 0

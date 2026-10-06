@@ -170,6 +170,13 @@ func VerifyChecks(v postgres.LedgerVerification, cfg *config.Config) []Check {
 		out.add(t.IssuanceMismatched == 0 && t.StrayHoldings == 0, fmt.Sprintf("every mint is logged with its deposit and its currency_mint transaction, the basis never passes the deposits (%d off), and no holding sits in an unchartered currency (%d)", t.IssuanceMismatched, t.StrayHoldings))
 	}
 
+	if v.Village && v.LocalObligations {
+		t := v.VillageInvariants
+		out.add(t.LocalLedgerPay == t.LocalRowsPay && t.LocalLedgerCollect == t.LocalRowsCollect, fmt.Sprintf("wages paid in a settlement's own money (%d = %d units) and fees paid in it (%d = %d) in the ledger match the local payment rows", t.LocalLedgerPay, t.LocalRowsPay, t.LocalLedgerCollect, t.LocalRowsCollect))
+		out.add(t.LocalMismatched == 0, fmt.Sprintf("every local payment is one two-leg transaction between holdings of its currency, for the SUP amount at the rate its row names rounded up (%d off)", t.LocalMismatched))
+		out.add(t.DeskMismatched == 0, fmt.Sprintf("every desk conversion is its two transactions at the quote of its rate and fee (%d off)", t.DeskMismatched))
+	}
+
 	if v.Village && v.WorkNodes {
 		t := v.VillageInvariants
 		out.add(t.MealOpenedRows == t.MealOpenedKitchen && t.MealEatenShifts == t.MealEatenKitchen, fmt.Sprintf("kitchens: the points opened (%d = %d) and eaten (%d = %d) match the meal rows and the shifts that ate", t.MealOpenedRows, t.MealOpenedKitchen, t.MealEatenShifts, t.MealEatenKitchen))

@@ -50,6 +50,7 @@ func init() {
 	Register(village.ScreenVillageShopRefusal, screens.VillageShopRefusal)
 	Register(village.ScreenVillageMoney, screens.VillageMoney)
 	Register(village.ScreenCurrencyCharter, screens.CurrencyCharter)
+	Register(village.ScreenCurrencyDesk, screens.CurrencyDesk)
 	Register(village.ScreenVillageWork, screens.VillageWork)
 	Register(village.ScreenVillageWorkStarted, screens.VillageWork)
 	Register(village.ScreenBuildingView, screens.BuildingPanel)
