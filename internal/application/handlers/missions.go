@@ -256,12 +256,11 @@ func (h *MissionsHandler) Board(ctx context.Context, meta envelope.Metadata, req
 		view.CityCode, view.City, view.Tier = w.city.Code, w.city.Name, tierStage(w.city.Tier)
 		// A settlement posts only the boards and missions its stage reaches (availability.yml): a village has its own
 		// works board, never the city hall's or the police station's. A content city judges by its own map.
-		founded, ferr := tx.Settlements().ByID(ctx, w.city.ID)
+		_, ferr := tx.Settlements().ByID(ctx, w.city.ID)
 		if ferr != nil && !isSentinel(ferr, application.ErrCityNotFound) {
 			return ferr
 		}
 		inSettlement := ferr == nil
-		view.Currency = villageCurrency(founded)
 		var growthErr error
 		reaches := func(kind, code string) bool {
 			if !inSettlement {

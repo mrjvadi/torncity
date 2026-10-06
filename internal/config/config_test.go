@@ -674,6 +674,13 @@ training:
   gym_bps: 10001
   ground_fee: 21
   gym_fee: 61
+currency:
+  charter_r0: 11
+  charter_fee: 1001
+  charter_min_deposit: 5001
+  mint_fee_bps: 51
+  auto_charter_share_bps: 5003
+  auto_charter_floor: 501
 labor:
   shift_minutes: 61
   shift_real_minutes: 3
@@ -1180,6 +1187,12 @@ var envOverrides = map[string]string{
 	"TORN_LABOR_NPC_PRODUCTIVITY_BPS":                  "8502",
 	"TORN_LABOR_FEE_BPS":                               "502",
 	"TORN_LABOR_BUDGET_SLACK_BPS":                      "5002",
+	"TORN_CURRENCY_CHARTER_R0":                         "12",
+	"TORN_CURRENCY_CHARTER_FEE":                        "1002",
+	"TORN_CURRENCY_CHARTER_MIN_DEPOSIT":                "5002",
+	"TORN_CURRENCY_MINT_FEE_BPS":                       "52",
+	"TORN_CURRENCY_AUTO_CHARTER_SHARE_BPS":             "5004",
+	"TORN_CURRENCY_AUTO_CHARTER_FLOOR":                 "502",
 	"TORN_LABOR_NPC_SHIFTS_PER_SLOT_DAY":               "12",
 	"TORN_LABOR_HUNGRY_OUTPUT_BPS":                     "5002",
 	"TORN_LABOR_HUNGRY_SHIFT_HUNGER":                   "7",

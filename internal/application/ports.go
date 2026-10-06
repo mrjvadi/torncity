@@ -116,6 +116,9 @@ type Tx interface {
 	// SettlementTreasury records a village treasury's two faucets, the
 	// founding grant and residents' donations; see village_treasury.go.
 	SettlementTreasury() SettlementTreasuryRepository
+	// Currency is a settlement's own money: the reserved name, the chartered state and its
+	// issuance; see currency.go.
+	Currency() CurrencyRepository
 	// Citizens is the citizen loop's port: lots, private buildings and the
 	// property tax; see citizen.go.
 	Citizens() CitizenRepository

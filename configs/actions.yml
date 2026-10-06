@@ -328,6 +328,7 @@ commands:
   settlement.charter.dismiss: {kind: secondary, icon: "action:person"}
   settlement.charter.resign: {kind: secondary, icon: "action:back"}
   settlement.timezone.set: {kind: secondary, icon: "action:clock"}
+  settlement.currency.charter: {kind: secondary, icon: "action:bank"}
   settlement.charter.election.open: {kind: primary, icon: "action:vote"}
   settlement.charter.stand: {kind: primary, icon: "action:person"}
   settlement.charter.vote: {kind: primary, icon: "action:vote"}

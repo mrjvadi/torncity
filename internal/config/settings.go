@@ -62,6 +62,7 @@ type fileConfig struct {
 	Premium       premiumSettings       `yaml:"premium"`
 
 	Legislature  legislatureSettings  `yaml:"legislature"`
+	Currency     currencySettings     `yaml:"currency"`
 	Labor        laborSettings        `yaml:"labor"`
 	Education    educationSettings    `yaml:"education"`
 	Training     trainingSettings     `yaml:"training"`
@@ -1653,6 +1654,24 @@ var coreSettings = []setting{
 	moneySetting("labor", "hungry_shift_hunger",
 		func(c *Config) *int64 { return &c.Labor.HungryShiftHunger },
 		func(f *fileConfig) *int64 { return f.Labor.HungryShiftHunger }),
+	moneySetting("currency", "charter_r0",
+		func(c *Config) *int64 { return &c.Currency.CharterR0 },
+		func(f *fileConfig) *int64 { return f.Currency.CharterR0 }),
+	moneySetting("currency", "charter_fee",
+		func(c *Config) *int64 { return &c.Currency.CharterFee },
+		func(f *fileConfig) *int64 { return f.Currency.CharterFee }),
+	moneySetting("currency", "charter_min_deposit",
+		func(c *Config) *int64 { return &c.Currency.CharterMinDeposit },
+		func(f *fileConfig) *int64 { return f.Currency.CharterMinDeposit }),
+	moneySetting("currency", "mint_fee_bps",
+		func(c *Config) *int64 { return &c.Currency.MintFeeBPS },
+		func(f *fileConfig) *int64 { return f.Currency.MintFeeBPS }),
+	moneySetting("currency", "auto_charter_share_bps",
+		func(c *Config) *int64 { return &c.Currency.AutoCharterShareBPS },
+		func(f *fileConfig) *int64 { return f.Currency.AutoCharterShareBPS }),
+	moneySetting("currency", "auto_charter_floor",
+		func(c *Config) *int64 { return &c.Currency.AutoCharterFloor },
+		func(f *fileConfig) *int64 { return f.Currency.AutoCharterFloor }),
 	moneySetting("labor", "npc_shifts_per_slot_day",
 		func(c *Config) *int64 { return &c.Labor.NPCShiftsPerSlotDay },
 		func(f *fileConfig) *int64 { return f.Labor.NPCShiftsPerSlotDay }),
@@ -2119,4 +2138,13 @@ var coreSettings = []setting{
 	durationSetting("notifications", "vitals_min_interval",
 		func(c *Config) *time.Duration { return &c.Notifications.VitalsMinInterval },
 		func(f *fileConfig) *string { return f.Notifications.VitalsMinInterval }),
+}
+
+type currencySettings struct {
+	CharterR0           *int64 `yaml:"charter_r0"`
+	CharterFee          *int64 `yaml:"charter_fee"`
+	CharterMinDeposit   *int64 `yaml:"charter_min_deposit"`
+	MintFeeBPS          *int64 `yaml:"mint_fee_bps"`
+	AutoCharterShareBPS *int64 `yaml:"auto_charter_share_bps"`
+	AutoCharterFloor    *int64 `yaml:"auto_charter_floor"`
 }

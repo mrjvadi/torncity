@@ -328,7 +328,6 @@ func (h *EducationHandler) List(ctx context.Context, meta envelope.Metadata, req
 		if !hereC.all {
 			view.Place = presentation.Named{Code: hereC.settlement.Code, Name: hereC.settlement.Name}
 			view.Tier = hereC.tier
-			view.Currency = villageCurrency(hereC.settlement)
 		}
 		var lines []plife.CourseLine
 		for _, def := range snap.Courses() {

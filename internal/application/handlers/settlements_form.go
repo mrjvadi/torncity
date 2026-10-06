@@ -583,6 +583,9 @@ func (h *SettlementsHandler) submitInTx(ctx context.Context, tx application.Tx, 
 	if err := h.grantTreasury(ctx, tx, founded.CityID, now); err != nil {
 		return err
 	}
+	if err := h.charterCurrency(ctx, tx, founded.CityID, now); err != nil {
+		return err
+	}
 	if err := tx.Settlements().MarkDraftSubmitted(ctx, draft.ID, founded.CityID, now); err != nil {
 		return err
 	}

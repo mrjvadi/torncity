@@ -160,6 +160,26 @@ type Currency struct {
 	Symbol string
 }
 
+// Money is the viewer's display currency (ADR 0033 section 6.9, rule 2): their home settlement's own
+// money when it is chartered. Every amount a view carries stays in SUP minor units; a client shows
+// it in this currency as local = sup x RateNum / RateDen (round to the nearest, halves up) with the
+// SUP amount beside it, and shows the rate as live, never as a peg: XRefPPM is 1000000 (1.00) until a
+// book trades, then the book's average. A viewer whose home has no chartered currency gets none.
+type Money struct {
+	// Code, Name and Symbol are the currency's: Name is the authored name to print (never the Latin
+	// code in Persian text).
+	Code   string `json:"code"`
+	Name   string `json:"name"`
+	Symbol string `json:"symbol"`
+	// R0 is units per SUP at charter; XRefPPM the reference rate in parts per million.
+	R0      int64 `json:"r0"`
+	XRefPPM int64 `json:"x_ref_ppm"`
+	// RateNum and RateDen are units per SUP as an exact fraction (RateNum = R0 x 1000000,
+	// RateDen = XRefPPM).
+	RateNum int64 `json:"rate_num"`
+	RateDen int64 `json:"rate_den"`
+}
+
 // Ctx is what the core tells a screen constructor about who is reading: the
 // language the player reads, which the edge writes in. It says nothing about
 // the medium.

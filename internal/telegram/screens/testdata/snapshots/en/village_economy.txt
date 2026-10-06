@@ -502,7 +502,7 @@ The price ceiling or tax must be between 100 and 150.
 (edits message 42)
 💱 What the money of Korendal is worth
 
-Your town's money «Talar» has a name but is not issued yet; until then the treasury and the shop work in SUP, the neutral city's money.
+Your town's money «Talar» has a name but is not chartered yet; until then the treasury and the shop work in SUP.
 
 Nil is a unit of measure: one Nil counts as 100 SUP. It is only a rate to look at; no money is ever changed for Nil.
 

@@ -117,7 +117,7 @@ func Render(msgs screens.Translator, d Delivery, r *presentation.Response) (*pre
 	if !r.Neutral() {
 		return r, nil
 	}
-	c := screens.Context{Msgs: msgs, Lang: r.Lang, MessageID: d.MessageID, Shared: d.Shared}
+	c := screens.Context{Msgs: msgs, Lang: r.Lang, MessageID: d.MessageID, Shared: d.Shared, Money: r.Money}
 	if r.Notice != nil {
 		return renderNotice(c, r), nil
 	}

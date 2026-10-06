@@ -254,7 +254,16 @@ func renderVillageMoney(c Context, v village.MoneyView) *presenter.Response {
 		if v.Currency.Issued {
 			key = "village.money.currency_issued"
 		}
-		currency = c.T(key, map[string]any{"name": v.Currency.Name})
+		args := map[string]any{"name": v.Currency.Name}
+		if v.Chartered != nil {
+			args["rate"] = liveRate(c, v.Chartered.R0, v.Chartered.XRefPPM)
+		}
+		currency = c.T(key, args)
+		if v.Chartered != nil {
+			currency = paragraphs(currency, c.T("village.money.chartered", map[string]any{
+				"units": FormatNumber(c, v.Chartered.TreasuryUnits), "name": v.Currency.Name,
+				"supply": FormatNumber(c, v.Chartered.Supply), "pot": FormatMoney0(c, v.Chartered.PotSUP)}))
+		}
 	}
 	var examples []string
 	for _, e := range v.Examples {
@@ -282,10 +291,24 @@ func renderVillageMoney(c Context, v village.MoneyView) *presenter.Response {
 		c.T("village.money.output", map[string]any{"amount": FormatMoney(c, v.Output), "nil": FormatNil(c, v.OutputNilMicro), "days": FormatNumber(c, int64(v.OutputDays))}),
 		c.T("village.money.basket_title", nil)+"\n"+body(basket...),
 		index,
-		c.T("village.money.no_market", nil),
+		noMarket(c, v),
 		c.T("village.money.hint", nil),
 	)
 	kb := keyboards.New()
+	if v.CanCharter {
+		if b, ok := keyboards.Button(c.T("village.money.button.charter", nil), village.AddrCurrencyCharter); ok {
+			kb.Row(b)
+		}
+	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrShopHere, RefreshData: AddrMoney}))
 	return c.respond(text, kb.Build())
+}
+
+// noMarket says what the money's market lacks: nothing is made up (a chartered money's book opens
+// with the first trade, until then its reference rate is the charter rate).
+func noMarket(c Context, v village.MoneyView) string {
+	if v.Chartered != nil {
+		return c.T("village.money.no_market_live", nil)
+	}
+	return c.T("village.money.no_market", nil)
 }

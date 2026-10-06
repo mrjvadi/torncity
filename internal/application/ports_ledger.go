@@ -67,6 +67,12 @@ const (
 	AccountNationalBank  AccountKind = "national_bank"
 	AccountInsuranceFund AccountKind = "insurance_fund"
 	AccountPlayerSavings AccountKind = "player_savings"
+	// AccountForeignHolding is a holder's balance in a currency that is not the neutral one
+	// (a settlement's own money): one row per owner AND currency, the owner a player, a
+	// settlement or a company (docs/adr/0029 section 5.2, migration 0127). AccountReservePot is
+	// a settlement's reserve at the Reserve Bank, SUP, one per settlement (docs/adr/0033 6.3).
+	AccountForeignHolding AccountKind = "foreign_holding"
+	AccountReservePot     AccountKind = "reserve_pot"
 )
 
 // Valid reports whether k is one of the kinds the schema allows.
@@ -75,7 +81,7 @@ func (k AccountKind) Valid() bool {
 	case AccountPlayerCash, AccountPlayerBank, AccountCompanyTreasury,
 		AccountFactionTreasury, AccountCityTreasury, AccountSystemSink, AccountSystemSource,
 		AccountPlayerEscrow, AccountStateTreasury, AccountDefenceFund, AccountNationalBank, AccountInsuranceFund,
-		AccountPlayerSavings:
+		AccountPlayerSavings, AccountForeignHolding, AccountReservePot:
 		return true
 	}
 	return false
@@ -91,7 +97,7 @@ func (k AccountKind) IsSystem() bool {
 // other kind has exactly one account per owner, in the currency it was first
 // opened in (docs/adr/0029 section 5.1; enforced by
 // accounts_one_row_per_owner_idx).
-func (k AccountKind) MultiCurrency() bool { return k.IsSystem() }
+func (k AccountKind) MultiCurrency() bool { return k.IsSystem() || k == AccountForeignHolding }
 
 // Reason is ledger_entries.reason: why money moved.
 //
@@ -550,6 +556,7 @@ var knownReasons = map[Reason]struct{}{
 	ReasonSettlementMaterial: {}, ReasonSettlementWage: {},
 	ReasonLaborEscrow: {}, ReasonLaborWage: {}, ReasonLaborWageNPC: {},
 	ReasonShopkeeperWage: {}, ReasonBagRepair: {},
+	ReasonCharterFee: {}, ReasonReserveDeposit: {}, ReasonCurrencyMint: {},
 	ReasonCourseFee: {}, ReasonTuition: {}, ReasonTeacherWage: {}, ReasonTeacherWageNPC: {}, ReasonTrainingFee: {}, ReasonTrainerWage: {},
 }
 

@@ -431,7 +431,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 				},
 			},
 			nil,
-		).WithFoundingGrant(cfg.Settlement.FoundingGrant),
+		).WithFoundingGrant(cfg.Settlement.FoundingGrant).WithCurrencyRules(currencyRules(cfg)),
 		village: handlers.NewVillageHandler(
 			uow,
 			uuidGenerator{},
@@ -489,7 +489,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			}).
 			WithLabor(laborRules(cfg.Labor), cfg.Labor.HirePresets, cfg.Labor.WagePresets).
 			WithActivities(activityRules(cfg)).
-			WithShop(shopRules(cfg)).WithStorage(storageRules(cfg)),
+			WithShop(shopRules(cfg)).WithStorage(storageRules(cfg)).WithCurrencyRules(currencyRules(cfg)),
 	}
 
 	// Work and study read careers and courses from the live registry and a
@@ -696,7 +696,8 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 		// and the window stays accurate to within a few percent.
 		activity: postgres.NewActivityRecorder(pool, cfg.Crime.ActiveWindow/activityStampsPerWindow),
 		// The watch counts each player's commands (docs/adr/0023).
-		rate: newCommandRate(watchThresholds(cfg.AntiCheat), postgres.NewWatchRepository(pool), logger),
+		rate:    newCommandRate(watchThresholds(cfg.AntiCheat), postgres.NewWatchRepository(pool), logger),
+		display: postgres.NewDisplayResolver(pool, displayCacheTTL),
 	}
 
 	consumer := infranats.NewConsumer(conn, infranats.ConsumerOptions{
@@ -877,6 +878,9 @@ type service struct {
 	activity application.ActivityRecorder
 	// rate flags a player sending commands faster than a person plays.
 	rate *commandRate
+	// display finds the money a player reads amounts in (their home settlement's own, when
+	// chartered); see decorateMoney.
+	display displayResolver
 
 	inflight sync.WaitGroup
 }
@@ -959,6 +963,7 @@ func (s *service) handle(ctx context.Context, sub commands.Subscription, run com
 		}
 	}
 
+	s.decorateMoney(ctx, meta, resp, log)
 	if err := s.reply(meta, resp, log); err != nil {
 		return err
 	}
@@ -1083,3 +1088,27 @@ func missionDurable(subject string) string {
 // activityStampsPerWindow is how many activity stamps fit in the crime
 // engine's active window: the resolution of "recently active".
 const activityStampsPerWindow = 30
+
+// displayCacheTTL is how long a player's display currency is reused between replies.
+const displayCacheTTL = 10 * time.Second
+
+// displayResolver is where the display currency of a player comes from.
+type displayResolver interface {
+	Display(ctx context.Context, playerID string) (*presentation.Money, error)
+}
+
+// decorateMoney tells a neutral reply which money its viewer reads amounts in (their home
+// settlement's, when chartered; docs/adr/0033 section 6.9 rule 2). The amounts in the views stay SUP;
+// each edge shows them in that money at the live rate with the SUP amount beside it. A failed lookup
+// costs only the decoration: the reply goes out in SUP.
+func (s *service) decorateMoney(ctx context.Context, meta envelope.Metadata, resp *presenter.Response, log *slog.Logger) {
+	if s.display == nil || resp == nil || !resp.Neutral() || meta.PlayerID == "" {
+		return
+	}
+	m, err := s.display.Display(context.WithoutCancel(ctx), meta.PlayerID)
+	if err != nil {
+		log.Warn("cannot read the display currency", slog.String("error", err.Error()))
+		return
+	}
+	resp.Money = m
+}

@@ -38,6 +38,9 @@ type SettlementsHandler struct {
 	// foundingGrant is the treasury a new village starts with
 	// (WithFoundingGrant, village_treasury.go); zero grants nothing.
 	foundingGrant int64
+	// currencyRules charters the new settlement's money in the founding transaction
+	// (WithCurrencyRules); the zero value charters nothing.
+	currencyRules application.CurrencyRules
 
 	now func() time.Time
 }

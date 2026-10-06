@@ -359,6 +359,7 @@ village:
       union_propose: "propose unions"
       raid_declare: "declare raids"
       settings_timezone: "set the city's time zone"
+      currency_charter: "charter the city's money"
       notice_post: "post notices"
   development:
     title: "📈 Growth of \"{village}\""
@@ -590,10 +591,24 @@ village:
       cap: "🏷 Ceiling {pct}"
       tax: "🧾 Tax {pct}"
       back: "🛒 Back to the shop"
+  currency:
+    title: "💱 The money of «{village}»"
+    ask: "A money called «{name}» will be made for the city. The charter fee is {fee}, taken from the treasury; then {deposit} goes from the treasury into this money's reserve, and for it {units} units of «{name}» reach the treasury (the issue fee, {mint}, stays in the reserve). The treasury holds {treasury} now."
+    live: "The rate of this money is not fixed: demand moves it up and down; until the first trade it is the rate it was founded at."
+    cannot_pay: "⚠️ The treasury cannot pay: the charter needs {need}. Top the treasury up first."
+    done: "✅ The money «{name}» is made: {units} units were issued and {pot} was put into the reserve."
+    rate: "Live rate: 1 SUP buys {rate} {name}."
+    exists: "The money «{name}» is in circulation: {supply} units issued, {pot} held in the reserve."
+    button:
+      charter: "💱 Charter «{name}»"
   money:
     title: "💱 What the money of {village} is worth"
-    currency_reserved: "Your town's money «{name}» has a name but is not issued yet; until then the treasury and the shop work in SUP, the neutral city's money."
-    currency_issued: "Your town's money «{name}» is in circulation."
+    currency_reserved: "Your town's money «{name}» has a name but is not chartered yet; until then the treasury and the shop work in SUP."
+    currency_issued: "Your town's money «{name}» is in circulation. Live rate: 1 SUP buys {rate} {name} (demand moves it; it is not fixed)."
+    chartered: "🏦 The treasury holds {units} {name}; {supply} units are issued and {pot} sits in the reserve."
+    no_market_live: "The market for this money is not open yet; until the first trade the reference rate is the rate it was founded at."
+    button:
+      charter: "💱 Charter the town's money"
     quote: "Nil is a unit of measure: one Nil counts as {units} SUP. It is only a rate to look at; no money is ever changed for Nil."
     example: "• {amount} is worth {nil}"
     treasury: "🏦 Town treasury: {amount} (worth {nil})"

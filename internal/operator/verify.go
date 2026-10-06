@@ -163,6 +163,13 @@ func VerifyChecks(v postgres.LedgerVerification, cfg *config.Config) []Check {
 		out.add(v.VillageInvariants.ServiceMisrouted == 0, fmt.Sprintf("training fees go from players to a treasury, trainers' wages from a treasury to the sink and bag repairs from players to the sink (%d legs elsewhere)", v.VillageInvariants.ServiceMisrouted))
 	}
 
+	if v.Village && v.Currencies {
+		t := v.VillageInvariants
+		out.add(t.PotMismatched == 0, fmt.Sprintf("every settlement's reserve pot holds what was deposited less what was released (%d off)", t.PotMismatched))
+		out.add(t.SupplyMismatched == 0, fmt.Sprintf("every settlement currency's supply is what was minted less burnt, and is what the ledger holds outside the system accounts (%d off)", t.SupplyMismatched))
+		out.add(t.IssuanceMismatched == 0 && t.StrayHoldings == 0, fmt.Sprintf("every mint is logged with its deposit and its currency_mint transaction, the basis never passes the deposits (%d off), and no holding sits in an unchartered currency (%d)", t.IssuanceMismatched, t.StrayHoldings))
+	}
+
 	if v.Village && v.WorkNodes {
 		t := v.VillageInvariants
 		out.add(t.MealOpenedRows == t.MealOpenedKitchen && t.MealEatenShifts == t.MealEatenKitchen, fmt.Sprintf("kitchens: the points opened (%d = %d) and eaten (%d = %d) match the meal rows and the shifts that ate", t.MealOpenedRows, t.MealOpenedKitchen, t.MealEatenShifts, t.MealEatenKitchen))

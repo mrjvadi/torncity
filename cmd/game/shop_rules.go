@@ -3,8 +3,10 @@ package main
 import (
 	"time"
 
+	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/application/handlers"
 	"github.com/mrjvadi/torncity/internal/config"
+	"github.com/mrjvadi/torncity/internal/domain/currency"
 	"github.com/mrjvadi/torncity/internal/domain/vshop"
 )
 
@@ -43,4 +45,14 @@ func storageRules(cfg *config.Config) handlers.StorageRules {
 	return handlers.StorageRules{Clock: clock,
 		SpoilKeptBPS: cfg.Settlement.StorageSpoilKeptBPS, SpoilUnkeptBPS: cfg.Settlement.StorageSpoilUnkeptBPS,
 		GraceFrom: from, GraceDays: cfg.Settlement.StorageKeeperGraceDays}
+}
+
+// currencyRules is the money rules of a settlement's charter (config currency.*).
+func currencyRules(cfg *config.Config) application.CurrencyRules {
+	c := cfg.Currency
+	return application.CurrencyRules{
+		CharterR0:  c.CharterR0,
+		Terms:      currency.Terms{Fee: c.CharterFee, MinDeposit: c.CharterMinDeposit, ShareBPS: c.AutoCharterShareBPS, Floor: c.AutoCharterFloor},
+		MintFeeBPS: c.MintFeeBPS,
+	}
 }

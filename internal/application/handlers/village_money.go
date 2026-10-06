@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
+	"github.com/mrjvadi/torncity/internal/domain/charter"
 	"github.com/mrjvadi/torncity/internal/domain/gametime"
 	"github.com/mrjvadi/torncity/internal/domain/moneyvalue"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
@@ -53,7 +54,7 @@ func (h *VillageHandler) Money(ctx context.Context, meta envelope.Metadata) (*pr
 	lang := meta.Language
 	var view village.MoneyView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
-		_, l, err := h.viewer(ctx, tx, meta)
+		p, l, err := h.viewer(ctx, tx, meta)
 		if err != nil {
 			return err
 		}
@@ -62,7 +63,13 @@ func (h *VillageHandler) Money(ctx context.Context, meta envelope.Metadata) (*pr
 		if err != nil {
 			return err
 		}
-		view, err = h.moneyView(ctx, tx, s, h.now())
+		if view, err = h.moneyView(ctx, tx, s, h.now()); err != nil {
+			return err
+		}
+		if view.CanCharter {
+			// only the holder of currency.charter is offered the charter
+			view.CanCharter, err = h.mayVillage(ctx, tx, s, p.ID, charter.CurrencyCharter)
+		}
 		return err
 	})
 	if resp, err := h.villageFinish(meta, lang, err); resp != nil || err != nil {
@@ -91,6 +98,22 @@ func (h *VillageHandler) moneyView(ctx context.Context, tx application.Tx, s app
 	if err != nil {
 		return village.MoneyView{}, err
 	}
+	cur := village.MoneyCurrency{Code: s.Currency.Code, Name: s.Currency.Name, Symbol: s.Currency.Symbol}
+	var chartered *village.MoneyChartered
+	canCharter := false
+	if st, err := tx.Currency().State(ctx, s.CityID); err != nil {
+		return village.MoneyView{}, err
+	} else if st != nil {
+		cur.Issued = true
+		chartered = &village.MoneyChartered{R0: st.R0, XRefPPM: st.XRefPPM, Supply: st.Supply(), PotSUP: st.DepositedSUP - st.ReleasedSUP}
+		if holding, err := tx.Ledger().AccountForCurrency(ctx, application.AccountForeignHolding, s.CityID, st.Code); err == nil {
+			chartered.TreasuryUnits = holding.Balance.Minor()
+		}
+	} else if res, err := tx.Currency().Reservation(ctx, s.CityID); err != nil {
+		return village.MoneyView{}, err
+	} else if res != nil && h.currencyRules.Enabled() {
+		canCharter = true
+	}
 	nilOf := func(amount int64) int64 {
 		v, err := moneyvalue.NilOf(amount, nilPer)
 		if err != nil {
@@ -100,7 +123,7 @@ func (h *VillageHandler) moneyView(ctx context.Context, tx application.Tx, s app
 	}
 	view := village.MoneyView{
 		Village: s.Name, Market: village.MoneyNone, Reserve: village.MoneyNone,
-		Currency:   village.MoneyCurrency{Code: s.Currency.Code, Name: s.Currency.Name, Symbol: s.Currency.Symbol},
+		Currency: cur, Chartered: chartered, CanCharter: canCharter,
 		NilUnitSup: h.shop.NilUnitSup, NilPerUnitMicro: nilPer,
 		Treasury: treasury, TreasuryNilMicro: nilOf(treasury), Residents: st.residents, OutputDays: h.shop.OutputDays,
 	}

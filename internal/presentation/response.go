@@ -136,6 +136,10 @@ type Response struct {
 	// its arguments, never a label or a position. Neutral responses only.
 	Actions []Action `json:"actions,omitempty"`
 
+	// Money is the viewer's display currency; nil when their home has no chartered money. Neutral
+	// responses only; the core sets it just before the reply (see Money).
+	Money *Money `json:"money,omitempty"`
+
 	// Refusal is set when the screen is a command refused before it changed
 	// anything; it codes why. The screen and view still describe it.
 	Refusal *Code `json:"refusal,omitempty"`

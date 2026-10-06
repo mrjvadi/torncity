@@ -204,6 +204,8 @@ type Config struct {
 
 	// Stage F (docs/adr/0024-property-and-politics.md).
 	Legislature Legislature
+	// Currency is a settlement's own money (ADR 0033 section 6).
+	Currency Currency
 	// Labor is the labour market (ADR 0037).
 	Labor        Labor
 	Education    Education
@@ -1798,6 +1800,14 @@ func Defaults() *Config {
 		Legislature: Legislature{VoteWindow: 48 * time.Hour, ListSize: 8},
 		Education:   Education{TeacherWageBPS: 6000, TeacherMinWage: 40, TeacherMaxStudents: 12},
 		Training:    Training{EnergyCost: 10, StaminaGain: 6, StrengthXP: 30, DiminishStamina: 400, StaminaPerMaxEnergy: 50, MaxEnergyBonusCap: 30, YardBPS: 4000, GroundBPS: 6000, GymBPS: 10000, GroundFee: 20, GymFee: 60},
+		Currency: Currency{
+			CharterR0:           10,
+			CharterFee:          1000,
+			CharterMinDeposit:   5000,
+			MintFeeBPS:          50,
+			AutoCharterShareBPS: 5000,
+			AutoCharterFloor:    500,
+		},
 		Labor: Labor{
 			ShiftMinutes:           60,
 			ShiftRealMinutes:       1,
@@ -1988,6 +1998,9 @@ func (c *Config) Validate() error {
 		if err := s.check(c); err != nil {
 			return err
 		}
+	}
+	if cur := c.Currency; cur.MintFeeBPS > 10_000 || cur.AutoCharterShareBPS > 10_000 || cur.CharterR0 < 1 || cur.CharterMinDeposit < 1 {
+		return fmt.Errorf("config: currency: the fee and the share are at most 10000 bps, the charter rate and the minimum deposit at least 1")
 	}
 	if err := c.Panel.validate(); err != nil {
 		return err
@@ -2295,4 +2308,16 @@ func parseDurationList(field, raw string) ([]time.Duration, error) {
 		out = append(out, d)
 	}
 	return out, nil
+}
+
+// Currency is a settlement's own money (docs/adr/0033 section 6, roadmap 2.19): what a charter costs
+// and how it is made. The rate is never configured: demand sets it; CharterR0 is only the scale of
+// the numbers at charter.
+type Currency struct {
+	CharterR0           int64 // currency.charter_r0: the starting scale of a chartered settlement currency: units per SUP at charter (a scale, never a peg)
+	CharterFee          int64 // currency.charter_fee: the charter fee in SUP, a sink
+	CharterMinDeposit   int64 // currency.charter_min_deposit: the smallest first deposit in SUP
+	MintFeeBPS          int64 // currency.mint_fee_bps: the issuance fee, kept in the reserve pot
+	AutoCharterShareBPS int64 // currency.auto_charter_share_bps: the share of the treasury beyond the fee an automatic charter of an existing settlement may deposit
+	AutoCharterFloor    int64 // currency.auto_charter_floor: the least deposit an automatic charter is worth making for
 }

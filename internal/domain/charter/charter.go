@@ -77,6 +77,10 @@ const (
 	// SettingsTimezone changes the settlement's own time zone, which its daily
 	// rhythms (the shop's morning, the stores' day, the market day) follow.
 	SettingsTimezone Permission = "settings.timezone"
+
+	// CurrencyCharter charters the settlement's own money by hand (the fee and the first deposit
+	// from the treasury); the founding does it itself when the grant covers it (docs/adr/0033 6.2).
+	CurrencyCharter Permission = "currency.charter"
 )
 
 // Def describes one permission.
@@ -107,6 +111,7 @@ var catalogue = []Def{
 	{TreatyPropose, "foreign", false, false}, {UnionPropose, "foreign", false, false}, {RaidDeclare, "foreign", false, false},
 	{NoticePost, "info", false, false},
 	{SettingsTimezone, "settings", false, true},
+	{CurrencyCharter, "currency", false, true},
 }
 
 var byCode = func() map[Permission]Def {

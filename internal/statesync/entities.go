@@ -56,6 +56,12 @@ type WalletData struct {
 	Bank     int64  `json:"bank"`
 	// Premium marks the premium currency (Nil).
 	Premium bool `json:"premium"`
+	// Name is the currency's authored name (a settlement's own money; empty for SUP), Local marks a
+	// settlement's own money: its Cash is the holder's balance in it (a foreign holding), Bank is 0.
+	// The HUD shows it next to the primary wallet; its rate to SUP is the response's money block
+	// (presentation.Money), live and never a peg.
+	Name  string `json:"name,omitempty"`
+	Local bool   `json:"local,omitempty"`
 	// Primary marks the game's money (the currency prices are in): the
 	// wallet a HUD shows first.
 	Primary bool `json:"primary"`

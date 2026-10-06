@@ -550,6 +550,13 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 			}
 			return h.village.CharterResign(ctx, env.Metadata, req)
 		},
+		"settlement.currency.charter": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageCurrencyRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.CurrencyCharter(ctx, env.Metadata, req)
+		},
 		"settlement.timezone.set": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			var req handlers.VillageZoneRequest
 			if err := decode(env, &req); err != nil {
