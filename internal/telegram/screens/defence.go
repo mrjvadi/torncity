@@ -13,20 +13,10 @@ import (
 // public registry of a country's licences with the defence minister's
 // decisions, and what the owner, the minister and the city groups are told.
 
-
-
-
-
-
-
-
-
 // licenceStatusLine is a licence's status in one line.
 func (c Context) licenceStatusLine(e LicenceEntry) string {
 	return c.T("defence.status."+e.Status, map[string]any{"time": FormatClock(c, e.EffectiveAt)})
 }
-
-
 
 // CompanyDefence renders a company's defence licence screen.
 func CompanyDefence(c Context, v CompanyDefenceView) *presenter.Response {
@@ -72,8 +62,6 @@ func CompanyDefence(c Context, v CompanyDefenceView) *presenter.Response {
 		RefreshData: keyboards.Data(AddrCompanyDefence, v.Ref.Code)}))
 	return c.respond(paragraphs(notice, body(head, status), explain, standing, how), kb.Build()).MarkPrivate()
 }
-
-
 
 // Licences renders the registry.
 func Licences(c Context, v LicencesView) *presenter.Response {
@@ -146,8 +134,6 @@ func Licences(c Context, v LicencesView) *presenter.Response {
 	parts = append(parts, c.T("defence.registry_hint", nil))
 	return c.respond(paragraphs(parts...), kb.Build())
 }
-
-
 
 // LicenceNotice renders a private notice about a licence.
 func LicenceNotice(c Context, v LicenceNoticeView) *presenter.Response {

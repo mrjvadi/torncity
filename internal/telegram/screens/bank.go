@@ -399,4 +399,3 @@ func renderPaymentNotice(c Context, v PaymentNoticeView) *presenter.Response {
 	}
 	return presenter.Message(body(c.T(key, args), code), kb.Build())
 }
-

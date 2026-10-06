@@ -12,8 +12,8 @@ import (
 	"github.com/jackc/pgx/v5"
 
 	"github.com/mrjvadi/torncity/internal/application"
-	"github.com/mrjvadi/torncity/internal/domain/player"
 	"github.com/mrjvadi/torncity/internal/domain/charter"
+	"github.com/mrjvadi/torncity/internal/domain/player"
 	"github.com/mrjvadi/torncity/internal/statesync"
 )
 

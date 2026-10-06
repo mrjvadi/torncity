@@ -143,6 +143,9 @@ components:
     base_price: 3
     attributes: {quality: 55}
     production: {method: grow, by: [farm], inputs: [{component: seed_grain, quantity: 1}], batch: 20, skill: logistics}
+    # a village buys food from Support (ADR 0041 12: procurement is always there), so a new
+    # city's hired crews can eat before it has a farm of its own
+    village_buy: true
   - code: cotton
     shelf: materials.fibre
     name: Cotton

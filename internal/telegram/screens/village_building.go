@@ -279,6 +279,27 @@ func workBlock(c Context, v BuildingView) []string {
 		out = append(out, c.T("building.work.shift", map[string]any{
 			"duration": FormatDuration(c, time.Duration(w.ShiftSeconds)*time.Second), "wage": FormatMoney(c, w.Wage)}))
 	}
+	if cd := w.Condition; cd != nil {
+		out = append(out, c.T("building.work.condition", map[string]any{
+			"percent": cd.BPS / 100, "decay": cd.DecayBPSPerDay, "output": cd.OutputBPS / 100}))
+		switch {
+		case cd.RepairJob != nil:
+			out = append(out, c.T("building.work.repair_open", map[string]any{"left": cd.RepairJob.ShiftsLeft}))
+		case cd.CanRepair:
+			var parts []string
+			for _, l := range cd.RepairMaterials {
+				parts = append(parts, fmt.Sprintf("%s %s", FormatNumber(c, l.Qty), c.ComponentName(l.Item)))
+			}
+			mats := strings.Join(parts, "، ")
+			if mats == "" {
+				mats = "-"
+			}
+			out = append(out, c.T("building.work.repair_need", map[string]any{"shifts": cd.RepairShifts, "items": mats}))
+		}
+	}
+	if w.MealPoints > 0 {
+		out = append(out, c.T("building.work.food", map[string]any{"points": w.MealPoints, "shifts": w.FoodShifts}))
+	}
 	items := func(ls []village.WorkItemLine) string {
 		var parts []string
 		for _, l := range ls {

@@ -688,6 +688,15 @@ labor:
   fee_bps: 501
   budget_slack_bps: 5001
   npc_shifts_per_slot_day: 11
+  hungry_output_bps: 5001
+  hungry_shift_hunger: 6
+  repair_material_share_bps: 2001
+  repair_shifts_full: 11
+  worn_output_bps: 7501
+  closed_bps: 2501
+  worn_bps: 5003
+  repair_below_bps: 7001
+  decay_bps_per_day: 51
   journeyman_shifts: 7
   master_shifts: 31
   apprentice_bps: 7001
@@ -1172,6 +1181,15 @@ var envOverrides = map[string]string{
 	"TORN_LABOR_FEE_BPS":                               "502",
 	"TORN_LABOR_BUDGET_SLACK_BPS":                      "5002",
 	"TORN_LABOR_NPC_SHIFTS_PER_SLOT_DAY":               "12",
+	"TORN_LABOR_HUNGRY_OUTPUT_BPS":                     "5002",
+	"TORN_LABOR_HUNGRY_SHIFT_HUNGER":                   "7",
+	"TORN_LABOR_REPAIR_MATERIAL_SHARE_BPS":             "2002",
+	"TORN_LABOR_REPAIR_SHIFTS_FULL":                    "12",
+	"TORN_LABOR_WORN_OUTPUT_BPS":                       "7502",
+	"TORN_LABOR_CLOSED_BPS":                            "2502",
+	"TORN_LABOR_WORN_BPS":                              "5004",
+	"TORN_LABOR_REPAIR_BELOW_BPS":                      "7002",
+	"TORN_LABOR_DECAY_BPS_PER_DAY":                     "52",
 	"TORN_LABOR_JOURNEYMAN_SHIFTS":                     "8",
 	"TORN_LABOR_MASTER_SHIFTS":                         "32",
 	"TORN_LABOR_APPRENTICE_BPS":                        "7002",

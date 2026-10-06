@@ -14,6 +14,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/item"
+	"github.com/mrjvadi/torncity/internal/domain/labor"
 	"github.com/mrjvadi/torncity/internal/domain/player"
 	"github.com/mrjvadi/torncity/internal/domain/settlementbuilding"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
@@ -723,6 +724,51 @@ func (h *VillageHandler) startProduction(ctx context.Context, tx application.Tx,
 	if treasury < wage {
 		return refuseVillage(village.VillageInsufficient, village.AddrWork)
 	}
+	// The workplace's condition (phase 5): worn it works at a share, ruined it is closed.
+	zone := s.Zone()
+	damage := h.damageNow(b, h.decayOf(snap, d), h.now(), zone)
+	condFactor, closed := h.conditionFactor(labor.BPS - damage)
+	if closed {
+		return refuseVillage(village.LaborNeedsRepair, village.AddrWork)
+	}
+	// The meal (phase 3): fed from the kitchen; an NPC with no food does not start, a player
+	// starts hungry at a share of the output. The rung scales the output the same way.
+	// A wiring without the labour rules (the older tests) has no meals and no rungs: the
+	// base output, as before.
+	points := mealPointsOf(snap, d)
+	fed, rung := true, h.labor.NPCProductivityBPS
+	rules := len(h.labor.Levels) > 0 && h.labor.HungryOutputBPS > 0
+	if !rules {
+		points, rung = 0, labor.BPS
+	}
+	var openings []application.MealOpening
+	if p != nil && rules {
+		w, err := tx.SettlementTreasury().Worker(ctx, p.ID)
+		if err != nil {
+			return err
+		}
+		rung = h.labor.LevelOf(w.Shifts).ProductivityBPS
+	}
+	if points > 0 {
+		pot, err := tx.SettlementTreasury().Pot(ctx, s.CityID)
+		if err != nil {
+			return err
+		}
+		var ok bool
+		if openings, ok = mealPlan(snap.MealFoods(), stock.Units, d.Consumes, pot, points); !ok {
+			if p == nil {
+				return refuseVillage(village.LaborNoFood, village.AddrLaborBoard)
+			}
+			fed, points, openings = false, 0, nil
+		}
+	}
+	outputBPS := rung
+	if !fed {
+		outputBPS = rung * h.labor.HungryOutputBPS / labor.BPS
+	}
+	if rules {
+		outputBPS = outputBPS * condFactor / labor.BPS
+	}
 
 	now := h.now()
 	shiftID := h.ids.NewID()
@@ -744,7 +790,13 @@ func (h *VillageHandler) startProduction(ctx context.Context, tx application.Tx,
 	if err != nil {
 		return err
 	}
+	if points > 0 {
+		if err := h.eatMeal(ctx, tx, s.CityID, shiftID, points, openings, now); err != nil {
+			return err
+		}
+	}
 	sh := application.SettlementShift{
+		MealPoints: points, Fed: fed, OutputBPS: outputBPS,
 		ID: shiftID, SettlementID: s.CityID, BuildingID: b.ID, Wage: wage, JobID: jobID, WorkerKind: application.LaborWorkerNPC,
 		Produced: copyQty(d.Produces), Consumed: copyQty(d.Consumes), GameActionID: actionID, StartedAt: now, FinishAt: finish,
 	}
@@ -761,8 +813,17 @@ func (h *VillageHandler) startProduction(ctx context.Context, tx application.Tx,
 		}
 		return err
 	}
+	if err := h.persistWear(ctx, tx, b, damage, now, zone); err != nil {
+		return err
+	}
+	if !fed && p != nil {
+		if err := h.hungerOfWork(ctx, tx, p.ID); err != nil {
+			return err
+		}
+	}
 	return appendVillageEvent(ctx, tx, meta, "shift_started", s.CityID, map[string]any{
 		"settlement_id": s.CityID, "shift_id": shiftID, "building_id": b.ID, "type_code": b.TypeCode, "player_id": playerID,
+		"fed": fed, "meal_points": points, "output_bps": outputBPS,
 		"worker": sh.WorkerKind, "finish_at": finish.UTC().Format(time.RFC3339),
 	})
 }
@@ -810,7 +871,7 @@ func (h *VillageHandler) Worked(ctx context.Context, meta envelope.Metadata, req
 		if now.Before(sh.FinishAt) {
 			return errors.Internal(stderrors.New("handlers: a village shift finished before its time"))
 		}
-		if sh.Kind == application.LaborKindConstruction {
+		if sh.Kind == application.LaborKindConstruction || sh.Kind == application.LaborKindRepair {
 			return h.workedSite(ctx, tx, meta, snap, sh, now)
 		}
 		org := application.SettlementOrg(sh.SettlementID)
@@ -835,14 +896,34 @@ func (h *VillageHandler) Worked(ctx context.Context, meta envelope.Metadata, req
 		for class, n := range stock.spaces(sh.Produced) {
 			room[class] += n
 		}
+		// The output is the base scaled by the shift's productivity (rung x fed); the fraction
+		// a shift does not deliver is carried by the workplace (ten-thousandths of a unit), so
+		// the totals over many shifts are exact.
+		carry, err := tx.SettlementTreasury().Carry(ctx, sh.BuildingID)
+		if err != nil && !stderrors.Is(err, application.ErrBuildingNotFound) {
+			return err
+		}
+		if carry == nil {
+			carry = map[string]int64{}
+		}
+		bps := sh.OutputBPS
+		if bps <= 0 {
+			bps = labor.BPS
+		}
+		scaled := map[string]int64{}
 		made := map[string]int64{}
 		for _, c := range materialCodes(sh.Produced) {
+			x := sh.Produced[c]*bps + carry[c]
+			scaled[c], carry[c] = x/labor.BPS, x%labor.BPS
 			class, bulk := stock.ClassOf(c), stock.Bulk(c)
-			q := min(sh.Produced[c], room[class]/bulk)
+			q := min(scaled[c], room[class]/bulk)
 			if q > 0 {
 				made[c] = q
 				room[class] -= q * bulk
 			}
+		}
+		if err := tx.SettlementTreasury().SetCarry(ctx, sh.BuildingID, carry); err != nil && !stderrors.Is(err, application.ErrBuildingNotFound) {
+			return err
 		}
 
 		treasury, err := treasuryBalance(ctx, tx, sh.SettlementID)
@@ -850,7 +931,7 @@ func (h *VillageHandler) Worked(ctx context.Context, meta envelope.Metadata, req
 			return err
 		}
 		pay := sh.Wage
-		if want := sumQty(sh.Produced); want > 0 && sumQty(made) < want {
+		if want := sumQty(scaled); want > 0 && sumQty(made) < want {
 			pay = sh.Wage * sumQty(made) / want
 		}
 		if treasury < pay {

@@ -20,8 +20,6 @@ import (
 // a code with no entry reads as a generic phrase, never as the code itself: a
 // lever code, an office code or an id is not something a player should read.
 
-
-
 // Catalogue namespaces for content-coded names.
 const (
 	officeKeyPrefix       = "office."
@@ -43,14 +41,6 @@ const cityKind = "city"
 // countryKind is the level of a country.
 const countryKind = "country"
 
-
-
-
-
-
-
-
-
 // isAllocation reports whether the lever divides a budget.
 func isAllocationLever(l GovLever) bool { return l.Type == application.LeverAllocation }
 
@@ -62,20 +52,6 @@ func (c Context) leverValue(l GovLever) string {
 	}
 	return FormatPolicyValue(c, l.Code, l.Type, l.Value)
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // confirmNotice says when a change takes effect: after its notice, or —
 // when a body must confirm it — after the vote.
@@ -93,14 +69,6 @@ func (c Context) confirmVote(l GovLever, body string) string {
 	}
 	return c.T("gov.confirm.vote", map[string]any{"office": c.OfficeName(body)})
 }
-
-
-
-
-
-
-
-
 
 // PlaceName names a jurisdiction in this context's language: a city through
 // city.<code>, anything else through jurisdiction.<code>, and the authored
@@ -571,10 +539,6 @@ func (c Context) announcedValue(l GovLever, v int64, shares map[string]int64) st
 	return FormatPolicyValue(c, l.Code, l.Type, v)
 }
 
-
-
-
-
 // AllocationEdit renders the allocation editor.
 func AllocationEdit(c Context, v AllocationEditView) *presenter.Response {
 	return c.withView(renderAllocationEdit(c, v), ScreenAllocationEdit, v)
@@ -637,8 +601,6 @@ func (c Context) spendShareLine(bps int64) string {
 	return c.T("gov.alloc.spend_share", map[string]any{"share": c.T("gov.percent",
 		map[string]any{"value": PercentFromBPS(c, int(bps))})})
 }
-
-
 
 // AllocationConfirm asks the holder to confirm an allocation.
 func AllocationConfirm(c Context, v AllocationConfirmView) *presenter.Response {

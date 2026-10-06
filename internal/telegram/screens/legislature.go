@@ -15,22 +15,6 @@ import (
 // votes, a member's vote, and the public lines of a proposal opened and
 // decided. A legislator's vote is public record, unlike a ballot.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // BillSubjectText describes what a proposal would do, in one line.
 func (c Context) BillSubjectText(s BillSubject) string {
 	if s.Kind == application.ProposalAction {

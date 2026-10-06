@@ -190,4 +190,3 @@ func rowText(n int) string {
 	}
 	return fmt.Sprint(n)
 }
-

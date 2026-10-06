@@ -88,7 +88,7 @@ func (r *SettlementTreasuryRepository) OpenJobs(ctx context.Context, settlementI
 // JobOfBuilding is the building's open job, or nil.
 func (r *SettlementTreasuryRepository) JobOfBuilding(ctx context.Context, buildingID string) (*application.LaborJob, error) {
 	j, err := scanLaborJob(r.q.QueryRow(ctx, `SELECT `+laborJobColumns+`
-		FROM labor_jobs WHERE building_id = $1::uuid AND status = 'open'`, buildingID))
+		FROM labor_jobs WHERE building_id = $1::uuid AND status = 'open' ORDER BY created_at, id LIMIT 1`, buildingID))
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, nil
 	}
@@ -114,6 +114,19 @@ func (r *SettlementTreasuryRepository) NPCShiftsSince(ctx context.Context, build
 		return 0, fmt.Errorf("postgres: counting a building's NPC shifts: %w", err)
 	}
 	return n, nil
+}
+
+// JobOfBuildingKind is the building's open job of one kind, or nil.
+func (r *SettlementTreasuryRepository) JobOfBuildingKind(ctx context.Context, buildingID, kind string) (*application.LaborJob, error) {
+	j, err := scanLaborJob(r.q.QueryRow(ctx, `SELECT `+laborJobColumns+`
+		FROM labor_jobs WHERE building_id = $1::uuid AND kind = $2 AND status = 'open'`, buildingID, kind))
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("postgres: reading the building's %s job: %w", kind, err)
+	}
+	return &j, nil
 }
 
 // CountStarted adds one started shift to a job.
@@ -168,10 +181,10 @@ func (r *SettlementTreasuryRepository) StartLaborShift(ctx context.Context, s ap
 	_, err := r.q.Exec(ctx, `
 		INSERT INTO settlement_shifts
 		       (id, settlement_id, building_id, player_id, status, wage, wage_paid, produced, consumed, game_action_id,
-		        started_at, finish_at, kind, job_id, worker_kind, work_points, payer_kind, payer_id, fee)
-		VALUES ($1, $2, $3, $4::uuid, 'working', $5, 0, '{}'::jsonb, '{}'::jsonb, $6, $7, $8, $9, $10::uuid, $11, $12, $13, $14::uuid, 0)`,
+		        started_at, finish_at, kind, job_id, worker_kind, work_points, payer_kind, payer_id, fee, condition_gain)
+		VALUES ($1, $2, $3, $4::uuid, 'working', $5, 0, '{}'::jsonb, '{}'::jsonb, $6, $7, $8, $9, $10::uuid, $11, $12, $13, $14::uuid, 0, $15)`,
 		s.ID, s.SettlementID, s.BuildingID, player, s.Wage, s.GameActionID, s.StartedAt.UTC(), s.FinishAt.UTC(),
-		s.Kind, job, s.WorkerKind, s.WorkPoints, s.PayerKind, payer)
+		s.Kind, job, s.WorkerKind, s.WorkPoints, s.PayerKind, payer, s.ConditionGain)
 	if violates(err, sqlstateUniqueViolation, settlementShiftsOneWorkingIdx) {
 		return application.ErrAlreadyWorking
 	}

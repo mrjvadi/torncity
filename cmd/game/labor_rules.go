@@ -21,6 +21,7 @@ func laborRules(c config.Labor) labor.Rules {
 		},
 		ParticipationBPS: c.ParticipationBPS, BaseHousing: c.BaseHousing, NPCProductivityBPS: c.NPCProductivityBPS,
 		FeeBPS: c.FeeBPS, BudgetSlackBPS: c.BudgetSlackBPS, NPCShiftsPerSlotDay: c.NPCShiftsPerSlotDay,
+		HungryOutputBPS: c.HungryOutputBPS, HungryShiftHunger: c.HungryShiftHunger, RepairMaterialShareBPS: c.RepairMaterialShareBPS, RepairShiftsFull: c.RepairShiftsFull, WornOutputBPS: c.WornOutputBPS, ClosedBPS: c.ClosedBPS, WornBPS: c.WornBPS, RepairBelowBPS: c.RepairBelowBPS, DecayBPSPerDay: c.DecayBPSPerDay,
 		Levels: []labor.Level{
 			{Code: "apprentice", MinShifts: 0, ProductivityBPS: c.ApprenticeBPS},
 			{Code: "journeyman", MinShifts: c.JourneymanShifts, ProductivityBPS: c.JourneymanBPS},

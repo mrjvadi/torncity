@@ -16,14 +16,10 @@ import (
 // Commands of the faction screens that ask the player to type a value.
 const (
 	commandFactionFound = "faction.found"
-	commandFactionInv = "faction.invite"
-	commandFactionDep = "faction.deposit"
-	commandFactionWd = "faction.withdraw"
+	commandFactionInv   = "faction.invite"
+	commandFactionDep   = "faction.deposit"
+	commandFactionWd    = "faction.withdraw"
 )
-
-
-
-
 
 func (c Context) factionName(r FactionRef) string {
 	return c.T("faction.name", map[string]any{"name": r.Name, "code": r.Code})
@@ -31,10 +27,6 @@ func (c Context) factionName(r FactionRef) string {
 
 // rankName names a rank.
 func (c Context) rankName(rank string) string { return c.T("faction.rank."+rank, nil) }
-
-
-
-
 
 // FactionList renders the factions of a city.
 func FactionList(c Context, v FactionListView) *presenter.Response {
@@ -72,10 +64,6 @@ func renderFactionList(c Context, v FactionListView) *presenter.Response {
 	return c.respond(paragraphs(title, list, mine), kb.Build())
 }
 
-
-
-
-
 // FactionPage renders a faction's public page.
 func FactionPage(c Context, v FactionPageView) *presenter.Response {
 	return c.withView(renderFactionPage(c, v), ScreenFactionPage, v)
@@ -106,8 +94,6 @@ func renderFactionPage(c Context, v FactionPageView) *presenter.Response {
 		kb.Build())
 }
 
-
-
 // FactionFound renders founding a faction.
 func FactionFound(c Context, v FactionFoundView) *presenter.Response {
 	return c.withView(renderFactionFound(c, v), ScreenFactionFound, v)
@@ -135,8 +121,6 @@ func renderFactionFound(c Context, v FactionFoundView) *presenter.Response {
 	return c.respond(paragraphs(text, pay), kb.Build()).MarkPrivate()
 }
 
-
-
 // FactionFounded renders a faction founded.
 func FactionFounded(c Context, v FactionFoundedView) *presenter.Response {
 	return c.withView(renderFactionFounded(c, v), ScreenFactionFounded, v)
@@ -154,8 +138,6 @@ func renderFactionFounded(c Context, v FactionFoundedView) *presenter.Response {
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrHome}))
 	return c.respond(body(lines...), kb.Build()).MarkPrivate()
 }
-
-
 
 func hasRight(rights []string, r string) bool {
 	for _, x := range rights {
@@ -205,10 +187,6 @@ func renderFactionHome(c Context, v FactionHomeView) *presenter.Response {
 	return c.respond(paragraphs(c.T("faction.home_title", map[string]any{"faction": c.factionName(v.Ref)}),
 		body(lines...), link, op), kb.Build()).MarkPrivate()
 }
-
-
-
-
 
 // FactionMembers renders a faction's members, with the buttons the viewer's
 // rank allows on each.
@@ -292,8 +270,6 @@ func FactionApplied(c Context, f FactionRef) *presenter.Response {
 	return c.respond(c.T("faction.applied", map[string]any{"faction": c.factionName(f)}), kb.Build()).MarkPrivate()
 }
 
-
-
 // FactionAnswered renders an answer given.
 func FactionAnswered(c Context, v FactionAnsweredView) *presenter.Response {
 	return c.withView(renderFactionAnswered(c, v), ScreenFactionAnswered, v)
@@ -316,10 +292,6 @@ func renderFactionAnswered(c Context, v FactionAnsweredView) *presenter.Response
 	return c.respond(c.T(key, map[string]any{"faction": c.factionName(v.Ref), "player": c.govPlayer(&v.Player)}),
 		kb.Build()).MarkPrivate()
 }
-
-
-
-
 
 // FactionConfirm renders a confirmation.
 func FactionConfirm(c Context, v FactionConfirmView) *presenter.Response {
@@ -345,8 +317,6 @@ func renderFactionConfirm(c Context, v FactionConfirmView) *presenter.Response {
 	return c.respond(c.T("faction.confirm."+v.Kind, args), kb.Build()).MarkPrivate()
 }
 
-
-
 // FactionLeft renders leaving a faction.
 func FactionLeft(c Context, v FactionLeftView) *presenter.Response {
 	return c.withView(renderFactionLeft(c, v), ScreenFactionLeft, v)
@@ -367,8 +337,6 @@ func renderFactionLeft(c Context, v FactionLeftView) *presenter.Response {
 	return c.respond(body(lines...), kb.Build()).MarkPrivate()
 }
 
-
-
 // FactionLinked renders a faction tied to the group it was sent in.
 func FactionLinked(c Context, v FactionLinkedView) *presenter.Response {
 	return c.withView(renderFactionLinked(c, v), ScreenFactionLinked, v)
@@ -379,10 +347,6 @@ func renderFactionLinked(c Context, v FactionLinkedView) *presenter.Response {
 	kb.Add(c.T("faction.button.crime", nil), AddrFactionCrime)
 	return c.respond(c.T("faction.linked", map[string]any{"faction": c.factionName(v.Ref)}), kb.Build())
 }
-
-
-
-
 
 // FactionBank renders a faction's bank.
 func FactionBank(c Context, v FactionBankView) *presenter.Response {
@@ -426,8 +390,6 @@ func renderFactionBank(c Context, v FactionBankView) *presenter.Response {
 		body(lines...), rules), kb.Build()).MarkPrivate()
 }
 
-
-
 // operationLines are an organised crime's lines.
 func (c Context) operationLines(o FactionOperationLine) string {
 	args := map[string]any{"crime": c.CrimeName(o.Crime), "place": c.SpotName(o.Place), "city": c.CityName(o.CityCode, o.City),
@@ -449,12 +411,6 @@ func (c Context) operationLines(o FactionOperationLine) string {
 	}
 	return body(lines...)
 }
-
-
-
-
-
-
 
 // FactionCrime renders the organised crime board.
 func FactionCrime(c Context, v FactionCrimeBoardView) *presenter.Response {
@@ -503,10 +459,6 @@ func renderFactionCrime(c Context, v FactionCrimeBoardView) *presenter.Response 
 	return c.respond(paragraphs(notice, c.T("faction.crime_title", map[string]any{"faction": c.factionName(v.Ref)}),
 		current, menu, rules), kb.Build())
 }
-
-
-
-
 
 // FactionRefusal renders a refused faction request.
 func FactionRefusal(c Context, v FactionRefusalView) *presenter.Response {

@@ -31,4 +31,3 @@ type RetrofitView struct {
 	FinishAt time.Time
 	Started  bool
 }
-

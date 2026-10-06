@@ -101,6 +101,17 @@ func (h *VillageHandler) nodeWork(ctx context.Context, tx application.Tx, snap *
 		return nil, err
 	}
 	if produces {
+		if w.MealPoints = mealPointsOf(snap, d); w.MealPoints > 0 {
+			pot, err := tx.SettlementTreasury().Pot(ctx, s.CityID)
+			if err != nil {
+				return nil, err
+			}
+			total := pot
+			for _, f := range snap.MealFoods() {
+				total += stock.Units[f.Item] * f.Points
+			}
+			w.FoodShifts = total / w.MealPoints
+		}
 		for _, c := range materialCodes(d.Consumes) {
 			if have := stock.Units[c]; have < d.Consumes[c] {
 				item := materialLineOf(snap, c, d.Consumes[c]).Component
@@ -138,9 +149,9 @@ func (h *VillageHandler) nodeWork(ctx context.Context, tx application.Tx, snap *
 	if w.Max > 0 && w.Filled == 0 && w.Kind != village.NodeKindStorage {
 		w.Reasons = append([]village.WorkReason{{Code: village.NodeReasonNoStaff}}, w.Reasons...)
 	}
-	if job, err := tx.SettlementTreasury().JobOfBuilding(ctx, b.ID); err != nil {
+	if job, err := tx.SettlementTreasury().JobOfBuildingKind(ctx, b.ID, application.LaborKindProduction); err != nil {
 		return nil, err
-	} else if job != nil && job.Kind == application.LaborKindProduction {
+	} else if job != nil {
 		w.Job = &village.WorkJob{ID: job.ID, Wage: job.Wage, NPCCrew: job.NPCCrew, ShiftsLeft: job.Left(), Priority: job.Priority, Paused: job.Paused}
 		if job.Paused != "" && w.Filled == 0 {
 			// the crew's own reason is told too, unless a reason above already says it
@@ -153,7 +164,20 @@ func (h *VillageHandler) nodeWork(ctx context.Context, tx application.Tx, snap *
 			}
 		}
 	}
+	if cond := h.workCondition(snap, d, b, h.now(), s.Zone()); cond != nil {
+		w.Condition = cond
+		if rj, err := tx.SettlementTreasury().JobOfBuildingKind(ctx, b.ID, application.LaborKindRepair); err != nil {
+			return nil, err
+		} else if rj != nil {
+			cond.RepairJob = &village.WorkJob{ID: rj.ID, Wage: rj.Wage, NPCCrew: rj.NPCCrew, ShiftsLeft: rj.Left(), Priority: rj.Priority, Paused: rj.Paused}
+		}
+		if cond.Closed {
+			w.Reasons = append([]village.WorkReason{{Code: village.NodeReasonNeedsRepair}}, w.Reasons...)
+		}
+	}
 	switch {
+	case w.Condition != nil && w.Condition.Closed:
+		w.Status = village.NodeIdle
 	case w.Filled > 0:
 		w.Status = village.NodeWorking // running, possibly with something held back
 	case w.Job != nil && w.Job.Paused != "":
@@ -170,4 +194,3 @@ func (h *VillageHandler) nodeLines(snap *content.Snapshot, m map[string]int64) [
 	}
 	return out
 }
-

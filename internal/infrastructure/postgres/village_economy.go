@@ -61,10 +61,11 @@ func (r *SettlementTreasuryRepository) StartShift(ctx context.Context, s applica
 	}
 	_, err = r.q.Exec(ctx, `
 		INSERT INTO settlement_shifts
-		       (id, settlement_id, building_id, player_id, status, wage, wage_paid, produced, consumed, game_action_id, started_at, finish_at, job_id, worker_kind)
-		VALUES ($1, $2, $3, NULLIF($4, '')::uuid, 'working', $5, 0, $6::jsonb, $7::jsonb, $8, $9, $10, NULLIF($11, '')::uuid, $12)`,
+		       (id, settlement_id, building_id, player_id, status, wage, wage_paid, produced, consumed, game_action_id, started_at, finish_at, job_id, worker_kind,
+		        meal_points, fed, output_bps)
+		VALUES ($1, $2, $3, NULLIF($4, '')::uuid, 'working', $5, 0, $6::jsonb, $7::jsonb, $8, $9, $10, NULLIF($11, '')::uuid, $12, $13, $14, $15)`,
 		s.ID, s.SettlementID, s.BuildingID, s.PlayerID, s.Wage, string(produced), string(consumed), s.GameActionID,
-		s.StartedAt.UTC(), s.FinishAt.UTC(), s.JobID, workerKindOf(s))
+		s.StartedAt.UTC(), s.FinishAt.UTC(), s.JobID, workerKindOf(s), s.MealPoints, s.Fed, outputBPSOf(s))
 	if violates(err, sqlstateUniqueViolation, settlementShiftsOneWorkingIdx) {
 		return application.ErrAlreadyWorking
 	}
@@ -76,7 +77,8 @@ func (r *SettlementTreasuryRepository) StartShift(ctx context.Context, s applica
 
 const shiftColumns = `id::text, settlement_id::text, building_id::text, COALESCE(player_id::text, ''), status, wage, wage_paid,
 	produced, consumed, game_action_id::text, started_at, finish_at, finished_at,
-	kind, COALESCE(job_id::text, ''), worker_kind, work_points, payer_kind, COALESCE(payer_id::text, ''), fee`
+	kind, COALESCE(job_id::text, ''), worker_kind, work_points, payer_kind, COALESCE(payer_id::text, ''), fee,
+	meal_points, fed, output_bps, condition_gain`
 
 func scanShift(row pgx.Row) (application.SettlementShift, error) {
 	var (
@@ -85,7 +87,8 @@ func scanShift(row pgx.Row) (application.SettlementShift, error) {
 	)
 	if err := row.Scan(&s.ID, &s.SettlementID, &s.BuildingID, &s.PlayerID, &s.Status, &s.Wage, &s.WagePaid,
 		&produced, &consumed, &s.GameActionID, &s.StartedAt, &s.FinishAt, &s.FinishedAt,
-		&s.Kind, &s.JobID, &s.WorkerKind, &s.WorkPoints, &s.PayerKind, &s.PayerID, &s.Fee); err != nil {
+		&s.Kind, &s.JobID, &s.WorkerKind, &s.WorkPoints, &s.PayerKind, &s.PayerID, &s.Fee,
+		&s.MealPoints, &s.Fed, &s.OutputBPS, &s.ConditionGain); err != nil {
 		return s, err
 	}
 	if err := json.Unmarshal(produced, &s.Produced); err != nil {
@@ -168,4 +171,69 @@ func workerKindOf(s application.SettlementShift) string {
 		return application.LaborWorkerNPC
 	}
 	return application.LaborWorkerPlayer
+}
+
+// outputBPSOf is the productivity a shift is stored with: the full base unless one was set.
+func outputBPSOf(s application.SettlementShift) int64 {
+	if s.OutputBPS <= 0 {
+		return 10_000
+	}
+	return s.OutputBPS
+}
+
+// Pot is the kitchen's uneaten food points, the row made on first sight and locked.
+func (r *SettlementTreasuryRepository) Pot(ctx context.Context, settlementID string) (int64, error) {
+	if _, err := r.q.Exec(ctx, `INSERT INTO settlement_kitchen (settlement_id) VALUES ($1::uuid) ON CONFLICT DO NOTHING`, settlementID); err != nil {
+		return 0, fmt.Errorf("postgres: making the kitchen: %w", err)
+	}
+	var pot int64
+	if err := r.q.QueryRow(ctx, `SELECT pot FROM settlement_kitchen WHERE settlement_id = $1::uuid FOR UPDATE`, settlementID).Scan(&pot); err != nil {
+		return 0, fmt.Errorf("postgres: reading the kitchen: %w", err)
+	}
+	return pot, nil
+}
+
+// Eat opens the units into the pot and takes the meal out of it.
+func (r *SettlementTreasuryRepository) Eat(ctx context.Context, settlementID, shiftID string, points int64, openings []application.MealOpening, at time.Time) error {
+	var opened int64
+	for _, o := range openings {
+		if _, err := r.q.Exec(ctx, `INSERT INTO settlement_meals (id, settlement_id, shift_id, item_code, units, points_each, created_at)
+			VALUES ($1::uuid, $2::uuid, $3::uuid, $4, $5, $6, $7)`, o.ID, settlementID, shiftID, o.Item, o.Units, o.PointsEach, at.UTC()); err != nil {
+			return fmt.Errorf("postgres: recording a meal opening: %w", err)
+		}
+		opened += o.Units * o.PointsEach
+	}
+	if _, err := r.q.Exec(ctx, `UPDATE settlement_kitchen SET opened_points = opened_points + $2, eaten_points = eaten_points + $3,
+		pot = pot + $2 - $3 WHERE settlement_id = $1::uuid`, settlementID, opened, points); err != nil {
+		return fmt.Errorf("postgres: eating from the kitchen: %w", err)
+	}
+	return nil
+}
+
+// Carry reads a workplace's undelivered fractions under its row lock.
+func (r *SettlementTreasuryRepository) Carry(ctx context.Context, buildingID string) (map[string]int64, error) {
+	var raw []byte
+	if err := r.q.QueryRow(ctx, `SELECT carry FROM settlement_buildings WHERE id = $1::uuid FOR UPDATE`, buildingID).Scan(&raw); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, application.ErrBuildingNotFound
+		}
+		return nil, fmt.Errorf("postgres: reading a carry: %w", err)
+	}
+	out := map[string]int64{}
+	if err := json.Unmarshal(raw, &out); err != nil {
+		return nil, fmt.Errorf("postgres: reading a carry: %w", err)
+	}
+	return out, nil
+}
+
+// SetCarry writes a workplace's undelivered fractions.
+func (r *SettlementTreasuryRepository) SetCarry(ctx context.Context, buildingID string, carry map[string]int64) error {
+	raw, err := json.Marshal(carry)
+	if err != nil {
+		return err
+	}
+	if _, err := r.q.Exec(ctx, `UPDATE settlement_buildings SET carry = $2::jsonb WHERE id = $1::uuid`, buildingID, string(raw)); err != nil {
+		return fmt.Errorf("postgres: writing a carry: %w", err)
+	}
+	return nil
 }

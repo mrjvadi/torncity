@@ -20,10 +20,6 @@ import (
 // military.branch.<code>, a class military.class.<code>, a band
 // military.band.<code>.
 
-
-
-
-
 // BranchName names a branch of the forces.
 func (c Context) BranchName(n Named) string { return c.named("military.branch_name."+n.Code, n.Name) }
 
@@ -34,14 +30,6 @@ func (c Context) ForceClassName(n Named) string {
 
 // BandName says how many a band covers, in words.
 func (c Context) BandName(code string) string { return c.named("military.band."+code, code) }
-
-
-
-
-
-
-
-
 
 // armsExportsKey words the arms export policy.
 func armsExportsKey(v int64) string {
@@ -168,8 +156,6 @@ func forceLines(c Context, branches []BranchForces, cleared bool) []string {
 	return lines
 }
 
-
-
 // Forces renders a country's forces by branch.
 func Forces(c Context, v ForcesView) *presenter.Response {
 	if v.Unavailable != nil {
@@ -201,14 +187,6 @@ func Forces(c Context, v ForcesView) *presenter.Response {
 		RefreshData: keyboards.Data(AddrForces, v.Country.Code)}))
 	return c.respond(paragraphs(body(lines...), footer), kb.Build())
 }
-
-
-
-
-
-
-
-
 
 // attributeValue renders a military attribute in its unit.
 func attributeValue(c Context, name string, v int64) string {
@@ -309,8 +287,6 @@ func Branch(c Context, v BranchView) *presenter.Response {
 	return c.respond(paragraphs(blocks...), kb.Build())
 }
 
-
-
 // Station renders the stationing flow.
 func Station(c Context, v StationView) *presenter.Response {
 	good := c.GoodName(v.Good)
@@ -357,12 +333,6 @@ func Station(c Context, v StationView) *presenter.Response {
 	return c.respond(body(lines...), kb.Build())
 }
 
-
-
-
-
-
-
 // Procure renders procurement.
 func Procure(c Context, v ProcureView) *presenter.Response {
 	if v.Unavailable != nil {
@@ -402,8 +372,6 @@ func Procure(c Context, v ProcureView) *presenter.Response {
 		RefreshData: keyboards.Data(AddrProcure, v.Country.Code)}))
 	return c.respond(paragraphs(blocks...), kb.Build())
 }
-
-
 
 // ArmsBuy renders a purchase of arms.
 func ArmsBuy(c Context, v ArmsBuyView) *presenter.Response {
@@ -449,10 +417,6 @@ func ArmsBuy(c Context, v ArmsBuyView) *presenter.Response {
 	return c.respond(body(lines...), kb.Build())
 }
 
-
-
-
-
 // MilitaryRefusal renders a refused military command.
 func MilitaryRefusal(c Context, v MilitaryRefusalView) *presenter.Response {
 	args := map[string]any{"country": c.PlaceName(v.Country), "office": c.OfficeName(v.Office),
@@ -468,8 +432,6 @@ func MilitaryRefusal(c Context, v MilitaryRefusalView) *presenter.Response {
 	kb.Nav(c.nav(keyboards.Nav{BackData: back}))
 	return c.respond(c.T("military.refused."+v.Kind, args), kb.Build())
 }
-
-
 
 // MoveArrivedNotice tells the commander equipment reached its garrison.
 func MoveArrivedNotice(c Context, v MilitaryNoticeView) *presenter.Response {

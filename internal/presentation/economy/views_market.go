@@ -100,7 +100,7 @@ type MarketCheckoutView struct {
 type OrderPlacedView struct {
 	// ListingFee is what the order paid the settlement's treasury to take a stall
 	// on the village book; zero in a city's book and on a market day.
-	ListingFee int64
+	ListingFee  int64
 	Item        Named
 	Side        string
 	No          int64

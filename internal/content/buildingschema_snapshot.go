@@ -78,6 +78,33 @@ func (s *Snapshot) BuildingFunction(code string) (BuildingFunctionDef, bool) {
 	return f, ok
 }
 
+// MealFood is a food a kitchen may open for a meal and the points one unit gives.
+type MealFood struct {
+	Item   string
+	Points int64
+}
+
+// MealFoods are the foods that feed workers, best first (most points a unit, then by
+// code): what the kitchen opens when its pot runs short (ADR 0041 6.5).
+func (s *Snapshot) MealFoods() []MealFood {
+	if s.schema == nil {
+		return nil
+	}
+	var out []MealFood
+	for code, it := range s.schema.itemStorage {
+		if it.Class == "food" && it.FoodPoints > 0 && !it.Planned {
+			out = append(out, MealFood{Item: code, Points: int64(it.FoodPoints)})
+		}
+	}
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].Points != out[j].Points {
+			return out[i].Points > out[j].Points
+		}
+		return out[i].Item < out[j].Item
+	})
+	return out
+}
+
 // StorageProviders are the buildings (the legacy catalogue code a function replaces, else
 // the function code) that give room in a storage class, sorted: what to build when a class
 // is full.

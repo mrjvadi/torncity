@@ -174,6 +174,10 @@ type StaffRoleDef struct {
 	// market wage (0: not fixed).
 	Skill   string `yaml:"skill,omitempty" json:"skill,omitempty"`
 	WageBPS int    `yaml:"wage_bps,omitempty" json:"wage_bps,omitempty"`
+	// Crew marks a role whose staffed post raises buildings: each standing building with
+	// such a post filled is one more building the settlement may raise at once (ADR 0044
+	// 4.1: crews, not a label, are the capacity).
+	Crew bool `yaml:"crew,omitempty" json:"crew,omitempty"`
 }
 
 // PersonalSourceDef says where a personal prerequisite with no certifying

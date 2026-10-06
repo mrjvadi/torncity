@@ -148,7 +148,21 @@ const (
 	// (ADR 0028 section 6.3) consumed from a settlement's own public stock
 	// (org_stacks, OrgSettlement) when its placement is confirmed.
 	ItemSettlementConstruction ItemReason = "settlement_construction"
+
+	// ItemMealEaten is an end: food units a settlement's kitchen opened for its workers'
+	// meals (ADR 0041 6.5); the movement's reference is the settlement_meals row.
+	ItemMealEaten ItemReason = "meal_eaten"
+	// ItemRepairMaterials is an end: the materials of a repair job (ADR 0041 6.10), taken
+	// from the stock when the job is posted; the movement's reference is the job.
+	ItemRepairMaterials ItemReason = "repair_materials"
+	// MealReference is the reference_type of those movements.
 )
+
+// MealReference is the reference_type of a meal_eaten movement.
+const MealReference = "settlement_meal"
+
+// RepairReference is the reference_type of a repair_materials movement.
+const RepairReference = "labor_job"
 
 var itemReasons = map[ItemReason]bool{
 	ItemShopPurchase: true, ItemCrimeLoot: true, ItemGrant: true,
@@ -163,6 +177,8 @@ var itemReasons = map[ItemReason]bool{
 	ItemDestroyed: true, ItemExpended: true,
 	ItemRetrofitKit:            true,
 	ItemSettlementConstruction: true,
+	ItemMealEaten:              true,
+	ItemRepairMaterials:        true,
 }
 
 // Known reports whether r is in the closed set.

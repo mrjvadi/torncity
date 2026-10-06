@@ -7,7 +7,9 @@ import (
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 )
 
-func ent(kind, id, data string) Entity { return Entity{Kind: kind, ID: id, Data: json.RawMessage(data)} }
+func ent(kind, id, data string) Entity {
+	return Entity{Kind: kind, ID: id, Data: json.RawMessage(data)}
+}
 
 func TestPlanNewChangedGoneAndBack(t *testing.T) {
 	held := map[Key]Held{

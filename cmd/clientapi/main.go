@@ -256,7 +256,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 		Buildings: postgres.NewSettlementBuildingReader(pool), World: worldSvc, Content: registry,
 		VillageGridLots: cfg.Settlement.VillageGridLots, Now: time.Now,
 		Citizens: postgres.NewCitizenReader(pool),
-		Overlay: postgres.NewVillageFacts(pool), StockBaseCapacity: cfg.Settlement.StockBaseCapacity, HomesPerBuildCrew: cfg.Settlement.BuildHomesPerCrew,
+		Overlay:  postgres.NewVillageFacts(pool), StockBaseCapacity: cfg.Settlement.StockBaseCapacity, HomesPerBuildCrew: cfg.Settlement.BuildHomesPerCrew,
 		CitizenTerms: application.CitizenBounds{
 			LotPrice: cfg.Settlement.CitizenLotPrice, LotPriceMin: cfg.Settlement.CitizenLotPriceMin, LotPriceMax: cfg.Settlement.CitizenLotPriceMax,
 			PermitFee: cfg.Settlement.CitizenPermitFee, PermitFeeMax: cfg.Settlement.CitizenPermitFeeMax,

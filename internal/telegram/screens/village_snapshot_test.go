@@ -292,8 +292,8 @@ func villageSnapshots(c Context, who people, add func(string, *presenter.Respons
 		Nearby: []village.LotNearby{{X: 0, Y: 3, Distance: 2, Access: LotAccess{Kind: "road"}}, {X: 1, Y: 1, Distance: 3, Access: LotAccess{Kind: "needs_road", Roads: 1, Cost: 10}}}}
 	add("Land purchase · confirm, no possible access", LotBuyConfirm(g, landlocked))
 	repair := LotAccessView{Village: villageNameFor(c), X: 2, Y: 3, Own: true, Price: 400, Refund: 400, Cash: 5_000,
-		Access: LotAccess{Kind: "needs_bridge", Roads: 2, Crossings: 1, Cost: 160},
-		Carve:  &LotAccess{Kind: "needs_road", Roads: 2, Cost: 20, Carved: []village.LotRef{{X: 1, Y: 3}}},
+		Access:   LotAccess{Kind: "needs_bridge", Roads: 2, Crossings: 1, Cost: 160},
+		Carve:    &LotAccess{Kind: "needs_road", Roads: 2, Cost: 20, Carved: []village.LotRef{{X: 1, Y: 3}}},
 		Building: sampleNamed(c.Lang, "private_cottage", "کلبهٔ شخصی", "Private cottage")}
 	add("Lot road · the fixes for a lot no road reaches", LotAccessScreen(g, repair))
 	add("Lot road · connected", LotRepairDone(g, LotRepairView{Village: villageNameFor(c), X: 2, Y: 3, Option: "connect", Paid: 160, Cash: 4_840}))

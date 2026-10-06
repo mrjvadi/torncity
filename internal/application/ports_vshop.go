@@ -46,7 +46,7 @@ type VillageShopLine struct {
 	// DeliveredDay is the restock day of the last delivery, -1 for never.
 	DeliveredDay int64
 	// SoldToday is the units sold since that delivery.
-	SoldToday                                 int64
+	SoldToday                               int64
 	DeliveredTotal, SoldTotal, TrimmedTotal int64
 }
 

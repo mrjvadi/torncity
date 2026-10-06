@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
-	apperrors "github.com/mrjvadi/torncity/internal/shared/errors"
 	"github.com/mrjvadi/torncity/internal/presentation"
 	"github.com/mrjvadi/torncity/internal/presentation/village"
+	apperrors "github.com/mrjvadi/torncity/internal/shared/errors"
 )
 
 // A village founded through the founding form is announced in the group that

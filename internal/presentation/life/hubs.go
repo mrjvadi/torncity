@@ -30,10 +30,10 @@ const (
 	EconomyMarket    = "market"
 	// EconomyStorehouse is the settlement's storehouse («انبار»).
 	EconomyStorehouse = "storehouse"
-	EconomyBank      = "bank"
-	EconomyCompanies = "companies"
-	EconomyProperty  = "property"
-	EconomyStocks    = "stocks"
+	EconomyBank       = "bank"
+	EconomyCompanies  = "companies"
+	EconomyProperty   = "property"
+	EconomyStocks     = "stocks"
 )
 
 // The entries a Society hub can list, by code.

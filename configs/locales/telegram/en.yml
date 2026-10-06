@@ -482,6 +482,8 @@ village:
     labor_no_npc: "👷 No free labourer is left in the city today. More homes mean more residents and more workers."
     labor_wage_too_low: "💸 That wage is below the city's minimum wage."
     labor_employer_broke: "🏦 The employer cannot afford the wage of this shift."
+    labor_needs_repair: "🛠 This workplace is too worn to work; it needs repair."
+    labor_no_food: "🍞 There is not enough food for the workers."
     labor_no_site: "🏗 No such site."
   batch_lot: "• row {y}, column {x}: {reason}"
   batch_reason:
@@ -776,6 +778,12 @@ building:
   work:
     working: "👷 Working: {filled} of {max} posts are filled."
     idle: "💤 Not working right now."
+    no_food: "• No food for the workers; hired labourers do not start a shift without it."
+    food: "🍞 A shift eats {points} food points; the food on hand feeds {shifts} shifts."
+    needs_repair: "• The workplace is too worn to work; it needs repair."
+    condition: "🛠 Condition {percent}%, wearing {decay} hundredths of a percent a day; until it is repaired it gives only {output}% of its output."
+    repair_open: "🔧 A repair job is open: {left} shifts left."
+    repair_need: "🔧 Repair takes {shifts} shifts of work and {items}; the head posts a repair job."
     paused: "⏸ The crew has stopped."
     crew: "👥 Hired crew: {crew}, wage {wage}, {left} shifts left."
     budget_spent: "• The posts' shifts for today, or the job's budget, are used up."

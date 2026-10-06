@@ -329,6 +329,29 @@ func (h *VillageHandler) startLaborShift(ctx context.Context, tx application.Tx,
 		}
 		sh.Kind = application.LaborKindConstruction
 		sh.WorkPoints = h.labor.Points(w.bps)
+	case application.LaborKindRepair:
+		if job.EmployerKind != application.LaborEmployerSettlement {
+			return refuseVillage(village.LaborNoJob, village.AddrLaborBoard)
+		}
+		d, ok := snap.SettlementBuildingDef(b.TypeCode)
+		if !ok || b.Status != "complete" {
+			return refuseVillage(village.LaborNoSite, village.AddrLaborBoard)
+		}
+		damage := h.damageNow(*b, h.decayOf(snap, d), now, s.Zone())
+		all, err := repo.WorkingShifts(ctx, s.CityID)
+		if err != nil {
+			return err
+		}
+		var pending int64
+		for _, x := range all {
+			if x.BuildingID == b.ID && x.Kind == application.LaborKindRepair {
+				pending += x.ConditionGain
+			}
+		}
+		if damage-pending <= 0 {
+			return refuseVillage(village.LaborFullyStaffed, back)
+		}
+		sh.Kind, sh.ConditionGain = application.LaborKindRepair, h.repairGain()
 	case application.LaborKindProduction:
 		// A standing workplace works for the treasury: NPCs only (a player takes it
 		// through settlement.work), and never past its posts' day.
@@ -440,6 +463,10 @@ func pauseReason(err error, started int) string {
 	switch r.kind {
 	case village.LaborNoNPC:
 		return "no_staff"
+	case village.LaborNoFood:
+		return "no_food"
+	case village.LaborNeedsRepair:
+		return "needs_repair"
 	case village.VillageMaterials:
 		return "no_input"
 	case village.VillageStorageFull:
@@ -470,7 +497,7 @@ func (h *VillageHandler) refillCrews(ctx context.Context, tx application.Tx, met
 		return err
 	}
 	for _, j := range jobs { // ordered by priority, then age
-		if j.NPCCrew == 0 || j.Kind != application.LaborKindProduction {
+		if j.NPCCrew == 0 || j.Kind == application.LaborKindConstruction {
 			continue
 		}
 		if _, err := h.fillCrew(ctx, tx, meta, snap, s, j.ID); err != nil {
@@ -493,13 +520,13 @@ func (h *VillageHandler) fillCrewRun(ctx context.Context, tx application.Tx, met
 			return started, first
 		}
 		var site []application.SettlementShift
-		if job.Kind == application.LaborKindProduction {
+		if job.Kind != application.LaborKindConstruction {
 			all, err := repo.WorkingShifts(ctx, s.CityID)
 			if err != nil {
 				return started, err
 			}
 			for _, x := range all {
-				if x.BuildingID == job.BuildingID {
+				if x.BuildingID == job.BuildingID && x.Kind == job.Kind {
 					site = append(site, x)
 				}
 			}
@@ -938,7 +965,10 @@ func (h *VillageHandler) LaborHire(ctx context.Context, meta envelope.Metadata, 
 			return "", "", err
 		}
 		started, ferr := h.fillCrew(ctx, tx, meta, h.content.Current(), s, job.ID)
-		if started == 0 && n > 0 && ferr != nil {
+		// A standing workplace keeps the crew it was asked for even when it cannot start
+		// now: the job is paused with the reason and restarts by itself (nothing is lost by
+		// waiting); a construction site tells the employer at once.
+		if started == 0 && n > 0 && ferr != nil && job.Kind == application.LaborKindConstruction {
 			return "", "", ferr
 		}
 		return job.BuildingID, "hired", nil
@@ -1068,6 +1098,12 @@ func (h *VillageHandler) LaborPost(ctx context.Context, meta envelope.Metadata, 
 			return "", "", err
 		}
 		if !fresh {
+			return b.ID, "posted", nil
+		}
+		if strings.TrimSpace(req.N) == "repair" && jobKind == application.LaborKindProduction {
+			if err := h.postRepair(ctx, tx, s, *b, p.ID); err != nil {
+				return "", "", err
+			}
 			return b.ID, "posted", nil
 		}
 		if jobKind == application.LaborKindConstruction {
@@ -1214,6 +1250,9 @@ func (h *VillageHandler) workedSite(ctx context.Context, tx application.Tx, meta
 	s, err := tx.Settlements().ByID(ctx, sh.SettlementID)
 	if err != nil {
 		return err
+	}
+	if sh.Kind == application.LaborKindRepair {
+		return h.repairDone(ctx, tx, meta, snap, s, sh, pay, now)
 	}
 	done, required, ok, err := repo.AddWork(ctx, sh.BuildingID, sh.WorkPoints)
 	if err != nil {
