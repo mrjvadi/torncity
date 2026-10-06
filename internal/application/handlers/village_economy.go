@@ -934,7 +934,22 @@ func (h *VillageHandler) Worked(ctx context.Context, meta envelope.Metadata, req
 		if want := sumQty(scaled); want > 0 && sumQty(made) < want {
 			pay = sh.Wage * sumQty(made) / want
 		}
-		if treasury < pay {
+		// A player's wage is paid in the settlement's own money when it has one and its treasury holds
+		// the units (docs/adr/0033 6.9); an NPC's goes to the sink in SUP. Asked first, to know what the
+		// shift row records; paid for real once the shift is finished exactly once.
+		localPay := application.LocalPayment{SettlementID: sh.SettlementID, PlayerID: sh.PlayerID, Direction: application.LocalPay,
+			Flow: application.ReasonSettlementWage, SUP: pay, RefType: application.SettlementShiftReference, RefID: sh.ID, At: now}
+		local := false
+		if sh.WorkerKind != application.LaborWorkerNPC && pay > 0 {
+			dry := localPay
+			dry.DryRun = true
+			r, err := application.PayLocal(ctx, tx, h.ids.NewID, dry)
+			if err != nil {
+				return err
+			}
+			local = r.Paid
+		}
+		if !local && treasury < pay {
 			pay = treasury
 		}
 		var txID string
@@ -945,6 +960,14 @@ func (h *VillageHandler) Worked(ctx context.Context, meta envelope.Metadata, req
 		if err != nil || !fresh {
 			return err
 		}
+		if local {
+			localPay.TxID = txID
+			if r, err := application.PayLocal(ctx, tx, h.ids.NewID, localPay); err != nil {
+				return err
+			} else if !r.Paid {
+				return errors.Internal(stderrors.New("handlers: a wage the settlement's money was checked for was not paid"))
+			}
+		}
 		for _, c := range materialCodes(made) {
 			if err := tx.Items().Move(ctx, application.ItemMove{
 				Item: c, Qty: made[c], ToOrg: org, ToHolding: application.HoldWarehouse,
@@ -953,7 +976,7 @@ func (h *VillageHandler) Worked(ctx context.Context, meta envelope.Metadata, req
 				return err
 			}
 		}
-		if pay > 0 {
+		if pay > 0 && !local {
 			treasuryAcct, err := tx.Ledger().AccountFor(ctx, application.AccountCityTreasury, sh.SettlementID)
 			if err != nil {
 				return err

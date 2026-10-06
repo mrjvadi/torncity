@@ -483,6 +483,10 @@ village:
     labor_no_npc: "👷 No free labourer is left in the city today. More homes mean more residents and more workers."
     labor_wage_too_low: "💸 That wage is below the city's minimum wage."
     labor_employer_broke: "🏦 The employer cannot afford the wage of this shift."
+    desk_empty: "🏦 The treasury has no more units of the town money at the desk; the head must issue more (that takes a deposit)."
+    desk_no_sup: "🏦 The treasury does not hold enough SUP to buy that much back."
+    desk_funds: "💸 You do not hold enough for this conversion."
+    desk_moved: "⚠️ The rate moved since you saw it; look at the price again."
     labor_needs_repair: "🛠 This workplace is too worn to work; it needs repair."
     labor_no_food: "🍞 There is not enough food for the workers."
     labor_no_site: "🏗 No such site."
@@ -601,6 +605,20 @@ village:
     exists: "The money «{name}» is in circulation: {supply} units issued, {pot} held in the reserve."
     button:
       charter: "💱 Charter «{name}»"
+  desk:
+    title: "💱 The money desk of «{village}»"
+    balance: "💰 You hold: {sup} and {units} {name}"
+    rate: "Live rate: 1 SUP buys {rate} {name}; the desk's fee is {fee}. The rate is not fixed: demand moves it."
+    stock: "🏦 At the treasury's desk: {units} {name} and {sup}"
+    empty: "⚠️ The treasury has no units of the town money to sell; the head must issue more against a deposit."
+    ask: "You give {give} and get {get}; the desk's fee is {fee}. If the rate moves against you by more than {slip} before you confirm, the desk will not convert."
+    cannot: "⚠️ Not possible now: you or the desk do not hold enough for this amount."
+    done: "✅ Converted: you gave {give} and got {get}."
+    button:
+      buy: "Buy {name} with {sup}"
+      sell: "Sell {units} {name}"
+      confirm: "✅ Convert"
+      fee: "Fee {fee}"
   money:
     title: "💱 What the money of {village} is worth"
     currency_reserved: "Your town's money «{name}» has a name but is not chartered yet; until then the treasury and the shop work in SUP."
@@ -608,6 +626,7 @@ village:
     chartered: "🏦 The treasury holds {units} {name}; {supply} units are issued and {pot} sits in the reserve."
     no_market_live: "The market for this money is not open yet; until the first trade the reference rate is the rate it was founded at."
     button:
+      desk: "💱 The money desk"
       charter: "💱 Charter the town's money"
     quote: "Nil is a unit of measure: one Nil counts as {units} SUP. It is only a rate to look at; no money is ever changed for Nil."
     example: "• {amount} is worth {nil}"

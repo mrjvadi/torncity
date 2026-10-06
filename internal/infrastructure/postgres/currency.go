@@ -24,12 +24,12 @@ func NewCurrencyRepository(p *Pool) *CurrencyRepository { return &CurrencyReposi
 func (t *tx) Currency() application.CurrencyRepository { return &CurrencyRepository{q: t.q} }
 
 const currencyStateColumns = `settlement_id::text, currency_code, status, r0, x_ref_ppm, minted_units, burnt_units,
-	basis_sup, deposited_sup, released_sup, chartered_at, chartered_by`
+	basis_sup, deposited_sup, released_sup, fx_fee_bps, chartered_at, chartered_by`
 
 func scanCurrencyState(row pgx.Row) (application.CurrencyState, error) {
 	var s application.CurrencyState
 	err := row.Scan(&s.SettlementID, &s.Code, &s.Status, &s.R0, &s.XRefPPM, &s.MintedUnits, &s.BurntUnits,
-		&s.BasisSUP, &s.DepositedSUP, &s.ReleasedSUP, &s.CharteredAt, &s.CharteredBy)
+		&s.BasisSUP, &s.DepositedSUP, &s.ReleasedSUP, &s.FXFeeBPS, &s.CharteredAt, &s.CharteredBy)
 	return s, err
 }
 
@@ -140,4 +140,53 @@ func (r *CurrencyRepository) Names(ctx context.Context, settlementIDs []string) 
 		out[id] = res
 	}
 	return out, rows.Err()
+}
+
+// LocalPaymentOf reads the local payment of one flow row and direction.
+func (r *CurrencyRepository) LocalPaymentOf(ctx context.Context, refType, refID, direction string) (*application.LocalPaymentRow, error) {
+	var p application.LocalPaymentRow
+	err := r.q.QueryRow(ctx, `SELECT id::text, settlement_id::text, player_id::text, direction, flow, sup_amount, units, r0, x_ref_ppm,
+		ledger_transaction_id::text, reference_type, reference_id::text, created_at
+		FROM local_payments WHERE reference_type = $1 AND reference_id = $2::uuid AND direction = $3`, refType, refID, direction).
+		Scan(&p.ID, &p.SettlementID, &p.PlayerID, &p.Direction, &p.Flow, &p.SUPAmount, &p.Units, &p.R0, &p.XRefPPM,
+			&p.LedgerTransactionID, &p.ReferenceType, &p.ReferenceID, &p.At)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("postgres: reading a local payment: %w", err)
+	}
+	return &p, nil
+}
+
+// RecordLocalPayment writes one local payment.
+func (r *CurrencyRepository) RecordLocalPayment(ctx context.Context, p application.LocalPaymentRow) error {
+	if _, err := r.q.Exec(ctx, `INSERT INTO local_payments (id, settlement_id, player_id, direction, flow, sup_amount, units, r0, x_ref_ppm,
+		ledger_transaction_id, reference_type, reference_id, created_at)
+		VALUES ($1::uuid, $2::uuid, $3::uuid, $4, $5, $6, $7, $8, $9, $10::uuid, $11, $12::uuid, $13)`,
+		p.ID, p.SettlementID, p.PlayerID, p.Direction, p.Flow, p.SUPAmount, p.Units, p.R0, p.XRefPPM,
+		p.LedgerTransactionID, p.ReferenceType, p.ReferenceID, p.At.UTC()); err != nil {
+		return fmt.Errorf("postgres: recording a local payment: %w", err)
+	}
+	return nil
+}
+
+// RecordDeskTrade writes one desk conversion.
+func (r *CurrencyRepository) RecordDeskTrade(ctx context.Context, t application.DeskTrade) error {
+	if _, err := r.q.Exec(ctx, `INSERT INTO currency_desk_trades (id, settlement_id, player_id, side, sup_amount, units, fee_bps, x_ref_ppm, r0,
+		sup_transaction_id, local_transaction_id, created_at)
+		VALUES ($1::uuid, $2::uuid, $3::uuid, $4, $5, $6, $7, $8, $9, $10::uuid, $11::uuid, $12)`,
+		t.ID, t.SettlementID, t.PlayerID, t.Side, t.SUPAmount, t.Units, t.FeeBPS, t.XRefPPM, t.R0,
+		t.SUPTransactionID, t.LocalTransactionID, t.At.UTC()); err != nil {
+		return fmt.Errorf("postgres: recording a desk trade: %w", err)
+	}
+	return nil
+}
+
+// SetFXFee sets the desk's fee.
+func (r *CurrencyRepository) SetFXFee(ctx context.Context, settlementID string, bps int64) error {
+	if _, err := r.q.Exec(ctx, `UPDATE village_currency_state SET fx_fee_bps = $2 WHERE settlement_id = $1::uuid`, settlementID, bps); err != nil {
+		return fmt.Errorf("postgres: setting the desk fee: %w", err)
+	}
+	return nil
 }

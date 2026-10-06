@@ -1422,6 +1422,33 @@ export interface DesignView {
   prev_attributes: Record<string, number> | null
 }
 
+export interface DeskView {
+  village: string
+  name: string
+  symbol: string
+  stage: string
+  side: string
+  amount: number
+  sup: number
+  units: number
+  fee: number
+  fee_bps: number
+  r0: number
+  x_ref_ppm: number
+  cash_sup: number
+  cash_units: number
+  desk_units: number
+  desk_sup: number
+  slippage_bps: number
+  presets_sup: number[] | null
+  presets_units: number[] | null
+  can_set_fee: boolean
+  can_buy: boolean
+  can_sell: boolean
+  min_fee_bps: number
+  max_fee_bps: number
+}
+
 export interface DevelopmentDimension {
   code: string
   load: number
@@ -6111,6 +6138,7 @@ export interface ScreenViews {
   village_charter: CharterView
   village_charter_changed: CharterChangedView
   village_currency_charter: CurrencyCharterView
+  village_currency_desk: DeskView
   village_development: DevelopmentView
   village_donate_confirm: DonateView
   village_donate_done: DonateView

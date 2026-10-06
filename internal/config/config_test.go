@@ -681,6 +681,8 @@ currency:
   mint_fee_bps: 51
   auto_charter_share_bps: 5003
   auto_charter_floor: 501
+  desk_slippage_bps: 101
+  desk_presets: [101, 501, 2001]
 labor:
   shift_minutes: 61
   shift_real_minutes: 3
@@ -1193,6 +1195,8 @@ var envOverrides = map[string]string{
 	"TORN_CURRENCY_MINT_FEE_BPS":                       "52",
 	"TORN_CURRENCY_AUTO_CHARTER_SHARE_BPS":             "5004",
 	"TORN_CURRENCY_AUTO_CHARTER_FLOOR":                 "502",
+	"TORN_CURRENCY_DESK_SLIPPAGE_BPS":                  "102",
+	"TORN_CURRENCY_DESK_PRESETS":                       "102,502,2002",
 	"TORN_LABOR_NPC_SHIFTS_PER_SLOT_DAY":               "12",
 	"TORN_LABOR_HUNGRY_OUTPUT_BPS":                     "5002",
 	"TORN_LABOR_HUNGRY_SHIFT_HUNGER":                   "7",

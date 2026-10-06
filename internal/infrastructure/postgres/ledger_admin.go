@@ -381,6 +381,9 @@ func (a *EconomyAdmin) VerifyLedger(ctx context.Context, limit int) (LedgerVerif
 	if err := a.verifyCurrencies(ctx, &v); err != nil {
 		return v, err
 	}
+	if err := a.verifyLocalObligations(ctx, &v); err != nil {
+		return v, err
+	}
 	if err := a.verifyWorkNodes(ctx, &v); err != nil {
 		return v, err
 	}

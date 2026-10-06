@@ -298,6 +298,19 @@ func (h *TrainingHandler) Start(ctx context.Context, meta envelope.Metadata, req
 func (h *TrainingHandler) payFee(ctx context.Context, tx application.Tx, playerID string, city *application.City,
 	founded bool, fee int64, now time.Time,
 ) error {
+	// At a settlement's training ground the fee is paid in the settlement's own money when it has one
+	// and the player holds the units; otherwise in SUP, as before (docs/adr/0033 6.9).
+	if founded && fee > 0 {
+		r, err := application.PayLocal(ctx, tx, h.ids.NewID, application.LocalPayment{SettlementID: city.ID, PlayerID: playerID,
+			Direction: application.LocalCollect, Flow: application.ReasonTrainingFee, SUP: fee,
+			RefType: "training", RefID: h.ids.NewID(), At: now})
+		if err != nil {
+			return err
+		}
+		if r.Paid {
+			return nil
+		}
+	}
 	cash, err := tx.Ledger().AccountFor(ctx, application.AccountPlayerCash, playerID)
 	if err != nil {
 		return err
