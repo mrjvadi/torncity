@@ -33,6 +33,9 @@ func panelUsage() {
                           override how many companies a player may own, or
                           clear the override to restore the config default
                           (company.max_per_player); audited
+  admin player move-home --player CODE --to SETTLEMENT_ID --reason "..."
+                          move a player's home like their own join, skipping
+                          only the residence cool-down; audited
   admin city show --city CODE
                           one city: treasury, budget allocation and the last
                           period's spending, people, companies, homes, damage,
@@ -126,6 +129,9 @@ func abs(v int64) int64 {
 func playerCommand(ctx context.Context, args []string) error {
 	if len(args) > 0 && args[0] == "limit" {
 		return playerLimitCommand(ctx, args[1:])
+	}
+	if len(args) > 0 && args[0] == "move-home" {
+		return playerMoveHomeCommand(ctx, args[1:])
 	}
 	if len(args) != 1 || strings.HasPrefix(args[0], "-") {
 		panelUsage()
@@ -419,5 +425,66 @@ func broadcastCommand(ctx context.Context, args []string) error {
 		return fmt.Errorf("broadcast: %w", err)
 	}
 	fmt.Printf("broadcast queued for %d players\nby:     %s\nreason: %s\n", n, who, a.Reason)
+	return nil
+}
+
+// playerMoveHomeCommand is `admin player move-home`: it moves a player's home to another settlement,
+// skipping only the residence cool-down.
+func playerMoveHomeCommand(ctx context.Context, args []string) error {
+	fs := flag.NewFlagSet("player move-home", flag.ExitOnError)
+	fs.Usage = func() {
+		fmt.Fprint(os.Stderr, `usage: admin player move-home --player CODE --to SETTLEMENT_ID --reason "..." [--by NAME]
+
+Moves the player's home to the settlement exactly as their own "join" would (residence, its
+since-stamp, the place they stand, the residence.changed notices), skipping ONLY the
+residence cool-down. A player who is travelling, at work or detained is refused, and the
+refusal says which. Running it again for a player already living there changes nothing.
+
+  --player CODE   the player's code
+  --to ID         the settlement's id (admin settlement list, or the city card)
+  --reason        why, recorded in the audit row
+  --by            who is running this (see: admin --help)
+
+DATABASE_URL must be set.
+`)
+	}
+	player := fs.String("player", "", "the player's code")
+	to := fs.String("to", "", "the settlement's id")
+	reason := fs.String("reason", "", "why, recorded in the audit row")
+	opFlags := addOperatorFlags(fs)
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	if strings.TrimSpace(*player) == "" || strings.TrimSpace(*to) == "" {
+		fs.Usage()
+		return errors.New("player move-home: --player CODE and --to SETTLEMENT_ID are required")
+	}
+	if strings.TrimSpace(*reason) == "" {
+		return errors.New("player move-home: --reason is required")
+	}
+	operatorName, err := opFlags.resolve("player move-home", os.LookupEnv)
+	if err != nil {
+		return err
+	}
+	pool, err := contentPool(ctx)
+	if err != nil {
+		return err
+	}
+	defer pool.Close()
+	res, err := operator.Ops{Pool: pool}.MoveHome(ctx, strings.TrimSpace(*player), strings.TrimSpace(*to),
+		operator.Actor{Name: operatorName, Reason: *reason})
+	if err != nil {
+		return fmt.Errorf("player move-home: %w", err)
+	}
+	if res.NoOp {
+		fmt.Printf("player move-home: %s already lives in %s; nothing changed\n", res.Label, or(res.ToName, res.To))
+		return nil
+	}
+	placed := "the place they stand is unchanged (travelling, or already there)"
+	if res.Placed {
+		placed = "they now stand in the new settlement"
+	}
+	fmt.Printf("player move-home: %s\n  from: %s\n  to:   %s\n  moved: residence (cool-down skipped), residence_since reset; %s\n",
+		res.Label, or(res.FromName, "-"), or(res.ToName, res.To), placed)
 	return nil
 }
