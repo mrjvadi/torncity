@@ -175,9 +175,9 @@ SELECT s.energy, s.max_energy, s.health, s.max_health, s.regen_bps, s.updated_at
 
 func (s *StateSync) readWallets(ctx context.Context, q querier, playerID string, add func(string, string, any) error) error {
 	rows, err := q.Query(ctx, `
-SELECT a.currency, a.kind, SUM(a.balance), COALESCE(bool_or(c.is_premium), false)
+SELECT a.currency, a.kind, SUM(a.balance), COALESCE(bool_or(c.is_premium), false), COALESCE(max(c.name), '')
   FROM accounts a LEFT JOIN currencies c ON c.code = a.currency
- WHERE a.owner_id = $1::uuid AND a.kind IN ('player_cash', 'player_bank')
+ WHERE a.owner_id = $1::uuid AND a.kind IN ('player_cash', 'player_bank', 'foreign_holding')
  GROUP BY a.currency, a.kind`, playerID)
 	if err != nil {
 		return fmt.Errorf("postgres: statesync: reading the wallets of %s: %w", playerID, err)
@@ -186,11 +186,11 @@ SELECT a.currency, a.kind, SUM(a.balance), COALESCE(bool_or(c.is_premium), false
 	wallets := map[string]*statesync.WalletData{}
 	for rows.Next() {
 		var (
-			cur, kind string
-			bal       int64
-			premium   bool
+			cur, kind, name string
+			bal             int64
+			premium         bool
 		)
-		if err := rows.Scan(&cur, &kind, &bal, &premium); err != nil {
+		if err := rows.Scan(&cur, &kind, &bal, &premium, &name); err != nil {
 			return err
 		}
 		w := wallets[cur]
@@ -198,9 +198,12 @@ SELECT a.currency, a.kind, SUM(a.balance), COALESCE(bool_or(c.is_premium), false
 			w = &statesync.WalletData{Currency: cur, Premium: premium, Primary: cur == application.DefaultCurrency}
 			wallets[cur] = w
 		}
-		if kind == string(application.AccountPlayerCash) {
+		switch kind {
+		case string(application.AccountPlayerCash):
 			w.Cash = bal
-		} else {
+		case string(application.AccountForeignHolding):
+			w.Cash, w.Name, w.Local = bal, name, true
+		default:
 			w.Bank = bal
 		}
 	}

@@ -317,7 +317,7 @@ func (a *EconomyAdmin) VerifyLedger(ctx context.Context, limit int) (LedgerVerif
 
 	if err := a.q.QueryRow(ctx, `
 		SELECT count(*),
-		       COALESCE(SUM(balance) FILTER (WHERE kind NOT IN ('system_source', 'system_sink')), 0)::text
+		       COALESCE(SUM(balance) FILTER (WHERE kind NOT IN ('system_source', 'system_sink') AND currency = 'SUP'), 0)::text
 		  FROM accounts`).Scan(&v.Accounts, &v.MoneySupply); err != nil {
 		return v, fmt.Errorf("postgres: reading money supply: %w", err)
 	}
@@ -377,6 +377,9 @@ func (a *EconomyAdmin) VerifyLedger(ctx context.Context, limit int) (LedgerVerif
 		if err := a.verifyVillage(ctx, &v); err != nil {
 			return v, err
 		}
+	}
+	if err := a.verifyCurrencies(ctx, &v); err != nil {
+		return v, err
 	}
 	if err := a.verifyWorkNodes(ctx, &v); err != nil {
 		return v, err

@@ -200,7 +200,7 @@ func ClosingNeedsVote(o Office) bool { return o.Acquisition == AcquireElection }
 func ActingGrants(founder []Grant, spendCap int64) []Grant {
 	forbidden := map[Permission]bool{
 		CharterAmend: true, OfficeCreate: true, OfficeEdit: true, OfficeAppoint: true, OfficeDismiss: true,
-		TreatyPropose: true, UnionPropose: true, RaidDeclare: true, SettingsTimezone: true, ElectionCall: true,
+		TreatyPropose: true, UnionPropose: true, RaidDeclare: true, SettingsTimezone: true, ElectionCall: true, CurrencyCharter: true,
 	}
 	out := make([]Grant, 0, len(founder))
 	for _, g := range founder {

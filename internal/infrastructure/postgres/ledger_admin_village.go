@@ -97,6 +97,15 @@ type VillageInvariants struct {
 	// whose wage has no transaction while it was positive.
 	Repairs                            bool
 	RepairWithoutJob, DamageOutOfRange int64
+	// Settlement currencies (migration 0127, ADR 0033 6.11). Currencies is whether the tables exist.
+	// PotMismatched counts chartered settlements whose reserve pot does not hold what was deposited
+	// less what was released; SupplyMismatched those whose units in existence (minted less burnt) are
+	// not what the ledger holds outside the system accounts of that currency; IssuanceMismatched those
+	// whose issuance log does not add up to the state (deposits, units) or whose basis exceeds the
+	// deposits; StrayHoldings counts foreign holdings in a currency no settlement chartered.
+	Currencies                        bool
+	PotMismatched, SupplyMismatched   int64
+	IssuanceMismatched, StrayHoldings int64
 	// ServiceMisrouted counts legs of training_fee (to a treasury, from a player),
 	// trainer_wage (treasury to the sink) and bag_repair (to the sink) that go
 	// anywhere else: those flows have no row table, so their routes are the check.
@@ -107,7 +116,8 @@ type VillageInvariants struct {
 func (v VillageInvariants) WorkNodesOK() bool {
 	return !v.WorkNodes || (v.MealOpenedRows == v.MealOpenedKitchen && v.MealEatenShifts == v.MealEatenKitchen &&
 		v.MealJournalUnits == v.MealRowUnits && v.NPCShiftsWithoutJob == 0 && v.NPCHungry == 0 && v.CarryOutOfRange == 0 &&
-		(!v.Repairs || (v.RepairWithoutJob == 0 && v.DamageOutOfRange == 0)))
+		(!v.Repairs || (v.RepairWithoutJob == 0 && v.DamageOutOfRange == 0))) &&
+		(!v.Currencies || (v.PotMismatched == 0 && v.SupplyMismatched == 0 && v.IssuanceMismatched == 0 && v.StrayHoldings == 0))
 }
 
 // TeachingOK reports whether the teaching checks hold.
@@ -327,6 +337,51 @@ func (a *EconomyAdmin) verifyWorkNodes(ctx context.Context, v *LedgerVerificatio
 			 WHERE s.kind = 'repair' AND (s.condition_gain <= 0 OR NOT EXISTS
 			       (SELECT 1 FROM labor_jobs j WHERE j.id = s.job_id AND j.kind = 'repair'))`},
 		{&s.DamageOutOfRange, "buildings with damage out of range", `SELECT count(*) FROM settlement_buildings WHERE damage_bps < 0 OR damage_bps > 10000`},
+	} {
+		if err := a.q.QueryRow(ctx, c.sql).Scan(c.into); err != nil {
+			return fmt.Errorf("postgres: checking %s: %w", c.what, err)
+		}
+	}
+	return nil
+}
+
+// verifyCurrencies runs the settlement-currency checks when migration 0127 is applied: the reserve pot
+// equals the deposits less the releases, the supply equals what was minted less what was burnt (and is
+// what the ledger holds outside the system accounts of that currency), and every issuance is logged.
+func (a *EconomyAdmin) verifyCurrencies(ctx context.Context, v *LedgerVerification) error {
+	if err := a.q.QueryRow(ctx, `SELECT to_regclass('public.village_currency_state') IS NOT NULL`).Scan(&v.VillageInvariants.Currencies); err != nil {
+		return fmt.Errorf("postgres: looking for settlement currencies: %w", err)
+	}
+	if !v.VillageInvariants.Currencies {
+		return nil
+	}
+	s := &v.VillageInvariants
+	for _, c := range []struct {
+		into *int64
+		what string
+		sql  string
+	}{
+		{&s.PotMismatched, "reserve pots", `
+			SELECT count(*) FROM village_currency_state st
+			 WHERE COALESCE((SELECT a.balance FROM accounts a WHERE a.kind = 'reserve_pot' AND a.owner_id = st.settlement_id AND a.currency = 'SUP'), 0)
+			       <> st.deposited_sup - st.released_sup`},
+		{&s.SupplyMismatched, "currency supplies", `
+			SELECT count(*) FROM village_currency_state st
+			 WHERE st.minted_units - st.burnt_units
+			       <> COALESCE((SELECT -SUM(a.balance) FROM accounts a WHERE a.currency = st.currency_code AND a.kind IN ('system_source', 'system_sink')), 0)
+			    OR st.minted_units - st.burnt_units
+			       <> COALESCE((SELECT SUM(a.balance) FROM accounts a WHERE a.currency = st.currency_code AND a.kind NOT IN ('system_source', 'system_sink')), 0)`},
+		{&s.IssuanceMismatched, "currency issuance logs", `
+			SELECT count(*) FROM village_currency_state st
+			 WHERE st.minted_units <> COALESCE((SELECT SUM(l.units) FROM currency_issuance_log l WHERE l.settlement_id = st.settlement_id AND l.kind = 'mint'), 0)
+			    OR st.deposited_sup <> COALESCE((SELECT SUM(l.deposit_sup) FROM currency_issuance_log l WHERE l.settlement_id = st.settlement_id AND l.kind = 'mint'), 0)
+			    OR st.basis_sup > st.deposited_sup
+			    OR EXISTS (SELECT 1 FROM currency_issuance_log l WHERE l.settlement_id = st.settlement_id AND l.kind = 'mint'
+			                  AND NOT EXISTS (SELECT 1 FROM ledger_entries e WHERE e.transaction_id = l.ledger_transaction_id
+			                                    AND e.reason = 'currency_mint' AND e.amount = l.units))`},
+		{&s.StrayHoldings, "foreign holdings in unchartered currencies", `
+			SELECT count(*) FROM accounts a
+			 WHERE a.kind = 'foreign_holding' AND a.currency NOT IN (SELECT currency_code FROM village_currency_state)`},
 	} {
 		if err := a.q.QueryRow(ctx, c.sql).Scan(c.into); err != nil {
 			return fmt.Errorf("postgres: checking %s: %w", c.what, err)

@@ -25,6 +25,21 @@ func (h *SettlementsHandler) WithFoundingGrant(amount int64) *SettlementsHandler
 	return h
 }
 
+// WithCurrencyRules sets the money rules of the automatic charter that follows the founding grant
+// (config currency.*, docs/adr/0033 section 6).
+func (h *SettlementsHandler) WithCurrencyRules(r application.CurrencyRules) *SettlementsHandler {
+	h.currencyRules = r
+	return h
+}
+
+// charterCurrency charters the new settlement's money from its reservation, paying the fee and the
+// first deposit from the founding grant when it covers them (the owner's rule of 2026-10-06), in
+// the founding transaction. A treasury that cannot pay leaves the head the offer.
+func (h *SettlementsHandler) charterCurrency(ctx context.Context, tx application.Tx, settlementID string, at time.Time) error {
+	_, err := application.AutoCharter(ctx, tx, h.ids.NewID, h.currencyRules, settlementID, true, "system:founding", at)
+	return err
+}
+
 // grantTreasury gives a just-founded settlement its founding grant, in the
 // caller's founding transaction. A zero grant (not configured) does nothing.
 func (h *SettlementsHandler) grantTreasury(ctx context.Context, tx application.Tx, settlementID string, at time.Time) error {

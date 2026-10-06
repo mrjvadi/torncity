@@ -54,8 +54,7 @@ func (h *VillageHandler) KnowledgeList(ctx context.Context, meta envelope.Metada
 		}
 
 		tree := snap.SettlementKnowledgeTree()
-		view = village.KnowledgeListView{Name: s.Name, Treasury: treasury, LiteracyPercent: st.LiteracyShareBPS / 100,
-			Currency: villageCurrency(s)}
+		view = village.KnowledgeListView{Name: s.Name, Treasury: treasury, LiteracyPercent: st.LiteracyShareBPS / 100}
 		if running != nil {
 			d, _ := snap.SettlementKnowledgeDef(running.Code)
 			view.Running = &village.KnowledgeResearchLine{Knowledge: named(d.Code, d.Name), FinishAt: running.FinishAt,
@@ -347,15 +346,6 @@ func builtRoleCounts(ctx context.Context, tx application.Tx, snap *content.Snaps
 		out[settlementbuilding.RoleTier{Role: d.Role, Tier: d.Tier}]++
 	}
 	return out, nil
-}
-
-// villageCurrency is the money a founded settlement reserved at founding, nil for one
-// founded before the form existed.
-func villageCurrency(s application.FoundedSettlement) *presentation.Currency {
-	if s.Currency.Code == "" && s.Currency.Name == "" {
-		return nil
-	}
-	return &presentation.Currency{Code: s.Currency.Code, Name: s.Currency.Name, Symbol: s.Currency.Symbol}
 }
 
 // knowledgeUnlocks is what holding a knowledge item opens: the buildings that name it (by code or by a capability it

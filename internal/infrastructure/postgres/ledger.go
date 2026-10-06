@@ -46,6 +46,11 @@ var ownerTables = map[application.AccountKind]string{
 	application.AccountNationalBank:  "jurisdictions",
 	application.AccountInsuranceFund: "jurisdictions",
 	application.AccountPlayerSavings: "players",
+	// A settlement's reserve pot at the Reserve Bank (migration 0127), owned by the settlement.
+	application.AccountReservePot: "cities",
+	// A holder's balance in a currency that is not the neutral one: the owner is a player, a
+	// settlement or a company (migration 0127, docs/adr/0029 section 5.2).
+	application.AccountForeignHolding: "(SELECT id FROM players UNION ALL SELECT id FROM cities UNION ALL SELECT id FROM companies) AS holders",
 }
 
 // LedgerRepository implements application.LedgerRepository.

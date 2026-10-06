@@ -20,6 +20,7 @@ package screens
 
 import (
 	stderrors "errors"
+	"github.com/mrjvadi/torncity/internal/presentation"
 	"github.com/mrjvadi/torncity/internal/presentation/life"
 	"strings"
 	"time"
@@ -99,6 +100,8 @@ type Context struct {
 	// money out — the cash they carry, their bank balance — and shows
 	// everything else.
 	Shared bool
+	// Money is the viewer's display currency (presentation.Money); nil shows SUP only.
+	Money *presentation.Money
 	// Zone is the time zone a clock time is shown in (FormatClock). Nil
 	// means the process default, SetDefaultZone — the configured
 	// player.default_timezone — so a player is never shown UTC.

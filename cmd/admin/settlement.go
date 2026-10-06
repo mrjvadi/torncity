@@ -9,7 +9,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/config"
+	"github.com/mrjvadi/torncity/internal/domain/currency"
 	"github.com/mrjvadi/torncity/internal/operator"
 	"github.com/mrjvadi/torncity/internal/shared/money"
 )
@@ -29,6 +31,13 @@ func settlementUsage() {
   grant --id SETTLEMENT_UUID --amount MINOR --reason "why" [--by NAME]
                           top up one founded village's treasury from the
                           system source; audited
+  charter-currencies --reason "why" [--by NAME]
+                          charter, once, the money of every founded settlement that named one and
+                          has none yet: the fee (currency.charter_fee) and a deposit of the smaller
+                          of currency.charter_min_deposit and currency.auto_charter_share_bps of the
+                          treasury left after the fee, so no treasury is stripped; under
+                          currency.auto_charter_floor the settlement is skipped and its head keeps
+                          the offer. Audited per settlement; a rerun charters nothing twice
   backfill-timezones      give every founded settlement with no time zone the one its
                           longitude on the world gives (one hour per 15 degrees); never
                           touches a zone a charter set. Run it before game.clock_cutover
@@ -72,6 +81,8 @@ func settlementCommand(ctx context.Context, args []string) error {
 		return settlementLandlocked(ctx)
 	case "backfill-timezones":
 		return settlementBackfillTimezones(ctx)
+	case "charter-currencies":
+		return settlementCharterCurrencies(ctx, args[1:])
 	}
 	settlementUsage()
 	os.Exit(2)
@@ -160,5 +171,50 @@ func settlementGrant(ctx context.Context, args []string) error {
 	}
 	fmt.Printf("granted:        %s minor units\nto:             %s (%s)\ntop-up:         %s\ngranted by:     %s\nreason:         %s\n",
 		money.FromMinor(g.Amount), g.Name, g.SettlementID, g.ID, g.GrantedBy, *reason)
+	return nil
+}
+
+func settlementCharterCurrencies(ctx context.Context, args []string) error {
+	fs := flag.NewFlagSet("settlement charter-currencies", flag.ExitOnError)
+	fs.Usage = settlementUsage
+	reason := fs.String("reason", "", "why (required)")
+	op := addOperatorFlags(fs)
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	*reason = strings.TrimSpace(*reason)
+	if *reason == "" {
+		return errors.New("settlement charter-currencies: --reason is required; money created without a recorded reason cannot be accounted for later")
+	}
+	who, err := op.resolve("settlement charter-currencies", os.LookupEnv)
+	if err != nil {
+		return err
+	}
+	ops, cfg, closeFn, err := settlementOps(ctx)
+	if err != nil {
+		return err
+	}
+	defer closeFn()
+	c := cfg.Currency
+	rules := application.CurrencyRules{
+		CharterR0:  c.CharterR0,
+		Terms:      currency.Terms{Fee: c.CharterFee, MinDeposit: c.CharterMinDeposit, ShareBPS: c.AutoCharterShareBPS, Floor: c.AutoCharterFloor},
+		MintFeeBPS: c.MintFeeBPS,
+	}
+	reports, err := ops.CharterCurrencies(ctx, rules, operator.Actor{Name: who, Reason: *reason, At: time.Now()})
+	done := 0
+	for _, r := range reports {
+		if r.Result.Done {
+			done++
+			fmt.Printf("chartered %s (%s): fee %d, deposit %d, %d units at r0 %d; treasury %d -> %d\n",
+				r.Name, r.SettlementID, r.Result.Fee, r.Result.Deposit, r.Result.Units, r.Result.R0, r.TreasuryBefore, r.TreasuryAfter)
+			continue
+		}
+		fmt.Printf("skipped  %s (%s): %s; treasury %d\n", r.Name, r.SettlementID, r.Result.Reason, r.TreasuryBefore)
+	}
+	if err != nil {
+		return err
+	}
+	fmt.Printf("settlements chartered: %d of %d\nrun by:               %s\nreason:               %s\n", done, len(reports), who, *reason)
 	return nil
 }

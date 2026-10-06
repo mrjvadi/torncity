@@ -69,6 +69,8 @@ type VillageHandler struct {
 	concurrentBuildCap map[string]int
 	// homesPerCrew is settlement.build_homes_per_crew.
 	homesPerCrew int64
+	// currencyRules are the money rules of a charter (WithCurrencyRules).
+	currencyRules application.CurrencyRules
 	// charterLimits are the caps of rail R4 (settlement.charter_*).
 	charterLimits charter.Limits
 	// tzCooldown is settlement.timezone_cooldown.

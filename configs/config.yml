@@ -1538,3 +1538,18 @@ merchant:
 premium:
   nil_unit_sup: 100
   nil_examples: [100, 1000, 10000]
+
+# A settlement's own money (docs/adr/0033 section 6; the owner's decisions of 2026-10-06). Every
+# settlement is chartered automatically at founding from its reservation and, once, at deploy for
+# the old ones (admin settlement charter-currencies); a head may charter by hand when the automatic
+# one could not be paid. There is no fixed rate: the demand for the money sets it (the book, phase 3);
+# charter_r0 is only the starting scale of the numbers, and until a trade the reference rate is 1.00.
+currency:
+  charter_r0: 10               # units of the currency per SUP at charter
+  charter_fee: 1000            # SUP, a sink
+  charter_min_deposit: 5000    # SUP, the first deposit into the reserve pot
+  mint_fee_bps: 50             # issuance fee kept in the pot (0.5 %)
+  # An existing settlement is never stripped: after the fee it deposits the smaller of the minimum
+  # and this share of what is left; under the floor the charter is skipped and the head keeps the offer.
+  auto_charter_share_bps: 5000
+  auto_charter_floor: 500

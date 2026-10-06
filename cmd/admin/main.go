@@ -103,7 +103,7 @@ func usage() {
   policy        show the policy in force in a place (see: admin policy)
   city          link a city to its Telegram group (see: admin city)
   world         create and show the world registry (see: admin world)
-  settlement    villages: check-sites, relocate, backfill-grants, grant (see: admin settlement)
+  settlement    villages: check-sites, relocate, backfill-grants, charter-currencies, grant (see: admin settlement)
   election      open an election of an elected office (see: admin election)
   company       list player companies or show one (see: admin company)
   watch         the watch's flags and held payments (see: admin watch)

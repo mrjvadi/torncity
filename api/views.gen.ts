@@ -1325,6 +1325,25 @@ export interface Currency {
   symbol: string
 }
 
+export interface CurrencyCharterView {
+  village: string
+  name: string
+  symbol: string
+  stage: string
+  treasury: number
+  fee: number
+  min_deposit: number
+  deposit: number
+  r0: number
+  r0_options: number[] | null
+  mint_fee_bps: number
+  units: number
+  can_pay: boolean
+  supply: number
+  pot_sup: number
+  x_ref_ppm: number
+}
+
 export interface CurrentCourseView {
   course: CourseRef
   percent: number
@@ -3409,6 +3428,14 @@ export interface MoneyBasketLine {
   on_shelf: boolean
 }
 
+export interface MoneyChartered {
+  r0: number
+  x_ref_ppm: number
+  supply: number
+  pot_sup: number
+  treasury_units: number
+}
+
 export interface MoneyCurrency {
   code: string
   name: string
@@ -3419,6 +3446,8 @@ export interface MoneyCurrency {
 export interface MoneyView {
   village: string
   currency: MoneyCurrency
+  chartered: MoneyChartered | null
+  can_charter: boolean
   market: string
   reserve: string
   nil_unit_sup: number
@@ -6081,6 +6110,7 @@ export interface ScreenViews {
   victim_notice: VictimView
   village_charter: CharterView
   village_charter_changed: CharterChangedView
+  village_currency_charter: CurrencyCharterView
   village_development: DevelopmentView
   village_donate_confirm: DonateView
   village_donate_done: DonateView

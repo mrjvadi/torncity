@@ -1554,3 +1554,13 @@ Views: `inventory` gained `carry.reserved`, `home {capacity, used, here, lines}`
 ## Build wait
 
 `build_time` on the build menu, the lot confirm, the upgrade lines and the private-building menu is worker effort (worker-minutes of labour), not a wait. The same views carry `expected_wait` `{seconds, shifts, crew, shift_seconds}`: the estimated real wait with the crew the settlement has now (`ceil(shifts / crew) * shift_seconds`). Show `expected_wait.seconds`.
+
+## A settlement's own money: `response.money` (2026-10-06)
+
+Every neutral command response may carry `money`, the viewer's display currency: their home settlement's own money when it is chartered; absent otherwise.
+
+```json
+"money": {"code": "MKP", "name": "مارک پولو", "symbol": "MKP", "r0": 10, "x_ref_ppm": 1000000, "rate_num": 10000000, "rate_den": 1000000}
+```
+
+Every amount in every view is an integer in SUP minor units. Show it in the viewer's money as `round_half_up(sup * rate_num / rate_den)` (integer math, a negative amount keeps its sign), with the SUP amount beside it. `x_ref_ppm` is the live reference rate in parts per million (1000000 is 1.00 until a book trades); it is never a peg. The state-sync `wallet` entity of a settlement's money has `local: true`, `name`, `currency` its code and `cash` the balance in units of that money. The head's command `settlement.currency.charter` (args `r0`, `deposit`, `confirm`, `settlement`) charters a money by hand when the automatic charter could not be paid.

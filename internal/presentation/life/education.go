@@ -37,7 +37,7 @@ type EducationView struct {
 	// Place is where the player stands and Tier its stage (village, town or city).
 	Place presentation.Named
 	Tier  string
-	// Currency is the money the fees are in; nil when the place has none of its own.
+	// Currency is no longer sent (always nil): fees are shown in the viewer's own money, the response's Money block.
 	Currency *presentation.Currency
 	// Literacy is shown in a settlement that has a class standing.
 	Literacy *presentation.EducationLiteracy

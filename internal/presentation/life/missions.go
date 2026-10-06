@@ -76,8 +76,8 @@ type MissionBoardView struct {
 	CityCode, City string
 	// Tier is the stage of the place the player stands in (village, town or city).
 	Tier string
-	// Currency is the money the cash rewards are paid in where the player stands; nil when
-	// the place has none of its own.
+	// Currency is no longer sent (always nil): rewards are shown in the viewer's own money, the response's Money block;
+	// kept for the contract.
 	Currency *presentation.Currency
 	Boards   []MissionBoardRef
 	Board    *MissionBoardRef

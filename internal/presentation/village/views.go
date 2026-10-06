@@ -206,7 +206,8 @@ type KnowledgeResearchLine struct {
 // KnowledgeListView is a settlement's own knowledge list.
 type KnowledgeListView struct {
 	Name string
-	// Currency is the money the village prices things in; nil when it has none of its own.
+	// Currency is no longer sent (always nil): an amount is shown in the VIEWER's own money, the
+	// response's Money block (presentation.Money), at the live rate. Kept for the contract.
 	Currency        *presentation.Currency
 	Treasury        int64
 	LiteracyPercent int

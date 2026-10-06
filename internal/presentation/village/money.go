@@ -49,10 +49,26 @@ type MoneyBasketLine struct {
 	OnShelf          bool
 }
 
+// MoneyChartered is a chartered settlement money's state (docs/adr/0033 section 6; roadmap 2.19):
+// the live rate, the supply, the reserve and what the treasury holds of it. Absent until the money
+// is chartered.
+type MoneyChartered struct {
+	// R0 is units per SUP at charter; XRefPPM the reference rate in parts per million (1000000 is
+	// 1.00 until a book trades): the live rate is R0 x 1000000 / XRefPPM units per SUP, never a peg.
+	R0, XRefPPM int64
+	// Supply is the units in existence, PotSUP the reserve pot at the Reserve Bank in SUP, and
+	// TreasuryUnits what the settlement's treasury holds of the money.
+	Supply, PotSUP, TreasuryUnits int64
+}
+
 // MoneyView is what a settlement's money is worth.
 type MoneyView struct {
 	Village  string
 	Currency MoneyCurrency
+	// Chartered is set once the money exists; CanCharter says the viewer may charter it by hand
+	// (it does not exist and the viewer holds currency.charter).
+	Chartered  *MoneyChartered `json:"chartered,omitempty"`
+	CanCharter bool            `json:"can_charter,omitempty"`
 	// Market and Reserve say what the currency lacks: MoneyNone while the
 	// market (x_ref) and the reserve with its cover do not exist.
 	Market, Reserve string
@@ -82,5 +98,9 @@ var screenMoney = presentation.Define[MoneyView](ScreenVillageMoney, "village")
 
 // VillageMoney is the money value panel.
 func VillageMoney(c presentation.Ctx, v MoneyView) *presentation.Response {
-	return screenMoney.Response(c.Lang, v, back(AddrShop), refresh(AddrMoney))
+	a := []presentation.Action{back(AddrShop), refresh(AddrMoney)}
+	if v.CanCharter {
+		a = append(a, act(AddrCurrencyCharter).Named("currency.charter"))
+	}
+	return screenMoney.Response(c.Lang, v, a...)
 }
