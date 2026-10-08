@@ -647,4 +647,5 @@ fx:
     not_found: "No such order."
     moved: "The market got worse than the price you saw; nothing moved. Ask for the price again."
     no_liquidity: "The book does not have enough offers for this conversion; nothing moved."
+    blackout: "While your intervention request waits to be carried out you may not place orders on this book."
     off: "The market is closed for now."

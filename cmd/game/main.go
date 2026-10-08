@@ -431,7 +431,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 				},
 			},
 			nil,
-		).WithFoundingGrant(cfg.Settlement.FoundingGrant).WithCurrencyRules(currencyRules(cfg)),
+		).WithFoundingGrant(cfg.Settlement.FoundingGrant).WithCurrencyRules(currencyRules(cfg, postgres.NewPolicyReader(pool, nil))),
 		village: handlers.NewVillageHandler(
 			uow,
 			uuidGenerator{},
@@ -489,7 +489,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			}).
 			WithLabor(laborRules(cfg.Labor), cfg.Labor.HirePresets, cfg.Labor.WagePresets).
 			WithActivities(activityRules(cfg)).
-			WithShop(shopRules(cfg)).WithStorage(storageRules(cfg)).WithCurrencyRules(currencyRules(cfg)),
+			WithShop(shopRules(cfg)).WithStorage(storageRules(cfg)).WithCurrencyRules(currencyRules(cfg, postgres.NewPolicyReader(pool, nil))),
 	}
 
 	// Work and study read careers and courses from the live registry and a
@@ -654,7 +654,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	if err != nil {
 		return err
 	}
-	h.fx.book = handlers.NewFXHandler(uow, uuidGenerator{}, cities, fxRules(cfg), cfg.Settlement.HomeCityCode, cfg.Game.IdempotencyTTL, nil)
+	h.fx.book = handlers.NewFXHandler(uow, uuidGenerator{}, cities, fxRules(cfg), cfg.Settlement.HomeCityCode, cfg.Game.IdempotencyTTL, nil).WithReserve(reserveRules(cfg, postgres.NewPolicyReader(pool, nil)))
 	if err := h.fx.book.StartClock(ctx); err != nil {
 		logger.Error("cannot start the book's clock; it starts at the next start",
 			slog.String("error", err.Error()))

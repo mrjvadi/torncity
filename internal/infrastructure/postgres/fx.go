@@ -24,12 +24,12 @@ func NewFXRepository(p *Pool) *FXRepository { return &FXRepository{q: p.shared()
 func (t *tx) FX() application.FXRepository { return &FXRepository{q: t.q} }
 
 const fxOrderColumns = `id::text, no, settlement_id::text, owner_kind, owner_id::text, side, kind, quantity, filled, price,
-	notional_micro, escrow_left, fee_bps, status, created_at, expires_at, closed_at`
+	notional_micro, escrow_left, fee_bps, status, created_at, expires_at, closed_at, purpose`
 
 func scanFXOrder(row pgx.Row) (application.FXOrder, error) {
 	var o application.FXOrder
 	err := row.Scan(&o.ID, &o.No, &o.SettlementID, &o.Owner.Kind, &o.Owner.ID, &o.Side, &o.Kind, &o.Quantity, &o.Filled, &o.Price,
-		&o.NotionalMicro, &o.EscrowLeft, &o.FeeBPS, &o.Status, &o.CreatedAt, &o.ExpiresAt, &o.ClosedAt)
+		&o.NotionalMicro, &o.EscrowLeft, &o.FeeBPS, &o.Status, &o.CreatedAt, &o.ExpiresAt, &o.ClosedAt, &o.Purpose)
 	o.CreatedAt, o.ExpiresAt = o.CreatedAt.UTC(), o.ExpiresAt.UTC()
 	o.ClosedAt = utcPtr(o.ClosedAt)
 	return o, err
@@ -38,10 +38,10 @@ func scanFXOrder(row pgx.Row) (application.FXOrder, error) {
 // InsertOrder writes a new order.
 func (r *FXRepository) InsertOrder(ctx context.Context, o application.FXOrder) error {
 	if _, err := r.q.Exec(ctx, `INSERT INTO fx_orders (id, settlement_id, owner_kind, owner_id, side, kind, quantity, filled, price,
-		notional_micro, escrow_left, fee_bps, status, created_at, expires_at, closed_at)
-		VALUES ($1::uuid, $2::uuid, $3, $4::uuid, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`,
+		notional_micro, escrow_left, fee_bps, status, created_at, expires_at, closed_at, purpose)
+		VALUES ($1::uuid, $2::uuid, $3, $4::uuid, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`,
 		o.ID, o.SettlementID, o.Owner.Kind, o.Owner.ID, o.Side, o.Kind, o.Quantity, o.Filled, o.Price, o.NotionalMicro, o.EscrowLeft,
-		o.FeeBPS, o.Status, o.CreatedAt.UTC(), o.ExpiresAt.UTC(), o.ClosedAt); err != nil {
+		o.FeeBPS, o.Status, o.CreatedAt.UTC(), o.ExpiresAt.UTC(), o.ClosedAt, o.Purpose); err != nil {
 		return fmt.Errorf("postgres: placing an order on the book: %w", err)
 	}
 	return nil

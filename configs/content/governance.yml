@@ -154,6 +154,9 @@
 version: 1
 
 levels:
+  # The Reserve Bank's own level (docs/adr/0033 6.3 calls it a union): a level of its own, so that its levers are
+  # named reserve.* like the ADR's.
+  - {code: reserve,  parents: [world]}
   - {code: union,    parents: [world]}
   - {code: country,  parents: [world, union]}
   - {code: province, parents: [country]}
@@ -166,6 +169,11 @@ levels:
   - {code: free_zone,      parents: [union, country, province, city], overlay: true}
 
 jurisdictions:
+  # The Reserve Bank of the game (docs/adr/0033 6.3): above every settlement, it holds the reserve pots.
+  - code: support_reserve_bank
+    name: The Reserve Bank
+    level: reserve
+
   - code: default_country
     name: The Commonwealth
     level: country
@@ -683,7 +691,90 @@ levers:
     change_cooldown: 168h
     notice: 72h
 
+  # The Reserve Bank (docs/adr/0033 6.3): the game-wide institution that holds every settlement money's reserve
+  # pot. Its governor sets these within bounds; a vacant seat runs the defaults. Custody, issuance only against
+  # a deposit and the claim in a wind-down are code, not levers. reserve.gold_haircut_bps and
+  # reserve.policy_rate are declared for the gold deposit and the sovereign loans, which are not built yet.
+  - code: reserve.mint_fee_bps
+    jurisdiction: reserve
+    type: bps
+    default: 50
+    min: 0
+    max: 200
+    held_by: reserve_governor
+    change_cooldown: 168h
+    notice: 72h
+
+  - code: reserve.fx_fee_bps
+    jurisdiction: reserve
+    type: bps
+    default: 30
+    min: 10
+    max: 200
+    held_by: reserve_governor
+    change_cooldown: 168h
+    notice: 72h
+
+  - code: reserve.gold_haircut_bps
+    jurisdiction: reserve
+    type: bps
+    default: 1000
+    min: 500
+    max: 3000
+    held_by: reserve_governor
+    change_cooldown: 168h
+    notice: 72h
+
+  - code: reserve.max_move_bps
+    jurisdiction: reserve
+    type: bps
+    default: 2000
+    min: 500
+    max: 5000
+    held_by: reserve_governor
+    change_cooldown: 168h
+    notice: 72h
+
+  # Hours of public notice before an excess withdrawal executes.
+  - code: reserve.withdraw_notice
+    jurisdiction: reserve
+    type: int
+    default: 72
+    min: 24
+    max: 168
+    held_by: reserve_governor
+    change_cooldown: 168h
+    notice: 72h
+
+  - code: reserve.policy_rate
+    jurisdiction: reserve
+    type: bps
+    default: 1200
+    min: 0
+    max: 4000
+    held_by: reserve_governor
+    change_cooldown: 168h
+    notice: 72h
+
 offices:
+  # The Reserve Bank's governor (docs/adr/0033 6.3). The operator appoints and may remove; the deputy acts
+  # for a vacant seat (that is how the governor delegates the bank's policy).
+  - code: reserve_governor
+    jurisdiction: reserve
+    seats: 1
+    acquired_by: appointment
+    levers: [reserve.mint_fee_bps, reserve.fx_fee_bps, reserve.gold_haircut_bps, reserve.max_move_bps, reserve.withdraw_notice, reserve.policy_rate]
+    deputy: reserve_deputy
+    can_be_removed_by: [operator]
+
+  - code: reserve_deputy
+    jurisdiction: reserve
+    seats: 1
+    acquired_by: appointment
+    appointed_by: reserve_governor
+    can_be_removed_by: [reserve_governor, operator]
+    levers: []
+
   - code: mayor
     jurisdiction: city
     seats: 1

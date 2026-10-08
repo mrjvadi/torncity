@@ -1574,3 +1574,17 @@ currency:
   fx_order_ttl: 168h
   fx_period: 24h
   fx_unit_presets: [1000, 5000, 20000]
+  # The Reserve Bank's levers are held by its governor (policy.Get); these are only what applies while the
+  # content has no such lever. The rest are the head's tools over the reserve (ADR 0033 6.7, 6.13, 7): the
+  # intervention's limits and delay, the claim window of a wind-down, and the macro tick's constants.
+  reserve_gold_haircut_bps: 1000
+  reserve_withdraw_notice_hours: 72
+  reserve_policy_rate_bps: 1200
+  intervention_cap_bps: 800
+  intervention_pot_floor_bps: 3000
+  wind_down_days: 60
+  macro_m_norm_bps: 2000
+  macro_kappa_bps: 200
+  macro_pi_max_bps: 300
+  macro_w_tradable_bps: 6000
+  intervention_delay: 24h

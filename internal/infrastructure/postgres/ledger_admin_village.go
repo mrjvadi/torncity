@@ -136,6 +136,18 @@ type VillageInvariants struct {
 	FXTradeLedgerVC, FXTradeRowsVC       int64
 	FXTradeMismatched, FXOrderMismatched int64
 	FXRateMismatched, FXHistoryGuards    int64
+	// The reserve tools (migration 0131): Reserve is whether the tables exist. ReserveFlowMismatched counts
+	// moneys whose intervention_out/in counters differ from the ledger's pot legs; ReleasedMismatched those whose
+	// released_sup differs from what left the pot for good (excess withdrawn, claims, retirement remainder);
+	// ClaimMismatched claims that are not their burn and their payment; ClaimOverdrawn moneys whose claims took
+	// more than the pot ever held; WithdrawalMismatched done withdrawals that are not their transaction;
+	// RetiredPotMismatched retired moneys with a pot that is not empty; MacroGuards the triggers that keep the
+	// macro history append-only (two expected).
+	Reserve                                    bool
+	ReserveFlowMismatched, ReleasedMismatched  int64
+	ClaimMismatched, ClaimOverdrawn            int64
+	WithdrawalMismatched, RetiredPotMismatched int64
+	MacroGuards                                int64
 	// ServiceMisrouted counts legs of training_fee (to a treasury, from a player),
 	// trainer_wage (treasury to the sink) and bag_repair (to the sink) that go
 	// anywhere else: those flows have no row table, so their routes are the check.
@@ -151,7 +163,9 @@ func (v VillageInvariants) WorkNodesOK() bool {
 		(!v.LocalObligations || (v.LocalLedgerPay == v.LocalRowsPay && v.LocalLedgerCollect == v.LocalRowsCollect && v.LocalLedgerTransfer == v.LocalRowsTransfer &&
 			v.BurnLedger == v.BurnRows && v.BurnMismatched == 0 && v.LocalMismatched == 0 && v.DeskMismatched == 0)) &&
 		(!v.FXBook || (v.FXEscrowMismatched == 0 && v.FXTradeLedgerSUP == v.FXTradeRowsSUP && v.FXTradeLedgerVC == v.FXTradeRowsVC &&
-			v.FXTradeMismatched == 0 && v.FXOrderMismatched == 0 && v.FXRateMismatched == 0 && v.FXHistoryGuards == 2))
+			v.FXTradeMismatched == 0 && v.FXOrderMismatched == 0 && v.FXRateMismatched == 0 && v.FXHistoryGuards == 2)) &&
+		(!v.Reserve || (v.ReserveFlowMismatched == 0 && v.ReleasedMismatched == 0 && v.ClaimMismatched == 0 && v.ClaimOverdrawn == 0 &&
+			v.WithdrawalMismatched == 0 && v.RetiredPotMismatched == 0 && v.MacroGuards == 2))
 }
 
 // TeachingOK reports whether the teaching checks hold.
@@ -406,7 +420,7 @@ func (a *EconomyAdmin) verifyCurrencies(ctx context.Context, v *LedgerVerificati
 		{&s.PotMismatched, "reserve pots", `
 			SELECT count(*) FROM village_currency_state st
 			 WHERE COALESCE((SELECT a.balance FROM accounts a WHERE a.kind = 'reserve_pot' AND a.owner_id = st.settlement_id AND a.currency = 'SUP'), 0)
-			       <> st.deposited_sup - st.released_sup`},
+			       <> st.deposited_sup - st.released_sup - st.intervention_out + st.intervention_in`},
 		{&s.SupplyMismatched, "currency supplies", `
 			SELECT count(*) FROM village_currency_state st
 			 WHERE st.minted_units - st.burnt_units

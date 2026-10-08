@@ -1807,16 +1807,27 @@ func Defaults() *Config {
 			MintFeeBPS:          50,
 			AutoCharterShareBPS: 5000,
 			DeskSlippageBPS:     100, DeskPresets: []int64{100, 500, 2000},
-			AutoCharterFloor:     500,
-			FXReserveFeeBPS:      30,
-			FXMaxMoveBPS:         2000,
-			FXMinTrades:          8,
-			FXWindowPeriods:      7,
-			FXMinOrderSUP:        10,
-			FXBookLimit:          200,
-			FXMaxOpenOrders:      20,
-			FXConvertSlippageBPS: 100,
-			FXOrderTTL:           7 * 24 * time.Hour, FXPeriod: 24 * time.Hour, FXUnitPresets: []int64{1000, 5000, 20000},
+			AutoCharterFloor:           500,
+			FXReserveFeeBPS:            30,
+			FXMaxMoveBPS:               2000,
+			FXMinTrades:                8,
+			FXWindowPeriods:            7,
+			FXMinOrderSUP:              10,
+			FXBookLimit:                200,
+			FXMaxOpenOrders:            20,
+			FXConvertSlippageBPS:       100,
+			InterventionDelay:          24 * time.Hour,
+			ReserveGoldHaircutBPS:      1000,
+			ReserveWithdrawNoticeHours: 72,
+			ReservePolicyRateBPS:       1200,
+			InterventionCapBPS:         800,
+			InterventionPotFloorBPS:    3000,
+			WindDownDays:               60,
+			MacroMNormBPS:              2000,
+			MacroKappaBPS:              200,
+			MacroPiMaxBPS:              300,
+			MacroWTradableBPS:          6000,
+			FXOrderTTL:                 7 * 24 * time.Hour, FXPeriod: 24 * time.Hour, FXUnitPresets: []int64{1000, 5000, 20000},
 		},
 		Labor: Labor{
 			ShiftMinutes:           60,
@@ -2347,4 +2358,17 @@ type Currency struct {
 	FXOrderTTL           time.Duration // currency.fx_order_ttl: how long a limit order lives
 	FXPeriod             time.Duration // currency.fx_period: one period of the reference rate
 	FXUnitPresets        []int64       // currency.fx_unit_presets: the quantities the book screen offers
+
+	// The Reserve Bank's fallbacks and the head's tools over the reserve (roadmap 2.19 phase 4).
+	ReserveGoldHaircutBPS      int64         // currency.reserve_gold_haircut_bps: reserve.gold_haircut_bps fallback (the lever wins once the content has it)
+	ReserveWithdrawNoticeHours int64         // currency.reserve_withdraw_notice_hours: reserve.withdraw_notice fallback, hours
+	ReservePolicyRateBPS       int64         // currency.reserve_policy_rate_bps: reserve.policy_rate fallback
+	InterventionCapBPS         int64         // currency.intervention_cap_bps: the share of the pot a period of the head's purchases may take
+	InterventionPotFloorBPS    int64         // currency.intervention_pot_floor_bps: the share of the basis the pot may not fall below by intervention
+	WindDownDays               int64         // currency.wind_down_days: the claim window of a money winding down, days
+	MacroMNormBPS              int64         // currency.macro_m_norm_bps: periods of output the money supply should be (2000 is 0.2)
+	MacroKappaBPS              int64         // currency.macro_kappa_bps: how far a gap between money and output moves local prices
+	MacroPiMaxBPS              int64         // currency.macro_pi_max_bps: the bound of local inflation per period
+	MacroWTradableBPS          int64         // currency.macro_w_tradable_bps: the weight of tradable goods in the basket
+	InterventionDelay          time.Duration // currency.intervention_delay: how long a request of the head waits
 }

@@ -336,6 +336,7 @@ commands:
   settlement.currency.charter: {kind: secondary, icon: "action:bank"}
   settlement.currency.desk: {kind: primary, icon: "action:bank"}
   settlement.currency.fee: {kind: secondary, icon: "action:bank"}
+  settlement.currency.reserve: {kind: primary, icon: "action:bank"}
   settlement.charter.election.open: {kind: primary, icon: "action:vote"}
   settlement.charter.stand: {kind: primary, icon: "action:person"}
   settlement.charter.vote: {kind: primary, icon: "action:vote"}

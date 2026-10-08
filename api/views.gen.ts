@@ -2621,6 +2621,18 @@ export interface InsureConfirmView {
   payment: PaymentChoice
 }
 
+export interface InterventionLine {
+  id: string
+  side: string
+  units: number
+  price: number
+  status: string
+  sup_used: number
+  refusal: string
+  posted_at: string | null
+  execute_after: string | null
+}
+
 export interface InventoryLine {
   item: Named
   category: string
@@ -3616,6 +3628,15 @@ export interface MoneyChartered {
   supply: number
   pot_sup: number
   treasury_units: number
+  status: string
+  basis_sup: number
+  excess_sup: number
+  market_cap_sup: number
+  coverage_bps: number
+  coverage_known: boolean
+  stabilisation_units: number
+  macro: MoneyMacro | null
+  trend: MoneyMacro[] | null
 }
 
 export interface MoneyCurrency {
@@ -3623,6 +3644,22 @@ export interface MoneyCurrency {
   name: string
   symbol: string
   issued: boolean
+}
+
+export interface MoneyMacro {
+  period_no: number
+  x_ref_ppm: number
+  tradable_ppm: number
+  non_tradable_ppm: number
+  price_ppm: number
+  pi_local_bps: number
+  supply_growth_bps: number
+  supply_units: number
+  msup: number
+  ysup: number
+  coverage_bps: number
+  coverage_known: boolean
+  at: string | null
 }
 
 export interface MoneyView {
@@ -4605,6 +4642,61 @@ export interface ResearchLine {
   tech: Named
   finish_at: string | null
   left_seconds: number
+}
+
+export interface ReserveView {
+  village: string
+  name: string
+  symbol: string
+  stage: string
+  action: string
+  status: string
+  r0: number
+  x_ref_ppm: number
+  pot_sup: number
+  basis: number
+  excess: number
+  supply: number
+  stabilisation: number
+  market_cap_sup: number
+  coverage_bps: number
+  coverage_known: boolean
+  minted: number
+  burnt: number
+  deposited: number
+  released: number
+  intervention_out: number
+  intervention_in: number
+  mint_fee_bps: number
+  reserve_fee_bps: number
+  max_move_bps: number
+  withdraw_notice_hours: number
+  cap_bps: number
+  floor_bps: number
+  delay_hours: number
+  buy_budget_sup: number
+  sell_budget_units: number
+  treasury_sup: number
+  treasury_units: number
+  cash_sup: number
+  my_units: number
+  pending_withdrawals: number
+  interventions: InterventionLine[] | null
+  withdrawals: WithdrawalLine[] | null
+  macro: MoneyMacro | null
+  trend: MoneyMacro[] | null
+  wind_down_at: string | null | null
+  wind_down_ends_at: string | null | null
+  my_share: number
+  can_claim: boolean
+  can_issue: boolean
+  can_policy: boolean
+  presets: number[] | null
+  amount: number
+  price: number
+  out: number
+  execute_after: string | null | null
+  reason: string
 }
 
 export interface ResidenceView {
@@ -5876,6 +5968,15 @@ export interface WhoLine {
   place: string
 }
 
+export interface WithdrawalLine {
+  id: string
+  sup: number
+  status: string
+  refusal: string
+  requested_at: string | null
+  execute_after: string | null
+}
+
 export interface WorkCondition {
   bps: number
   decay_bps_per_day: number
@@ -6321,6 +6422,7 @@ export interface ScreenViews {
   village_promoted: PromotionView
   village_promotion: PromotionView
   village_refusal: VillageRefusalView
+  village_reserve: ReserveView
   village_residence_confirm: ResidenceView
   village_residence_done: ResidenceView
   village_shop: VillageShopView

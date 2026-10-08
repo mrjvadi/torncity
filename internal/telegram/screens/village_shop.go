@@ -263,6 +263,14 @@ func renderVillageMoney(c Context, v village.MoneyView) *presenter.Response {
 			currency = paragraphs(currency, c.T("village.money.chartered", map[string]any{
 				"units": FormatNumber(c, v.Chartered.TreasuryUnits), "name": v.Currency.Name,
 				"supply": FormatNumber(c, v.Chartered.Supply), "pot": FormatMoney0(c, v.Chartered.PotSUP)}))
+			currency = paragraphs(currency, c.T("village.money.reserve", map[string]any{"basis": FormatMoney0(c, v.Chartered.BasisSUP), "excess": FormatMoney0(c, v.Chartered.ExcessSUP)}))
+			if v.Chartered.CoverageKnown {
+				currency = paragraphs(currency, c.T("village.money.coverage", map[string]any{"coverage": PercentFromBPS(c, int(v.Chartered.CoverageBPS))}))
+			}
+			if m := v.Chartered.Macro; m != nil {
+				currency = paragraphs(currency, c.T("village.money.macro", map[string]any{"tr": ppmIndex(c, m.TradablePPM), "nt": ppmIndex(c, m.NonTradablePPM),
+					"price": ppmIndex(c, m.PricePPM), "growth": signedBPS(c, m.SupplyGrowthBPS)}))
+			}
 		}
 	}
 	var examples []string
@@ -305,6 +313,9 @@ func renderVillageMoney(c Context, v village.MoneyView) *presenter.Response {
 			kb.Row(b)
 		}
 		if b, ok := keyboards.Button(c.T("village.money.button.book", nil), "fx:book"); ok {
+			kb.Row(b)
+		}
+		if b, ok := keyboards.Button(c.T("village.money.button.reserve", nil), village.AddrCurrencyReserve); ok {
 			kb.Row(b)
 		}
 	}

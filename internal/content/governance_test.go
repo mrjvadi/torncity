@@ -447,9 +447,20 @@ func TestShippedGovernance(t *testing.T) {
 
 	// Two countries (docs/adr/0022-military-and-diplomacy.md): the far end
 	// of the map, where nobody is born, is the Vantor Federation.
-	if len(pack.Jurisdictions) != 2 || pack.Jurisdictions[0].Code != "default_country" ||
-		pack.Jurisdictions[1].Code != "vantor_federation" ||
-		pack.Jurisdictions[0].Level != CountryLevel || pack.Jurisdictions[1].Level != CountryLevel {
+	// and the Reserve Bank (docs/adr/0033 6.3), the one jurisdiction that is not a country
+	var countries []JurisdictionDef
+	for _, j := range pack.Jurisdictions {
+		if j.Code == "support_reserve_bank" {
+			if j.Level != "reserve" {
+				t.Errorf("the Reserve Bank is level %q, want reserve", j.Level)
+			}
+			continue
+		}
+		countries = append(countries, j)
+	}
+	if len(countries) != 2 || countries[0].Code != "default_country" ||
+		countries[1].Code != "vantor_federation" ||
+		countries[0].Level != CountryLevel || countries[1].Level != CountryLevel {
 		t.Fatalf("shipped jurisdictions = %+v, want the countries default_country and vantor_federation", pack.Jurisdictions)
 	}
 	for _, c := range pack.Cities {

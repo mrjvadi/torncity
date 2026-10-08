@@ -488,6 +488,8 @@ availability:
   - {kind: office, code: military_governor, stage: city, growth: {deferred: charter, row: 313, note: "ADR 0044 section 6: a charter office or permission (phase G2)"}, requires: {}}
   - {kind: office, code: village_head, stage: village, requires: {buildings: [{code: civic_hall}]}}
   - {kind: office, code: town_head, stage: town, growth: {deferred: charter, row: 315, note: "ADR 0044 section 6: a charter office or permission (phase G2)"}, requires: {}}
+  - {kind: office, code: reserve_governor, stage: country, growth: {open: true}, note: "ADR 0033 6.3: the Reserve Bank's governor, appointed by the operator"}
+  - {kind: office, code: reserve_deputy, stage: country, growth: {open: true}, note: "ADR 0033 6.3: acts for a vacant governor's seat"}
   - {kind: office, code: governor, stage: country, growth: {deferred: charter, row: 316, note: "ADR 0044 section 6: a charter office or permission (phase G2)"}, requires: {}}
   - {kind: office, code: president, stage: country, growth: {deferred: charter, row: 317, note: "ADR 0044 section 6: a charter office or permission (phase G2)"}, requires: {}}
   - {kind: office, code: parliament, stage: country, growth: {deferred: charter, row: 318, note: "ADR 0044 section 6: a charter office or permission (phase G2)"}, requires: {}}

@@ -105,9 +105,27 @@ func (h *VillageHandler) moneyView(ctx context.Context, tx application.Tx, s app
 		return village.MoneyView{}, err
 	} else if st != nil {
 		cur.Issued = true
-		chartered = &village.MoneyChartered{R0: st.R0, XRefPPM: st.XRefPPM, Supply: st.Supply(), PotSUP: st.DepositedSUP - st.ReleasedSUP}
+		chartered = &village.MoneyChartered{R0: st.R0, XRefPPM: st.XRefPPM, Supply: st.Supply(), PotSUP: st.PotSUP(), Status: st.Status}
 		if holding, err := tx.Ledger().AccountForCurrency(ctx, application.AccountForeignHolding, s.CityID, st.Code); err == nil {
 			chartered.TreasuryUnits = holding.Balance.Minor()
+		}
+		// the reserve's valuation and the macro readings (docs/adr/0033 6.6, 7.3)
+		if rd, err := application.ReadReserve(ctx, tx, s.CityID); err != nil {
+			return village.MoneyView{}, err
+		} else if rd != nil {
+			chartered.PotSUP, chartered.BasisSUP, chartered.ExcessSUP, chartered.MarketCapSUP = rd.PotSUP, rd.Basis, rd.Excess, rd.MarketCap
+			chartered.CoverageBPS, chartered.CoverageKnown, chartered.StabilisationUnits = rd.Coverage, rd.CoverageOK, rd.Stabilisation
+		}
+		rows, err := tx.Currency().MacroRows(ctx, s.CityID, 7)
+		if err != nil {
+			return village.MoneyView{}, err
+		}
+		for i := len(rows) - 1; i >= 0; i-- { // oldest first
+			chartered.Trend = append(chartered.Trend, macroLine(rows[i]))
+		}
+		if len(chartered.Trend) > 0 {
+			last := chartered.Trend[len(chartered.Trend)-1]
+			chartered.Macro = &last
 		}
 	} else if res, err := tx.Currency().Reservation(ctx, s.CityID); err != nil {
 		return village.MoneyView{}, err
@@ -126,6 +144,9 @@ func (h *VillageHandler) moneyView(ctx context.Context, tx application.Tx, s app
 		Currency: cur, Chartered: chartered, CanCharter: canCharter,
 		NilUnitSup: h.shop.NilUnitSup, NilPerUnitMicro: nilPer,
 		Treasury: treasury, TreasuryNilMicro: nilOf(treasury), Residents: st.residents, OutputDays: h.shop.OutputDays,
+	}
+	if chartered != nil {
+		view.Reserve = "" // the reserve and its cover are in Chartered
 	}
 	for _, a := range h.shop.NilExamples {
 		view.Examples = append(view.Examples, village.NilExample{Amount: a, NilMicro: nilOf(a)})
@@ -182,4 +203,14 @@ func (h *VillageHandler) moneyView(ctx context.Context, tx application.Tx, s app
 	reading := moneyvalue.ReadBasket(basket)
 	view.IndexBPS, view.CoverBPS = reading.IndexBPS, reading.CoverBPS
 	return view, nil
+}
+
+// macroLine is a macro reading as the panel shows it.
+func macroLine(r application.MacroRow) village.MoneyMacro {
+	m := village.MoneyMacro{PeriodNo: r.PeriodNo, XRefPPM: r.XRefPPM, TradablePPM: r.Tradable, NonTradablePPM: r.NonTradable, PricePPM: r.Price,
+		PiLocalBPS: r.PiLocalBPS, SupplyGrowthBPS: r.SupplyGrowthBPS, SupplyUnits: r.SupplyUnits, MSUP: r.M, YSUP: r.Y, At: r.At}
+	if r.CoverageBPS != nil {
+		m.CoverageBPS, m.CoverageKnown = *r.CoverageBPS, true
+	}
+	return m
 }
