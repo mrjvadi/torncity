@@ -923,3 +923,9 @@ roadland:
     title: "🛤 The city's roads"
     line: "{class}: {lots} lots - built {built} - for sale {open} - sold {sold}"
     lot_button: "🟩 row {row}, column {col} - {cost}"
+
+local_offer:
+  local: "🏘 This is paid in the village's money ({name}): {units} leaves your balance."
+  short: "🏘 Paying in the village's money ({name}) takes {units} and you hold {holds}. If you do nothing, it is paid in SUP instead."
+  convert: "💱 You can buy the gap at the village desk and pay in one step: you give {sup} (the desk's fee: {fee}) and receive {gap}."
+  button_convert: "💱 Convert and pay ({sup})"

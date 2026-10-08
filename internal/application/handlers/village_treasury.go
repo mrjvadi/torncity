@@ -61,6 +61,8 @@ type VillageDonateRequest struct {
 	// Settlement names the village for a game client; in a group it is
 	// ignored (the group's own village is used).
 	Settlement string `json:"settlement,omitempty"`
+	// LocalSettle asks to convert at the desk and pay in the village's own money (convert, max_sup).
+	LocalSettle
 }
 
 func (r VillageDonateRequest) confirmed() bool { return r.Confirm == village.ResidenceConfirm }
@@ -82,8 +84,9 @@ func (h *VillageHandler) WithDonationRules(min, max int64, presets []int64) *Vil
 func (h *VillageHandler) Donate(ctx context.Context, meta envelope.Metadata, req VillageDonateRequest) (*presentation.Response, error) {
 	lang := meta.Language
 	var (
-		view village.DonateView
-		step string // "menu", "ask" or "done"
+		view  village.DonateView
+		step  string // "menu", "ask" or "done"
+		offer *application.LocalOffer
 	)
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, l, err := h.viewer(ctx, tx, meta)
@@ -152,7 +155,10 @@ func (h *VillageHandler) Donate(ctx context.Context, meta envelope.Metadata, req
 		}
 		if !req.confirmed() {
 			step = "ask"
-			if view.Cash < amount {
+			if offer, err = application.LocalOfferFor(ctx, tx, s.CityID, p.ID, amount, 0); err != nil {
+				return err
+			}
+			if view.Cash < amount && (offer == nil || !offer.Local) {
 				return refuseVillage(village.VillageDonateNoCash)
 			}
 			return nil
@@ -166,15 +172,36 @@ func (h *VillageHandler) Donate(ctx context.Context, meta envelope.Metadata, req
 		if !fresh {
 			return nil // a redelivered confirm: already given
 		}
-		if view.Cash < amount {
-			return refuseVillage(village.VillageDonateNoCash)
-		}
 		now := h.now()
 		donationID, txID := h.ids.NewID(), h.ids.NewID()
 		if err := tx.SettlementTreasury().RecordDonation(ctx, application.SettlementDonation{
 			ID: donationID, SettlementID: s.CityID, PlayerID: p.ID, Amount: amount, LedgerTransactionID: txID, CreatedAt: now,
 		}); err != nil {
 			return err
+		}
+		// a village with its own money is paid in it when the donor holds the units (or converts at the
+		// desk inside this confirm); otherwise the gift is SUP, as before
+		local, lerr := application.PayLocal(ctx, tx, h.ids.NewID, application.LocalPayment{
+			SettlementID: s.CityID, PlayerID: p.ID, Direction: application.LocalCollect, Flow: application.ReasonSettlementDonation,
+			SUP: amount, TxID: txID, RefType: application.SettlementDonationReference, RefID: donationID, At: now,
+			Convert: req.wantsConvert(), MaxConvertSUP: req.maxSUP(),
+		})
+		if lerr != nil {
+			if r, ok := deskRefusal(lerr); ok {
+				return r
+			}
+			return lerr
+		}
+		if local.Paid {
+			if err := appendVillageEvent(ctx, tx, meta, "donated", s.CityID, map[string]any{
+				"settlement_id": s.CityID, "player_id": p.ID, "amount": amount, "donation_id": donationID,
+			}); err != nil {
+				return err
+			}
+			return readBalances()
+		}
+		if view.Cash < amount {
+			return refuseVillage(village.VillageDonateNoCash)
 		}
 		if _, err := tx.Ledger().Post(ctx, application.LedgerTransaction{
 			ID: txID, Reason: application.ReasonSettlementDonation, CreatedAt: now,
@@ -204,7 +231,7 @@ func (h *VillageHandler) Donate(ctx context.Context, meta envelope.Metadata, req
 	case "menu":
 		return village.VillageDonateMenu(c, view), nil
 	case "ask":
-		return village.VillageDonateConfirm(c, view), nil
+		return attachOffer(village.VillageDonateConfirm(c, view), offer, 3), nil
 	}
 	return village.VillageDonateDone(c, view), nil
 }

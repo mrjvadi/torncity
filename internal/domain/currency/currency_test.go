@@ -110,3 +110,42 @@ func TestDeskQuotesKeepTheFeeAndRoundAgainstTheTaker(t *testing.T) {
 		t.Error("the fee is 10 to 300 bps")
 	}
 }
+
+// DeskBuyCost is the least SUP that buys at least the units asked for: one less would not.
+func TestDeskBuyCostIsTheLeastPriceThatBuysTheUnits(t *testing.T) {
+	for _, r := range []Rate{{R0: 10, XRefPPM: PPM}, {R0: 10, XRefPPM: 800_000}, {R0: 7, XRefPPM: 1_300_000}, {R0: 1, XRefPPM: PPM}} {
+		for _, fee := range []int64{10, 30, 100, 300} {
+			for _, units := range []int64{1, 2, 9, 10, 99, 1_000, 2_030, 123_457} {
+				cost := DeskBuyCost(units, r, fee)
+				if cost <= 0 {
+					t.Fatalf("no price for %d units at %+v fee %d", units, r, fee)
+				}
+				if got, _ := DeskBuy(cost, r, fee); got < units {
+					t.Errorf("%d SUP buys %d units, fewer than %d (rate %+v fee %d)", cost, got, units, r, fee)
+				}
+				if got, _ := DeskBuy(cost-1, r, fee); got >= units && cost > 1 {
+					t.Errorf("%d SUP already buys %d units: %d is not the least price for %d (rate %+v fee %d)", cost-1, got, cost, units, r, fee)
+				}
+			}
+		}
+	}
+	if DeskBuyCost(0, Rate{R0: 10, XRefPPM: PPM}, 30) != 0 || DeskBuyCost(5, Rate{}, 30) != 0 {
+		t.Error("nothing is bought for no units or at no rate")
+	}
+}
+
+// A burn takes its share of the basis, rounded down; burning everything takes all of it.
+func TestBurnBasisIsTheBurntShare(t *testing.T) {
+	if got := BurnBasis(1_000, 10_000, 500); got != 50 {
+		t.Errorf("5%% of the supply is 5%% of the basis: %d", got)
+	}
+	if got := BurnBasis(999, 10_000, 1); got != 0 {
+		t.Errorf("a share under one rounds down: %d", got)
+	}
+	if got := BurnBasis(1_000, 100, 100); got != 1_000 {
+		t.Errorf("burning the whole supply takes the whole basis: %d", got)
+	}
+	if BurnBasis(0, 100, 10) != 0 || BurnBasis(100, 0, 10) != 0 || BurnBasis(100, 100, 0) != 0 {
+		t.Error("nothing to take")
+	}
+}

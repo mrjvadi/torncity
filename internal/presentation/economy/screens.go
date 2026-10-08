@@ -172,6 +172,9 @@ func Pay(c presentation.Ctx, v PayView) *presentation.Response {
 	if v.CanCard {
 		pay(MethodCard, "pay.card", v.CardOptions)
 	}
+	if v.CanLocal {
+		pay(MethodLocal, "pay.local", v.LocalOptions)
+	}
 	a = append(a, back(AddrBank), refresh(AddrPay, v.PayeeCode))
 	return screenPay.Response(c.Lang, v, a...)
 }

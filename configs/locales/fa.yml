@@ -211,6 +211,8 @@ format:
   money: "{amount} ساپ"
   # An amount in a settlement's own money, with the SUP amount beside it (ADR 0033 6.9).
   money_local: "{amount} {name} ({sup})"
+  # A sum in a settlement's own money that was never SUP (a payment between two neighbours in it).
+  units: "{amount} {name}"
   # An amount of Nil, the premium unit, shown only as a quote (ADR 0046 7.4).
   nil: "{amount} نیل"
   # A date: the calendar it is counted in (jalali, the Solar Hijri calendar,

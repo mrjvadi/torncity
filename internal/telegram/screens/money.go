@@ -2,6 +2,15 @@ package screens
 
 import "github.com/mrjvadi/torncity/internal/domain/currency"
 
+// FormatUnits writes an amount of a settlement's own money in its units, never converted: a payment
+// made in that money is in units from the start, so the viewer's display rate must not touch it.
+func FormatUnits(c Context, units int64, name string) string {
+	if name == "" {
+		return FormatMoney0(c, units)
+	}
+	return c.T("format.units", map[string]any{"amount": FormatNumber(c, units), "name": name})
+}
+
 // FormatMoney renders a sum of money for a player: the amount in whole minor
 // units, grouped by FormatNumber, inside the catalogue's format.money phrase,
 // so the currency word and its position are the translator's.

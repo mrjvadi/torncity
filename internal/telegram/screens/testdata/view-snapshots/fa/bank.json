@@ -314,6 +314,7 @@
       "bank": 240000,
       "can_card": true,
       "can_cash": true,
+      "can_local": false,
       "card_fee_bps": 100,
       "card_options": [
         {
@@ -362,6 +363,9 @@
       ],
       "city": "Ostmarch",
       "city_code": "ostmarch",
+      "local": 0,
+      "local_name": "",
+      "local_options": null,
       "notice": "",
       "notice_args": null,
       "origin": "",
@@ -379,6 +383,7 @@
       "bank": 3000,
       "can_card": true,
       "can_cash": true,
+      "can_local": false,
       "card_fee_bps": 100,
       "card_options": [
         {
@@ -402,6 +407,9 @@
       ],
       "city": "Ostmarch",
       "city_code": "ostmarch",
+      "local": 0,
+      "local_name": "",
+      "local_options": null,
       "notice": "",
       "notice_args": null,
       "origin": "-1001234567890",
@@ -419,6 +427,7 @@
       "bank": 240000,
       "can_card": true,
       "can_cash": false,
+      "can_local": false,
       "card_fee_bps": 0,
       "card_options": [
         {
@@ -446,6 +455,9 @@
       "cash_options": null,
       "city": "",
       "city_code": "",
+      "local": 0,
+      "local_name": "",
+      "local_options": null,
       "notice": "",
       "notice_args": null,
       "origin": "",
@@ -463,6 +475,7 @@
       "bank": 240000,
       "can_card": true,
       "can_cash": false,
+      "can_local": false,
       "card_fee_bps": 100,
       "card_options": [
         {
@@ -490,6 +503,9 @@
       "cash_options": null,
       "city": "",
       "city_code": "",
+      "local": 0,
+      "local_name": "",
+      "local_options": null,
       "notice": "not_together",
       "notice_args": {
         "player": "کاوه"
@@ -509,6 +525,7 @@
       "bank": 240000,
       "can_card": true,
       "can_cash": true,
+      "can_local": false,
       "card_fee_bps": 100,
       "card_options": [
         {
@@ -542,6 +559,9 @@
       ],
       "city": "Ostmarch",
       "city_code": "ostmarch",
+      "local": 0,
+      "local_name": "",
+      "local_options": null,
       "notice": "short_cash",
       "notice_args": {
         "available": 850,
@@ -562,6 +582,7 @@
       "bank": 3000,
       "can_card": true,
       "can_cash": false,
+      "can_local": false,
       "card_fee_bps": 100,
       "card_options": [
         {
@@ -579,6 +600,9 @@
       "cash_options": null,
       "city": "",
       "city_code": "",
+      "local": 0,
+      "local_name": "",
+      "local_options": null,
       "notice": "short_bank",
       "notice_args": {
         "available": 3000,
@@ -599,12 +623,16 @@
       "bank": 0,
       "can_card": false,
       "can_cash": false,
+      "can_local": false,
       "card_fee_bps": 100,
       "card_options": null,
       "cash": 0,
       "cash_options": null,
       "city": "",
       "city_code": "",
+      "local": 0,
+      "local_name": "",
+      "local_options": null,
       "notice": "",
       "notice_args": null,
       "origin": "",
@@ -621,6 +649,7 @@
     "view": {
       "after": 7850,
       "amount": 5000,
+      "currency": "",
       "fee": 0,
       "method": "cash",
       "nonce": "n4Rt",
@@ -636,6 +665,7 @@
     "view": {
       "after": 235000,
       "amount": 5000,
+      "currency": "",
       "fee": 0,
       "method": "card",
       "nonce": "n4Rt",
@@ -651,6 +681,7 @@
     "view": {
       "after": 219800,
       "amount": 20000,
+      "currency": "",
       "fee": 200,
       "method": "card",
       "nonce": "n4Rt",
@@ -665,6 +696,7 @@
     "screen": "pay_sent",
     "view": {
       "amount": 5000,
+      "currency": "",
       "fee": 0,
       "held": false,
       "method": "cash",
@@ -677,6 +709,7 @@
     "screen": "pay_sent",
     "view": {
       "amount": 5000,
+      "currency": "",
       "fee": 0,
       "held": false,
       "method": "card",
@@ -689,6 +722,7 @@
     "screen": "pay_sent",
     "view": {
       "amount": 20000,
+      "currency": "",
       "fee": 200,
       "held": false,
       "method": "card",
@@ -701,6 +735,7 @@
     "screen": "payment_notice",
     "view": {
       "amount": 5000,
+      "currency": "",
       "method": "cash",
       "payer_code": "B3C4D5F",
       "payer_name": "کاوه"
@@ -711,6 +746,7 @@
     "screen": "payment_notice",
     "view": {
       "amount": 20000,
+      "currency": "",
       "method": "card",
       "payer_code": "B3C4D5F",
       "payer_name": "کاوه"

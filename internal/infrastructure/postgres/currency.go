@@ -97,6 +97,42 @@ func (r *CurrencyRepository) RecordMint(ctx context.Context, e application.Curre
 	return nil
 }
 
+// RecordBurn writes the issuance row of a burn and lowers the state's supply and basis, in the
+// caller's transaction. A burn of the same flow row twice is refused by the unique reference.
+func (r *CurrencyRepository) RecordBurn(ctx context.Context, e application.CurrencyIssue, basisSUP int64) error {
+	if _, err := r.q.Exec(ctx, `
+		INSERT INTO currency_issuance_log (id, settlement_id, kind, deposit_sup, units, x_ref_ppm, mint_fee_bps, ledger_transaction_id, issued_by, created_at,
+		                                   reference_type, reference_id, basis_sup)
+		VALUES ($1::uuid, $2::uuid, 'burn', 0, $3, $4, 0, $5::uuid, $6, $7, $8, $9::uuid, $10)`,
+		e.ID, e.SettlementID, e.Units, e.XRefPPM, e.LedgerTransactionID, e.By, e.At.UTC(), e.ReferenceType, e.ReferenceID, basisSUP); err != nil {
+		return fmt.Errorf("postgres: logging a burn: %w", err)
+	}
+	if _, err := r.q.Exec(ctx, `
+		UPDATE village_currency_state
+		   SET burnt_units = burnt_units + $2, basis_sup = GREATEST(basis_sup - $3, 0)
+		 WHERE settlement_id = $1::uuid`, e.SettlementID, e.Units, basisSUP); err != nil {
+		return fmt.Errorf("postgres: lowering a currency's supply: %w", err)
+	}
+	return nil
+}
+
+// BurnOf is the burn logged for one flow row, or nil.
+func (r *CurrencyRepository) BurnOf(ctx context.Context, refType, refID string) (*application.CurrencyIssue, error) {
+	var e application.CurrencyIssue
+	err := r.q.QueryRow(ctx, `SELECT id::text, settlement_id::text, kind, deposit_sup, units, x_ref_ppm, mint_fee_bps, ledger_transaction_id::text,
+		issued_by, created_at, reference_type, reference_id::text
+		FROM currency_issuance_log WHERE reference_type = $1 AND reference_id = $2::uuid AND kind = 'burn'`, refType, refID).
+		Scan(&e.ID, &e.SettlementID, &e.Kind, &e.DepositSUP, &e.Units, &e.XRefPPM, &e.MintFeeBPS, &e.LedgerTransactionID, &e.By, &e.At,
+			&e.ReferenceType, &e.ReferenceID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("postgres: reading a burn: %w", err)
+	}
+	return &e, nil
+}
+
 // Displays reads the chartered currencies of the listed settlements.
 func (r *CurrencyRepository) Displays(ctx context.Context, settlementIDs []string) (map[string]application.CurrencyState, error) {
 	out := map[string]application.CurrencyState{}
@@ -146,10 +182,10 @@ func (r *CurrencyRepository) Names(ctx context.Context, settlementIDs []string) 
 func (r *CurrencyRepository) LocalPaymentOf(ctx context.Context, refType, refID, direction string) (*application.LocalPaymentRow, error) {
 	var p application.LocalPaymentRow
 	err := r.q.QueryRow(ctx, `SELECT id::text, settlement_id::text, player_id::text, direction, flow, sup_amount, units, r0, x_ref_ppm,
-		ledger_transaction_id::text, reference_type, reference_id::text, created_at
+		ledger_transaction_id::text, reference_type, reference_id::text, created_at, COALESCE(payee_id::text, ''), cut_units
 		FROM local_payments WHERE reference_type = $1 AND reference_id = $2::uuid AND direction = $3`, refType, refID, direction).
 		Scan(&p.ID, &p.SettlementID, &p.PlayerID, &p.Direction, &p.Flow, &p.SUPAmount, &p.Units, &p.R0, &p.XRefPPM,
-			&p.LedgerTransactionID, &p.ReferenceType, &p.ReferenceID, &p.At)
+			&p.LedgerTransactionID, &p.ReferenceType, &p.ReferenceID, &p.At, &p.PayeeID, &p.CutUnits)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, nil
 	}
@@ -162,10 +198,10 @@ func (r *CurrencyRepository) LocalPaymentOf(ctx context.Context, refType, refID,
 // RecordLocalPayment writes one local payment.
 func (r *CurrencyRepository) RecordLocalPayment(ctx context.Context, p application.LocalPaymentRow) error {
 	if _, err := r.q.Exec(ctx, `INSERT INTO local_payments (id, settlement_id, player_id, direction, flow, sup_amount, units, r0, x_ref_ppm,
-		ledger_transaction_id, reference_type, reference_id, created_at)
-		VALUES ($1::uuid, $2::uuid, $3::uuid, $4, $5, $6, $7, $8, $9, $10::uuid, $11, $12::uuid, $13)`,
+		ledger_transaction_id, reference_type, reference_id, created_at, payee_id, cut_units)
+		VALUES ($1::uuid, $2::uuid, $3::uuid, $4, $5, $6, $7, $8, $9, $10::uuid, $11, $12::uuid, $13, NULLIF($14, '')::uuid, $15)`,
 		p.ID, p.SettlementID, p.PlayerID, p.Direction, p.Flow, p.SUPAmount, p.Units, p.R0, p.XRefPPM,
-		p.LedgerTransactionID, p.ReferenceType, p.ReferenceID, p.At.UTC()); err != nil {
+		p.LedgerTransactionID, p.ReferenceType, p.ReferenceID, p.At.UTC(), p.PayeeID, p.CutUnits); err != nil {
 		return fmt.Errorf("postgres: recording a local payment: %w", err)
 	}
 	return nil

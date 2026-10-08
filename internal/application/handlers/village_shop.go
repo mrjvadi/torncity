@@ -97,6 +97,8 @@ type VillageShopRequest struct {
 	Nonce  string `json:"nonce,omitempty"`
 	// BPS is a price cap or a tax, in basis points.
 	BPS string `json:"bps,omitempty"`
+	// LocalSettle asks to convert at the village desk and pay the shelf in the village's own money.
+	LocalSettle
 }
 
 // shopRefusal carries a refusal of the village shop out of a unit of work.
@@ -564,6 +566,7 @@ func (h *VillageHandler) ShopBuy(ctx context.Context, meta envelope.Metadata, re
 		checkout *village.VillageShopCheckoutView
 		bought   *village.ShopBought
 		replayed bool
+		offer    *application.LocalOffer
 	)
 	err = h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, l, err := h.viewer(ctx, tx, meta)
@@ -689,13 +692,33 @@ func (h *VillageHandler) ShopBuy(ctx context.Context, meta envelope.Metadata, re
 				Stock: row.Stock, Space: bulk, FreeSpace: room.FreeSpace, Grams: grams,
 				Payment: paymentChoice(plan, wallet), Nonce: h.shopNonce(),
 			}
+			if offer, err = application.LocalOfferFor(ctx, tx, s.CityID, p.ID, due.Minor(), 0); err != nil {
+				return err
+			}
 			return nil
 		}
-		if err := checkMethod(plan, method, wallet, "village.shop.button.back", backTo...); err != nil {
+		saleID := h.ids.NewID()
+		// A village with its own money sells its shelf for it when the buyer holds the units (or converts
+		// at its desk inside this confirm): the price is paid to the NPC economy, so its units are burnt,
+		// and the sales tax goes to the treasury. Otherwise the wallet pays SUP, as before.
+		burnTx := h.ids.NewID()
+		br, berr := application.BurnLocal(ctx, tx, h.ids.NewID, application.LocalBurn{
+			SettlementID: s.CityID, PlayerID: p.ID, Flow: application.ReasonShopPurchase, SUP: total.Minor(), TaxSUP: tax.Minor(),
+			RefType: application.VillageShopSaleReference, RefID: saleID, TxID: burnTx, At: now,
+			Convert: req.wantsConvert(), MaxConvertSUP: req.maxSUP(),
+		})
+		if berr != nil {
+			if r, ok := deskRefusal(berr); ok {
+				return r
+			}
+			return berr
+		}
+		if br.Paid {
+			method = "local"
+		} else if err := checkMethod(plan, method, wallet, "village.shop.button.back", backTo...); err != nil {
 			return err
 		}
 
-		saleID := h.ids.NewID()
 		// The shelf first: its row is the lock two buyers of the last unit meet at.
 		row.Stock -= qty
 		row.SoldToday += qty
@@ -706,19 +729,22 @@ func (h *VillageHandler) ShopBuy(ctx context.Context, meta envelope.Metadata, re
 		if err := tx.VillageShop().AddPlayerDay(ctx, p.ID, s.CityID, code, day.Day, qty); err != nil {
 			return err
 		}
-		txID, err := wallet.Pay(ctx, tx.Ledger(), application.Charge{
-			Method: method, Accepted: plan.Accepted, Reason: application.ReasonShopPurchase,
-			ReferenceType: application.VillageShopSaleReference, ReferenceID: saleID,
-			To:        []application.LedgerEntry{{AccountID: application.SystemSinkAccountID, Amount: total}},
-			CreatedAt: now,
-		})
-		if err != nil {
-			if stderrors.Is(err, application.ErrPaymentDeclined) {
-				return declined(plan, wallet, "village.shop.button.back", backTo...)
+		txID := burnTx
+		if !br.Paid {
+			txID, err = wallet.Pay(ctx, tx.Ledger(), application.Charge{
+				Method: method, Accepted: plan.Accepted, Reason: application.ReasonShopPurchase,
+				ReferenceType: application.VillageShopSaleReference, ReferenceID: saleID,
+				To:        []application.LedgerEntry{{AccountID: application.SystemSinkAccountID, Amount: total}},
+				CreatedAt: now,
+			})
+			if err != nil {
+				if stderrors.Is(err, application.ErrPaymentDeclined) {
+					return declined(plan, wallet, "village.shop.button.back", backTo...)
+				}
+				return err
 			}
-			return err
 		}
-		if !tax.IsZero() {
+		if !tax.IsZero() && !br.Paid {
 			treasury, err := tx.Ledger().AccountFor(ctx, application.AccountCityTreasury, s.CityID)
 			if err != nil {
 				return err
@@ -759,7 +785,7 @@ func (h *VillageHandler) ShopBuy(ctx context.Context, meta envelope.Metadata, re
 	case replayed:
 		return h.shopScreen(ctx, meta, nil, nil)
 	case checkout != nil:
-		return village.VillageShopCheckout(h.screen(meta, lang), *checkout), nil
+		return attachOfferCmd(village.VillageShopCheckout(h.screen(meta, lang), *checkout), offer, "settlement.shop.buy", 4), nil
 	}
 	return h.shopScreen(ctx, meta, bought, nil)
 }

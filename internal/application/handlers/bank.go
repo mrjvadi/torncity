@@ -604,6 +604,20 @@ func (h *BankHandler) payScreen(ctx context.Context, meta envelope.Metadata, req
 		view.CardOptions, view.CanCard = h.options(maxCard)
 		view.CardOptions = h.withAsked(view.CardOptions, asked, maxCard)
 		view.Origin = req.Origin
+		// two neighbours of a village with its own money may pay in it (the amount is in its units)
+		if st, name, err := h.sharedMoney(ctx, tx, p.ID, payee.ID); err != nil {
+			return err
+		} else if st != nil {
+			hold, err := tx.Ledger().AccountForCurrency(ctx, application.AccountForeignHolding, p.ID, st.Code)
+			if err != nil {
+				return err
+			}
+			view.LocalName, view.Local = name, hold.Balance.Minor()
+			view.LocalOptions, view.CanLocal = h.options(hold.Balance)
+			if a, err := strconv.ParseInt(strings.TrimSpace(req.Amount), 10, 64); err == nil {
+				view.LocalOptions = h.withAsked(view.LocalOptions, money.FromMinor(a), hold.Balance)
+			}
+		}
 		return nil
 	})
 	if err != nil {
@@ -640,6 +654,9 @@ func (h *BankHandler) withAsked(opts []economy.AmountOption, asked, available mo
 // confirm renders the last look before a payment: the amount, the fee and
 // the total, with a single-use confirm button.
 func (h *BankHandler) confirm(ctx context.Context, meta envelope.Metadata, req PayRequest) (*presentation.Response, error) {
+	if strings.EqualFold(strings.TrimSpace(req.Method), economy.MethodLocal) {
+		return h.confirmLocal(ctx, meta, req)
+	}
 	amount, err := h.parseAmount(req.Amount)
 	if err != nil {
 		return nil, err
@@ -873,6 +890,9 @@ func (h *BankHandler) payQuote(ctx context.Context, tx application.Tx, p *applic
 func (h *BankHandler) PaySend(ctx context.Context, meta envelope.Metadata, req PayRequest) (*presentation.Response, error) {
 	if err := checkMeta(meta); err != nil {
 		return nil, err
+	}
+	if strings.EqualFold(strings.TrimSpace(req.Method), economy.MethodLocal) {
+		return h.paySendLocal(ctx, meta, req)
 	}
 	amount, err := h.parseAmount(req.Amount)
 	if err != nil {

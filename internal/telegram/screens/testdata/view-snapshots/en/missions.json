@@ -736,6 +736,7 @@
     "screen": "pay_sent",
     "view": {
       "amount": 80000,
+      "currency": "",
       "fee": 400,
       "held": true,
       "method": "card",

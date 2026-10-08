@@ -7,6 +7,9 @@ import "github.com/mrjvadi/torncity/internal/presentation"
 const (
 	MethodCash = "cash"
 	MethodCard = "card"
+	// MethodLocal pays in the money of the settlement both players live in (docs/adr/0033 6.9):
+	// the amount is in that money's units, not SUP.
+	MethodLocal = "local"
 )
 
 // PaymentDeclinedView is a charge nothing the player holds can pay.

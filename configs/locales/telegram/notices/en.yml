@@ -7,6 +7,7 @@ gov:
     notice: "📭 You were removed from the office of {office} of {place} by {by_office} {by}."
 pay:
   received_cash: "💵 {player} handed you {amount} in cash."
+  received_local: "🏘 {player} sent you {amount} in your village's money."
   received_card: "💳 {player} sent you {amount} by card. The money is in your bank account."
 crime:
   victim:

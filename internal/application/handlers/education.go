@@ -32,6 +32,8 @@ import (
 type CourseRequest struct {
 	Course string `json:"course"`
 	Method string `json:"method,omitempty"`
+	// LocalSettle asks to convert at the school's village desk and pay the fee in its own money.
+	LocalSettle
 }
 
 // EducationActionPayload is the jsonb an enrolment writes onto its
@@ -456,7 +458,10 @@ func (h *EducationHandler) View(ctx context.Context, meta envelope.Metadata, req
 	}
 	snap := h.content.Current()
 	lang := meta.Language
-	var view plife.CourseDetailView
+	var (
+		view  plife.CourseDetailView
+		offer *application.LocalOffer
+	)
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, err := tx.Players().GetByTelegramUserID(ctx, meta.TelegramUserID)
 		if err != nil {
@@ -531,6 +536,12 @@ func (h *EducationHandler) View(ctx context.Context, meta envelope.Metadata, req
 				view.Fee, course.Cost = listed.Cost.Minor(), listed.Cost
 			}
 		}
+		if classTeacher != nil && view.Fee > 0 {
+			// a class in a village with its own money: the fee is paid in it when the student holds the units
+			if offer, err = application.LocalOfferFor(ctx, tx, classTeacher.SettlementID, p.ID, view.Fee, 0); err != nil {
+				return err
+			}
+		}
 		hereC, err := h.courseHereOf(ctx, tx, snap, s.here())
 		if err != nil {
 			return err
@@ -576,7 +587,7 @@ func (h *EducationHandler) View(ctx context.Context, meta envelope.Metadata, req
 	if resp, ferr := h.finish(meta, lang, err); resp != nil || ferr != nil {
 		return resp, ferr
 	}
-	return plife.CourseDetail(presentation.Ctx{Lang: lang}, view), nil
+	return attachOfferCmd(plife.CourseDetail(presentation.Ctx{Lang: lang}, view), offer, "education.enroll", 2), nil
 }
 
 // enrollPlan is what enrollPlan computes: the course a player is eligible to
@@ -723,7 +734,7 @@ func (h *EducationHandler) Enroll(ctx context.Context, meta envelope.Metadata, r
 				return refuse(plife.RefusalCourseRequirements, []plife.Requirement{{Kind: screens.ReqCourseTeacher}})
 			}
 		}
-		if err := h.chargeClass(ctx, tx, snap, p.ID, plan, enrollmentID, method, now); err != nil {
+		if err := h.chargeClass(ctx, tx, snap, p.ID, plan, enrollmentID, method, now, req.LocalSettle); err != nil {
 			return err
 		}
 		payload, err := json.Marshal(EducationActionPayload{
@@ -820,16 +831,49 @@ func (h *EducationHandler) chargeFee(ctx context.Context, tx application.Tx, sna
 // home teacher (tuition); the state's schools of a content city still take it into
 // the sink.
 func (h *EducationHandler) chargeClass(ctx context.Context, tx application.Tx, snap *content.Snapshot,
-	playerID string, plan enrollPlan, enrollmentID string, method payment.Method, now time.Time,
+	playerID string, plan enrollPlan, enrollmentID string, method payment.Method, now time.Time, ls LocalSettle,
 ) error {
 	if plan.teacher == nil || plan.fee.IsZero() {
 		return h.chargeFee(ctx, tx, snap, playerID, plan.course.Code, enrollmentID, plan.fee, method, now)
+	}
+	// A village with its own money is paid in it when the student holds the units (or converts at its
+	// desk inside this confirm): the school's treasury takes the course fee, a home teacher the tuition
+	// less the tax. Otherwise the fee is SUP through the wallet, as before.
+	t := plan.teacher
+	lp := application.LocalPayment{
+		SettlementID: t.SettlementID, PlayerID: playerID, Direction: application.LocalCollect, Flow: application.ReasonCourseFee,
+		SUP: plan.fee.Minor(), RefType: "enrollments", RefID: enrollmentID, At: now,
+		Convert: ls.wantsConvert(), MaxConvertSUP: ls.maxSUP(),
+	}
+	if t.Employer != application.EmployerSettlement {
+		lp.Direction, lp.Flow, lp.PayeeID, lp.CutBPS = application.LocalTransfer, application.ReasonTuition, t.PlayerID, int64(h.tuitionTaxBPS(ctx, t.SettlementID))
+	}
+	if r, err := application.PayLocal(ctx, tx, h.ids.NewID, lp); err != nil {
+		return err
+	} else if r.Paid {
+		return nil
 	}
 	reason, to, err := h.classLedger(ctx, tx, plan.teacher, plan.fee)
 	if err != nil {
 		return err
 	}
 	return h.chargeTo(ctx, tx, snap, playerID, plan.course.Code, enrollmentID, plan.fee, method, now, reason, to)
+}
+
+// tuitionTaxBPS is the income tax the settlement's policy takes of a home teacher's tuition.
+func (h *EducationHandler) tuitionTaxBPS(ctx context.Context, settlementID string) int {
+	if h.policy == nil {
+		return 0
+	}
+	city, err := h.cities.ByID(ctx, settlementID)
+	if err != nil {
+		return 0
+	}
+	pol, err := readLabourPolicy(ctx, h.policy, *city)
+	if err != nil {
+		return 0
+	}
+	return pol.IncomeTaxBPS
 }
 
 func (h *EducationHandler) chargeTo(ctx context.Context, tx application.Tx, snap *content.Snapshot,

@@ -92,9 +92,11 @@ type EmptyView struct{}
 type PaymentView struct {
 	PayerName string
 	PayerCode string
-	// Method is "cash" or "card".
+	// Method is "cash", "card" or "local".
 	Method string
 	Amount int64
+	// Currency names the settlement money when Method is "local": Amount is then in its units.
+	Currency string
 }
 
 // AchievementView is an achievement just earned and what it paid.

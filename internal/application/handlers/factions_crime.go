@@ -779,7 +779,17 @@ func (h *FactionsHandler) settleMember(ctx context.Context, tx application.Tx, s
 			return err
 		}
 		notice["jail_seconds"], notice["jail_ends_at"] = int64(s.EndsAt.Sub(now)/time.Second), s.EndsAt
+		fineLocal := false
 		if out.Fine.Minor() > 0 {
+			var lerr error
+			if fineLocal, lerr = h.crime.payFineLocal(ctx, tx, city.ID, c.PlayerID, out.Fine.Minor(), application.FactionOperationReference, op.ID, now); lerr != nil {
+				return lerr
+			}
+			if fineLocal {
+				notice["fine"], notice["fine_paid"] = out.Fine.Minor(), out.Fine.Minor()
+			}
+		}
+		if out.Fine.Minor() > 0 && !fineLocal {
 			cash, bankAcct, err := playerAccounts(ctx, tx.Ledger(), c.PlayerID)
 			if err != nil {
 				return err

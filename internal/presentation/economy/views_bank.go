@@ -16,8 +16,9 @@ const (
 // handler. They are the domain's values (bank.MethodCash, bank.MethodCard),
 // restated here because a screen does not import the domain's rules.
 const (
-	PayCash = "cash"
-	PayCard = "card"
+	PayLocal = "local"
+	PayCash  = "cash"
+	PayCard  = "card"
 )
 
 // AmountOption is one quick-amount button: the amount it moves and the
@@ -104,6 +105,14 @@ type PayView struct {
 	// private chat.
 	Origin string
 
+	// LocalName is the name of the money both players' settlement has chartered, set when they live in
+	// the same one (the payer may pay in it, in its units); Local the units the payer holds,
+	// LocalOptions the quick amounts in units, CanLocal whether any can be paid.
+	LocalName    string
+	Local        int64
+	LocalOptions []AmountOption
+	CanLocal     bool
+
 	// Notice explains a refusal that brought the player back here, as a code
 	// (not_together, short_cash, short_bank) with its data in NoticeArgs;
 	// empty on a plain visit.
@@ -127,6 +136,9 @@ type PayConfirmView struct {
 	Nonce string
 	// Origin is the group the payment was started in, if any; see PayView.
 	Origin string
+	// Currency names the settlement money when Method is "local": Amount, Total and After are then
+	// units of it, not SUP.
+	Currency string
 }
 
 // PaySentView is the outcome of a payment, for the payer.
@@ -139,4 +151,6 @@ type PaySentView struct {
 	// Held says the watch held the payment for review (docs/adr/0023): the
 	// money has left the payer and waits in their escrow.
 	Held bool
+	// Currency names the settlement money when Method is "local": Amount is then in its units.
+	Currency string
 }

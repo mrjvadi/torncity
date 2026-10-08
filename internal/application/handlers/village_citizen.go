@@ -107,6 +107,8 @@ type VillageLotRequest struct {
 	// Road is "carve" when the buyer consents to turning their own lots into the
 	// road to the lot (docs/adr/0043).
 	Road string `json:"road,omitempty"`
+	// LocalSettle asks to convert at the desk and pay the price in the village's own money.
+	LocalSettle
 }
 
 // VillagePrivateRequest is the payload of the private building commands.
@@ -115,6 +117,8 @@ type VillagePrivateRequest struct {
 	Lot     string `json:"lot,omitempty"`
 	Rotate  string `json:"rotate,omitempty"`
 	Confirm string `json:"confirm,omitempty"`
+	// LocalSettle asks to convert at the desk and pay the permit in the village's own money.
+	LocalSettle
 }
 
 // VillageTermsRequest is the payload of settlement.terms: a lever to move,
@@ -714,7 +718,10 @@ func (h *VillageHandler) PrivateLots(ctx context.Context, meta envelope.Metadata
 func (h *VillageHandler) PrivatePlace(ctx context.Context, meta envelope.Metadata, req VillagePrivateRequest) (*presentation.Response, error) {
 	lang := meta.Language
 	snap := h.content.Current()
-	var confirmView *village.PrivateConfirmView
+	var (
+		confirmView *village.PrivateConfirmView
+		offer       *application.LocalOffer
+	)
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		sc, err := h.citizenScope(ctx, tx, meta, &lang, true)
 		if err != nil {
@@ -790,7 +797,14 @@ func (h *VillageHandler) PrivatePlace(ctx context.Context, meta envelope.Metadat
 				CostMoney: d.CostMoney + roadFee, PermitFee: sc.fee, Materials: bill.screen(), MaterialsCost: bill.boughtCost,
 				Total: total, Cash: cash, BuildTime: h.scale.RealWait(def.BuildTime),
 			}
-			if cash < total {
+			if offer, err = application.LocalOfferFor(ctx, tx, sc.s.CityID, sc.p.ID, sc.fee, 0); err != nil {
+				return err
+			}
+			need := total
+			if offer != nil && offer.Local {
+				need -= sc.fee // the permit is paid in the village's money
+			}
+			if cash < need {
 				return refuseVillage(village.CitizenNoCash, village.AddrPrivateMenu)
 			}
 			return nil
@@ -812,12 +826,38 @@ func (h *VillageHandler) PrivatePlace(ctx context.Context, meta envelope.Metadat
 			return err
 		}
 		total := d.CostMoney + roadFee + sc.fee + bill.boughtCost
-		if cash < total {
+		now := h.now()
+		id := h.ids.NewID()
+		// the permit is paid in the village's own money when the builder holds the units, or converts at
+		// the desk inside this confirm; otherwise in SUP, as before
+		permitTx := ""
+		if sc.fee > 0 {
+			permitTx = h.ids.NewID()
+		}
+		permitLocal := false
+		if sc.fee > 0 {
+			lr, lerr := application.PayLocal(ctx, tx, h.ids.NewID, application.LocalPayment{
+				SettlementID: sc.s.CityID, PlayerID: sc.p.ID, Direction: application.LocalCollect, Flow: application.ReasonSettlementPermitFee,
+				SUP: sc.fee, TxID: permitTx, RefType: application.PrivateBuildingReference, RefID: id, At: now,
+				Convert: req.wantsConvert(), MaxConvertSUP: req.maxSUP(),
+			})
+			if lerr != nil {
+				if r, ok := deskRefusal(lerr); ok {
+					return r
+				}
+				return lerr
+			}
+			permitLocal = lr.Paid
+			cash -= lr.ConvertSUP
+		}
+		need := total
+		if permitLocal {
+			need -= sc.fee
+		}
+		if cash < need {
 			return refuseVillage(village.CitizenNoCash, village.AddrPrivateMenu)
 		}
 
-		now := h.now()
-		id := h.ids.NewID()
 		for _, m := range bill.lines {
 			if m.have <= 0 {
 				continue
@@ -858,10 +898,6 @@ func (h *VillageHandler) PrivatePlace(ctx context.Context, meta envelope.Metadat
 		} else if _, err := h.schedule(ctx, tx, application.SettlementBuildActionType, "settlement_building", id, sc.s.CityID, now, finish); err != nil {
 			return err
 		}
-		permitTx := ""
-		if sc.fee > 0 {
-			permitTx = h.ids.NewID()
-		}
 		if err := tx.Citizens().RecordPrivateBuilding(ctx, application.PrivateBuilding{
 			BuildingID: id, SettlementID: sc.s.CityID, OwnerID: sc.p.ID, PermitFee: sc.fee, ConstructionPaid: d.CostMoney + roadFee,
 			MaterialsPaid: bill.boughtCost, AssessedValue: d.CostMoney + bill.referenceValue, LedgerTransactionID: permitTx, CreatedAt: now,
@@ -889,8 +925,10 @@ func (h *VillageHandler) PrivatePlace(ctx context.Context, meta envelope.Metadat
 			}
 			return err
 		}
-		if err := pay(permitTx, application.ReasonSettlementPermitFee, treasuryAcct.ID, sc.fee); err != nil {
-			return err
+		if !permitLocal {
+			if err := pay(permitTx, application.ReasonSettlementPermitFee, treasuryAcct.ID, sc.fee); err != nil {
+				return err
+			}
 		}
 		if err := pay("", application.ReasonCitizenConstruction, application.SystemSinkAccountID, d.CostMoney+roadFee); err != nil {
 			return err
@@ -937,7 +975,7 @@ func (h *VillageHandler) PrivatePlace(ctx context.Context, meta envelope.Metadat
 		return resp, err
 	}
 	if confirmView != nil {
-		return village.PrivateConfirm(h.screen(meta, lang), *confirmView), nil
+		return attachOffer(village.PrivateConfirm(h.screen(meta, lang), *confirmView), offer, 3), nil
 	}
 	return h.mine(ctx, meta, "")
 }
@@ -1301,10 +1339,26 @@ func (h *VillageHandler) collectDebt(ctx context.Context, tx application.Tx, set
 	}
 	var paid int64
 	for _, t := range unpaid {
+		txID := h.ids.NewID()
+		// the tax is paid in the village's own money when the owner holds the units (never converted
+		// unasked: this runs from the village's tick as well as from the owner's button)
+		lr, lerr := application.PayLocal(ctx, tx, h.ids.NewID, application.LocalPayment{
+			SettlementID: settlementID, PlayerID: playerID, Direction: application.LocalCollect, Flow: application.ReasonSettlementPropertyTax,
+			SUP: t.Due, TxID: txID, RefType: application.SettlementPropertyTaxTable, RefID: t.ID, At: now,
+		})
+		if lerr != nil {
+			return paid, lerr
+		}
+		if lr.Paid {
+			if err := tx.Citizens().MarkTaxPaid(ctx, t.ID, txID, now); err != nil {
+				return paid, err
+			}
+			paid += t.Due
+			continue
+		}
 		if cash < t.Due {
 			break
 		}
-		txID := h.ids.NewID()
 		if _, err := tx.Ledger().Post(ctx, application.LedgerTransaction{
 			ID: txID, Reason: application.ReasonSettlementPropertyTax, CreatedAt: now,
 			ReferenceType: application.SettlementPropertyTaxTable, ReferenceID: t.ID,

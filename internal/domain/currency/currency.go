@@ -227,3 +227,52 @@ func DeskSell(unitsIn int64, r Rate, feeBPS int64) (supOut, feeUnits int64) {
 	}
 	return r.ToSUPFloor(unitsIn - fee), fee
 }
+
+// DeskBuyCost is the least SUP a player must pay the desk to receive at least `units` units: the
+// inverse of DeskBuy, found by walking from the closed-form estimate. Zero when no amount buys that
+// many (a non-positive request, a bad rate or fee, or overflow).
+func DeskBuyCost(units int64, r Rate, feeBPS int64) int64 {
+	if units <= 0 || !r.Valid() || feeBPS < 0 || feeBPS >= BPS {
+		return 0
+	}
+	// units <= (sup - fee) * Num / Den, so sup >= units * Den / Num * BPS / (BPS - feeBPS)
+	est, _, ok := mulDiv(units, r.Den(), r.Num())
+	if !ok {
+		return 0
+	}
+	est, _, ok = mulDiv(est+1, BPS, BPS-feeBPS)
+	if !ok {
+		return 0
+	}
+	sup := est + 2
+	for sup > 1 {
+		if got, _ := DeskBuy(sup-1, r, feeBPS); got < units {
+			break
+		}
+		sup--
+	}
+	for steps := 0; steps < 1_000; steps++ {
+		if got, _ := DeskBuy(sup, r, feeBPS); got >= units {
+			return sup
+		}
+		sup++
+	}
+	return 0
+}
+
+// BurnBasis is the share of the backing basis a burn of `burn` units takes away, out of `supply`
+// units in existence: basis x burn / supply, rounded down (the ADR 0033 6.2 rule: a burn removes its
+// share of the basis; the pot keeps its SUP, so the difference becomes excess).
+func BurnBasis(basis, supply, burn int64) int64 {
+	if basis <= 0 || supply <= 0 || burn <= 0 {
+		return 0
+	}
+	if burn >= supply {
+		return basis
+	}
+	q, _, ok := mulDiv(basis, burn, supply)
+	if !ok {
+		return 0
+	}
+	return q
+}
