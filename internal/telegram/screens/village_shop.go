@@ -304,6 +304,9 @@ func renderVillageMoney(c Context, v village.MoneyView) *presenter.Response {
 		if b, ok := keyboards.Button(c.T("village.money.button.desk", nil), village.AddrCurrencyDesk); ok {
 			kb.Row(b)
 		}
+		if b, ok := keyboards.Button(c.T("village.money.button.book", nil), "fx:book"); ok {
+			kb.Row(b)
+		}
 	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrShopHere, RefreshData: AddrMoney}))
 	return c.respond(text, kb.Build())

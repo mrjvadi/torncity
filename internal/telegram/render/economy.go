@@ -11,6 +11,11 @@ import (
 // Telegram by the renderer internal/telegram/screens has always had, from the
 // view the core now sends as data.
 func init() {
+	Register(economy.ScreenFXBook, screens.FXBook)
+	Register(economy.ScreenFXOrder, screens.FXOrder)
+	Register(economy.ScreenFXHistory, screens.FXHistory)
+	Register(economy.ScreenFXConvert, screens.FXConvert)
+	Register(economy.ScreenFXRefusal, screens.FXRefusal)
 	Register(economy.ScreenBank, screens.Bank)
 	Register(economy.ScreenPay, screens.Pay)
 	RegisterEmpty(economy.ScreenPayHelp, screens.PayHelp)

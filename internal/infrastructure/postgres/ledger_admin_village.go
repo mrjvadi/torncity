@@ -123,6 +123,19 @@ type VillageInvariants struct {
 	LocalLedgerTransfer, LocalRowsTransfer int64
 	BurnLedger, BurnRows, BurnMismatched   int64
 	LocalMismatched, DeskMismatched        int64
+	// The floating book (migration 0130): FXBook is whether the tables exist. FXEscrowMismatched counts
+	// (owner, currency) pairs whose escrow account does not hold exactly what the owner's open orders still
+	// hold; FXTradeLedger* the ledger's fills against the fill rows (SUP with the fee, and units);
+	// FXTradeMismatched fills whose two transactions are not what the row says; FXOrderMismatched orders
+	// whose filled quantity is not what their fills add up to; FXRateMismatched currencies whose x_ref is
+	// not the last reading's or whose readings do not follow one another; FXHistoryGuards the triggers that
+	// keep the history append-only (two expected).
+	FXBook                               bool
+	FXEscrowMismatched                   int64
+	FXTradeLedgerSUP, FXTradeRowsSUP     int64
+	FXTradeLedgerVC, FXTradeRowsVC       int64
+	FXTradeMismatched, FXOrderMismatched int64
+	FXRateMismatched, FXHistoryGuards    int64
 	// ServiceMisrouted counts legs of training_fee (to a treasury, from a player),
 	// trainer_wage (treasury to the sink) and bag_repair (to the sink) that go
 	// anywhere else: those flows have no row table, so their routes are the check.
@@ -136,7 +149,9 @@ func (v VillageInvariants) WorkNodesOK() bool {
 		(!v.Repairs || (v.RepairWithoutJob == 0 && v.DamageOutOfRange == 0))) &&
 		(!v.Currencies || (v.PotMismatched == 0 && v.SupplyMismatched == 0 && v.IssuanceMismatched == 0 && v.StrayHoldings == 0)) &&
 		(!v.LocalObligations || (v.LocalLedgerPay == v.LocalRowsPay && v.LocalLedgerCollect == v.LocalRowsCollect && v.LocalLedgerTransfer == v.LocalRowsTransfer &&
-			v.BurnLedger == v.BurnRows && v.BurnMismatched == 0 && v.LocalMismatched == 0 && v.DeskMismatched == 0))
+			v.BurnLedger == v.BurnRows && v.BurnMismatched == 0 && v.LocalMismatched == 0 && v.DeskMismatched == 0)) &&
+		(!v.FXBook || (v.FXEscrowMismatched == 0 && v.FXTradeLedgerSUP == v.FXTradeRowsSUP && v.FXTradeLedgerVC == v.FXTradeRowsVC &&
+			v.FXTradeMismatched == 0 && v.FXOrderMismatched == 0 && v.FXRateMismatched == 0 && v.FXHistoryGuards == 2))
 }
 
 // TeachingOK reports whether the teaching checks hold.

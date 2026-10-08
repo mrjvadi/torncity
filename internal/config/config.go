@@ -1807,7 +1807,16 @@ func Defaults() *Config {
 			MintFeeBPS:          50,
 			AutoCharterShareBPS: 5000,
 			DeskSlippageBPS:     100, DeskPresets: []int64{100, 500, 2000},
-			AutoCharterFloor: 500,
+			AutoCharterFloor:     500,
+			FXReserveFeeBPS:      30,
+			FXMaxMoveBPS:         2000,
+			FXMinTrades:          8,
+			FXWindowPeriods:      7,
+			FXMinOrderSUP:        10,
+			FXBookLimit:          200,
+			FXMaxOpenOrders:      20,
+			FXConvertSlippageBPS: 100,
+			FXOrderTTL:           7 * 24 * time.Hour, FXPeriod: 24 * time.Hour, FXUnitPresets: []int64{1000, 5000, 20000},
 		},
 		Labor: Labor{
 			ShiftMinutes:           60,
@@ -2325,4 +2334,17 @@ type Currency struct {
 	DeskSlippageBPS int64 // currency.desk_slippage_bps
 	// DeskPresets are the SUP amounts the desk's menu offers.
 	DeskPresets []int64 // currency.desk_presets
+
+	// The floating VC/SUP book (docs/adr/0033 6.8, roadmap 2.19 phase 3).
+	FXReserveFeeBPS      int64         // currency.fx_reserve_fee_bps: reserve.fx_fee_bps: the fee on selling SUP into a money, paid to Support's treasury
+	FXMaxMoveBPS         int64         // currency.fx_max_move_bps: reserve.max_move_bps: the circuit breaker, how far from the reference rate a price may be placed
+	FXMinTrades          int64         // currency.fx_min_trades: the fills a window needs before the reference rate moves
+	FXWindowPeriods      int64         // currency.fx_window_periods: the periods the reference rate averages
+	FXMinOrderSUP        int64         // currency.fx_min_order_sup: the least an order must be worth, in SUP
+	FXBookLimit          int64         // currency.fx_book_limit: how many resting orders of a side one match looks at
+	FXMaxOpenOrders      int64         // currency.fx_max_open_orders: an owner's open orders in one book
+	FXConvertSlippageBPS int64         // currency.fx_convert_slippage_bps: how far a conversion may move between its quote and its confirm
+	FXOrderTTL           time.Duration // currency.fx_order_ttl: how long a limit order lives
+	FXPeriod             time.Duration // currency.fx_period: one period of the reference rate
+	FXUnitPresets        []int64       // currency.fx_unit_presets: the quantities the book screen offers
 }

@@ -103,7 +103,7 @@ func VillageMoney(c presentation.Ctx, v MoneyView) *presentation.Response {
 		a = append(a, act(AddrCurrencyCharter).Named("currency.charter"))
 	}
 	if v.Chartered != nil {
-		a = append(a, act(AddrCurrencyDesk).Named("currency.desk"))
+		a = append(a, act(AddrCurrencyDesk).Named("currency.desk"), presentation.Do("fx.book").Named("fx.book"))
 	}
 	return screenMoney.Response(c.Lang, v, a...)
 }

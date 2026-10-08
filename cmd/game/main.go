@@ -654,6 +654,11 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	if err != nil {
 		return err
 	}
+	h.fx.book = handlers.NewFXHandler(uow, uuidGenerator{}, cities, fxRules(cfg), cfg.Settlement.HomeCityCode, cfg.Game.IdempotencyTTL, nil)
+	if err := h.fx.book.StartClock(ctx); err != nil {
+		logger.Error("cannot start the book's clock; it starts at the next start",
+			slog.String("error", err.Error()))
+	}
 	if err := h.stageG2.finance.StartClock(ctx); err != nil {
 		logger.Error("cannot start the finance clock; it starts at the next start",
 			slog.String("error", err.Error()))

@@ -221,6 +221,7 @@ func (t *fakeTx) Worlds() application.WorldRepository                           
 func (t *fakeTx) Settlements() application.SettlementRepository                  { return noSettlements{} }
 func (t *fakeTx) SettlementTreasury() application.SettlementTreasuryRepository   { return nil }
 func (t *fakeTx) Currency() application.CurrencyRepository                       { return nil }
+func (t *fakeTx) FX() application.FXRepository                                       { return nil }
 func (t *fakeTx) Citizens() application.CitizenRepository                        { return nil }
 func (t *fakeTx) SettlementKnowledge() application.SettlementKnowledgeRepository { return nil }
 func (t *fakeTx) SettlementBuildings() application.SettlementBuildingRepository  { return nil }

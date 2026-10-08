@@ -583,6 +583,14 @@ var all = []Subscription{
 	// credit score, savings, insurance, the stock exchange and the gold
 	// dealer. Only the scheduler sends finance.settle, when a finance period
 	// ends.
+	// The floating VC/SUP book of a settlement's own money (docs/adr/0033 6.8): the book, an order, a
+	// cancel, the rate history and a conversion; only the scheduler sends fx.settle, when a period ends.
+	{Domain: "fx", Action: "book", Origin: FromPlayer},
+	{Domain: "fx", Action: "place", Origin: FromPlayer},
+	{Domain: "fx", Action: "cancel", Origin: FromPlayer},
+	{Domain: "fx", Action: "history", Origin: FromPlayer},
+	{Domain: "fx", Action: "convert", Origin: FromPlayer},
+	{Domain: "fx", Action: "settle", Origin: FromScheduler},
 	{Domain: "loan", Action: "hub", Origin: FromPlayer},
 	{Domain: "loan", Action: "offer", Origin: FromPlayer},
 	{Domain: "loan", Action: "take", Origin: FromPlayer},

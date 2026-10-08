@@ -61,6 +61,8 @@ type phaseHandlers struct {
 	stageG1 lifeHandlers
 	stageG2 financeHandlers
 
+	fx fxHandlers
+
 	clients deviceHandlers
 
 	inbox inboxHandlers
@@ -792,6 +794,9 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 		bound[command] = fn
 	}
 	for command, fn := range h.bindFinance() {
+		bound[command] = fn
+	}
+	for command, fn := range h.bindFX() {
 		bound[command] = fn
 	}
 	for command, fn := range h.bindDevices() {

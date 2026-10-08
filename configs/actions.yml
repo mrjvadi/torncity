@@ -291,6 +291,11 @@ commands:
   stock.mine: {kind: navigation, icon: "action:stock"}
   stock.ipo: {kind: primary, icon: "action:ipo"}
   stock.dividend: {kind: primary, icon: "action:dividend"}
+  fx.book: {kind: navigation, icon: "action:bank"}
+  fx.place: {kind: primary, icon: "action:buy"}
+  fx.cancel: {kind: danger, icon: "action:cancel"}
+  fx.history: {kind: navigation, icon: "action:bank"}
+  fx.convert: {kind: primary, icon: "action:bank"}
   gold.show: {kind: navigation, icon: "action:gold"}
   gold.buy: {kind: primary, icon: "action:buy"}
   gold.sell: {kind: primary, icon: "action:sell"}
