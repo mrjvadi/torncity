@@ -565,6 +565,7 @@ var knownReasons = map[Reason]struct{}{
 	ReasonCharterFee: {}, ReasonReserveDeposit: {}, ReasonCurrencyMint: {},
 	ReasonLocalWage: {}, ReasonLocalPayment: {}, ReasonFXDeskSUP: {}, ReasonFXDeskLocal: {}, ReasonLocalTransfer: {}, ReasonCurrencyBurn: {},
 	ReasonFXEscrow: {}, ReasonFXRelease: {}, ReasonFXTradeSUP: {}, ReasonFXTradeVC: {},
+	ReasonInterventionBuy: {}, ReasonReserveRelease: {}, ReasonWindDownClaim: {},
 	ReasonCourseFee: {}, ReasonTuition: {}, ReasonTeacherWage: {}, ReasonTeacherWageNPC: {}, ReasonTrainingFee: {}, ReasonTrainerWage: {},
 }
 

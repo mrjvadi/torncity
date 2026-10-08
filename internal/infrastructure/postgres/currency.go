@@ -24,12 +24,15 @@ func NewCurrencyRepository(p *Pool) *CurrencyRepository { return &CurrencyReposi
 func (t *tx) Currency() application.CurrencyRepository { return &CurrencyRepository{q: t.q} }
 
 const currencyStateColumns = `settlement_id::text, currency_code, status, r0, x_ref_ppm, minted_units, burnt_units,
-	basis_sup, deposited_sup, released_sup, fx_fee_bps, chartered_at, chartered_by`
+	basis_sup, deposited_sup, released_sup, fx_fee_bps, chartered_at, chartered_by, intervention_out, intervention_in,
+	wind_down_at, wind_down_ends_at, retired_at, COALESCE(wind_down_reason, '')`
 
 func scanCurrencyState(row pgx.Row) (application.CurrencyState, error) {
 	var s application.CurrencyState
 	err := row.Scan(&s.SettlementID, &s.Code, &s.Status, &s.R0, &s.XRefPPM, &s.MintedUnits, &s.BurntUnits,
-		&s.BasisSUP, &s.DepositedSUP, &s.ReleasedSUP, &s.FXFeeBPS, &s.CharteredAt, &s.CharteredBy)
+		&s.BasisSUP, &s.DepositedSUP, &s.ReleasedSUP, &s.FXFeeBPS, &s.CharteredAt, &s.CharteredBy, &s.InterventionOut, &s.InterventionIn,
+		&s.WindDownAt, &s.WindDownEndsAt, &s.RetiredAt, &s.WindDownReason)
+	s.WindDownAt, s.WindDownEndsAt, s.RetiredAt = utcPtr(s.WindDownAt), utcPtr(s.WindDownEndsAt), utcPtr(s.RetiredAt)
 	return s, err
 }
 
@@ -131,6 +134,18 @@ func (r *CurrencyRepository) BurnOf(ctx context.Context, refType, refID string) 
 		return nil, fmt.Errorf("postgres: reading a burn: %w", err)
 	}
 	return &e, nil
+}
+
+// AddInterventionFlow raises the intervention counters.
+func (r *CurrencyRepository) AddInterventionFlow(ctx context.Context, settlementID string, out, in int64) error {
+	if out == 0 && in == 0 {
+		return nil
+	}
+	if _, err := r.q.Exec(ctx, `UPDATE village_currency_state SET intervention_out = intervention_out + $2, intervention_in = intervention_in + $3
+		WHERE settlement_id = $1::uuid`, settlementID, out, in); err != nil {
+		return fmt.Errorf("postgres: counting the intervention's SUP: %w", err)
+	}
+	return nil
 }
 
 // CharteredSettlements lists the settlements with a chartered money.

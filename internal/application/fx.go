@@ -35,6 +35,17 @@ const (
 	ReasonFXRelease  Reason = "fx_release"
 	ReasonFXTradeSUP Reason = "fx_trade_sup"
 	ReasonFXTradeVC  Reason = "fx_trade_vc"
+	// ReasonInterventionBuy funds the head's purchase of the money on the book from the reserve pot: pot
+	// SUP to the treasury's SUP escrow (docs/adr/0033 6.7, 6.11). What comes back (a release, the proceeds of
+	// a sale of the intervention stock) returns to the pot under fx_release and fx_trade_sup.
+	ReasonInterventionBuy Reason = "intervention_buy"
+)
+
+// Purposes of an order: an ordinary one, or the treasury's intervention, which is funded from and pays into
+// the reserve pot.
+const (
+	FXPurposeTrade        = "trade"
+	FXPurposeIntervention = "intervention"
 )
 
 // Order sides, owner kinds, kinds and statuses.
@@ -92,8 +103,10 @@ type FXOrder struct {
 	// the order still holds (SUP for a buy, units for a sell); FeeBPS the fee rate it carries.
 	Price, NotionalMicro, EscrowLeft, FeeBPS int64
 	Status                                   string
-	CreatedAt, ExpiresAt                     time.Time
-	ClosedAt                                 *time.Time
+	// Purpose is FXPurposeTrade or FXPurposeIntervention.
+	Purpose              string
+	CreatedAt, ExpiresAt time.Time
+	ClosedAt             *time.Time
 }
 
 // Remaining is the unfilled quantity.
@@ -213,6 +226,9 @@ type FXPlace struct {
 	// cancelled and released.
 	IOC bool
 	At  time.Time
+	// Purpose is FXPurposeIntervention for the head's order: the owner is the settlement, the SUP side is
+	// the reserve pot. Empty is an ordinary order.
+	Purpose string
 }
 
 // FXPlaced is what placing an order did.
@@ -232,7 +248,7 @@ type fxAccounts struct {
 	sup, vc, escSUP, escVC Account
 }
 
-func fxOwnerAccounts(ctx context.Context, tx Tx, owner FXOwner, st CurrencyState) (fxAccounts, error) {
+func fxOwnerAccounts(ctx context.Context, tx Tx, owner FXOwner, st CurrencyState, purpose string) (fxAccounts, error) {
 	var a fxAccounts
 	l := tx.Ledger()
 	var err error
@@ -240,7 +256,11 @@ func fxOwnerAccounts(ctx context.Context, tx Tx, owner FXOwner, st CurrencyState
 	case FXOwnerPlayer:
 		a.sup, err = l.AccountFor(ctx, AccountPlayerCash, owner.ID)
 	case FXOwnerSettlement:
-		a.sup, err = l.AccountFor(ctx, AccountCityTreasury, owner.ID)
+		if purpose == FXPurposeIntervention {
+			a.sup, err = l.AccountForCurrency(ctx, AccountReservePot, owner.ID, DefaultCurrency)
+		} else {
+			a.sup, err = l.AccountFor(ctx, AccountCityTreasury, owner.ID)
+		}
 	default:
 		return a, ErrFXInvalid
 	}
@@ -278,13 +298,18 @@ func releaseFX(ctx context.Context, tx Tx, newID func() string, st CurrencyState
 		o.EscrowLeft = 0
 		return nil
 	}
-	a, err := fxOwnerAccounts(ctx, tx, o.Owner, st)
+	a, err := fxOwnerAccounts(ctx, tx, o.Owner, st, o.Purpose)
 	if err != nil {
 		return err
 	}
 	from, to := a.escSUP, a.sup
 	if o.Side == FXSell {
 		from, to = a.escVC, a.vc
+	} else if o.Purpose == FXPurposeIntervention {
+		// the change of an intervention purchase goes back to the pot
+		if err := tx.Currency().AddInterventionFlow(ctx, o.SettlementID, 0, o.EscrowLeft); err != nil {
+			return err
+		}
 	}
 	if _, err := tx.Ledger().Post(ctx, LedgerTransaction{
 		ID: newID(), Reason: ReasonFXRelease, CreatedAt: at, ReferenceType: FXOrderReference, ReferenceID: o.ID,
@@ -316,8 +341,11 @@ func PlaceFX(ctx context.Context, tx Tx, newID func() string, rules FXRules, p F
 	if err != nil {
 		return out, err
 	}
-	if st == nil || st.Status != CurrencyChartered {
-		return out, ErrFXNoMarket
+	if st == nil || (st.Status != CurrencyChartered && !(st.Status == CurrencyWindDown && p.Purpose != FXPurposeIntervention)) {
+		return out, ErrFXNoMarket // a money in wind-down keeps its book open, but the head no longer defends it
+	}
+	if p.Purpose == FXPurposeIntervention && p.Owner.Kind != FXOwnerSettlement {
+		return out, ErrFXInvalid
 	}
 	if p.Units < 1 || p.Price < 1 || (p.Side != FXBuy && p.Side != FXSell) || (p.Owner.Kind != FXOwnerPlayer && p.Owner.Kind != FXOwnerSettlement) || p.Owner.ID == "" {
 		return out, ErrFXInvalid
@@ -346,7 +374,7 @@ func PlaceFX(ctx context.Context, tx Tx, newID func() string, rules FXRules, p F
 			return out, ErrFXTooMany
 		}
 	}
-	acc, err := fxOwnerAccounts(ctx, tx, p.Owner, *st)
+	acc, err := fxOwnerAccounts(ctx, tx, p.Owner, *st, p.Purpose)
 	if err != nil {
 		return out, err
 	}
@@ -362,8 +390,12 @@ func PlaceFX(ctx context.Context, tx Tx, newID func() string, rules FXRules, p F
 	if from.Balance.Minor() < escrow {
 		return out, ErrFXFunds
 	}
+	purpose := p.Purpose
+	if purpose == "" {
+		purpose = FXPurposeTrade
+	}
 	o := FXOrder{
-		ID: newID(), SettlementID: p.SettlementID, Owner: p.Owner, Side: p.Side, Kind: FXLimit,
+		ID: newID(), SettlementID: p.SettlementID, Owner: p.Owner, Side: p.Side, Kind: FXLimit, Purpose: purpose,
 		Quantity: p.Units, Price: p.Price, EscrowLeft: escrow, FeeBPS: feeBPS, Status: FXOpen,
 		CreatedAt: p.At, ExpiresAt: p.At.Add(rules.OrderTTL),
 	}
@@ -392,8 +424,15 @@ func PlaceFX(ctx context.Context, tx Tx, newID func() string, rules FXRules, p F
 		book.Asks = append(book.Asks, fxMarketOrder(asks[i], st.Code, market.Limit))
 	}
 
+	escrowReason := ReasonFXEscrow
+	if purpose == FXPurposeIntervention && p.Side == FXBuy {
+		escrowReason = ReasonInterventionBuy
+		if err := tx.Currency().AddInterventionFlow(ctx, p.SettlementID, escrow, 0); err != nil {
+			return out, err
+		}
+	}
 	if _, err := tx.Ledger().Post(ctx, LedgerTransaction{
-		ID: newID(), Reason: ReasonFXEscrow, CreatedAt: p.At, ReferenceType: FXOrderReference, ReferenceID: o.ID,
+		ID: newID(), Reason: escrowReason, CreatedAt: p.At, ReferenceType: FXOrderReference, ReferenceID: o.ID,
 		Entries: []LedgerEntry{
 			{AccountID: from.ID, Amount: money.FromMinor(-escrow)},
 			{AccountID: to.ID, Amount: money.FromMinor(escrow)},
@@ -430,13 +469,19 @@ func PlaceFX(ctx context.Context, tx Tx, newID func() string, rules FXRules, p F
 		if !ok {
 			return out, ErrFXInvalid
 		}
-		ba, err := fxOwnerAccounts(ctx, tx, buy.Owner, *st)
+		ba, err := fxOwnerAccounts(ctx, tx, buy.Owner, *st, buy.Purpose)
 		if err != nil {
 			return out, err
 		}
-		sa, err := fxOwnerAccounts(ctx, tx, sell.Owner, *st)
+		sa, err := fxOwnerAccounts(ctx, tx, sell.Owner, *st, sell.Purpose)
 		if err != nil {
 			return out, err
+		}
+		if sell.Purpose == FXPurposeIntervention && f.SUP > 0 {
+			// the proceeds of selling the intervention stock go to the pot
+			if err := tx.Currency().AddInterventionFlow(ctx, p.SettlementID, 0, f.SUP); err != nil {
+				return out, err
+			}
 		}
 		tr := FXTrade{
 			ID: newID(), SettlementID: p.SettlementID, BuyOrderID: buy.ID, SellOrderID: sell.ID, Buyer: buy.Owner, Seller: sell.Owner,

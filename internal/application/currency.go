@@ -66,6 +66,19 @@ type CurrencyState struct {
 	FXFeeBPS    int64
 	CharteredAt time.Time
 	CharteredBy string
+	// InterventionOut and InterventionIn are the SUP that left the reserve pot for the head's orders on the
+	// book and the SUP that came back to it; the pot holds DepositedSUP - ReleasedSUP - InterventionOut +
+	// InterventionIn.
+	InterventionOut, InterventionIn int64
+	// WindDownAt, WindDownEndsAt and RetiredAt are the wind-down's start, the end of its claim window and the
+	// retirement (nil while the money is chartered); WindDownReason says why.
+	WindDownAt, WindDownEndsAt, RetiredAt *time.Time
+	WindDownReason                        string
+}
+
+// PotSUP is what the reserve pot should hold.
+func (s CurrencyState) PotSUP() int64 {
+	return s.DepositedSUP - s.ReleasedSUP - s.InterventionOut + s.InterventionIn
 }
 
 // Rate is the currency's live rate.
@@ -95,6 +108,7 @@ type CurrencyHolding struct {
 
 // CurrencyRepository is the port of settlement currencies, reached through Tx.Currency.
 type CurrencyRepository interface {
+	ReserveRepository
 	// Reservation is the currency a settlement reserved at founding, or nil.
 	Reservation(ctx context.Context, settlementID string) (*CurrencyReservation, error)
 	// State is the settlement's chartered currency, or nil when it has none.
@@ -110,6 +124,9 @@ type CurrencyRepository interface {
 	RecordBurn(ctx context.Context, e CurrencyIssue, basisSUP int64) error
 	// BurnOf is the burn logged for one flow row, or nil.
 	BurnOf(ctx context.Context, refType, refID string) (*CurrencyIssue, error)
+	// AddInterventionFlow raises the counters of the SUP that left the reserve pot for the book (out) and
+	// came back to it (in); the pot is deposited - released - out + in.
+	AddInterventionFlow(ctx context.Context, settlementID string, out, in int64) error
 	// CharteredSettlements lists the settlements whose money is chartered, by id.
 	CharteredSettlements(ctx context.Context) ([]string, error)
 	// StateByCode is the chartered currency of that code, or nil.
@@ -144,6 +161,17 @@ type CurrencyRules struct {
 	// DeskPresets the SUP amounts its menu offers.
 	DeskSlippageBPS int64
 	DeskPresets     []int64
+	// Reserve resolves the Reserve Bank's levers (the mint fee among them) through policy.Get; MintFeeBPS above
+	// is the fallback for a content without the lever.
+	Reserve ReserveRules
+}
+
+// MintFee is the issuance fee in force: the Reserve Bank's lever, else the fallback.
+func (r CurrencyRules) MintFee(ctx context.Context, tx Tx) (int64, error) {
+	rr := r.Reserve
+	rr.Fallback.MintFeeBPS = r.MintFeeBPS
+	t, err := rr.Terms(ctx, tx)
+	return t.MintFeeBPS, err
 }
 
 // Enabled reports whether charters are configured.
@@ -184,7 +212,11 @@ func CharterCurrency(ctx context.Context, tx Tx, newID func() string, rules Curr
 		return CharterResult{Reason: "no_reservation"}, nil
 	}
 	rate := currency.Rate{R0: r0, XRefPPM: currency.PPM}
-	mint, err := currency.Mint(deposit, rate, rules.MintFeeBPS)
+	mintFee, err := rules.MintFee(ctx, tx)
+	if err != nil {
+		return CharterResult{}, err
+	}
+	mint, err := currency.Mint(deposit, rate, mintFee)
 	if err != nil || mint.Units <= 0 {
 		return CharterResult{}, ErrInvalidLedgerTransaction.WithDetail("problem", "a charter deposit must buy at least one unit")
 	}
@@ -249,7 +281,7 @@ func CharterCurrency(ctx context.Context, tx Tx, newID func() string, rules Curr
 	}
 	if err := repo.RecordMint(ctx, CurrencyIssue{
 		ID: newID(), SettlementID: settlementID, Kind: "mint", DepositSUP: deposit, Units: mint.Units,
-		XRefPPM: currency.PPM, MintFeeBPS: rules.MintFeeBPS, LedgerTransactionID: mintTx, By: by, At: at,
+		XRefPPM: currency.PPM, MintFeeBPS: mintFee, LedgerTransactionID: mintTx, By: by, At: at,
 	}, mint.BasisSUP); err != nil {
 		return CharterResult{}, err
 	}
