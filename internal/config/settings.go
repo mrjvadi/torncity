@@ -1693,6 +1693,39 @@ var coreSettings = []setting{
 	moneyListSetting("currency", "fx_unit_presets",
 		func(c *Config) *[]int64 { return &c.Currency.FXUnitPresets },
 		func(f *fileConfig) []int64 { return f.Currency.FXUnitPresets }),
+	moneySetting("currency", "reserve_gold_haircut_bps",
+		func(c *Config) *int64 { return &c.Currency.ReserveGoldHaircutBPS },
+		func(f *fileConfig) *int64 { return f.Currency.ReserveGoldHaircutBPS }),
+	moneySetting("currency", "reserve_withdraw_notice_hours",
+		func(c *Config) *int64 { return &c.Currency.ReserveWithdrawNoticeHours },
+		func(f *fileConfig) *int64 { return f.Currency.ReserveWithdrawNoticeHours }),
+	moneySetting("currency", "reserve_policy_rate_bps",
+		func(c *Config) *int64 { return &c.Currency.ReservePolicyRateBPS },
+		func(f *fileConfig) *int64 { return f.Currency.ReservePolicyRateBPS }),
+	moneySetting("currency", "intervention_cap_bps",
+		func(c *Config) *int64 { return &c.Currency.InterventionCapBPS },
+		func(f *fileConfig) *int64 { return f.Currency.InterventionCapBPS }),
+	moneySetting("currency", "intervention_pot_floor_bps",
+		func(c *Config) *int64 { return &c.Currency.InterventionPotFloorBPS },
+		func(f *fileConfig) *int64 { return f.Currency.InterventionPotFloorBPS }),
+	moneySetting("currency", "wind_down_days",
+		func(c *Config) *int64 { return &c.Currency.WindDownDays },
+		func(f *fileConfig) *int64 { return f.Currency.WindDownDays }),
+	moneySetting("currency", "macro_m_norm_bps",
+		func(c *Config) *int64 { return &c.Currency.MacroMNormBPS },
+		func(f *fileConfig) *int64 { return f.Currency.MacroMNormBPS }),
+	moneySetting("currency", "macro_kappa_bps",
+		func(c *Config) *int64 { return &c.Currency.MacroKappaBPS },
+		func(f *fileConfig) *int64 { return f.Currency.MacroKappaBPS }),
+	moneySetting("currency", "macro_pi_max_bps",
+		func(c *Config) *int64 { return &c.Currency.MacroPiMaxBPS },
+		func(f *fileConfig) *int64 { return f.Currency.MacroPiMaxBPS }),
+	moneySetting("currency", "macro_w_tradable_bps",
+		func(c *Config) *int64 { return &c.Currency.MacroWTradableBPS },
+		func(f *fileConfig) *int64 { return f.Currency.MacroWTradableBPS }),
+	durationSetting("currency", "intervention_delay",
+		func(c *Config) *time.Duration { return &c.Currency.InterventionDelay },
+		func(f *fileConfig) *string { return f.Currency.InterventionDelay }),
 	moneySetting("currency", "charter_r0",
 		func(c *Config) *int64 { return &c.Currency.CharterR0 },
 		func(f *fileConfig) *int64 { return f.Currency.CharterR0 }),
@@ -2180,23 +2213,34 @@ var coreSettings = []setting{
 }
 
 type currencySettings struct {
-	CharterR0            *int64  `yaml:"charter_r0"`
-	CharterFee           *int64  `yaml:"charter_fee"`
-	CharterMinDeposit    *int64  `yaml:"charter_min_deposit"`
-	MintFeeBPS           *int64  `yaml:"mint_fee_bps"`
-	AutoCharterShareBPS  *int64  `yaml:"auto_charter_share_bps"`
-	AutoCharterFloor     *int64  `yaml:"auto_charter_floor"`
-	DeskSlippageBPS      *int64  `yaml:"desk_slippage_bps"`
-	DeskPresets          []int64 `yaml:"desk_presets"`
-	FXReserveFeeBPS      *int64  `yaml:"fx_reserve_fee_bps"`
-	FXMaxMoveBPS         *int64  `yaml:"fx_max_move_bps"`
-	FXMinTrades          *int64  `yaml:"fx_min_trades"`
-	FXWindowPeriods      *int64  `yaml:"fx_window_periods"`
-	FXMinOrderSUP        *int64  `yaml:"fx_min_order_sup"`
-	FXBookLimit          *int64  `yaml:"fx_book_limit"`
-	FXMaxOpenOrders      *int64  `yaml:"fx_max_open_orders"`
-	FXConvertSlippageBPS *int64  `yaml:"fx_convert_slippage_bps"`
-	FXOrderTTL           *string `yaml:"fx_order_ttl"`
-	FXPeriod             *string `yaml:"fx_period"`
-	FXUnitPresets        []int64 `yaml:"fx_unit_presets"`
+	CharterR0                  *int64  `yaml:"charter_r0"`
+	CharterFee                 *int64  `yaml:"charter_fee"`
+	CharterMinDeposit          *int64  `yaml:"charter_min_deposit"`
+	MintFeeBPS                 *int64  `yaml:"mint_fee_bps"`
+	AutoCharterShareBPS        *int64  `yaml:"auto_charter_share_bps"`
+	AutoCharterFloor           *int64  `yaml:"auto_charter_floor"`
+	DeskSlippageBPS            *int64  `yaml:"desk_slippage_bps"`
+	DeskPresets                []int64 `yaml:"desk_presets"`
+	FXReserveFeeBPS            *int64  `yaml:"fx_reserve_fee_bps"`
+	FXMaxMoveBPS               *int64  `yaml:"fx_max_move_bps"`
+	FXMinTrades                *int64  `yaml:"fx_min_trades"`
+	FXWindowPeriods            *int64  `yaml:"fx_window_periods"`
+	FXMinOrderSUP              *int64  `yaml:"fx_min_order_sup"`
+	FXBookLimit                *int64  `yaml:"fx_book_limit"`
+	FXMaxOpenOrders            *int64  `yaml:"fx_max_open_orders"`
+	FXConvertSlippageBPS       *int64  `yaml:"fx_convert_slippage_bps"`
+	FXOrderTTL                 *string `yaml:"fx_order_ttl"`
+	FXPeriod                   *string `yaml:"fx_period"`
+	FXUnitPresets              []int64 `yaml:"fx_unit_presets"`
+	ReserveGoldHaircutBPS      *int64  `yaml:"reserve_gold_haircut_bps"`
+	ReserveWithdrawNoticeHours *int64  `yaml:"reserve_withdraw_notice_hours"`
+	ReservePolicyRateBPS       *int64  `yaml:"reserve_policy_rate_bps"`
+	InterventionCapBPS         *int64  `yaml:"intervention_cap_bps"`
+	InterventionPotFloorBPS    *int64  `yaml:"intervention_pot_floor_bps"`
+	WindDownDays               *int64  `yaml:"wind_down_days"`
+	MacroMNormBPS              *int64  `yaml:"macro_m_norm_bps"`
+	MacroKappaBPS              *int64  `yaml:"macro_kappa_bps"`
+	MacroPiMaxBPS              *int64  `yaml:"macro_pi_max_bps"`
+	MacroWTradableBPS          *int64  `yaml:"macro_w_tradable_bps"`
+	InterventionDelay          *string `yaml:"intervention_delay"`
 }

@@ -81,6 +81,11 @@ const (
 	// CurrencyCharter charters the settlement's own money by hand (the fee and the first deposit
 	// from the treasury); the founding does it itself when the grant covers it (docs/adr/0033 6.2).
 	CurrencyCharter Permission = "currency.charter"
+	// CurrencyIssue makes more of the settlement's money against a deposit, burns what the treasury holds and
+	// retires the money (docs/adr/0033 6.4, 6.7, 6.13); BankPolicy runs the money's reserve: the intervention on
+	// the book and the withdrawal of the excess (ADR 0033 6.7). Both are delegable like any permission.
+	CurrencyIssue Permission = "currency.issue"
+	BankPolicy    Permission = "bank.policy"
 )
 
 // Def describes one permission.
@@ -112,6 +117,7 @@ var catalogue = []Def{
 	{NoticePost, "info", false, false},
 	{SettingsTimezone, "settings", false, true},
 	{CurrencyCharter, "currency", false, true},
+	{CurrencyIssue, "currency", false, true}, {BankPolicy, "currency", false, true},
 }
 
 var byCode = func() map[Permission]Def {

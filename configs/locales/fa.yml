@@ -282,6 +282,8 @@ error:
 
 # Office names, keyed on the office's content code (configs/content/governance.yml).
 office:
+  reserve_governor: "رئیس بانک ذخیره"
+  reserve_deputy: "معاون بانک ذخیره"
   mayor: شهردار
   deputy_mayor: معاون شهردار
   market_warden: ناظر بازار
@@ -307,6 +309,13 @@ office:
 
 # Policy names, keyed on the lever's content code (configs/content/governance.yml).
 lever:
+  reserve:
+    mint_fee_bps: "کارمزد انتشار پول شهر"
+    fx_fee_bps: "کارمزد فروش ساپ در بازار"
+    gold_haircut_bps: "کاهش ارزش طلای ذخیره"
+    max_move_bps: "سقف دوری قیمت از نرخ مرجع"
+    withdraw_notice: "مهلت اعلام برداشت مازاد (ساعت)"
+    policy_rate: "نرخ پایهٔ بانک ذخیره"
   city:
     tax_rate: نرخ مالیات
     immigration_fee: عوارض مهاجرت
@@ -354,6 +363,7 @@ lever:
 # Names of places above a city, keyed on the jurisdiction's content code.
 # Cities are named under city.* above.
 jurisdiction:
+  support_reserve_bank: "بانک ذخیره"
   default_country: مشترک‌المنافع
   vantor_federation: "فدراسیون ونتور"
 

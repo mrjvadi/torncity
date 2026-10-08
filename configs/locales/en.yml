@@ -205,6 +205,8 @@ error:
 
 # Office names, keyed on the office's content code (configs/content/governance.yml).
 office:
+  reserve_governor: "Reserve Bank governor"
+  reserve_deputy: "Reserve Bank deputy"
   mayor: Mayor
   deputy_mayor: Deputy mayor
   market_warden: Market warden
@@ -230,6 +232,13 @@ office:
 
 # Policy names, keyed on the lever's content code (configs/content/governance.yml).
 lever:
+  reserve:
+    mint_fee_bps: "Issuance fee of a settlement money"
+    fx_fee_bps: "Fee on selling SUP on the book"
+    gold_haircut_bps: "Haircut on gold in the reserve"
+    max_move_bps: "Circuit breaker around the reference rate"
+    withdraw_notice: "Notice before an excess withdrawal (hours)"
+    policy_rate: "The Reserve Bank's base rate"
   city:
     tax_rate: Tax rate
     immigration_fee: Immigration fee
@@ -277,6 +286,7 @@ lever:
 # Names of places above a city, keyed on the jurisdiction's content code.
 # Cities are named under city.* above.
 jurisdiction:
+  support_reserve_bank: "The Reserve Bank"
   default_country: The Commonwealth
   vantor_federation: "Vantor Federation"
 

@@ -7,6 +7,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/application/handlers"
 	"github.com/mrjvadi/torncity/internal/config"
 	"github.com/mrjvadi/torncity/internal/domain/currency"
+	"github.com/mrjvadi/torncity/internal/domain/reserve"
 	"github.com/mrjvadi/torncity/internal/domain/vshop"
 )
 
@@ -48,6 +49,20 @@ func storageRules(cfg *config.Config) handlers.StorageRules {
 }
 
 // currencyRules is the money rules of a settlement's charter (config currency.*).
+// reserveRules is the rules of the reserve tools: the Reserve Bank's levers resolved through the policy
+// reader, with the configuration only as the fallback, the head's limits and the macro constants.
+func reserveRules(cfg *config.Config, policy application.PolicyReader) application.ReserveRules {
+	c := cfg.Currency
+	return application.ReserveRules{
+		Policy: policy,
+		Fallback: application.ReserveTerms{MintFeeBPS: c.MintFeeBPS, FXFeeBPS: c.FXReserveFeeBPS, GoldHaircutBPS: c.ReserveGoldHaircutBPS,
+			MaxMoveBPS: c.FXMaxMoveBPS, WithdrawNoticeHours: c.ReserveWithdrawNoticeHours, PolicyRateBPS: c.ReservePolicyRateBPS},
+		InterventionCapBPS: c.InterventionCapBPS, PotFloorBPS: c.InterventionPotFloorBPS, InterventionDelay: c.InterventionDelay,
+		WindDownDays: c.WindDownDays, Presets: c.DeskPresets,
+		Macro: reserve.MacroRules{MNormBPS: c.MacroMNormBPS, KappaBPS: c.MacroKappaBPS, PiMaxBPS: c.MacroPiMaxBPS, WTradableBPS: c.MacroWTradableBPS},
+	}
+}
+
 // fxRules is the rules of the VC/SUP book (config currency.fx_*).
 func fxRules(cfg *config.Config) application.FXRules {
 	c := cfg.Currency

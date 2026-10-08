@@ -694,6 +694,17 @@ currency:
   fx_order_ttl: 169h
   fx_period: 25h
   fx_unit_presets: [1001, 5001, 20001]
+  reserve_gold_haircut_bps: 1001
+  reserve_withdraw_notice_hours: 73
+  reserve_policy_rate_bps: 1201
+  intervention_cap_bps: 801
+  intervention_pot_floor_bps: 3001
+  wind_down_days: 61
+  macro_m_norm_bps: 2001
+  macro_kappa_bps: 201
+  macro_pi_max_bps: 301
+  macro_w_tradable_bps: 6001
+  intervention_delay: 25h
 labor:
   shift_minutes: 61
   shift_real_minutes: 3
@@ -1219,6 +1230,17 @@ var envOverrides = map[string]string{
 	"TORN_CURRENCY_FX_ORDER_TTL":                       "170h",
 	"TORN_CURRENCY_FX_PERIOD":                          "26h",
 	"TORN_CURRENCY_FX_UNIT_PRESETS":                    "1002,5002,20002",
+	"TORN_CURRENCY_RESERVE_GOLD_HAIRCUT_BPS":           "1002",
+	"TORN_CURRENCY_RESERVE_WITHDRAW_NOTICE_HOURS":      "74",
+	"TORN_CURRENCY_RESERVE_POLICY_RATE_BPS":            "1202",
+	"TORN_CURRENCY_INTERVENTION_CAP_BPS":               "802",
+	"TORN_CURRENCY_INTERVENTION_POT_FLOOR_BPS":         "3002",
+	"TORN_CURRENCY_WIND_DOWN_DAYS":                     "62",
+	"TORN_CURRENCY_MACRO_M_NORM_BPS":                   "2002",
+	"TORN_CURRENCY_MACRO_KAPPA_BPS":                    "202",
+	"TORN_CURRENCY_MACRO_PI_MAX_BPS":                   "302",
+	"TORN_CURRENCY_MACRO_W_TRADABLE_BPS":               "6002",
+	"TORN_CURRENCY_INTERVENTION_DELAY":                 "26h",
 	"TORN_LABOR_NPC_SHIFTS_PER_SLOT_DAY":               "12",
 	"TORN_LABOR_HUNGRY_OUTPUT_BPS":                     "5002",
 	"TORN_LABOR_HUNGRY_SHIFT_HUNGER":                   "7",
