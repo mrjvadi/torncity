@@ -559,6 +559,13 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 			}
 			return h.village.CurrencyDesk(ctx, env.Metadata, req)
 		},
+		"settlement.currency.reserve": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageReserveRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.CurrencyReserve(ctx, env.Metadata, req)
+		},
 		"settlement.currency.fee": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			var req handlers.VillageDeskFeeRequest
 			if err := decode(env, &req); err != nil {
