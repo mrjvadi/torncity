@@ -461,6 +461,33 @@ func ExecuteIntervention(ctx context.Context, tx Tx, newID func() string, rules 
 	return tx.Currency().SaveIntervention(ctx, i)
 }
 
+// CancelReserveRequest withdraws one pending request of the head's (an intervention or a withdrawal) by its id.
+func CancelReserveRequest(ctx context.Context, tx Tx, settlementID, id string, at time.Time) error {
+	is, err := tx.Currency().InterventionsOf(ctx, settlementID, 200)
+	if err != nil {
+		return err
+	}
+	for _, i := range is {
+		if i.ID == id && i.Status == ReservePending {
+			t := at
+			i.Status, i.ExecutedAt = ReserveCancelled, &t
+			return tx.Currency().SaveIntervention(ctx, i)
+		}
+	}
+	ws, err := tx.Currency().WithdrawalsOf(ctx, settlementID, 200)
+	if err != nil {
+		return err
+	}
+	for _, w := range ws {
+		if w.ID == id && w.Status == ReservePending {
+			t := at
+			w.Status, w.ExecutedAt = ReserveCancelled, &t
+			return tx.Currency().SaveWithdrawal(ctx, w)
+		}
+	}
+	return ErrReserveNotFound
+}
+
 // BeginWindDown puts a settlement's money into wind-down (docs/adr/0033 6.13): it issues nothing more, the head
 // no longer defends it, every open order is cancelled and its escrow given back, pending requests are
 // cancelled, and holders may claim a pro-rata share of the pot for the window. Fenced by the state row:
