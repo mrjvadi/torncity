@@ -52,7 +52,7 @@ func (r *CurrencyRepository) InsertIntervention(ctx context.Context, i applicati
 // SaveIntervention writes the outcome of a request.
 func (r *CurrencyRepository) SaveIntervention(ctx context.Context, i application.Intervention) error {
 	if _, err := r.q.Exec(ctx, `UPDATE currency_interventions SET status = $2, executed_at = $3, order_id = NULLIF($4, '')::uuid, sup_used = $5,
-		refusal = NULLIF($6, '') WHERE id = $1::uuid`, i.ID, i.Status, i.ExecutedAt, i.OrderID, i.SUPUsed, i.Refusal); err != nil {
+		refusal = NULLIF($6, ''), units = $7 WHERE id = $1::uuid`, i.ID, i.Status, i.ExecutedAt, i.OrderID, i.SUPUsed, i.Refusal, i.Units); err != nil {
 		return fmt.Errorf("postgres: saving an intervention: %w", err)
 	}
 	return nil
