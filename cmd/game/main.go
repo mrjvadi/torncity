@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"github.com/mrjvadi/torncity/internal/presentation"
 	"github.com/mrjvadi/torncity/internal/presentation/life"
+	"github.com/mrjvadi/torncity/internal/settlementcfg"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -432,7 +433,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			},
 			nil,
 		).WithFoundingGrant(cfg.Settlement.FoundingGrant).WithCurrencyRules(currencyRules(cfg, postgres.NewPolicyReader(pool, nil))).
-			WithSpawnCircles(cfg.Settlement.SpawnCircle()),
+			WithSpawnCircles(settlementcfg.SpawnCircle(cfg.Settlement)),
 		village: handlers.NewVillageHandler(
 			uow,
 			uuidGenerator{},

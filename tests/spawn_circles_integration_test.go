@@ -3,6 +3,7 @@
 package tests
 
 import (
+	"github.com/mrjvadi/torncity/internal/settlementcfg"
 	"math"
 	"sync"
 	"testing"
@@ -221,7 +222,7 @@ func TestConcurrentFoundingsNeverShareACellOrOverfillACircle(t *testing.T) {
 func TestSpawnCirclesWorkAsTheServiceBuildsThemFromConfig(t *testing.T) {
 	e := newFoundingEnv(t)
 	cfg := config.Defaults()
-	rules := cfg.Settlement.SpawnCircle()
+	rules := settlementcfg.SpawnCircle(cfg.Settlement)
 	if !rules.Valid() {
 		t.Fatalf("the shipped defaults are not usable: %+v", rules)
 	}
