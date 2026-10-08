@@ -1660,6 +1660,39 @@ var coreSettings = []setting{
 	moneyListSetting("currency", "desk_presets",
 		func(c *Config) *[]int64 { return &c.Currency.DeskPresets },
 		func(f *fileConfig) []int64 { return f.Currency.DeskPresets }),
+	moneySetting("currency", "fx_reserve_fee_bps",
+		func(c *Config) *int64 { return &c.Currency.FXReserveFeeBPS },
+		func(f *fileConfig) *int64 { return f.Currency.FXReserveFeeBPS }),
+	moneySetting("currency", "fx_max_move_bps",
+		func(c *Config) *int64 { return &c.Currency.FXMaxMoveBPS },
+		func(f *fileConfig) *int64 { return f.Currency.FXMaxMoveBPS }),
+	moneySetting("currency", "fx_min_trades",
+		func(c *Config) *int64 { return &c.Currency.FXMinTrades },
+		func(f *fileConfig) *int64 { return f.Currency.FXMinTrades }),
+	moneySetting("currency", "fx_window_periods",
+		func(c *Config) *int64 { return &c.Currency.FXWindowPeriods },
+		func(f *fileConfig) *int64 { return f.Currency.FXWindowPeriods }),
+	moneySetting("currency", "fx_min_order_sup",
+		func(c *Config) *int64 { return &c.Currency.FXMinOrderSUP },
+		func(f *fileConfig) *int64 { return f.Currency.FXMinOrderSUP }),
+	moneySetting("currency", "fx_book_limit",
+		func(c *Config) *int64 { return &c.Currency.FXBookLimit },
+		func(f *fileConfig) *int64 { return f.Currency.FXBookLimit }),
+	moneySetting("currency", "fx_max_open_orders",
+		func(c *Config) *int64 { return &c.Currency.FXMaxOpenOrders },
+		func(f *fileConfig) *int64 { return f.Currency.FXMaxOpenOrders }),
+	moneySetting("currency", "fx_convert_slippage_bps",
+		func(c *Config) *int64 { return &c.Currency.FXConvertSlippageBPS },
+		func(f *fileConfig) *int64 { return f.Currency.FXConvertSlippageBPS }),
+	durationSetting("currency", "fx_order_ttl",
+		func(c *Config) *time.Duration { return &c.Currency.FXOrderTTL },
+		func(f *fileConfig) *string { return f.Currency.FXOrderTTL }),
+	durationSetting("currency", "fx_period",
+		func(c *Config) *time.Duration { return &c.Currency.FXPeriod },
+		func(f *fileConfig) *string { return f.Currency.FXPeriod }),
+	moneyListSetting("currency", "fx_unit_presets",
+		func(c *Config) *[]int64 { return &c.Currency.FXUnitPresets },
+		func(f *fileConfig) []int64 { return f.Currency.FXUnitPresets }),
 	moneySetting("currency", "charter_r0",
 		func(c *Config) *int64 { return &c.Currency.CharterR0 },
 		func(f *fileConfig) *int64 { return f.Currency.CharterR0 }),
@@ -2147,12 +2180,23 @@ var coreSettings = []setting{
 }
 
 type currencySettings struct {
-	CharterR0           *int64  `yaml:"charter_r0"`
-	CharterFee          *int64  `yaml:"charter_fee"`
-	CharterMinDeposit   *int64  `yaml:"charter_min_deposit"`
-	MintFeeBPS          *int64  `yaml:"mint_fee_bps"`
-	AutoCharterShareBPS *int64  `yaml:"auto_charter_share_bps"`
-	AutoCharterFloor    *int64  `yaml:"auto_charter_floor"`
-	DeskSlippageBPS     *int64  `yaml:"desk_slippage_bps"`
-	DeskPresets         []int64 `yaml:"desk_presets"`
+	CharterR0            *int64  `yaml:"charter_r0"`
+	CharterFee           *int64  `yaml:"charter_fee"`
+	CharterMinDeposit    *int64  `yaml:"charter_min_deposit"`
+	MintFeeBPS           *int64  `yaml:"mint_fee_bps"`
+	AutoCharterShareBPS  *int64  `yaml:"auto_charter_share_bps"`
+	AutoCharterFloor     *int64  `yaml:"auto_charter_floor"`
+	DeskSlippageBPS      *int64  `yaml:"desk_slippage_bps"`
+	DeskPresets          []int64 `yaml:"desk_presets"`
+	FXReserveFeeBPS      *int64  `yaml:"fx_reserve_fee_bps"`
+	FXMaxMoveBPS         *int64  `yaml:"fx_max_move_bps"`
+	FXMinTrades          *int64  `yaml:"fx_min_trades"`
+	FXWindowPeriods      *int64  `yaml:"fx_window_periods"`
+	FXMinOrderSUP        *int64  `yaml:"fx_min_order_sup"`
+	FXBookLimit          *int64  `yaml:"fx_book_limit"`
+	FXMaxOpenOrders      *int64  `yaml:"fx_max_open_orders"`
+	FXConvertSlippageBPS *int64  `yaml:"fx_convert_slippage_bps"`
+	FXOrderTTL           *string `yaml:"fx_order_ttl"`
+	FXPeriod             *string `yaml:"fx_period"`
+	FXUnitPresets        []int64 `yaml:"fx_unit_presets"`
 }

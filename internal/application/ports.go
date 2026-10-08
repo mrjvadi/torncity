@@ -119,6 +119,8 @@ type Tx interface {
 	// Currency is a settlement's own money: the reserved name, the chartered state and its
 	// issuance; see currency.go.
 	Currency() CurrencyRepository
+	// FX is the order book of the settlements' own moneys (docs/adr/0033 6.8).
+	FX() FXRepository
 	// Citizens is the citizen loop's port: lots, private buildings and the
 	// property tax; see citizen.go.
 	Citizens() CitizenRepository

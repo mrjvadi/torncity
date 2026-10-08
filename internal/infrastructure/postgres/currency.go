@@ -133,6 +133,56 @@ func (r *CurrencyRepository) BurnOf(ctx context.Context, refType, refID string) 
 	return &e, nil
 }
 
+// CharteredSettlements lists the settlements with a chartered money.
+func (r *CurrencyRepository) CharteredSettlements(ctx context.Context) ([]string, error) {
+	rows, err := r.q.Query(ctx, `SELECT settlement_id::text FROM village_currency_state WHERE status = 'chartered' ORDER BY settlement_id`)
+	if err != nil {
+		return nil, fmt.Errorf("postgres: listing the chartered moneys: %w", err)
+	}
+	defer rows.Close()
+	var out []string
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			return nil, fmt.Errorf("postgres: reading a chartered money: %w", err)
+		}
+		out = append(out, id)
+	}
+	return out, rows.Err()
+}
+
+// StateByCode reads the chartered currency of a code.
+func (r *CurrencyRepository) StateByCode(ctx context.Context, code string) (*application.CurrencyState, error) {
+	s, err := scanCurrencyState(r.q.QueryRow(ctx, `SELECT `+currencyStateColumns+` FROM village_currency_state WHERE currency_code = $1`, code))
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("postgres: reading a currency by code: %w", err)
+	}
+	return &s, nil
+}
+
+// Holdings lists the moneys an owner holds.
+func (r *CurrencyRepository) Holdings(ctx context.Context, ownerID string) ([]application.CurrencyHolding, error) {
+	rows, err := r.q.Query(ctx, `SELECT a.currency, st.settlement_id::text, a.balance FROM accounts a
+		JOIN village_currency_state st ON st.currency_code = a.currency
+		WHERE a.kind = 'foreign_holding' AND a.owner_id = $1::uuid AND a.balance > 0 ORDER BY a.currency`, ownerID)
+	if err != nil {
+		return nil, fmt.Errorf("postgres: reading an owner's holdings: %w", err)
+	}
+	defer rows.Close()
+	var out []application.CurrencyHolding
+	for rows.Next() {
+		var h application.CurrencyHolding
+		if err := rows.Scan(&h.Code, &h.SettlementID, &h.Units); err != nil {
+			return nil, fmt.Errorf("postgres: reading a holding: %w", err)
+		}
+		out = append(out, h)
+	}
+	return out, rows.Err()
+}
+
 // Displays reads the chartered currencies of the listed settlements.
 func (r *CurrencyRepository) Displays(ctx context.Context, settlementIDs []string) (map[string]application.CurrencyState, error) {
 	out := map[string]application.CurrencyState{}

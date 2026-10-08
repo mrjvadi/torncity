@@ -73,6 +73,10 @@ const (
 	// a settlement's reserve at the Reserve Bank, SUP, one per settlement (docs/adr/0033 6.3).
 	AccountForeignHolding AccountKind = "foreign_holding"
 	AccountReservePot     AccountKind = "reserve_pot"
+	// AccountFXEscrow is what an order on a settlement currency's book has set aside: SUP for a buy, the
+	// currency's units for a sell, one row per owner AND currency, the owner a player or a settlement
+	// (migration 0130, docs/adr/0033 6.8).
+	AccountFXEscrow AccountKind = "fx_escrow"
 )
 
 // Valid reports whether k is one of the kinds the schema allows.
@@ -81,7 +85,7 @@ func (k AccountKind) Valid() bool {
 	case AccountPlayerCash, AccountPlayerBank, AccountCompanyTreasury,
 		AccountFactionTreasury, AccountCityTreasury, AccountSystemSink, AccountSystemSource,
 		AccountPlayerEscrow, AccountStateTreasury, AccountDefenceFund, AccountNationalBank, AccountInsuranceFund,
-		AccountPlayerSavings, AccountForeignHolding, AccountReservePot:
+		AccountPlayerSavings, AccountForeignHolding, AccountReservePot, AccountFXEscrow:
 		return true
 	}
 	return false
@@ -97,7 +101,9 @@ func (k AccountKind) IsSystem() bool {
 // other kind has exactly one account per owner, in the currency it was first
 // opened in (docs/adr/0029 section 5.1; enforced by
 // accounts_one_row_per_owner_idx).
-func (k AccountKind) MultiCurrency() bool { return k.IsSystem() || k == AccountForeignHolding }
+func (k AccountKind) MultiCurrency() bool {
+	return k.IsSystem() || k == AccountForeignHolding || k == AccountFXEscrow
+}
 
 // Reason is ledger_entries.reason: why money moved.
 //
@@ -558,6 +564,7 @@ var knownReasons = map[Reason]struct{}{
 	ReasonShopkeeperWage: {}, ReasonBagRepair: {},
 	ReasonCharterFee: {}, ReasonReserveDeposit: {}, ReasonCurrencyMint: {},
 	ReasonLocalWage: {}, ReasonLocalPayment: {}, ReasonFXDeskSUP: {}, ReasonFXDeskLocal: {}, ReasonLocalTransfer: {}, ReasonCurrencyBurn: {},
+	ReasonFXEscrow: {}, ReasonFXRelease: {}, ReasonFXTradeSUP: {}, ReasonFXTradeVC: {},
 	ReasonCourseFee: {}, ReasonTuition: {}, ReasonTeacherWage: {}, ReasonTeacherWageNPC: {}, ReasonTrainingFee: {}, ReasonTrainerWage: {},
 }
 

@@ -683,6 +683,17 @@ currency:
   auto_charter_floor: 501
   desk_slippage_bps: 101
   desk_presets: [101, 501, 2001]
+  fx_reserve_fee_bps: 31
+  fx_max_move_bps: 2001
+  fx_min_trades: 9
+  fx_window_periods: 8
+  fx_min_order_sup: 11
+  fx_book_limit: 201
+  fx_max_open_orders: 21
+  fx_convert_slippage_bps: 101
+  fx_order_ttl: 169h
+  fx_period: 25h
+  fx_unit_presets: [1001, 5001, 20001]
 labor:
   shift_minutes: 61
   shift_real_minutes: 3
@@ -1197,6 +1208,17 @@ var envOverrides = map[string]string{
 	"TORN_CURRENCY_AUTO_CHARTER_FLOOR":                 "502",
 	"TORN_CURRENCY_DESK_SLIPPAGE_BPS":                  "102",
 	"TORN_CURRENCY_DESK_PRESETS":                       "102,502,2002",
+	"TORN_CURRENCY_FX_RESERVE_FEE_BPS":                 "32",
+	"TORN_CURRENCY_FX_MAX_MOVE_BPS":                    "2002",
+	"TORN_CURRENCY_FX_MIN_TRADES":                      "10",
+	"TORN_CURRENCY_FX_WINDOW_PERIODS":                  "9",
+	"TORN_CURRENCY_FX_MIN_ORDER_SUP":                   "12",
+	"TORN_CURRENCY_FX_BOOK_LIMIT":                      "202",
+	"TORN_CURRENCY_FX_MAX_OPEN_ORDERS":                 "22",
+	"TORN_CURRENCY_FX_CONVERT_SLIPPAGE_BPS":            "102",
+	"TORN_CURRENCY_FX_ORDER_TTL":                       "170h",
+	"TORN_CURRENCY_FX_PERIOD":                          "26h",
+	"TORN_CURRENCY_FX_UNIT_PRESETS":                    "1002,5002,20002",
 	"TORN_LABOR_NPC_SHIFTS_PER_SLOT_DAY":               "12",
 	"TORN_LABOR_HUNGRY_OUTPUT_BPS":                     "5002",
 	"TORN_LABOR_HUNGRY_SHIFT_HUNGER":                   "7",

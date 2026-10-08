@@ -1558,3 +1558,19 @@ currency:
   # 10 to 300 bps, stored on the money (default 30).
   desk_slippage_bps: 100
   desk_presets: [100, 500, 2000]
+  # The floating VC/SUP book (ADR 0033 6.8, phase 3). Prices are micro-SUP per unit. A fee on selling
+  # SUP goes to Support's treasury (fx_reserve_fee_bps), on selling the money to the village's (its
+  # own lever, the desk's fee). An order priced further than fx_max_move_bps from the reference rate is
+  # refused. The reference rate (x_ref) is the average of the last fx_window_periods periods, and does
+  # not move until the window holds fx_min_trades fills.
+  fx_reserve_fee_bps: 30
+  fx_max_move_bps: 2000
+  fx_min_trades: 8
+  fx_window_periods: 7
+  fx_min_order_sup: 10
+  fx_book_limit: 200
+  fx_max_open_orders: 20
+  fx_convert_slippage_bps: 100
+  fx_order_ttl: 168h
+  fx_period: 24h
+  fx_unit_presets: [1000, 5000, 20000]

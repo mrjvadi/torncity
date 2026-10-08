@@ -275,6 +275,7 @@ var shortcuts = map[string]shortcut{
 	"stock":     {Bare: "stock.list", Words: "stock.view"},
 	"portfolio": {Bare: "stock.mine"},
 	"gold":      {Bare: "gold.show"},
+	"fx":        {Bare: "fx.book", Words: "fx.book"},
 	// "/laws" is the proposals before the bodies of the player's places;
 	// "/law 12" one of them. "/budget" is the budget of the player's city,
 	// "/budget <city code>" another's.
@@ -435,6 +436,11 @@ var argNames = map[string][]string{
 	"stock.mine":     {},
 	"stock.ipo":      {"code", "qty", "price", "nonce"},
 	"stock.dividend": {"code", "amount", "nonce"},
+	"fx.book":        {"settlement"},
+	"fx.place":       {"settlement", "side", "units", "price", "confirm"},
+	"fx.cancel":      {"order", "settlement"},
+	"fx.history":     {"settlement"},
+	"fx.convert":     {"from", "to", "amount", "quote", "confirm"},
 	"gold.show":      {},
 	"gold.buy":       {"grams", "method", "nonce"},
 	"gold.sell":      {"grams", "nonce"},

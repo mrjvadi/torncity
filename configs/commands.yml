@@ -123,6 +123,13 @@ commands:
   # holding only in PV); the gold dealer's price is public too, what the
   # player holds only in PV. Loans, the credit score, savings, insurance,
   # orders, a listing, a dividend and the portfolio are the player's own.
+  # The VC/SUP book of a settlement's own money (docs/adr/0033 6.8): the player's own orders and
+  # balances, so PV; the web asks for the same screens with client: true.
+  fx.book: {channel: private, client: true}
+  fx.place: {channel: private, client: true}
+  fx.cancel: {channel: private, client: true}
+  fx.history: {channel: private, client: true}
+  fx.convert: {channel: private, client: true}
   loan.hub: {channel: private}
   loan.offer: {channel: private}
   loan.take: {channel: private}

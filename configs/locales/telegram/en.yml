@@ -627,6 +627,7 @@ village:
     no_market_live: "The market for this money is not open yet; until the first trade the reference rate is the rate it was founded at."
     button:
       desk: "💱 The money desk"
+      book: "📈 The money market"
       charter: "💱 Charter the town's money"
     quote: "Nil is a unit of measure: one Nil counts as {units} SUP. It is only a rate to look at; no money is ever changed for Nil."
     example: "• {amount} is worth {nil}"

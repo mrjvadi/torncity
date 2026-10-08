@@ -48,6 +48,16 @@ func storageRules(cfg *config.Config) handlers.StorageRules {
 }
 
 // currencyRules is the money rules of a settlement's charter (config currency.*).
+// fxRules is the rules of the VC/SUP book (config currency.fx_*).
+func fxRules(cfg *config.Config) application.FXRules {
+	c := cfg.Currency
+	return application.FXRules{
+		ReserveFeeBPS: c.FXReserveFeeBPS, MaxMoveBPS: c.FXMaxMoveBPS, MinTrades: c.FXMinTrades, Window: int(c.FXWindowPeriods),
+		OrderTTL: c.FXOrderTTL, UnitPresets: c.FXUnitPresets, ConvertSlippageBPS: c.FXConvertSlippageBPS, Period: c.FXPeriod,
+		MinOrderSUP: c.FXMinOrderSUP, BookLimit: int(c.FXBookLimit), MaxOpenOrders: int(c.FXMaxOpenOrders),
+	}
+}
+
 func currencyRules(cfg *config.Config) application.CurrencyRules {
 	c := cfg.Currency
 	return application.CurrencyRules{

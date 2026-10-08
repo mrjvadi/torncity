@@ -179,6 +179,14 @@ func VerifyChecks(v postgres.LedgerVerification, cfg *config.Config) []Check {
 		out.add(t.DeskMismatched == 0, fmt.Sprintf("every desk conversion is its two transactions at the quote of its rate and fee (%d off)", t.DeskMismatched))
 	}
 
+	if v.Village && v.FXBook {
+		t := v.VillageInvariants
+		out.add(t.FXEscrowMismatched == 0, fmt.Sprintf("what the book's escrow accounts hold is exactly what the open orders still hold, per owner and money (%d off)", t.FXEscrowMismatched))
+		out.add(t.FXTradeLedgerSUP == t.FXTradeRowsSUP && t.FXTradeLedgerVC == t.FXTradeRowsVC && t.FXTradeMismatched == 0, fmt.Sprintf("fills balance: the ledger's SUP legs (%d = %d) and unit legs (%d = %d) match the fill rows, each fill is its two transactions (%d off)", t.FXTradeLedgerSUP, t.FXTradeRowsSUP, t.FXTradeLedgerVC, t.FXTradeRowsVC, t.FXTradeMismatched))
+		out.add(t.FXOrderMismatched == 0, fmt.Sprintf("every order's filled quantity is what its fills add up to, a filled order is whole and a sell order's escrow is its unfilled units (%d off)", t.FXOrderMismatched))
+		out.add(t.FXRateMismatched == 0 && t.FXHistoryGuards == 2, fmt.Sprintf("the reference rate history is append-only (%d of 2 guards), continuous, and every money's x_ref is its last reading's (%d off)", t.FXHistoryGuards, t.FXRateMismatched))
+	}
+
 	if v.Village && v.WorkNodes {
 		t := v.VillageInvariants
 		out.add(t.MealOpenedRows == t.MealOpenedKitchen && t.MealEatenShifts == t.MealEatenKitchen, fmt.Sprintf("kitchens: the points opened (%d = %d) and eaten (%d = %d) match the meal rows and the shifts that ate", t.MealOpenedRows, t.MealOpenedKitchen, t.MealEatenShifts, t.MealEatenKitchen))

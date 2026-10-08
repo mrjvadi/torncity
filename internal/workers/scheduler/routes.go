@@ -119,6 +119,9 @@ const (
 	// Stage G2 (docs/adr/0026): a finance period ending.
 	ActionTypeFinance = "finance_period"
 
+	// The floating VC/SUP book (docs/adr/0033 6.8): a period of its reference rate ending.
+	ActionTypeFX = "fx_period"
+
 	// Specialist recruitment (docs/adr/0027): a campaign's check.
 	ActionTypeRecruitCheck = "recruit_check"
 
@@ -190,6 +193,8 @@ var routes = map[string]Route{
 	ActionTypeLeaderboard: {Domain: "life", Action: "refresh"},
 
 	ActionTypeFinance: {Domain: "finance", Action: "settle"},
+
+	ActionTypeFX: {Domain: "fx", Action: "settle"},
 
 	ActionTypeRecruitCheck: {Domain: "company", Action: "rcheck"},
 

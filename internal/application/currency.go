@@ -87,6 +87,12 @@ type CurrencyIssue struct {
 	ReferenceType, ReferenceID string
 }
 
+// CurrencyHolding is one balance of a settlement money an owner holds.
+type CurrencyHolding struct {
+	Code, SettlementID string
+	Units              int64
+}
+
 // CurrencyRepository is the port of settlement currencies, reached through Tx.Currency.
 type CurrencyRepository interface {
 	// Reservation is the currency a settlement reserved at founding, or nil.
@@ -104,6 +110,13 @@ type CurrencyRepository interface {
 	RecordBurn(ctx context.Context, e CurrencyIssue, basisSUP int64) error
 	// BurnOf is the burn logged for one flow row, or nil.
 	BurnOf(ctx context.Context, refType, refID string) (*CurrencyIssue, error)
+	// CharteredSettlements lists the settlements whose money is chartered, by id.
+	CharteredSettlements(ctx context.Context) ([]string, error)
+	// StateByCode is the chartered currency of that code, or nil.
+	StateByCode(ctx context.Context, code string) (*CurrencyState, error)
+	// Holdings lists the moneys an owner holds a positive balance of: the code, the units and the
+	// settlement the money belongs to.
+	Holdings(ctx context.Context, ownerID string) ([]CurrencyHolding, error)
 	// Displays reads the display currency of each settlement in the list: those that are
 	// chartered, keyed by settlement id.
 	Displays(ctx context.Context, settlementIDs []string) (map[string]CurrencyState, error)

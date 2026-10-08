@@ -1678,6 +1678,161 @@ export interface ExchangeView {
   unavailable: Unavailable | null
 }
 
+export interface FXBookView {
+  settlement: string
+  village: string
+  code: string
+  name: string
+  symbol: string
+  r0: number
+  x_ref_ppm: number
+  ref_price: number
+  last_price: number
+  band_low: number
+  band_high: number
+  bids: FXLevel[] | null
+  asks: FXLevel[] | null
+  reserve_fee_bps: number
+  village_fee_bps: number
+  max_move_bps: number
+  min_order_sup: number
+  cash_sup: number
+  units: number
+  escrow_sup: number
+  escrow_units: number
+  my_orders: FXOrderLine[] | null
+  trades: FXTradeLine[] | null
+  preset_units: number[] | null
+  min_trades: number
+  window_periods: number
+  notice: string
+}
+
+export interface FXConvertView {
+  stage: string
+  from: string
+  to: string
+  amount: number
+  out: number
+  min_out: number
+  slippage_bps: number
+  legs: FXLeg[] | null
+  complete: boolean
+  cash_sup: number
+  holdings: FXHolding[] | null
+  gave: number
+  got: number
+}
+
+export interface FXHistoryView {
+  settlement: string
+  village: string
+  code: string
+  name: string
+  symbol: string
+  r0: number
+  x_ref_ppm: number
+  min_trades: number
+  window_periods: number
+  period_seconds: number
+  periods: FXPeriodLine[] | null
+}
+
+export interface FXHolding {
+  settlement: string
+  village: string
+  code: string
+  name: string
+  symbol: string
+  units: number
+}
+
+export interface FXLeg {
+  settlement: string
+  village: string
+  code: string
+  name: string
+  symbol: string
+  side: string
+  units_in: number
+  sup_in: number
+  units_out: number
+  sup_out: number
+  fee: number
+  complete: boolean
+}
+
+export interface FXLevel {
+  price: number
+  units: number
+  orders: number
+}
+
+export interface FXOrderLine {
+  id: string
+  no: number
+  side: string
+  units: number
+  filled: number
+  price: number
+  escrow_left: number
+  status: string
+  created_at: string | null
+  expires_at: string | null
+}
+
+export interface FXOrderView {
+  settlement: string
+  village: string
+  code: string
+  name: string
+  symbol: string
+  stage: string
+  side: string
+  units: number
+  price: number
+  r0: number
+  x_ref_ppm: number
+  band_low: number
+  band_high: number
+  worth_sup: number
+  escrow: number
+  fee_bps: number
+  crosses: boolean
+  can_place: boolean
+  order: FXOrderLine
+  rested: boolean
+  units_moved: number
+  sup_moved: number
+  cash_sup: number
+  units_held: number
+}
+
+export interface FXPeriodLine {
+  period_no: number
+  trades: number
+  volume_units: number
+  vwap: number
+  value_ppm: number
+  window_trades: number
+  x_ref_before: number
+  x_ref_after: number
+  at: string | null
+}
+
+export interface FXRefusalView {
+  kind: string
+  min: number
+  max: number
+  back: Ref
+}
+
+export interface FXTradeLine {
+  price: number
+  units: number
+  at: string | null
+}
+
 export interface FactionAnswerView {
   ref: FactionRef
   kind: string
@@ -5973,6 +6128,11 @@ export interface ScreenViews {
   friend_removed: FriendRemovedView
   friend_requested: FriendRequestedView
   friends: FriendsView
+  fx_book: FXBookView
+  fx_convert: FXConvertView
+  fx_history: FXHistoryView
+  fx_order: FXOrderView
+  fx_refusal: FXRefusalView
   gold: GoldView
   gold_trade: GoldTradeView
   gov_history: GovHistoryView
@@ -6184,4 +6344,4 @@ export interface ScreenViews {
 }
 
 /** Screens whose response is a refusal: the answer carries an error code instead of ok. */
-export const REFUSAL_SCREENS = ['appoint_refusal', 'auction_refusal', 'bill_refusal', 'company_refusal', 'crime_refusal', 'diplomacy_refusal', 'election_refusal', 'faction_refusal', 'finance_refusal', 'founding_refusal', 'health_refusal', 'item_refusal', 'life_refusal', 'market_refusal', 'military_refusal', 'mission_refusal', 'no_room', 'policy_refused', 'production_refusal', 'property_refusal', 'recruit_refusal', 'refusal', 'sanction_blocked', 'settlement_refusal', 'shop_refusal', 'village_refusal', 'village_shop_refusal', 'war_blocked', 'war_refusal'] as const
+export const REFUSAL_SCREENS = ['appoint_refusal', 'auction_refusal', 'bill_refusal', 'company_refusal', 'crime_refusal', 'diplomacy_refusal', 'election_refusal', 'faction_refusal', 'finance_refusal', 'founding_refusal', 'fx_refusal', 'health_refusal', 'item_refusal', 'life_refusal', 'market_refusal', 'military_refusal', 'mission_refusal', 'no_room', 'policy_refused', 'production_refusal', 'property_refusal', 'recruit_refusal', 'refusal', 'sanction_blocked', 'settlement_refusal', 'shop_refusal', 'village_refusal', 'village_shop_refusal', 'war_blocked', 'war_refusal'] as const

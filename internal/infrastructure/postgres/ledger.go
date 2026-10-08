@@ -51,6 +51,8 @@ var ownerTables = map[application.AccountKind]string{
 	// A holder's balance in a currency that is not the neutral one: the owner is a player, a
 	// settlement or a company (migration 0127, docs/adr/0029 section 5.2).
 	application.AccountForeignHolding: "(SELECT id FROM players UNION ALL SELECT id FROM cities UNION ALL SELECT id FROM companies) AS holders",
+	// What an order on a settlement currency's book has set aside (migration 0130): a player's or a settlement's.
+	application.AccountFXEscrow: "(SELECT id FROM players UNION ALL SELECT id FROM cities) AS holders",
 }
 
 // LedgerRepository implements application.LedgerRepository.
