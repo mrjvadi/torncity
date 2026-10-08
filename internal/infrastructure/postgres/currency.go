@@ -150,7 +150,7 @@ func (r *CurrencyRepository) AddInterventionFlow(ctx context.Context, settlement
 
 // CharteredSettlements lists the settlements with a chartered money.
 func (r *CurrencyRepository) CharteredSettlements(ctx context.Context) ([]string, error) {
-	rows, err := r.q.Query(ctx, `SELECT settlement_id::text FROM village_currency_state WHERE status = 'chartered' ORDER BY settlement_id`)
+	rows, err := r.q.Query(ctx, `SELECT settlement_id::text FROM village_currency_state WHERE status IN ('chartered', 'wind_down') ORDER BY settlement_id`)
 	if err != nil {
 		return nil, fmt.Errorf("postgres: listing the chartered moneys: %w", err)
 	}

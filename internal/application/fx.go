@@ -647,7 +647,7 @@ func ExpireFX(ctx context.Context, tx Tx, newID func() string, settlementID stri
 // changes nothing. It returns whether it wrote the reading and the reference after it.
 func SettleFXRate(ctx context.Context, tx Tx, rules FXRules, settlementID string, periodNo int64, from, to, now time.Time) (bool, int64, error) {
 	st, err := tx.Currency().State(ctx, settlementID)
-	if err != nil || st == nil || st.Status != CurrencyChartered {
+	if err != nil || st == nil || (st.Status != CurrencyChartered && st.Status != CurrencyWindDown) {
 		return false, 0, err
 	}
 	hist, err := tx.FX().Rates(ctx, settlementID, rules.Window)

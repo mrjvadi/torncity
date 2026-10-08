@@ -406,7 +406,7 @@ func (a *EconomyAdmin) verifyCurrencies(ctx context.Context, v *LedgerVerificati
 		{&s.PotMismatched, "reserve pots", `
 			SELECT count(*) FROM village_currency_state st
 			 WHERE COALESCE((SELECT a.balance FROM accounts a WHERE a.kind = 'reserve_pot' AND a.owner_id = st.settlement_id AND a.currency = 'SUP'), 0)
-			       <> st.deposited_sup - st.released_sup`},
+			       <> st.deposited_sup - st.released_sup - st.intervention_out + st.intervention_in`},
 		{&s.SupplyMismatched, "currency supplies", `
 			SELECT count(*) FROM village_currency_state st
 			 WHERE st.minted_units - st.burnt_units
