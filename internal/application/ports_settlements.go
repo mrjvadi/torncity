@@ -164,6 +164,31 @@ type ExistingSettlement struct {
 	Tier        string
 }
 
+// SpawnCircle is one stored spawn circle.
+type SpawnCircle struct {
+	Index    int
+	LatDeg   float64
+	LonDeg   float64
+	RadiusKm float64
+	Capacity int
+	// Taken is the settlements standing inside when it opened plus the foundings placed in it since.
+	Taken int
+}
+
+// SpawnClosed is a circle a plan closed, with the reason (full, no_room).
+type SpawnClosed struct {
+	Index  int
+	Reason string
+}
+
+// SpawnPlanRecord is one founding's effect on the circles.
+type SpawnPlanRecord struct {
+	Closed []SpawnClosed
+	Opened []SpawnCircle
+	// Used is the circle the founding was placed in.
+	Used int
+}
+
 // SettlementBuilding is one founding-kit building's placement, mirroring
 // internal/domain/settlement.BuildingPlacement (this file avoids importing
 // the domain package purely for its type: application ports name their own
@@ -297,6 +322,15 @@ type SettlementRepository interface {
 	// fresh, never cached: a stale list could let two spawns land closer
 	// than settlement.min_spawn_distance_km allows.
 	ExistingForWorld(ctx context.Context, worldID string) ([]ExistingSettlement, error)
+
+	// SpawnCircles reads the current spawn circle and the first one of a world (docs/adr/0028 section 3.2, amendment
+	// 2026-10-09); both nil before the first founding. With lock it takes the single cursor row FOR UPDATE, so
+	// foundings are serialised until the transaction ends: it must be called before ExistingForWorld, so the list
+	// of settlements read afterwards includes every founding that committed while this one waited.
+	SpawnCircles(ctx context.Context, worldID string, lock bool) (current, first *SpawnCircle, err error)
+	// ApplySpawnPlan writes what a spawn plan decided: the circles it closed, the circles it opened, the circle
+	// the founding was placed in (its count rises by one) and the cursor.
+	ApplySpawnPlan(ctx context.Context, worldID string, p SpawnPlanRecord, at time.Time) error
 
 	// ByFoundingGroup returns the settlement this chat already founded, or
 	// ErrCityNotFound — the idempotency check a founding command runs

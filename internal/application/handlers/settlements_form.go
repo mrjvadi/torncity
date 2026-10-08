@@ -160,19 +160,12 @@ func (h *SettlementsHandler) Found(ctx context.Context, meta envelope.Metadata) 
 		switch {
 		case err == nil:
 		case stderrors.Is(err, application.ErrFoundingDraftNotFound):
-			cells, err := tx.Settlements().ExistingForWorld(ctx, worldRow.ID)
-			if err != nil {
-				return err
-			}
-			existing := make([]wsettle.ExistingSettlement, len(cells))
-			for i, e := range cells {
-				existing[i] = wsettle.ExistingSettlement{CellID: e.WorldCellID, TierWeight: tierWeight(e.Tier)}
-			}
 			n, err := tx.Worlds().ReserveSpawnNumber(ctx)
 			if err != nil {
 				return err
 			}
-			cand, err := wsettle.FindSpawn(world, existing, n, h.spawnParams)
+			// a preview only (it locks and writes nothing): the name is made from the spot the founding would get now
+			cand, err := h.chooseSpawn(ctx, tx, worldRow.ID, world, n, false)
 			if err != nil {
 				return fmt.Errorf("handlers: founding settlement: %w", err)
 			}
@@ -519,19 +512,11 @@ func (h *SettlementsHandler) submitInTx(ctx context.Context, tx application.Tx, 
 		return nil
 	}
 
-	cells, err := tx.Settlements().ExistingForWorld(ctx, worldRow.ID)
-	if err != nil {
-		return err
-	}
-	existing := make([]wsettle.ExistingSettlement, len(cells))
-	for i, e := range cells {
-		existing[i] = wsettle.ExistingSettlement{CellID: e.WorldCellID, TierWeight: tierWeight(e.Tier)}
-	}
 	n, err := tx.Worlds().ReserveSpawnNumber(ctx)
 	if err != nil {
 		return err
 	}
-	cand, err := wsettle.FindSpawn(world, existing, n, h.spawnParams)
+	cand, err := h.chooseSpawn(ctx, tx, worldRow.ID, world, n, true)
 	if err != nil {
 		return fmt.Errorf("handlers: founding settlement: %w", err)
 	}
@@ -647,4 +632,59 @@ func (h *SettlementsHandler) appendFoundedEvent(ctx context.Context, tx applicat
 	return tx.Outbox().Append(ctx, application.OutboxRecord{
 		EventID: ev.ID, Subject: subjects.Event("settlement", "founded"), Metadata: meta, Payload: ev.Payload,
 	})
+}
+
+// chooseSpawn picks the spot of a founding. With the spawn circles on (WithSpawnCircles) it takes the current
+// circle, fills it, and opens the next when it is full or has no eligible cell; the old lattice is only the last
+// resort when no circle in reach has a spot. With commit it locks the circle cursor FIRST (so every founding that
+// committed while it waited is in the list of settlements read after) and writes the circle state in the same
+// transaction as the founding; without commit it only previews, reading without a lock and writing nothing.
+func (h *SettlementsHandler) chooseSpawn(ctx context.Context, tx application.Tx, worldID string, world *worldgen.World,
+	n int64, commit bool,
+) (wsettle.Candidate, error) {
+	var cur, first *application.SpawnCircle
+	if h.spawnCircle.Valid() {
+		var err error
+		if cur, first, err = tx.Settlements().SpawnCircles(ctx, worldID, commit); err != nil {
+			return wsettle.Candidate{}, err
+		}
+	}
+	cells, err := tx.Settlements().ExistingForWorld(ctx, worldID)
+	if err != nil {
+		return wsettle.Candidate{}, err
+	}
+	existing := make([]wsettle.ExistingSettlement, len(cells))
+	for i, e := range cells {
+		existing[i] = wsettle.ExistingSettlement{CellID: e.WorldCellID, TierWeight: tierWeight(e.Tier)}
+	}
+	if !h.spawnCircle.Valid() {
+		return wsettle.FindSpawn(world, existing, n, h.spawnParams)
+	}
+	toDomain := func(c *application.SpawnCircle) *wsettle.Circle {
+		if c == nil {
+			return nil
+		}
+		return &wsettle.Circle{Index: c.Index, LatDeg: c.LatDeg, LonDeg: c.LonDeg, RadiusKm: c.RadiusKm, Capacity: c.Capacity, Count: c.Taken}
+	}
+	plan, err := wsettle.PlanSpawn(world, existing, toDomain(cur), toDomain(first), h.spawnCircle, h.spawnParams)
+	if stderrors.Is(err, wsettle.ErrNoEligibleSpot) {
+		return wsettle.FindSpawn(world, existing, n, h.spawnParams) // no circle in reach has a spot: the old lattice
+	}
+	if err != nil {
+		return wsettle.Candidate{}, err
+	}
+	if commit {
+		rec := application.SpawnPlanRecord{Used: plan.Circle}
+		for _, c := range plan.Closed {
+			rec.Closed = append(rec.Closed, application.SpawnClosed{Index: c.Index, Reason: c.Reason})
+		}
+		for _, c := range plan.Opened {
+			rec.Opened = append(rec.Opened, application.SpawnCircle{Index: c.Index, LatDeg: c.LatDeg, LonDeg: c.LonDeg, RadiusKm: c.RadiusKm,
+				Capacity: c.Capacity, Taken: c.Count})
+		}
+		if err := tx.Settlements().ApplySpawnPlan(ctx, worldID, rec, h.now()); err != nil {
+			return wsettle.Candidate{}, err
+		}
+	}
+	return plan.Cand, nil
 }

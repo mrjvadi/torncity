@@ -813,6 +813,15 @@ type Settlement struct {
 	// the world is, implausibly, entirely ineligible.
 	SearchMaxAttempts int // settlement.search_max_attempts
 
+	// SpawnCircleRadiusKm, SpawnCircleCapacity, SpawnCircleFillBandKm and SpawnCircleMaxAdvance place new
+	// foundings close together (ADR 0028 section 3.2, amendment 2026-10-09): the radius of one circle, how many
+	// settlements it takes before the next opens, the distance band the circle fills outward in, and how many
+	// circles one founding may skip.
+	SpawnCircleRadiusKm   float64 // settlement.spawn_circle_radius_km
+	SpawnCircleCapacity   int     // settlement.spawn_circle_capacity
+	SpawnCircleFillBandKm float64 // settlement.spawn_circle_fill_band_km
+	SpawnCircleMaxAdvance int     // settlement.spawn_circle_max_advance
+
 	// ExcludedBiomes are biome codes a village may never be placed on: only
 	// truly uninhabitable land (polar_ice). Harsh but livable biomes are
 	// penalised through BiomePenalties instead (section 3.2 step 3).
@@ -1700,19 +1709,23 @@ func Defaults() *Config {
 			FlushInterval: 30 * time.Second,
 		},
 		Settlement: Settlement{
-			ProtectionWindow:    168 * time.Hour,
-			ResidenceCooldown:   72 * time.Hour,
-			TimezoneCooldown:    168 * time.Hour,
-			HomeCityCode:        "support",
-			PropertyHubMinStage: "town",
-			MinSpawnDistanceKm:  30,
-			ThreatRadiusKm:      150,
-			SearchMaxCells:      2000,
-			SearchMaxAttempts:   200,
-			ExcludedBiomes:      []string{"polar_ice"},
-			MaxAbsLatitudeDeg:   70,
-			BiomePenalties:      []string{"desert=4", "tundra=6", "boreal_forest=1"},
-			VillageGridLots:     5,
+			ProtectionWindow:      168 * time.Hour,
+			ResidenceCooldown:     72 * time.Hour,
+			TimezoneCooldown:      168 * time.Hour,
+			HomeCityCode:          "support",
+			PropertyHubMinStage:   "town",
+			MinSpawnDistanceKm:    30,
+			ThreatRadiusKm:        150,
+			SearchMaxCells:        2000,
+			SearchMaxAttempts:     200,
+			SpawnCircleRadiusKm:   300,
+			SpawnCircleCapacity:   12,
+			SpawnCircleFillBandKm: 120,
+			SpawnCircleMaxAdvance: 200,
+			ExcludedBiomes:        []string{"polar_ice"},
+			MaxAbsLatitudeDeg:     70,
+			BiomePenalties:        []string{"desert=4", "tundra=6", "boreal_forest=1"},
+			VillageGridLots:       5,
 
 			MinBuildableLotShareBps: 7000,
 			GridShiftMaxLots:        3,

@@ -578,6 +578,10 @@ settlement:
   threat_radius_km: 151
   search_max_cells: 2001
   search_max_attempts: 201
+  spawn_circle_radius_km: 301
+  spawn_circle_capacity: 13
+  spawn_circle_fill_band_km: 121
+  spawn_circle_max_advance: 201
   excluded_biomes: [polar_ice, glacier]
   max_abs_latitude_deg: 66.5
   biome_penalties: ["desert=5", "tundra=7"]
@@ -1098,6 +1102,10 @@ var envOverrides = map[string]string{
 	"TORN_SETTLEMENT_THREAT_RADIUS_KM":                 "152",
 	"TORN_SETTLEMENT_SEARCH_MAX_CELLS":                 "2002",
 	"TORN_SETTLEMENT_SEARCH_MAX_ATTEMPTS":              "202",
+	"TORN_SETTLEMENT_SPAWN_CIRCLE_RADIUS_KM":           "302",
+	"TORN_SETTLEMENT_SPAWN_CIRCLE_CAPACITY":            "14",
+	"TORN_SETTLEMENT_SPAWN_CIRCLE_FILL_BAND_KM":        "122",
+	"TORN_SETTLEMENT_SPAWN_CIRCLE_MAX_ADVANCE":         "202",
 	"TORN_SETTLEMENT_EXCLUDED_BIOMES":                  "polar_ice, ice_sheet",
 	"TORN_SETTLEMENT_MAX_ABS_LATITUDE_DEG":             "64.5",
 	"TORN_SETTLEMENT_BIOME_PENALTIES":                  "desert=6, tundra=8",
