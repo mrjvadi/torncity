@@ -73,11 +73,12 @@ func fxRules(cfg *config.Config) application.FXRules {
 	}
 }
 
-func currencyRules(cfg *config.Config) application.CurrencyRules {
+func currencyRules(cfg *config.Config, policy application.PolicyReader) application.CurrencyRules {
 	c := cfg.Currency
 	return application.CurrencyRules{
 		CharterR0:  c.CharterR0,
 		Terms:      currency.Terms{Fee: c.CharterFee, MinDeposit: c.CharterMinDeposit, ShareBPS: c.AutoCharterShareBPS, Floor: c.AutoCharterFloor},
 		MintFeeBPS: c.MintFeeBPS, DeskSlippageBPS: c.DeskSlippageBPS, DeskPresets: c.DeskPresets,
+		Reserve: reserveRules(cfg, policy),
 	}
 }

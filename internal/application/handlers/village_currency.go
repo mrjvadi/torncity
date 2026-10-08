@@ -54,8 +54,12 @@ func (h *VillageHandler) CurrencyCharter(ctx context.Context, meta envelope.Meta
 			return err
 		}
 		rules := h.currencyRules
+		mintFee, err := rules.MintFee(ctx, tx)
+		if err != nil {
+			return err
+		}
 		view = village.CurrencyCharterView{Village: s.Name, Fee: rules.Terms.Fee, MinDeposit: rules.Terms.MinDeposit,
-			R0Options: currency.RateOptions, MintFeeBPS: rules.MintFeeBPS}
+			R0Options: currency.RateOptions, MintFeeBPS: mintFee}
 		res, err := tx.Currency().Reservation(ctx, s.CityID)
 		if err != nil {
 			return err
@@ -94,7 +98,7 @@ func (h *VillageHandler) CurrencyCharter(ctx context.Context, meta envelope.Meta
 			}
 			view.Deposit = n
 		}
-		mint, err := currency.Mint(view.Deposit, currency.Rate{R0: view.R0, XRefPPM: currency.PPM}, rules.MintFeeBPS)
+		mint, err := currency.Mint(view.Deposit, currency.Rate{R0: view.R0, XRefPPM: currency.PPM}, mintFee)
 		if err != nil {
 			return refuseVillage(village.VillageNotAvailable)
 		}

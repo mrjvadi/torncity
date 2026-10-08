@@ -24,11 +24,14 @@ import (
 
 // FXHandler serves the commands of the book.
 type FXHandler struct {
-	uow            application.UnitOfWork
-	ids            IDGenerator
-	cities         application.CityRepository
-	rules          application.FXRules
-	supportCode    string
+	uow         application.UnitOfWork
+	ids         IDGenerator
+	cities      application.CityRepository
+	rules       application.FXRules
+	supportCode string
+	// reserve are the Reserve Bank's levers and the head's tools (WithReserve); without it the rules above stand.
+	bank           application.ReserveRules
+	reserveOn      bool
 	idempotencyTTL time.Duration
 	now            func() time.Time
 }
@@ -41,6 +44,29 @@ func NewFXHandler(uow application.UnitOfWork, ids IDGenerator, cities applicatio
 		now = time.Now
 	}
 	return &FXHandler{uow: uow, ids: ids, cities: cities, rules: rules, supportCode: supportCode, idempotencyTTL: idempotencyTTL, now: now}
+}
+
+// WithReserve gives the book the Reserve Bank's levers (policy.Get: the fee on selling SUP and the circuit
+// breaker are the governor's, not the configuration's) and the head's period work: the macro readings, the
+// due interventions and withdrawals, the end of a wind-down.
+func (h *FXHandler) WithReserve(r application.ReserveRules) *FXHandler {
+	h.bank, h.reserveOn = r, true
+	return h
+}
+
+// rulesTx is the rules in force inside a unit of work: Support resolved and, once the Reserve Bank is wired, its
+// levers read through the policy resolver.
+func (h *FXHandler) rulesTx(ctx context.Context, tx application.Tx) (application.FXRules, error) {
+	r, err := h.rulesNow(ctx)
+	if err != nil || !h.reserveOn {
+		return r, err
+	}
+	t, err := h.bank.Terms(ctx, tx)
+	if err != nil {
+		return r, err
+	}
+	r.ReserveFeeBPS, r.MaxMoveBPS = t.FXFeeBPS, t.MaxMoveBPS
+	return r, nil
 }
 
 // FXBookRequest is the payload of fx.book and fx.history.
@@ -111,6 +137,8 @@ func (h *FXHandler) fxRefusalOf(err error) (*fxRefused, bool) {
 		return pick(economy.FXRefusalMoved)
 	case stderrors.Is(err, application.ErrFXNoLiquidity):
 		return pick(economy.FXRefusalLiquid)
+	case stderrors.Is(err, application.ErrFXBlackout):
+		return pick(economy.FXRefusalBlackout)
 	}
 	return nil, false
 }
@@ -192,6 +220,10 @@ func orderLine(o application.FXOrder) economy.FXOrderLine {
 // bookView reads the whole book screen for a player.
 func (h *FXHandler) bookView(ctx context.Context, tx application.Tx, p *application.Player, s application.FoundedSettlement, notice string) (economy.FXBookView, error) {
 	var v economy.FXBookView
+	rules, err := h.rulesTx(ctx, tx)
+	if err != nil {
+		return v, err
+	}
 	st, err := tx.Currency().State(ctx, s.CityID)
 	if err != nil {
 		return v, err
@@ -204,9 +236,9 @@ func (h *FXHandler) bookView(ctx context.Context, tx application.Tx, p *applicat
 	}
 	ref := fx.RefPrice(st.XRefPPM, st.R0)
 	v.R0, v.XRefPPM, v.RefPrice = st.R0, st.XRefPPM, ref
-	v.BandLow, v.BandHigh = fx.Band(ref, h.rules.MaxMoveBPS)
-	v.ReserveFeeBPS, v.VillageFeeBPS, v.MaxMoveBPS, v.MinOrderSUP = h.rules.ReserveFeeBPS, st.FXFeeBPS, h.rules.MaxMoveBPS, h.rules.MinOrderSUP
-	v.MinTrades, v.WindowPeriods, v.PresetUnits, v.Notice = h.rules.MinTrades, int64(h.rules.Window), h.rules.UnitPresets, notice
+	v.BandLow, v.BandHigh = fx.Band(ref, rules.MaxMoveBPS)
+	v.ReserveFeeBPS, v.VillageFeeBPS, v.MaxMoveBPS, v.MinOrderSUP = rules.ReserveFeeBPS, st.FXFeeBPS, rules.MaxMoveBPS, rules.MinOrderSUP
+	v.MinTrades, v.WindowPeriods, v.PresetUnits, v.Notice = rules.MinTrades, int64(rules.Window), rules.UnitPresets, notice
 	const levels = 10
 	bids, err := tx.FX().Depth(ctx, s.CityID, application.FXBuy, levels)
 	if err != nil {
@@ -329,9 +361,14 @@ func (h *FXHandler) Place(ctx context.Context, meta envelope.Metadata, req FXPla
 		if st == nil || st.Status != application.CurrencyChartered {
 			return refuseFX(economy.FXRefusalNoMkt)
 		}
-		rules, err := h.rulesNow(ctx)
+		rules, err := h.rulesTx(ctx, tx)
 		if err != nil {
 			return err
+		}
+		if blocked, err := tx.Currency().HasPendingIntervention(ctx, s.CityID, p.ID); err != nil {
+			return err
+		} else if blocked {
+			return refuseFX(economy.FXRefusalBlackout) // the head waits out their own request (docs/adr/0033 6.12)
 		}
 		money, err := h.money(ctx, tx, s, *st)
 		if err != nil {
@@ -580,7 +617,7 @@ func (h *FXHandler) Settle(ctx context.Context, meta envelope.Metadata, req Crim
 		if clock.NextAt != nil && now.Before(*clock.NextAt) {
 			return errors.Internal(stderrors.New("handlers: a book period ran before it ended"))
 		}
-		rules, err := h.rulesNow(ctx)
+		rules, err := h.rulesTx(ctx, tx)
 		if err != nil {
 			return err
 		}
@@ -594,6 +631,42 @@ func (h *FXHandler) Settle(ctx context.Context, meta envelope.Metadata, req Crim
 			}
 			if _, _, err := application.SettleFXRate(ctx, tx, rules, id, clock.PeriodNo, clock.PeriodStartedAt, now, now); err != nil {
 				return err
+			}
+			if h.reserveOn {
+				if _, err := application.MacroTick(ctx, tx, h.bank, id, clock.PeriodNo, clock.PeriodStartedAt, now, now); err != nil {
+					return err
+				}
+			}
+		}
+		if h.reserveOn {
+			// the head's requests whose time has come, the withdrawals whose notice has passed and the
+			// wind-downs whose window is over: each fenced by its own state, so a repeat changes nothing
+			due, err := tx.Currency().DueInterventions(ctx, now, 200)
+			if err != nil {
+				return err
+			}
+			for _, i := range due {
+				if err := application.ExecuteIntervention(ctx, tx, h.ids.NewID, h.bank, rules, i, clock.PeriodStartedAt, now); err != nil {
+					return err
+				}
+			}
+			ws, err := tx.Currency().DueWithdrawals(ctx, now, 200)
+			if err != nil {
+				return err
+			}
+			for _, w := range ws {
+				if err := application.ExecuteWithdrawal(ctx, tx, h.ids.NewID, w, now); err != nil {
+					return err
+				}
+			}
+			winding, err := tx.Currency().InWindDown(ctx)
+			if err != nil {
+				return err
+			}
+			for _, id := range winding {
+				if _, err := application.FinishWindDown(ctx, tx, h.ids.NewID, id, now); err != nil {
+					return err
+				}
 			}
 		}
 		clock.PeriodNo++

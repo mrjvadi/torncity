@@ -84,7 +84,7 @@ func (h *FXHandler) Convert(ctx context.Context, meta envelope.Metadata, req FXC
 		if err != nil {
 			return err
 		}
-		rules, err := h.rulesNow(ctx)
+		rules, err := h.rulesTx(ctx, tx)
 		if err != nil {
 			return err
 		}

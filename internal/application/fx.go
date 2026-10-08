@@ -84,6 +84,7 @@ var (
 	ErrFXNotYours    = errors.Sentinel(errors.CodeUnauthorized, "application.ErrFXNotYours", "the order is not the owner's")
 	ErrFXNotFound    = errors.Sentinel(errors.CodeNotFound, "application.ErrFXNotFound", "the order does not exist")
 	ErrFXMoved       = errors.Sentinel(errors.CodeConflict, "application.ErrFXMoved", "the book moved past the player's limit")
+	ErrFXBlackout    = errors.Sentinel(errors.CodeConflict, "application.ErrFXBlackout", "the head has a request waiting and may not trade the pair until it executes")
 	ErrFXNoLiquidity = errors.Sentinel(errors.CodeConflict, "application.ErrFXNoLiquidity", "the book cannot fill the conversion")
 )
 
