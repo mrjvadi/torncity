@@ -59,6 +59,18 @@ type MoneyChartered struct {
 	// Supply is the units in existence, PotSUP the reserve pot at the Reserve Bank in SUP, and
 	// TreasuryUnits what the settlement's treasury holds of the money.
 	Supply, PotSUP, TreasuryUnits int64
+	// Status is chartered, wind_down or retired. BasisSUP is the backing basis, ExcessSUP the pot above it,
+	// MarketCapSUP the supply's worth at the reference rate, CoverageBPS the pot over it (CoverageKnown false with
+	// no supply), StabilisationUnits the units the head's purchases hold (docs/adr/0033 6.6).
+	Status                            string
+	BasisSUP, ExcessSUP, MarketCapSUP int64
+	CoverageBPS                       int64
+	CoverageKnown                     bool
+	StabilisationUnits                int64
+	// Macro is the latest macro reading and Trend the last seven, oldest first (docs/adr/0033 7.3); absent
+	// until the first period closes.
+	Macro *MoneyMacro  `json:"macro,omitempty"`
+	Trend []MoneyMacro `json:"trend,omitempty"`
 }
 
 // MoneyView is what a settlement's money is worth.
@@ -103,7 +115,7 @@ func VillageMoney(c presentation.Ctx, v MoneyView) *presentation.Response {
 		a = append(a, act(AddrCurrencyCharter).Named("currency.charter"))
 	}
 	if v.Chartered != nil {
-		a = append(a, act(AddrCurrencyDesk).Named("currency.desk"), presentation.Do("fx.book").Named("fx.book"))
+		a = append(a, act(AddrCurrencyDesk).Named("currency.desk"), presentation.Do("fx.book").Named("fx.book"), act(AddrCurrencyReserve).Named("currency.reserve"))
 	}
 	return screenMoney.Response(c.Lang, v, a...)
 }
