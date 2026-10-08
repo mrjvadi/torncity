@@ -187,6 +187,16 @@ func VerifyChecks(v postgres.LedgerVerification, cfg *config.Config) []Check {
 		out.add(t.FXRateMismatched == 0 && t.FXHistoryGuards == 2, fmt.Sprintf("the reference rate history is append-only (%d of 2 guards), continuous, and every money's x_ref is its last reading's (%d off)", t.FXHistoryGuards, t.FXRateMismatched))
 	}
 
+	if v.Village && v.Reserve {
+		t := v.VillageInvariants
+		out.add(t.ReserveFlowMismatched == 0, fmt.Sprintf("what the head's interventions took from the pot and what came back match the ledger's pot legs, and the pot is deposits minus releases minus what is out plus what came back (%d off)", t.ReserveFlowMismatched))
+		out.add(t.ReleasedMismatched == 0, fmt.Sprintf("what left the pot for good (excess withdrawn, claims, the remainder at retirement) matches every money's released counter (%d off)", t.ReleasedMismatched))
+		out.add(t.ClaimMismatched == 0 && t.ClaimOverdrawn == 0, fmt.Sprintf("every wind-down claim is its burn and its payment, and the claims never take more than the pot held (%d off, %d overdrawn)", t.ClaimMismatched, t.ClaimOverdrawn))
+		out.add(t.WithdrawalMismatched == 0, fmt.Sprintf("every executed excess withdrawal is its transaction for the amount announced (%d off)", t.WithdrawalMismatched))
+		out.add(t.RetiredPotMismatched == 0, fmt.Sprintf("a retired money's pot is empty (%d not)", t.RetiredPotMismatched))
+		out.add(t.MacroGuards == 2, fmt.Sprintf("the macro history is append-only (%d of 2 guards)", t.MacroGuards))
+	}
+
 	if v.Village && v.WorkNodes {
 		t := v.VillageInvariants
 		out.add(t.MealOpenedRows == t.MealOpenedKitchen && t.MealEatenShifts == t.MealEatenKitchen, fmt.Sprintf("kitchens: the points opened (%d = %d) and eaten (%d = %d) match the meal rows and the shifts that ate", t.MealOpenedRows, t.MealOpenedKitchen, t.MealEatenShifts, t.MealEatenKitchen))
