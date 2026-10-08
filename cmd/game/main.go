@@ -431,7 +431,8 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 				},
 			},
 			nil,
-		).WithFoundingGrant(cfg.Settlement.FoundingGrant).WithCurrencyRules(currencyRules(cfg, postgres.NewPolicyReader(pool, nil))),
+		).WithFoundingGrant(cfg.Settlement.FoundingGrant).WithCurrencyRules(currencyRules(cfg, postgres.NewPolicyReader(pool, nil))).
+			WithSpawnCircles(cfg.Settlement.SpawnCircle()),
 		village: handlers.NewVillageHandler(
 			uow,
 			uuidGenerator{},

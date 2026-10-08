@@ -382,6 +382,10 @@ type settlementSettings struct {
 	ThreatRadiusKm          *float64 `yaml:"threat_radius_km"`
 	SearchMaxCells          *int     `yaml:"search_max_cells"`
 	SearchMaxAttempts       *int     `yaml:"search_max_attempts"`
+	SpawnCircleRadiusKm     *float64 `yaml:"spawn_circle_radius_km"`
+	SpawnCircleCapacity     *int     `yaml:"spawn_circle_capacity"`
+	SpawnCircleFillBandKm   *float64 `yaml:"spawn_circle_fill_band_km"`
+	SpawnCircleMaxAdvance   *int     `yaml:"spawn_circle_max_advance"`
 	ExcludedBiomes          []string `yaml:"excluded_biomes"`
 	MaxAbsLatitudeDeg       *float64 `yaml:"max_abs_latitude_deg"`
 	BiomePenalties          []string `yaml:"biome_penalties"`
@@ -1307,6 +1311,18 @@ var coreSettings = []setting{
 	limitSetting("settlement", "search_max_attempts",
 		func(c *Config) *int { return &c.Settlement.SearchMaxAttempts },
 		func(f *fileConfig) *int { return f.Settlement.SearchMaxAttempts }),
+	floatSetting("settlement", "spawn_circle_radius_km",
+		func(c *Config) *float64 { return &c.Settlement.SpawnCircleRadiusKm },
+		func(f *fileConfig) *float64 { return f.Settlement.SpawnCircleRadiusKm }),
+	limitSetting("settlement", "spawn_circle_capacity",
+		func(c *Config) *int { return &c.Settlement.SpawnCircleCapacity },
+		func(f *fileConfig) *int { return f.Settlement.SpawnCircleCapacity }),
+	floatSetting("settlement", "spawn_circle_fill_band_km",
+		func(c *Config) *float64 { return &c.Settlement.SpawnCircleFillBandKm },
+		func(f *fileConfig) *float64 { return f.Settlement.SpawnCircleFillBandKm }),
+	limitSetting("settlement", "spawn_circle_max_advance",
+		func(c *Config) *int { return &c.Settlement.SpawnCircleMaxAdvance },
+		func(f *fileConfig) *int { return f.Settlement.SpawnCircleMaxAdvance }),
 	stringListSetting("settlement", "excluded_biomes",
 		func(c *Config) *[]string { return &c.Settlement.ExcludedBiomes },
 		func(f *fileConfig) []string { return f.Settlement.ExcludedBiomes }),

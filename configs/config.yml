@@ -1193,6 +1193,18 @@ settlement:
   # How many lattice points one founding may try, in total, before giving
   # up outright.
   search_max_attempts: 200
+  # Spawn circles (ADR 0028 section 3.2, amendment 2026-10-09): new settlements are founded close together. One
+  # circle at a time is filled with foundings; when it holds spawn_circle_capacity settlements, or no eligible cell
+  # is left in it, the next circle opens beside the filled ones, spiralling outward on a hex lattice, so the settled
+  # area grows as one connected region and neighbours meet. The world's cells are about 110 km apart (40000 cells),
+  # so a radius of 300 km is about 20 cells: 12 settlements fit with land and sea mixed, neighbours are a bus ride of
+  # 2 to 4 hours apart (transport.yml: bus 60 km/h), the far side of a circle about 10 hours.
+  spawn_circle_radius_km: 300
+  spawn_circle_capacity: 12
+  # A circle fills from its centre outward in bands this wide (km); inside a band the better land comes first.
+  spawn_circle_fill_band_km: 120
+  # How many full or empty (sea) circles one founding may skip before it falls back to the old lattice.
+  spawn_circle_max_advance: 200
   # Biome codes (configs/content/world.yml) a village may never be placed
   # on: only truly uninhabitable land. Harsh but livable biomes are not
   # banned; they cost score through biome_penalties below.

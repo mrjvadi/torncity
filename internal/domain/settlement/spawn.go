@@ -356,6 +356,15 @@ const (
 func scoreCell(w *worldgen.World, id int32, existing []ExistingSettlement,
 	deposits map[int32][]worldgen.Deposit, threatRadiusKm float64,
 ) float64 {
+	base, threat := scoreParts(w, id, existing, deposits, threatRadiusKm)
+	return base - threat
+}
+
+// scoreParts is scoreCell split into the land score (resources, fresh water, minus terrain) and the threat score,
+// so the spawn circles can rank by the first and use the second only as a tie-breaker.
+func scoreParts(w *worldgen.World, id int32, existing []ExistingSettlement,
+	deposits map[int32][]worldgen.Deposit, threatRadiusKm float64,
+) (base, threat float64) {
 	neighbors := w.Neighbors(id)
 
 	var resourceScore float64
@@ -401,7 +410,6 @@ func scoreCell(w *worldgen.World, id int32, existing []ExistingSettlement,
 			(float64(oceanCount)/float64(len(neighbors)))*oceanShareWeight
 	}
 
-	var threatScore float64
 	for _, e := range existing {
 		if e.TierWeight <= 0 {
 			continue
@@ -413,10 +421,10 @@ func scoreCell(w *worldgen.World, id int32, existing []ExistingSettlement,
 		if dist < minThreatDistanceKm {
 			dist = minThreatDistanceKm
 		}
-		threatScore += e.TierWeight / dist
+		threat += e.TierWeight / dist
 	}
 
-	return resourceScore + freshwater - terrainPenalty - threatScore
+	return resourceScore + freshwater - terrainPenalty, threat
 }
 
 // FindRelocation looks for a valid site for a settlement that already exists,

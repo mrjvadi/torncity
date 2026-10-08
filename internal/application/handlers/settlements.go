@@ -30,7 +30,9 @@ type SettlementsHandler struct {
 	content ContentSource
 	scale   gametimeScale
 
-	spawnParams      wsettle.Params
+	spawnParams wsettle.Params
+	// spawnCircle places new foundings close together (WithSpawnCircles); the zero value keeps the old lattice.
+	spawnCircle      wsettle.CircleParams
 	protectionWindow time.Duration
 	villageGridLots  int
 	teachPeriod      time.Duration
@@ -43,6 +45,12 @@ type SettlementsHandler struct {
 	currencyRules application.CurrencyRules
 
 	now func() time.Time
+}
+
+// WithSpawnCircles switches foundings to the spawn circles (docs/adr/0028 section 3.2, amendment 2026-10-09).
+func (h *SettlementsHandler) WithSpawnCircles(cp wsettle.CircleParams) *SettlementsHandler {
+	h.spawnCircle = cp
+	return h
 }
 
 // NewSettlementsHandler builds the handler. worlds is this replica's
