@@ -565,3 +565,29 @@ func TestThePeriodClockClosesEachPeriodOnceAndExpiresOrders(t *testing.T) {
 	}
 	e.verifyFX()
 }
+
+// A booted service builds the book from config, which names Support by its code only: the clock must still
+// start and an order must still be taken (the live boot of 2026-10-08 left both off).
+func TestTheBookWorksWhenSupportIsNamedOnlyByItsCode(t *testing.T) {
+	e := newFXEnv(t)
+	ctx := testCtx(t)
+	t.Cleanup(func() {
+		c := testCtx(t)
+		_, _ = e.pool.Raw().Exec(c, `DELETE FROM game_actions WHERE action_type = 'fx_period'`)
+		_, _ = e.pool.Raw().Exec(c, `DELETE FROM fx_clock`)
+	})
+	_, _ = e.pool.Raw().Exec(ctx, `DELETE FROM game_actions WHERE action_type = 'fx_period'`)
+	_, _ = e.pool.Raw().Exec(ctx, `DELETE FROM fx_clock`)
+	booted := fxRulesForTests("")
+	e.fx = handlers.NewFXHandler(postgres.NewUnitOfWork(e.pool, testDefaultLanguage), workIDs{t}, postgres.NewCityRepository(e.pool), booted, "support", time.Hour, e.clock.Now)
+	if err := e.fx.StartClock(ctx); err != nil {
+		t.Fatal(err)
+	}
+	if n := e.scalar(`SELECT count(*) FROM game_actions WHERE action_type = 'fx_period' AND status = 'scheduled'`); n != 1 {
+		t.Fatalf("the clock should start from the code alone: %d periods scheduled", n)
+	}
+	seller := e.trader(0, 5000)
+	if r := e.place(seller, "sell", 1000, 100_000); e.refusal(r) != "" {
+		t.Fatalf("an order should be taken: %s", e.refusal(r))
+	}
+}

@@ -294,7 +294,9 @@ func (h *FXHandler) Place(ctx context.Context, meta envelope.Metadata, req FXPla
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
-	if !h.rules.Enabled() {
+	if r, err := h.rulesNow(ctx); err != nil {
+		return nil, err
+	} else if !r.Enabled() {
 		return nil, errors.Internal(stderrors.New("handlers: the book is not configured"))
 	}
 	lang := meta.Language
@@ -499,7 +501,13 @@ func (h *FXHandler) History(ctx context.Context, meta envelope.Metadata, req FXB
 // StartClock makes sure the book's clock runs. It is idempotent and safe on every replica: the clock row is
 // locked and the scheduled action recorded once.
 func (h *FXHandler) StartClock(ctx context.Context) error {
-	if !h.rules.Enabled() || h.rules.Period <= 0 {
+	// Support's treasury is resolved first: the configured rules carry only its code, so checking
+	// h.rules alone would leave the clock unstarted on every live boot.
+	r, err := h.rulesNow(ctx)
+	if err != nil {
+		return err
+	}
+	if !r.Enabled() || r.Period <= 0 {
 		return nil
 	}
 	return h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -552,7 +560,12 @@ func (h *FXHandler) Settle(ctx context.Context, meta envelope.Metadata, req Crim
 			return nil, errors.InvalidInput("book payload is unreadable").WithCause(err)
 		}
 	}
-	if in.PeriodNo < 1 || !h.rules.Enabled() {
+	if in.PeriodNo < 1 {
+		return nil, nil
+	}
+	if r, err := h.rulesNow(ctx); err != nil {
+		return nil, err
+	} else if !r.Enabled() {
 		return nil, nil
 	}
 	return nil, h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
