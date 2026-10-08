@@ -180,6 +180,31 @@ type Money struct {
 	RateDen int64 `json:"rate_den"`
 }
 
+// LocalOffer is what a confirm says about paying a settlement in its own money (ADR 0033 6.10). Every
+// amount is in minor units: SUP for SUP, units for units. Local says the payer holds enough units, so
+// the confirm settles in the local money; CanConvert says they are short and the desk can fill the gap:
+// pressing Convert (the command with the same arguments plus convert and max_sup) buys ConvertUnits
+// units for ConvertSUP SUP, ConvertFee of it the desk's fee, and pays, in one step. When neither is
+// true the confirm settles in SUP as before: the payer is never blocked.
+type LocalOffer struct {
+	Settlement string `json:"settlement"`
+	Code       string `json:"code"`
+	// Name is the authored name of the money, the word to print.
+	Name string `json:"name"`
+	SUP  int64  `json:"sup"`
+	Units      int64  `json:"units"`
+	Holds      int64  `json:"holds"`
+	Local      bool   `json:"local,omitempty"`
+	CanConvert bool   `json:"can_convert,omitempty"`
+	// ConvertSUP, ConvertFee and ConvertUnits are the desk's price for the gap.
+	ConvertSUP   int64 `json:"convert_sup,omitempty"`
+	ConvertFee   int64 `json:"convert_fee,omitempty"`
+	ConvertUnits int64 `json:"convert_units,omitempty"`
+	FeeBPS       int64 `json:"fee_bps,omitempty"`
+	// Convert is the action that converts and pays (the confirm with convert and max_sup added).
+	Convert *Action `json:"convert,omitempty"`
+}
+
 // Ctx is what the core tells a screen constructor about who is reading: the
 // language the player reads, which the edge writes in. It says nothing about
 // the medium.

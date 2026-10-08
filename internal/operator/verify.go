@@ -173,7 +173,9 @@ func VerifyChecks(v postgres.LedgerVerification, cfg *config.Config) []Check {
 	if v.Village && v.LocalObligations {
 		t := v.VillageInvariants
 		out.add(t.LocalLedgerPay == t.LocalRowsPay && t.LocalLedgerCollect == t.LocalRowsCollect, fmt.Sprintf("wages paid in a settlement's own money (%d = %d units) and fees paid in it (%d = %d) in the ledger match the local payment rows", t.LocalLedgerPay, t.LocalRowsPay, t.LocalLedgerCollect, t.LocalRowsCollect))
-		out.add(t.LocalMismatched == 0, fmt.Sprintf("every local payment is one two-leg transaction between holdings of its currency, for the SUP amount at the rate its row names rounded up (%d off)", t.LocalMismatched))
+		out.add(t.LocalLedgerTransfer == t.LocalRowsTransfer, fmt.Sprintf("payments between players in a settlement's own money (%d = %d units) in the ledger match the local payment rows", t.LocalLedgerTransfer, t.LocalRowsTransfer))
+		out.add(t.BurnLedger == t.BurnRows && t.BurnMismatched == 0, fmt.Sprintf("units paid to the NPC economy are burnt exactly: the ledger (%d) matches the burn rows (%d), each burn is the payer's holding into the currency's sink and every settlement's burnt counter is its burn rows (%d off)", t.BurnLedger, t.BurnRows, t.BurnMismatched))
+		out.add(t.LocalMismatched == 0, fmt.Sprintf("every local payment is one transaction between holdings of its currency (two legs, three when a tax rides along), for the SUP amount at the rate its row names rounded up (%d off)", t.LocalMismatched))
 		out.add(t.DeskMismatched == 0, fmt.Sprintf("every desk conversion is its two transactions at the quote of its rate and fee (%d off)", t.DeskMismatched))
 	}
 

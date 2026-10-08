@@ -562,7 +562,21 @@ func (h *CrimeHandler) Conclude(ctx context.Context, meta envelope.Metadata, req
 			return err
 		}
 		owed += value
-		split := crime.Settle(money.FromMinor(owed), fine, cash.Balance, bank.Balance)
+		// a fine imposed by a city with its own money is paid in it when the offender holds the units
+		fineLocal := false
+		if fine.Minor() > 0 {
+			if fineLocal, err = h.payFineLocal(ctx, tx, city.ID, thief.ID, fine.Minor(), application.CrimeReferenceReport, r.ID, now); err != nil {
+				return err
+			}
+		}
+		settleFine := fine
+		if fineLocal {
+			settleFine = money.Amount{}
+		}
+		split := crime.Settle(money.FromMinor(owed), settleFine, cash.Balance, bank.Balance)
+		if fineLocal {
+			split.FineFromCash, split.FineFromBank = money.Amount{}, money.Amount{}
+		}
 		if _, err := h.post(ctx, tx, application.ReasonRestitution, application.CrimeReferenceReport, r.ID,
 			legs(cash, bank, split.RestitutionFromCash, split.RestitutionFromBank, victimCash.ID)); err != nil {
 			return err
@@ -589,6 +603,9 @@ func (h *CrimeHandler) Conclude(ctx context.Context, meta envelope.Metadata, req
 		r.Status = application.ReportSolved
 		r.RestitutionPaid, r.RestitutionShortfall = split.Restitution().Minor(), split.RestitutionShortfall.Minor()
 		r.FineAmount, r.FinePaid, r.JailSentenceID = fine.Minor(), split.FinePaid().Minor(), sentence.ID
+		if fineLocal {
+			r.FinePaid = fine.Minor()
+		}
 		if err := tx.Crime().ConcludeReport(ctx, *r); err != nil {
 			return err
 		}

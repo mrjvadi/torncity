@@ -18,6 +18,7 @@ type paymentReceived struct {
 	PayerCode string `json:"payer_code"`
 	Method    string `json:"method"`
 	Amount    int64  `json:"amount"`
+	Currency  string `json:"currency,omitempty"`
 }
 
 // renderPaymentReceived tells a player that another player paid them, and
@@ -39,6 +40,7 @@ func renderPaymentReceived(_ context.Context, _ Deps, env *envelope.Envelope) (*
 		PayerCode: ev.PayerCode,
 		Method:    ev.Method,
 		Amount:    ev.Amount,
+		Currency:  ev.Currency,
 	}
 	return &Draft{
 		PlayerID: ev.PayeeID,

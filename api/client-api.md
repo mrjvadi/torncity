@@ -1564,3 +1564,60 @@ Every neutral command response may carry `money`, the viewer's display currency:
 ```
 
 Every amount in every view is an integer in SUP minor units. Show it in the viewer's money as `round_half_up(sup * rate_num / rate_den)` (integer math, a negative amount keeps its sign), with the SUP amount beside it. `x_ref_ppm` is the live reference rate in parts per million (1000000 is 1.00 until a book trades); it is never a peg. The state-sync `wallet` entity of a settlement's money has `local: true`, `name`, `currency` its code and `cash` the balance in units of that money. The head's command `settlement.currency.charter` (args `r0`, `deposit`, `confirm`, `settlement`) charters a money by hand when the automatic charter could not be paid.
+
+## Paying in a settlement's own money: the village desk, the offer, local payments (2026-10-08)
+
+Phases 2 and 2b of the local currency (ADR 0033 sections 6.9 to 6.11). The rule for every client: **what a player owes a settlement with a chartered money is paid in that money when the payer holds the units; a payer who holds SUP instead is never blocked** (the confirm offers the village desk inside the same step, and doing nothing settles in SUP as before). Nothing converts silently and nothing is minted.
+
+### The village desk and its fee
+
+| Command | Args | Answer |
+|---|---|---|
+| `settlement.currency.desk` | `side`? (`buy` or `sell`), `amount`?, `quote`?, `confirm`?, `settlement`? | `village_currency_desk`, view `DeskView {stage: menu\|ask\|done, side, amount, sup, units, fee, fee_bps, r0, x_ref_ppm, cash_sup, cash_units, desk_units, desk_sup, slippage_bps, presets_sup[], presets_units[], can_set_fee, can_buy, can_sell, min_fee_bps, max_fee_bps}`. Resident only, and only once the money exists. A buy: the player pays `amount` SUP and receives `units = floor((amount - fee) * rate)`, `fee = ceil(amount * fee_bps / 10000)` SUP kept by the treasury. A sell: the player gives `amount` units and receives `sup = floor((amount - fee) / rate)`, `fee = ceil(amount * fee_bps / 10000)` units kept. One atomic confirm with price protection: `quote` is the `units` (buy) or `sup` (sell) that was shown; the desk refuses `desk_moved` when the result is worse by more than `slippage_bps`. Units come from the treasury's own holding and the SUP it takes goes to the treasury; an empty desk refuses `desk_empty` (never a mint), a treasury short of SUP for a sell refuses `desk_no_sup`, a payer short of funds `desk_funds` |
+| `settlement.currency.fee` | `bps`, `settlement`? | the holder of the `currency.charter` permission sets the desk's fee (10 to 300 basis points, default 30). Answers the desk menu. Refusal `not_office_holder` otherwise |
+
+### `response.offer`: the confirm of an obligation to a settlement with its own money
+
+A confirm screen of the commands listed below carries `offer` when the settlement it pays has a chartered money:
+
+```json
+"offer": {"settlement": "…", "code": "MKP", "name": "مارک پولو", "sup": 100, "units": 1000, "holds": 0,
+          "local": false, "can_convert": true, "convert_sup": 1011, "convert_fee": 4, "convert_units": 1000, "fee_bps": 30,
+          "convert": {"id": "convert", "command": "settlement.donate", "args": ["100", "confirm", "", "1", "1011"], "params": {"convert": "1", "max_sup": "1011", "amount": "100", "confirm": "confirm"}, "role": "primary"}}
+```
+
+- `sup` is the obligation, `units` what it comes to in the money (rounded up: the payer owes the rounding), `holds` the units the payer holds now (every amount in units of the money, not SUP; show them with the money's `name`).
+- `local: true`: the payer holds enough, the confirm pays in the money. Say so ("paid in {name}: {units}").
+- `can_convert: true`: the payer is short and the desk can fill the gap right now. Show the gap (`convert_units`), the price in SUP (`convert_sup`, of which `convert_fee` is the desk's fee) and a button that sends `offer.convert` (the confirm's own command and arguments plus `convert` = `1` and `max_sup` = `convert_sup`, the price protection: the desk refuses `desk_moved` if it now asks more). The conversion and the payment are one transaction group: both happen or neither.
+- neither: the confirm settles in SUP as before; show nothing about the money.
+- `offer` is absent when the settlement has no chartered money.
+
+The commands that take the pair `convert` and `max_sup` (named arguments, and the last two positionals):
+
+| Command | Where `convert`, `max_sup` stand | What they pay |
+|---|---|---|
+| `settlement.donate` | after `settlement` | the gift |
+| `settlement.lot.buy` | after `road` | the lot's price (the road fee stays SUP) |
+| `settlement.private.place` | after `confirm` | the building permit (construction and materials stay SUP) |
+| `settlement.shop.buy` | after `nonce` | the shelf, see below |
+| `education.enroll` | after `method` | the class fee (school) or the tuition (home teacher, the tax share going to the treasury) |
+| `life.sleep` | after `method` | a night's lodging |
+
+A desk refusal met while converting inside a confirm of the village commands is the refusal `desk_empty`, `desk_no_sup`, `desk_funds` or `desk_moved` (the village refusal kinds); `education.enroll` and `life.sleep` fail with the conflict errors `application.ErrDeskEmpty`, `application.ErrDeskNoSUP`, `application.ErrDeskFunds`, `application.ErrDeskMoved`, rolled back whole.
+
+### What is paid in the money without a confirm of its own
+
+- A **player's wage** at a workplace shift, at a construction or repair shift paid by the treasury and as a player teacher; the **fee of a training session**; a **property tax** row of a period (`settlement.tax.pay` and the village's tick); a **fine** imposed by a city that has its own money (crime fines, the faction operation's fine): paid from the holder's units when they hold enough, otherwise SUP exactly as before. The flow's own row (shift, seat, tax row, report) keeps its SUP amount.
+- The **village shelf** (`settlement.shop.buy`): when the buyer holds the units (or converts at the desk in the same confirm), the **price is paid to the NPC economy, so its units are burnt** (the supply of the money falls and the backing basis by the burnt units' share; the reserve pot keeps its SUP) and the **sales tax goes to the treasury in units**. The sale row keeps the SUP total and tax; `method` on the answer is `local`.
+
+### Paying a neighbour: `bank.pay` and `bank.pay.send` with `method: "local"`
+
+Two players who live in the same settlement, when it has chartered its money, may pay each other in it. The pay screen (`pay`, view `PayView`) then carries `local_name`, `local` (the payer's units), `local_options[]` and `can_local`; `economy.pay` adds a third group of buttons with `method` = `local`. The `amount` of a local payment is in **units** of the money, there is no fee and no need to stand together. `bank.pay` with `method: "local"` answers `pay_confirm` whose `currency` names the money and `amount`, `total` and `after` are units; `bank.pay.send` pays (the `nonce` makes a second press a replay) and answers `pay_sent` with `currency` set. A payer short of units goes back to the pay screen with the notice `short_local` (`needed`, `available` in units, `name`). The payee's notice (`payment_received`) carries `method: "local"` and `currency`. The payer chooses; nothing is converted for them.
+
+### Ledger reasons (ADR 0009 section 2)
+
+`local_wage`, `local_payment`, `local_transfer` (a player to a player, with a treasury share for the tax of a tuition fee), `fx_desk_sup` and `fx_desk_local` (the two legs of a conversion), `currency_burn`. A holder's history shows them in the currency of the account.
+
+### Not paid in the money
+
+NPC wages, the storekeeper's wage and the citizen employer's escrow, construction, materials, research and upkeep (all SUP-indexed), the road fee of a lot, a lot's refund, and the bag repair at the shop counter. Property rent, property tax and upkeep of the city module (`property.*`) belong to cities and do not run in a founded settlement.

@@ -82,6 +82,9 @@ type CurrencyIssue struct {
 	LedgerTransactionID    string
 	By                     string
 	At                     time.Time
+	// ReferenceType and ReferenceID name the flow row a burn stands for (a shelf sale): one burn
+	// per row.
+	ReferenceType, ReferenceID string
 }
 
 // CurrencyRepository is the port of settlement currencies, reached through Tx.Currency.
@@ -97,6 +100,10 @@ type CurrencyRepository interface {
 	// RecordMint writes the issuance row and raises the state's counters by the deposit, the
 	// units and the basis, in the caller's transaction.
 	RecordMint(ctx context.Context, e CurrencyIssue, basisSUP int64) error
+	// RecordBurn writes the issuance row of a burn and lowers the state's burnt counter and basis.
+	RecordBurn(ctx context.Context, e CurrencyIssue, basisSUP int64) error
+	// BurnOf is the burn logged for one flow row, or nil.
+	BurnOf(ctx context.Context, refType, refID string) (*CurrencyIssue, error)
 	// Displays reads the display currency of each settlement in the list: those that are
 	// chartered, keyed by settlement id.
 	Displays(ctx context.Context, settlementIDs []string) (map[string]CurrencyState, error)

@@ -548,7 +548,17 @@ func (h *CrimeHandler) settle(ctx context.Context, tx application.Tx, meta envel
 		view.Jail = &plife.CrimeProgress{Remaining: sentence.EndsAt.Sub(in.now), EndsAt: sentence.EndsAt}
 		// A fine is paid on the spot from cash, then the bank; what cannot
 		// be paid stays on the record (docs/adr/0019).
+		fineLocal := false
 		if out.Fine.Minor() > 0 {
+			if fineLocal, err = h.payFineLocal(ctx, tx, in.city.ID, in.thief.ID, out.Fine.Minor(), application.CrimeReferenceAttempt, row.ID, in.now); err != nil {
+				return view, err
+			}
+			if fineLocal {
+				row.FineAmount, row.FinePaid = out.Fine.Minor(), out.Fine.Minor()
+				view.Fine, view.FinePaid = row.FineAmount, row.FinePaid
+			}
+		}
+		if out.Fine.Minor() > 0 && !fineLocal {
 			split := crime.Settle(money.Amount{}, out.Fine, thiefCash.Balance, thiefBank.Balance)
 			treasury, err := ledger.AccountFor(ctx, application.AccountCityTreasury, in.city.ID)
 			if err != nil {

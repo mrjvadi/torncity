@@ -7,6 +7,7 @@ gov:
     notice: "📭 {by_office} {by} شما را از منصب {office} {place} برکنار کرد."
 pay:
   received_cash: "💵 {player} مبلغ {amount} را نقد به شما داد."
+  received_local: "🏘 {player} مبلغ {amount} را به پول شهرتان برای شما فرستاد."
   received_card: "💳 {player} مبلغ {amount} را با کارت برای شما فرستاد. این پول به حساب بانکی شما واریز شد."
 crime:
   victim:

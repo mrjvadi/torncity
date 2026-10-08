@@ -31,9 +31,16 @@ func localRules() application.CurrencyRules {
 // the fee 1000 and a deposit of 5000 leave 54000 SUP and 49,750 units).
 func charteredLaborEnv(t *testing.T) *laborEnv {
 	t.Helper()
-	l := newLaborEnv(t)
+	return charterLaborEnv(t, newLaborEnv(t))
+}
+
+// charterLaborEnv charters the money of an environment's settlement (the shop environment builds on one).
+func charterLaborEnv(t *testing.T, l *laborEnv) *laborEnv {
+	t.Helper()
 	ctx := testCtx(t)
 	currencyCleanup(t, l.pool, l.cityID)
+	// the head looks at screens that open a holding for whoever views them
+	t.Cleanup(func() { purgeLedgerFor(t, l.pool, l.head.ID) })
 	t.Cleanup(func() {
 		c := testCtx(t)
 		_, _ = l.pool.Raw().Exec(c, `ALTER TABLE item_movements DISABLE TRIGGER item_movements_append_only`)

@@ -342,8 +342,9 @@ func (h *VillageHandler) BuyLot(ctx context.Context, meta envelope.Metadata, req
 	carveAsked := strings.TrimSpace(req.Road) == village.RepairCarve || strings.TrimSpace(req.Confirm) == village.RepairCarve
 	confirmed := strings.TrimSpace(req.Confirm) == village.ResidenceConfirm
 	var (
-		view village.LotBuyView
-		done bool
+		view  village.LotBuyView
+		done  bool
+		offer *application.LocalOffer
 	)
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		sc, err := h.citizenScopeWith(ctx, tx, meta, &lang, true, confirmed)
@@ -417,10 +418,17 @@ func (h *VillageHandler) BuyLot(ctx context.Context, meta envelope.Metadata, req
 			}
 			return nil
 		}
-		if cash < view.Total {
-			return refuseVillage(village.CitizenNoCash, village.AddrLand)
-		}
 		if !confirmed {
+			if offer, err = application.LocalOfferFor(ctx, tx, sc.s.CityID, sc.p.ID, sc.price, 0); err != nil {
+				return err
+			}
+			need := view.Total
+			if offer != nil && offer.Local {
+				need -= sc.price // the lot is paid in the village's money
+			}
+			if cash < need {
+				return refuseVillage(village.CitizenNoCash, village.AddrLand)
+			}
 			return nil
 		}
 
@@ -442,28 +450,51 @@ func (h *VillageHandler) BuyLot(ctx context.Context, meta envelope.Metadata, req
 			}
 			return err
 		}
+		// the lot is paid in the village's own money when the buyer holds the units, or converts at the
+		// desk inside this confirm; otherwise in SUP, as before. The road is laid for SUP either way.
+		lr, lerr := application.PayLocal(ctx, tx, h.ids.NewID, application.LocalPayment{
+			SettlementID: sc.s.CityID, PlayerID: sc.p.ID, Direction: application.LocalCollect, Flow: application.ReasonSettlementLotSale,
+			SUP: sc.price, TxID: txID, RefType: application.SettlementLotReference, RefID: lotID, At: now,
+			Convert: req.wantsConvert(), MaxConvertSUP: req.maxSUP(),
+		})
+		if lerr != nil {
+			if r, ok := deskRefusal(lerr); ok {
+				return r
+			}
+			return lerr
+		}
+		cash -= lr.ConvertSUP
+		need := view.Total
+		if lr.Paid {
+			need -= sc.price
+		}
+		if cash < need {
+			return refuseVillage(village.CitizenNoCash, village.AddrLand)
+		}
 		treasuryAcct, err := tx.Ledger().AccountFor(ctx, application.AccountCityTreasury, sc.s.CityID)
 		if err != nil {
 			return err
 		}
-		if _, err := tx.Ledger().Post(ctx, application.LedgerTransaction{
-			ID: txID, Reason: application.ReasonSettlementLotSale, CreatedAt: now,
-			ReferenceType: application.SettlementLotReference, ReferenceID: lotID,
-			Entries: []application.LedgerEntry{
-				{AccountID: cashAcct.ID, Amount: money.FromMinor(-sc.price)},
-				{AccountID: treasuryAcct.ID, Amount: money.FromMinor(sc.price)},
-			},
-		}); err != nil {
-			if stderrors.Is(err, application.ErrInsufficientFunds) {
-				return refuseVillage(village.CitizenNoCash, village.AddrLand)
+		if !lr.Paid {
+			if _, err := tx.Ledger().Post(ctx, application.LedgerTransaction{
+				ID: txID, Reason: application.ReasonSettlementLotSale, CreatedAt: now,
+				ReferenceType: application.SettlementLotReference, ReferenceID: lotID,
+				Entries: []application.LedgerEntry{
+					{AccountID: cashAcct.ID, Amount: money.FromMinor(-sc.price)},
+					{AccountID: treasuryAcct.ID, Amount: money.FromMinor(sc.price)},
+				},
+			}); err != nil {
+				if stderrors.Is(err, application.ErrInsufficientFunds) {
+					return refuseVillage(village.CitizenNoCash, village.AddrLand)
+				}
+				return err
 			}
-			return err
 		}
 		laid, remaining, err := h.layAccess(ctx, tx, sc, chosen, [2]int{x, y}, application.ConnectionBuy, cashAcct, now)
 		if err != nil {
 			return err
 		}
-		view.Cash, view.Treasury = cash-view.Total, treasury+sc.price
+		view.Cash, view.Treasury = cash-need, treasury+sc.price
 		lots := append(remaining, application.SettlementLot{
 			ID: lotID, SettlementID: sc.s.CityID, X: x, Y: y, Tenure: application.TenureFreehold, OwnerID: sc.p.ID, Price: sc.price,
 		})
@@ -479,7 +510,7 @@ func (h *VillageHandler) BuyLot(ctx context.Context, meta envelope.Metadata, req
 	if done {
 		return village.LotBuyDone(c, view), nil
 	}
-	return village.LotBuyConfirm(c, view), nil
+	return attachOffer(village.LotBuyConfirm(c, view), offer, 3), nil
 }
 
 // RepairLot handles settlement.lot.repair: a resident puts right a lot of their

@@ -23,6 +23,16 @@ func (s LifeInvariants) ok() bool {
 // verifyLife runs the life's invariants.
 func (a *EconomyAdmin) verifyLife(ctx context.Context, v *LedgerVerification) error {
 	s := &v.LifeInvariants
+	// a night paid in a settlement's own money (migration 0128) has its row in local_payments instead of a
+	// lodging fee; the older schemas the support-merge rehearsal verifies have no such table
+	var hasLocal bool
+	if err := a.q.QueryRow(ctx, `SELECT to_regclass('public.local_payments') IS NOT NULL`).Scan(&hasLocal); err != nil {
+		return fmt.Errorf("postgres: looking for local payments: %w", err)
+	}
+	notLocal := "TRUE"
+	if hasLocal {
+		notLocal = "NOT EXISTS (SELECT 1 FROM local_payments lp WHERE lp.reference_id = s.id)"
+	}
 	for _, c := range []struct {
 		into *int64
 		what string
@@ -30,10 +40,10 @@ func (a *EconomyAdmin) verifyLife(ctx context.Context, v *LedgerVerification) er
 	}{
 		{&s.LodgingLedger, "lodging fees", `SELECT COALESCE(SUM(amount), 0)::bigint FROM ledger_entries
 			WHERE reason = 'lodging_fee' AND amount > 0`},
-		{&s.LodgingRows, "nights paid", `SELECT COALESCE(SUM(price), 0)::bigint FROM life_sleeps`},
+		{&s.LodgingRows, "nights paid", `SELECT COALESCE(SUM(price), 0)::bigint FROM life_sleeps s WHERE ` + notLocal},
 		{&s.UnpaidNights, "nights without their fee", `
 			SELECT count(*) FROM life_sleeps s
-			 WHERE s.price > 0 AND NOT EXISTS (
+			 WHERE s.price > 0 AND ` + notLocal + ` AND NOT EXISTS (
 			     SELECT 1 FROM ledger_entries e
 			      WHERE e.transaction_id = s.ledger_transaction_id AND e.reason = 'lodging_fee'
 			        AND e.reference_type = 'life_sleeps' AND e.reference_id = s.id AND e.amount = s.price)`},

@@ -29,6 +29,12 @@ const (
 	ReasonLocalPayment Reason = "local_payment"
 	ReasonFXDeskSUP    Reason = "fx_desk_sup"
 	ReasonFXDeskLocal  Reason = "fx_desk_local"
+	// ReasonLocalTransfer moves local units from one player's holding to another's (a tuition fee, a
+	// rent, a face-to-face payment), with the share a tax takes going on to the treasury's holding.
+	ReasonLocalTransfer Reason = "local_transfer"
+	// ReasonCurrencyBurn destroys local units a player paid to the NPC economy (the village shelf): a
+	// drain in the currency's own system sink (ADR 0033 6.11).
+	ReasonCurrencyBurn Reason = "currency_burn"
 )
 
 // Reference types.
@@ -47,6 +53,8 @@ const (
 	LocalPay = "pay"
 	// LocalCollect is a player paying the treasury (a fee).
 	LocalCollect = "collect"
+	// LocalTransfer is a player paying another player.
+	LocalTransfer = "transfer"
 )
 
 // LocalPaymentRow is one row of local_payments.
@@ -56,6 +64,10 @@ type LocalPaymentRow struct {
 	LedgerTransactionID                         string
 	ReferenceType, ReferenceID                  string
 	At                                          time.Time
+	// PayeeID is the receiving player of a transfer; CutUnits the share of the units that went on to
+	// the treasury (a tax).
+	PayeeID  string
+	CutUnits int64
 }
 
 // DeskTrade is one row of currency_desk_trades.
@@ -85,6 +97,18 @@ type LocalPayment struct {
 	// payment per row and direction, which makes a redelivery a no-op.
 	RefType, RefID string
 	At             time.Time
+	// PayeeID is the player a LocalTransfer pays; CutBPS the share of the units that goes to the
+	// settlement's treasury instead (a tax, basis points of the payment).
+	PayeeID string
+	CutBPS  int64
+	// Convert lets a payer who holds too few units buy the rest at the village desk inside this very
+	// payment (ADR 0033 6.10): one transaction group, the fee shown beforehand. MaxConvertSUP is the
+	// SUP the payer was shown and agreed to; the conversion is refused (ErrDeskMoved) when it now costs
+	// more than that by more than SlippageBPS. A payer who does not ask to convert and holds too few
+	// units simply settles in SUP: never blocked, never converted silently.
+	Convert       bool
+	MaxConvertSUP int64
+	SlippageBPS   int64
 }
 
 // LocalResult says what PayLocal did.
@@ -95,6 +119,10 @@ type LocalResult struct {
 	// Already is true when an earlier call of the same flow row did it.
 	Already bool
 	Units   int64
+	// Converted is true when the payer bought units at the desk to pay; ConvertSUP is the SUP the desk
+	// took (its fee included) and ConvertFee that fee.
+	Converted              bool
+	ConvertSUP, ConvertFee int64
 }
 
 // PayLocal settles one obligation in the settlement's own money when that is possible: the settlement
@@ -130,12 +158,45 @@ func PayLocal(ctx context.Context, tx Tx, newID func() string, p LocalPayment) (
 	if err != nil {
 		return LocalResult{}, err
 	}
+	var payee Account
+	cut := int64(0)
 	from, to, reason := treasury, player, ReasonLocalWage
-	if p.Direction == LocalCollect {
+	switch p.Direction {
+	case LocalCollect:
 		from, to, reason = player, treasury, ReasonLocalPayment
+	case LocalTransfer:
+		if p.PayeeID == "" || p.PayeeID == p.PlayerID {
+			return LocalResult{}, nil
+		}
+		if payee, err = ledger.AccountForCurrency(ctx, AccountForeignHolding, p.PayeeID, st.Code); err != nil {
+			return LocalResult{}, err
+		}
+		from, to, reason = player, payee, ReasonLocalTransfer
+		if p.CutBPS > 0 {
+			cut = units * p.CutBPS / currency.BPS
+			if cut >= units {
+				cut = 0
+			}
+		}
 	}
+	res := LocalResult{}
 	if from.Balance.Minor() < units {
-		return LocalResult{}, nil // too few units: SUP, as before
+		if !p.Convert || p.Direction == LocalPay || p.DryRun {
+			return LocalResult{}, nil // too few units: SUP, as before
+		}
+		short := units - from.Balance.Minor()
+		cost := currency.DeskBuyCost(short, st.Rate(), st.FXFeeBPS)
+		if cost <= 0 {
+			return LocalResult{}, ErrDeskNone
+		}
+		if p.MaxConvertSUP > 0 && cost > p.MaxConvertSUP+p.MaxConvertSUP*p.SlippageBPS/currency.BPS {
+			return LocalResult{}, ErrDeskMoved
+		}
+		d, err := ExecuteDesk(ctx, tx, newID, *st, p.PlayerID, DeskBuy, cost, short, p.At)
+		if err != nil {
+			return LocalResult{}, err
+		}
+		res.Converted, res.ConvertSUP, res.ConvertFee = true, d.Quote.SUP, d.Quote.Fee
 	}
 	if p.DryRun {
 		return LocalResult{Paid: true, Units: units}, nil
@@ -147,20 +208,25 @@ func PayLocal(ctx context.Context, tx Tx, newID func() string, p LocalPayment) (
 	if err := repo.RecordLocalPayment(ctx, LocalPaymentRow{
 		ID: rowID, SettlementID: p.SettlementID, PlayerID: p.PlayerID, Direction: p.Direction, Flow: string(p.Flow),
 		SUPAmount: p.SUP, Units: units, R0: st.R0, XRefPPM: st.XRefPPM, LedgerTransactionID: p.TxID,
-		ReferenceType: p.RefType, ReferenceID: p.RefID, At: p.At,
+		ReferenceType: p.RefType, ReferenceID: p.RefID, At: p.At, PayeeID: p.PayeeID, CutUnits: cut,
 	}); err != nil {
 		return LocalResult{}, err
+	}
+	entries := []LedgerEntry{
+		{AccountID: from.ID, Amount: money.FromMinor(-units)},
+		{AccountID: to.ID, Amount: money.FromMinor(units - cut)},
+	}
+	if cut > 0 {
+		entries = append(entries, LedgerEntry{AccountID: treasury.ID, Amount: money.FromMinor(cut)})
 	}
 	if _, err := ledger.Post(ctx, LedgerTransaction{
 		ID: p.TxID, Reason: reason, CreatedAt: p.At, ReferenceType: LocalPaymentReference, ReferenceID: rowID,
-		Entries: []LedgerEntry{
-			{AccountID: from.ID, Amount: money.FromMinor(-units)},
-			{AccountID: to.ID, Amount: money.FromMinor(units)},
-		},
+		Entries: entries,
 	}); err != nil {
 		return LocalResult{}, err
 	}
-	return LocalResult{Paid: true, Units: units}, nil
+	res.Paid, res.Units = true, units
+	return res, nil
 }
 
 // DeskQuote is what the desk offers for one conversion.
@@ -293,4 +359,78 @@ func ExecuteDesk(ctx context.Context, tx Tx, newID func() string, st CurrencySta
 		return DeskResult{}, err
 	}
 	return DeskResult{Quote: q, Trade: trade}, nil
+}
+
+// LocalFlowPlayerPayment is the flow of a payment between two players in the settlement's own money
+// (bank.pay.send with the method local): its amount is in units from the start, so the row's SUP value
+// is only the live rate's reading of it and the verifier does not recompute the units from it.
+const LocalFlowPlayerPayment = "player_payment"
+
+// ErrNotEnoughUnits means the payer holds fewer units than the payment.
+var ErrNotEnoughUnits = errors.Sentinel(errors.CodeConflict, "application.ErrNotEnoughUnits", "the payer holds too few units")
+
+// LocalUnitsTransfer asks for one player to pay another an amount of the settlement's units.
+type LocalUnitsTransfer struct {
+	SettlementID, PayerID, PayeeID string
+	Units                          int64
+	// RefType and RefID are the payment's own row (one transfer per row and direction).
+	RefType, RefID string
+	TxID           string
+	At             time.Time
+}
+
+// TransferUnits moves units from one player's holding to another's, with no fee, one ledger transaction
+// (local_transfer). It checks the payer's units (ErrNotEnoughUnits); that both live in the settlement
+// is the caller's rule. A repeat of the same RefType/RefID writes nothing.
+func TransferUnits(ctx context.Context, tx Tx, newID func() string, t LocalUnitsTransfer) (LocalResult, error) {
+	if t.Units <= 0 || t.PayerID == "" || t.PayeeID == "" || t.PayerID == t.PayeeID {
+		return LocalResult{}, ErrInvalidMoneyAmount
+	}
+	repo := tx.Currency()
+	st, err := repo.State(ctx, t.SettlementID)
+	if err != nil || st == nil || st.Status != CurrencyChartered {
+		return LocalResult{}, err
+	}
+	if row, err := repo.LocalPaymentOf(ctx, t.RefType, t.RefID, LocalTransfer); err != nil {
+		return LocalResult{}, err
+	} else if row != nil {
+		return LocalResult{Paid: true, Already: true, Units: row.Units}, nil
+	}
+	ledger := tx.Ledger()
+	payer, err := ledger.AccountForCurrency(ctx, AccountForeignHolding, t.PayerID, st.Code)
+	if err != nil {
+		return LocalResult{}, err
+	}
+	payee, err := ledger.AccountForCurrency(ctx, AccountForeignHolding, t.PayeeID, st.Code)
+	if err != nil {
+		return LocalResult{}, err
+	}
+	if payer.Balance.Minor() < t.Units {
+		return LocalResult{}, ErrNotEnoughUnits
+	}
+	if t.TxID == "" {
+		t.TxID = newID()
+	}
+	rowID := newID()
+	sup := st.Rate().ToSUPFloor(t.Units)
+	if sup < 1 {
+		sup = 1
+	}
+	if err := repo.RecordLocalPayment(ctx, LocalPaymentRow{
+		ID: rowID, SettlementID: t.SettlementID, PlayerID: t.PayerID, Direction: LocalTransfer, Flow: LocalFlowPlayerPayment,
+		SUPAmount: sup, Units: t.Units, R0: st.R0, XRefPPM: st.XRefPPM, LedgerTransactionID: t.TxID,
+		ReferenceType: t.RefType, ReferenceID: t.RefID, At: t.At, PayeeID: t.PayeeID,
+	}); err != nil {
+		return LocalResult{}, err
+	}
+	if _, err := ledger.Post(ctx, LedgerTransaction{
+		ID: t.TxID, Reason: ReasonLocalTransfer, CreatedAt: t.At, ReferenceType: LocalPaymentReference, ReferenceID: rowID,
+		Entries: []LedgerEntry{
+			{AccountID: payer.ID, Amount: money.FromMinor(-t.Units)},
+			{AccountID: payee.ID, Amount: money.FromMinor(t.Units)},
+		},
+	}); err != nil {
+		return LocalResult{}, err
+	}
+	return LocalResult{Paid: true, Units: t.Units}, nil
 }

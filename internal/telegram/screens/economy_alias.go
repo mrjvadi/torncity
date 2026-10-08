@@ -9,6 +9,7 @@ const AddrPay = economy.AddrPay
 const AddrPaySend = economy.AddrPaySend
 const PayCash = economy.PayCash
 const PayCard = economy.PayCard
+const PayLocal = economy.PayLocal
 
 type AmountOption = economy.AmountOption
 type BankView = economy.BankView

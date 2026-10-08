@@ -134,6 +134,7 @@ func Render(msgs screens.Translator, d Delivery, r *presentation.Response) (*pre
 	if out == nil {
 		return nil, fmt.Errorf("render: the renderer of %q returned nothing", r.Screen)
 	}
+	applyOffer(c, out, r.Offer)
 	// What the core decided travels on; what Telegram decided stays.
 	out.Private = out.Private || r.Private
 	if len(r.Resume) > 0 {
@@ -149,6 +150,35 @@ func Render(msgs screens.Translator, d Delivery, r *presentation.Response) (*pre
 	out.Actions = nil
 	out.Lang = ""
 	return out, nil
+}
+
+// applyOffer adds what a confirm says about paying in the settlement's own money: a paragraph and, when
+// the payer can convert at the village desk inside the same step, the button that does (docs/adr/0033
+// 6.10). The button goes above the navigation row.
+func applyOffer(c screens.Context, out *presenter.Response, o *presentation.LocalOffer) {
+	if o == nil {
+		return
+	}
+	if text := screens.OfferText(c, o); text != "" {
+		if out.Text != "" {
+			out.Text += "\n\n"
+		}
+		out.Text += text
+	}
+	btn, ok := screens.OfferButton(c, o)
+	if !ok {
+		return
+	}
+	if out.Keyboard == nil {
+		out.Keyboard = &presenter.Keyboard{}
+	}
+	rows := out.Keyboard.Rows
+	if n := len(rows); n > 0 {
+		rows = append(rows[:n-1:n-1], []presenter.Button{btn}, rows[n-1])
+	} else {
+		rows = [][]presenter.Button{{btn}}
+	}
+	out.Keyboard.Rows = rows
 }
 
 // renderNotice words a coded notice (what Telegram shows as a toast).

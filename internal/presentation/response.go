@@ -140,6 +140,11 @@ type Response struct {
 	// responses only; the core sets it just before the reply (see Money).
 	Money *Money `json:"money,omitempty"`
 
+	// Offer is set on a confirm that asks the payer to settle an obligation to a settlement with its own
+	// money: what it comes to in units, what the payer holds, and what converting at the village desk
+	// inside the same confirm would cost (ADR 0033 6.10). Neutral responses only.
+	Offer *LocalOffer `json:"offer,omitempty"`
+
 	// Refusal is set when the screen is a command refused before it changed
 	// anything; it codes why. The screen and view still describe it.
 	Refusal *Code `json:"refusal,omitempty"`

@@ -68,33 +68,38 @@ func (a *EconomyAdmin) verifyCitizen(ctx context.Context, v *LedgerVerification)
 	}
 	checks := []check{
 		{&s.LotSaleLedger, "lot sales", credited, []any{"settlement_lot_sale"}},
-		{&s.LotSaleRows, "lot rows", `SELECT COALESCE(SUM(price), 0)::bigint FROM settlement_lots`, nil},
+		{&s.LotSaleRows, "lot rows", `SELECT COALESCE(SUM(price), 0)::bigint FROM settlement_lots l
+			WHERE NOT EXISTS (SELECT 1 FROM local_payments lp WHERE lp.reference_id = l.id)`, nil},
 		{&s.LotSaleMismatched, "lot transactions", `
 			SELECT count(*) FROM settlement_lots l
-			 WHERE (SELECT count(*) FROM ledger_entries e
+			 WHERE NOT EXISTS (SELECT 1 FROM local_payments lp WHERE lp.reference_id = l.id)
+			   AND ((SELECT count(*) FROM ledger_entries e
 			         WHERE e.transaction_id = l.ledger_transaction_id AND e.reason = 'settlement_lot_sale'
 			           AND e.reference_type = 'settlement_lots' AND e.reference_id = l.id) <> 2
 			    OR (SELECT COALESCE(SUM(e.amount), 0) FROM ledger_entries e
-			         WHERE e.transaction_id = l.ledger_transaction_id AND e.amount > 0) <> l.price`, nil},
+			         WHERE e.transaction_id = l.ledger_transaction_id AND e.amount > 0) <> l.price)`, nil},
 		{&s.PermitLedger, "permit fees", credited, []any{"settlement_permit_fee"}},
-		{&s.PermitRows, "permit rows", `SELECT COALESCE(SUM(permit_fee), 0)::bigint FROM settlement_private_buildings`, nil},
+		{&s.PermitRows, "permit rows", `SELECT COALESCE(SUM(permit_fee), 0)::bigint FROM settlement_private_buildings b
+			WHERE NOT EXISTS (SELECT 1 FROM local_payments lp WHERE lp.reference_id = b.building_id)`, nil},
 		{&s.ConstructionLedger, "private construction", credited, []any{"citizen_construction"}},
 		{&s.ConstructionRows, "private construction rows", `SELECT COALESCE(SUM(construction_paid), 0)::bigint FROM settlement_private_buildings`, nil},
 		{&s.MaterialsLedger, "bought materials", credited, []any{"citizen_materials"}},
 		{&s.MaterialsRows, "bought materials rows", `SELECT COALESCE(SUM(materials_paid), 0)::bigint FROM settlement_private_buildings`, nil},
 		{&s.BuildingMismatched, "private building transactions", `
 			SELECT count(*) FROM settlement_private_buildings b
-			 WHERE (SELECT COALESCE(SUM(e.amount), 0) FROM ledger_entries e WHERE e.reason = 'settlement_permit_fee'
-			         AND e.reference_type = 'settlement_private_buildings' AND e.reference_id = b.building_id AND e.amount > 0) <> b.permit_fee
+			 WHERE (NOT EXISTS (SELECT 1 FROM local_payments lp WHERE lp.reference_id = b.building_id)
+			        AND (SELECT COALESCE(SUM(e.amount), 0) FROM ledger_entries e WHERE e.reason = 'settlement_permit_fee'
+			         AND e.reference_type = 'settlement_private_buildings' AND e.reference_id = b.building_id AND e.amount > 0) <> b.permit_fee)
 			    OR (SELECT COALESCE(SUM(e.amount), 0) FROM ledger_entries e WHERE e.reason = 'citizen_construction'
 			         AND e.reference_type = 'settlement_private_buildings' AND e.reference_id = b.building_id AND e.amount > 0) <> b.construction_paid
 			    OR (SELECT COALESCE(SUM(e.amount), 0) FROM ledger_entries e WHERE e.reason = 'citizen_materials'
 			         AND e.reference_type = 'settlement_private_buildings' AND e.reference_id = b.building_id AND e.amount > 0) <> b.materials_paid`, nil},
 		{&s.TaxLedger, "property tax", credited, []any{"settlement_property_tax"}},
-		{&s.TaxRows, "property tax rows", `SELECT COALESCE(SUM(due), 0)::bigint FROM settlement_property_tax WHERE paid_at IS NOT NULL`, nil},
+		{&s.TaxRows, "property tax rows", `SELECT COALESCE(SUM(due), 0)::bigint FROM settlement_property_tax t WHERE t.paid_at IS NOT NULL
+			AND NOT EXISTS (SELECT 1 FROM local_payments lp WHERE lp.reference_id = t.id)`, nil},
 		{&s.TaxMismatched, "property tax transactions", `
 			SELECT count(*) FROM settlement_property_tax t
-			 WHERE t.paid_at IS NOT NULL
+			 WHERE t.paid_at IS NOT NULL AND NOT EXISTS (SELECT 1 FROM local_payments lp WHERE lp.reference_id = t.id)
 			   AND ((SELECT count(*) FROM ledger_entries e
 			          WHERE e.transaction_id = t.ledger_transaction_id AND e.reason = 'settlement_property_tax'
 			            AND e.reference_type = 'settlement_property_tax' AND e.reference_id = t.id) <> 2

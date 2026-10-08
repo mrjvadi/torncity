@@ -112,10 +112,17 @@ type VillageInvariants struct {
 	// ledger transaction is not exactly two legs of their units between holdings of their currency,
 	// or whose units are not the SUP amount at the rate the row names (rounded up). DeskMismatched counts
 	// desk trades whose two transactions are not the quote at their rate and fee.
-	LocalObligations                     bool
-	LocalLedgerPay, LocalRowsPay         int64
-	LocalLedgerCollect, LocalRowsCollect int64
-	LocalMismatched, DeskMismatched      int64
+	// Phase 2b (migration 0129): LocalLedgerTransfer and LocalRowsTransfer are the same match for payments
+	// between players (local_transfer); BurnLedger and BurnRows the units destroyed (currency_burn) against
+	// the burn rows of the issuance log; BurnMismatched counts burns whose transaction is not exactly the
+	// payer's holding to the currency's system sink for their units, or whose settlement's burnt counter is
+	// not the sum of its burn rows.
+	LocalObligations                       bool
+	LocalLedgerPay, LocalRowsPay           int64
+	LocalLedgerCollect, LocalRowsCollect   int64
+	LocalLedgerTransfer, LocalRowsTransfer int64
+	BurnLedger, BurnRows, BurnMismatched   int64
+	LocalMismatched, DeskMismatched        int64
 	// ServiceMisrouted counts legs of training_fee (to a treasury, from a player),
 	// trainer_wage (treasury to the sink) and bag_repair (to the sink) that go
 	// anywhere else: those flows have no row table, so their routes are the check.
@@ -128,7 +135,8 @@ func (v VillageInvariants) WorkNodesOK() bool {
 		v.MealJournalUnits == v.MealRowUnits && v.NPCShiftsWithoutJob == 0 && v.NPCHungry == 0 && v.CarryOutOfRange == 0 &&
 		(!v.Repairs || (v.RepairWithoutJob == 0 && v.DamageOutOfRange == 0))) &&
 		(!v.Currencies || (v.PotMismatched == 0 && v.SupplyMismatched == 0 && v.IssuanceMismatched == 0 && v.StrayHoldings == 0)) &&
-		(!v.LocalObligations || (v.LocalLedgerPay == v.LocalRowsPay && v.LocalLedgerCollect == v.LocalRowsCollect && v.LocalMismatched == 0 && v.DeskMismatched == 0))
+		(!v.LocalObligations || (v.LocalLedgerPay == v.LocalRowsPay && v.LocalLedgerCollect == v.LocalRowsCollect && v.LocalLedgerTransfer == v.LocalRowsTransfer &&
+			v.BurnLedger == v.BurnRows && v.BurnMismatched == 0 && v.LocalMismatched == 0 && v.DeskMismatched == 0))
 }
 
 // TeachingOK reports whether the teaching checks hold.
@@ -173,14 +181,16 @@ func (a *EconomyAdmin) verifyVillage(ctx context.Context, v *LedgerVerification)
 			 WHERE c.origin = 'founded'
 			   AND NOT EXISTS (SELECT 1 FROM settlement_grants g WHERE g.settlement_id = c.id)`, nil},
 		{&s.DonationLedger, "settlement donations", credited, []any{"settlement_donation"}},
-		{&s.DonationRows, "settlement donation rows", `SELECT COALESCE(SUM(amount), 0)::bigint FROM settlement_donations`, nil},
+		{&s.DonationRows, "settlement donation rows", `SELECT COALESCE(SUM(amount), 0)::bigint FROM settlement_donations d
+			WHERE NOT EXISTS (SELECT 1 FROM local_payments lp WHERE lp.reference_id = d.id)`, nil},
 		{&s.DonationMismatched, "settlement donation transactions", `
 			SELECT count(*) FROM settlement_donations d
-			 WHERE (SELECT count(*) FROM ledger_entries e
+			 WHERE NOT EXISTS (SELECT 1 FROM local_payments lp WHERE lp.reference_id = d.id)
+			   AND ((SELECT count(*) FROM ledger_entries e
 			         WHERE e.transaction_id = d.ledger_transaction_id AND e.reason = 'settlement_donation'
 			           AND e.reference_type = 'settlement_donations' AND e.reference_id = d.id) <> 2
 			    OR (SELECT COALESCE(SUM(e.amount), 0) FROM ledger_entries e
-			         WHERE e.transaction_id = d.ledger_transaction_id AND e.amount > 0) <> d.amount`, nil},
+			         WHERE e.transaction_id = d.ledger_transaction_id AND e.amount > 0) <> d.amount)`, nil},
 		{&s.TopupLedger, "settlement top-ups", credited, []any{"settlement_topup"}},
 		{&s.TopupRows, "settlement top-up rows", `SELECT COALESCE(SUM(amount), 0)::bigint FROM settlement_topups`, nil},
 		{&s.TopupMismatched, "settlement top-up transactions", `
@@ -275,7 +285,8 @@ func (a *EconomyAdmin) verifyTeaching(ctx context.Context, v *LedgerVerification
 	}
 	s := &v.VillageInvariants
 	fees := `SELECT COALESCE(SUM(e.fee), 0)::bigint FROM enrollments e
-	           JOIN class_seats c ON c.enrollment_id = e.id JOIN course_teachers t ON t.id = c.teacher_id WHERE t.employer = $1`
+	           JOIN class_seats c ON c.enrollment_id = e.id JOIN course_teachers t ON t.id = c.teacher_id WHERE t.employer = $1
+	            AND NOT EXISTS (SELECT 1 FROM local_payments lp WHERE lp.reference_type = 'enrollments' AND lp.reference_id = e.id)`
 	for _, c := range []struct {
 		into *int64
 		what string
@@ -287,11 +298,11 @@ func (a *EconomyAdmin) verifyTeaching(ctx context.Context, v *LedgerVerification
 		{&s.TuitionLedger, "home tuition", `SELECT COALESCE(SUM(amount), 0)::bigint FROM ledger_entries WHERE reason = 'tuition' AND amount > 0`, nil},
 		{&s.TuitionRows, "home tuition rows", fees, []any{"self"}},
 		{&s.TeacherWageLedger, "teacher wages", `SELECT COALESCE(SUM(amount), 0)::bigint FROM ledger_entries WHERE reason IN ('teacher_wage', 'teacher_wage_npc') AND amount > 0`, nil},
-		{&s.TeacherWageRows, "teacher wage rows", `SELECT COALESCE(SUM(wage_paid), 0)::bigint FROM class_seats c WHERE NOT EXISTS (SELECT 1 FROM local_payments lp WHERE lp.reference_id = c.enrollment_id)`, nil},
+		{&s.TeacherWageRows, "teacher wage rows", `SELECT COALESCE(SUM(wage_paid), 0)::bigint FROM class_seats c WHERE NOT EXISTS (SELECT 1 FROM local_payments lp WHERE lp.reference_type = 'class_seats' AND lp.reference_id = c.enrollment_id)`, nil},
 		{&s.TeachMismatched, "teaching seats", `
 			SELECT count(*) FROM class_seats c JOIN enrollments e ON e.id = c.enrollment_id
 			 WHERE c.wage_paid > c.wage
-			    OR (c.wage_paid > 0 AND NOT EXISTS (SELECT 1 FROM local_payments lp WHERE lp.reference_id = c.enrollment_id)
+			    OR (c.wage_paid > 0 AND NOT EXISTS (SELECT 1 FROM local_payments lp WHERE lp.reference_type = 'class_seats' AND lp.reference_id = c.enrollment_id)
 			        AND (SELECT count(*) FROM ledger_entries l
 			         WHERE l.reference_type = 'class_seats' AND l.reference_id = c.enrollment_id
 			           AND l.reason IN ('teacher_wage', 'teacher_wage_npc')) <> 2)
@@ -424,13 +435,27 @@ func (a *EconomyAdmin) verifyLocalObligations(ctx context.Context, v *LedgerVeri
 		{&s.LocalRowsPay, "local wage rows", `SELECT COALESCE(SUM(units), 0)::bigint FROM local_payments WHERE direction = 'pay'`},
 		{&s.LocalLedgerCollect, "local payments in the ledger", `SELECT COALESCE(SUM(amount), 0)::bigint FROM ledger_entries WHERE reason = 'local_payment' AND amount > 0`},
 		{&s.LocalRowsCollect, "local payment rows", `SELECT COALESCE(SUM(units), 0)::bigint FROM local_payments WHERE direction = 'collect'`},
+		{&s.LocalLedgerTransfer, "local transfers in the ledger", `SELECT COALESCE(SUM(amount), 0)::bigint FROM ledger_entries WHERE reason = 'local_transfer' AND amount > 0`},
+		{&s.LocalRowsTransfer, "local transfer rows", `SELECT COALESCE(SUM(units), 0)::bigint FROM local_payments WHERE direction = 'transfer'`},
+		{&s.BurnLedger, "burnt units in the ledger", `SELECT COALESCE(SUM(amount), 0)::bigint FROM ledger_entries WHERE reason = 'currency_burn' AND amount > 0`},
+		{&s.BurnRows, "burn rows", `SELECT COALESCE(SUM(units), 0)::bigint FROM currency_issuance_log WHERE kind = 'burn'`},
+		{&s.BurnMismatched, "burn transactions", `
+			SELECT (SELECT count(*) FROM currency_issuance_log b
+			         WHERE b.kind = 'burn'
+			           AND ((SELECT count(*) FROM ledger_entries e WHERE e.transaction_id = b.ledger_transaction_id AND e.reason = 'currency_burn') <> 2
+			             OR (SELECT COALESCE(SUM(e.amount), 0) FROM ledger_entries e JOIN accounts a ON a.id = e.account_id
+			                  WHERE e.transaction_id = b.ledger_transaction_id AND e.amount > 0 AND a.kind = 'system_sink'
+			                    AND a.currency = (SELECT st.currency_code FROM village_currency_state st WHERE st.settlement_id = b.settlement_id)) <> b.units
+			             OR b.reference_type IS NULL OR b.basis_sup < 0))
+			     + (SELECT count(*) FROM village_currency_state st
+			         WHERE st.burnt_units <> COALESCE((SELECT SUM(b.units) FROM currency_issuance_log b WHERE b.settlement_id = st.settlement_id AND b.kind = 'burn'), 0))`},
 		{&s.LocalMismatched, "local payment transactions", `
 			SELECT count(*) FROM local_payments p
 			 WHERE (SELECT count(*) FROM ledger_entries e WHERE e.transaction_id = p.ledger_transaction_id
-			          AND e.reason = CASE p.direction WHEN 'pay' THEN 'local_wage' ELSE 'local_payment' END
-			          AND e.reference_type = 'local_payments' AND e.reference_id = p.id) <> 2
+			          AND e.reason = CASE p.direction WHEN 'pay' THEN 'local_wage' WHEN 'transfer' THEN 'local_transfer' ELSE 'local_payment' END
+			          AND e.reference_type = 'local_payments' AND e.reference_id = p.id) <> CASE WHEN p.cut_units > 0 THEN 3 ELSE 2 END
 			    OR (SELECT COALESCE(SUM(e.amount), 0) FROM ledger_entries e WHERE e.transaction_id = p.ledger_transaction_id AND e.amount > 0) <> p.units
-			    OR p.units <> ceil(p.sup_amount::numeric * p.r0 * 1000000 / p.x_ref_ppm)`},
+			    OR (p.flow <> 'player_payment' AND p.units <> ceil(p.sup_amount::numeric * p.r0 * 1000000 / p.x_ref_ppm))`},
 		{&s.DeskMismatched, "desk trades", `
 			SELECT count(*) FROM currency_desk_trades t
 			 WHERE (SELECT COALESCE(SUM(e.amount), 0) FROM ledger_entries e WHERE e.transaction_id = t.sup_transaction_id AND e.amount > 0

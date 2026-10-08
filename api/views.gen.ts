@@ -3709,6 +3709,7 @@ export interface PayConfirmView {
   after: number
   nonce: string
   origin: string
+  currency: string
 }
 
 export interface PayHelpView {
@@ -3721,6 +3722,7 @@ export interface PaySentView {
   amount: number
   fee: number
   held: boolean
+  currency: string
 }
 
 export interface PayView {
@@ -3739,6 +3741,10 @@ export interface PayView {
   can_cash: boolean
   can_card: boolean
   origin: string
+  local_name: string
+  local: number
+  local_options: AmountOption[] | null
+  can_local: boolean
   notice: string
   notice_args: Record<string, unknown> | null
 }
@@ -3765,6 +3771,7 @@ export interface PaymentView {
   payer_code: string
   method: string
   amount: number
+  currency: string
 }
 
 export interface PeriodLine {

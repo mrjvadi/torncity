@@ -91,6 +91,8 @@ type LifeRequest struct {
 	Spot   string `json:"spot,omitempty"`
 	Method string `json:"method,omitempty"`
 	Board  string `json:"board,omitempty"`
+	// LocalSettle asks to convert at the village desk and pay the night in the village's own money.
+	LocalSettle
 }
 
 // lifeRefusal carries a refusal out of a unit of work.
@@ -103,7 +105,10 @@ func refuseLife(kind string) *lifeRefusal {
 }
 
 // sleepPayment carries the price screen of a night out of a unit of work.
-type sleepPayment struct{ view plife.SleepPayView }
+type sleepPayment struct {
+	view  plife.SleepPayView
+	offer *application.LocalOffer
+}
 
 func (s *sleepPayment) Error() string { return "handlers: a night to pay for" }
 
@@ -119,7 +124,7 @@ func (h *LifeHandler) finish(meta envelope.Metadata, lang string, err error) (*p
 	}
 	var pay *sleepPayment
 	if stderrors.As(err, &pay) {
-		return plife.SleepPay(presentation.Ctx{Lang: lang}, pay.view), nil
+		return attachOfferCmd(plife.SleepPay(presentation.Ctx{Lang: lang}, pay.view), pay.offer, "life.sleep", 2), nil
 	}
 	if v, ok := asNotHere(err); ok {
 		return plife.NotHere(presentation.Ctx{Lang: lang}, v), nil
@@ -388,8 +393,27 @@ func (h *LifeHandler) Sleep(ctx context.Context, meta envelope.Metadata, req Lif
 			}
 			plan := wallet.Plan(money.FromMinor(spot.Price), snap.Accepts(content.ServiceLodging))
 			if !chosen {
-				return &sleepPayment{view: plife.SleepPayView{Spot: named(spot.Code, spot.Name), Rest: spot.Rest,
+				offer, err := application.LocalOfferFor(ctx, tx, w.city.ID, p.ID, spot.Price, 0)
+				if err != nil {
+					return err
+				}
+				return &sleepPayment{offer: offer, view: plife.SleepPayView{Spot: named(spot.Code, spot.Name), Rest: spot.Rest,
 					Relief: spot.Relief, Payment: paymentChoice(plan, wallet)}}
+			}
+			// a village with its own money is paid in it when the guest holds the units (or converts at
+			// its desk inside this confirm); otherwise the night is SUP through the wallet, as before
+			localTx := h.ids.NewID()
+			lr, lerr := application.PayLocal(ctx, tx, h.ids.NewID, application.LocalPayment{
+				SettlementID: w.city.ID, PlayerID: p.ID, Direction: application.LocalCollect, Flow: application.ReasonLodgingFee,
+				SUP: spot.Price, TxID: localTx, RefType: application.SleepReference, RefID: night.ID, At: now,
+				Convert: req.wantsConvert(), MaxConvertSUP: req.maxSUP(),
+			})
+			if lerr != nil {
+				return lerr
+			}
+			if lr.Paid {
+				night.Method, night.LedgerTx = "local", localTx
+				goto paid
 			}
 			if err := checkMethod(plan, method, wallet, "life.button.open", plife.AddrLife); err != nil {
 				return err
@@ -411,6 +435,7 @@ func (h *LifeHandler) Sleep(ctx context.Context, meta envelope.Metadata, req Lif
 			}
 			night.Method, night.LedgerTx = string(method), txID
 		}
+	paid:
 		if err := tx.Life().RecordSleep(ctx, night); err != nil {
 			return err
 		}

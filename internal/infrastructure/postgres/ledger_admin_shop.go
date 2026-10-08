@@ -104,17 +104,20 @@ func (a *EconomyAdmin) verifyShop(ctx context.Context, v *LedgerVerification) er
 		{&s.BuyBacks, "shop buy-backs", `SELECT count(*) FROM ledger_entries WHERE reason = 'shop_buyback' AND reference_type = 'village_shop_sales'`},
 		{&s.SaleLedger, "shop sales in the ledger", `SELECT COALESCE(SUM(amount), 0)::bigint FROM ledger_entries
 			WHERE reason = 'shop_purchase' AND reference_type = 'village_shop_sales' AND amount > 0`},
-		{&s.SaleRows, "shop sale rows", `SELECT COALESCE(SUM(total), 0)::bigint FROM village_shop_sales`},
+		{&s.SaleRows, "shop sale rows", `SELECT COALESCE(SUM(total), 0)::bigint FROM village_shop_sales s
+			WHERE NOT EXISTS (SELECT 1 FROM currency_issuance_log bl WHERE bl.reference_type = 'village_shop_sales' AND bl.reference_id = s.id)`},
 		{&s.SaleMismatched, "shop sale transactions", `
 			SELECT count(*) FROM village_shop_sales s
-			 WHERE (SELECT count(*) FROM ledger_entries e
+			 WHERE NOT EXISTS (SELECT 1 FROM currency_issuance_log bl WHERE bl.reference_type = 'village_shop_sales' AND bl.reference_id = s.id)
+			   AND ((SELECT count(*) FROM ledger_entries e
 			         WHERE e.transaction_id = s.ledger_transaction_id AND e.reason = 'shop_purchase'
 			           AND e.reference_type = 'village_shop_sales' AND e.reference_id = s.id) <> 2
 			    OR (SELECT COALESCE(SUM(e.amount), 0) FROM ledger_entries e
-			         WHERE e.transaction_id = s.ledger_transaction_id AND e.amount > 0) <> s.total`},
+			         WHERE e.transaction_id = s.ledger_transaction_id AND e.amount > 0) <> s.total)`},
 		{&s.TaxLedger, "shop tax in the ledger", `SELECT COALESCE(SUM(amount), 0)::bigint FROM ledger_entries
 			WHERE reason = 'sales_tax' AND reference_type = 'village_shop_sales' AND amount > 0`},
-		{&s.TaxRows, "shop tax rows", `SELECT COALESCE(SUM(tax), 0)::bigint FROM village_shop_sales`},
+		{&s.TaxRows, "shop tax rows", `SELECT COALESCE(SUM(tax), 0)::bigint FROM village_shop_sales s
+			WHERE NOT EXISTS (SELECT 1 FROM currency_issuance_log bl WHERE bl.reference_type = 'village_shop_sales' AND bl.reference_id = s.id)`},
 		{&s.WageLedger, "shopkeeper wages in the ledger", `SELECT COALESCE(SUM(amount), 0)::bigint FROM ledger_entries
 			WHERE reason = 'shopkeeper_wage' AND amount > 0`},
 		{&s.WageRows, "shopkeeper wage rows", `SELECT COALESCE(SUM(wage), 0)::bigint FROM village_shop_days`},

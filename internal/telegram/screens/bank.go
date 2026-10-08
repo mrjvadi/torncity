@@ -131,11 +131,32 @@ func payNotice(c Context, v PayView) string {
 	if v.Notice == "" {
 		return ""
 	}
+	if v.Notice == "short_local" {
+		// the sums are units of the village's money, never SUP, so they are not converted
+		name, _ := v.NoticeArgs["name"].(string)
+		return c.T("pay.short_local", map[string]any{
+			"needed":    FormatUnits(c, noticeInt(v.NoticeArgs["needed"]), name),
+			"available": FormatUnits(c, noticeInt(v.NoticeArgs["available"]), name),
+		})
+	}
 	args := moneyArgs(c, v.NoticeArgs)
 	if name, ok := args["player"].(string); ok {
 		args["player"] = c.playerName(name)
 	}
 	return c.T("pay."+v.Notice, args)
+}
+
+// noticeInt reads a whole number a notice carries (an int64 in the core, a float64 once it crossed the wire).
+func noticeInt(v any) int64 {
+	switch n := v.(type) {
+	case int64:
+		return n
+	case int:
+		return int64(n)
+	case float64:
+		return int64(n)
+	}
+	return 0
 }
 
 // PayHelp explains how to pay a player, when a payment names nobody.
@@ -173,6 +194,10 @@ func renderPay(c Context, v PayView) *presenter.Response {
 		payButtons(c, kb, "button.pay_card", "button.pay_card_all", v, PayCard, v.CardOptions)
 		addAsk(kb, c.T("button.pay_card_custom", nil), commandPay, v.PayeeCode, PayCard, v.Origin)
 	}
+	if v.CanLocal {
+		payButtons(c, kb, "button.pay_local", "button.pay_local_all", v, PayLocal, v.LocalOptions)
+		addAsk(kb, c.T("button.pay_local_custom", map[string]any{"name": v.LocalName}), commandPay, v.PayeeCode, PayLocal, v.Origin)
+	}
 
 	var terms string
 	payerCity := c.CityName(v.PayerCityCode, v.PayerCity)
@@ -188,7 +213,7 @@ func renderPay(c Context, v PayView) *presenter.Response {
 	}
 
 	hint := c.T("pay.hint", nil)
-	if !v.CanCard && !(v.Together && v.CanCash) {
+	if !v.CanCard && !v.CanLocal && !(v.Together && v.CanCash) {
 		hint = c.T("pay.cannot_afford", nil)
 	}
 
@@ -205,10 +230,19 @@ func renderPay(c Context, v PayView) *presenter.Response {
 		body(
 			c.T("profile.cash", map[string]any{"cash": FormatMoney(c, v.Cash)}),
 			c.T("profile.bank", map[string]any{"bank": FormatMoney(c, v.Bank)}),
+			localHolds(c, v),
 		),
 		hint,
 	)
 	return c.respond(text, kb.Build())
+}
+
+// localHolds is the line of the units the payer holds of the money both players' village shares.
+func localHolds(c Context, v PayView) string {
+	if v.LocalName == "" {
+		return ""
+	}
+	return c.T("pay.local_holds", map[string]any{"amount": FormatUnits(c, v.Local, v.LocalName)})
 }
 
 // payAddr is the address of the payment screen or, with an amount and a
@@ -260,8 +294,12 @@ func payButtons(c Context, kb *keyboards.Builder, labelKey, allKey string, v Pay
 		if data == "" {
 			continue
 		}
+		shown := FormatMoney(c, o.Amount)
+		if method == PayLocal {
+			shown = FormatUnits(c, o.Amount, v.LocalName)
+		}
 		buttons = append(buttons, presenter.Button{
-			Text:         c.T(key, map[string]any{"amount": FormatMoney(c, o.Amount)}),
+			Text:         c.T(key, map[string]any{"amount": shown}),
 			CallbackData: data,
 		})
 	}
@@ -286,8 +324,13 @@ func renderPayConfirm(c Context, v PayConfirmView) *presenter.Response {
 		"after":  FormatMoney(c, v.After),
 	}
 	method, after := "pay.confirm_method_card", "pay.confirm_after_bank"
-	if v.Method == PayCash {
+	switch v.Method {
+	case PayCash:
 		method, after = "pay.confirm_method_cash", "pay.confirm_after_cash"
+	case PayLocal:
+		method, after = "pay.confirm_method_local", "pay.confirm_after_local"
+		args["amount"], args["total"] = FormatUnits(c, v.Amount, v.Currency), FormatUnits(c, v.Total, v.Currency)
+		args["after"], args["name"] = FormatUnits(c, v.After, v.Currency), v.Currency
 	}
 	var fee string
 	if v.Fee > 0 {
@@ -327,10 +370,15 @@ func renderPaySent(c Context, v PaySentView) *presenter.Response {
 		"amount": FormatMoney(c, v.Amount),
 		"fee":    FormatMoney(c, v.Fee),
 	}
+	if v.Method == PayLocal {
+		args["amount"] = FormatUnits(c, v.Amount, v.Currency)
+	}
 	var text string
 	switch {
 	case v.Held:
 		text = c.T("pay.held", args)
+	case v.Method == PayLocal:
+		text = c.T("pay.sent_local", args)
 	case v.Method == PayCash:
 		text = c.T("pay.sent_cash", args)
 	case v.Fee > 0:
@@ -369,6 +417,8 @@ type PaymentNoticeView struct {
 	PayerCode string
 	Method    string
 	Amount    int64
+	// Currency names the settlement money when Method is local: Amount is then in its units.
+	Currency string
 }
 
 // PaymentNotice renders the notification a payment sends to its payee. It
@@ -383,8 +433,12 @@ func renderPaymentNotice(c Context, v PaymentNoticeView) *presenter.Response {
 		"amount": FormatMoney(c, v.Amount),
 	}
 	key := "pay.received_card"
-	if v.Method == PayCash {
+	switch v.Method {
+	case PayCash:
 		key = "pay.received_cash"
+	case PayLocal:
+		key = "pay.received_local"
+		args["amount"] = FormatUnits(c, v.Amount, v.Currency)
 	}
 	var code string
 	if v.PayerCode != "" {

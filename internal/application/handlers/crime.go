@@ -567,6 +567,20 @@ func legs(cash, bank application.Account, fromCash, fromBank money.Amount, toID 
 }
 
 // post writes one movement, or nothing when it moves nothing.
+// payFineLocal pays a fine into the treasury of the city that imposed it in that city's own money,
+// when it has one and the offender holds the units (docs/adr/0033 6.9: a fine is a local obligation).
+// It never converts and never mints: false means nothing was written and the fine settles in SUP, as
+// before, from the offender's cash and bank. refType and refID are the row the fine belongs to.
+func (h *CrimeHandler) payFineLocal(ctx context.Context, tx application.Tx, cityID, playerID string, fine int64,
+	refType, refID string, now time.Time,
+) (bool, error) {
+	r, err := application.PayLocal(ctx, tx, h.ids.NewID, application.LocalPayment{
+		SettlementID: cityID, PlayerID: playerID, Direction: application.LocalCollect, Flow: application.ReasonCrimeFine,
+		SUP: fine, RefType: refType, RefID: refID, At: now,
+	})
+	return r.Paid, err
+}
+
 func (h *CrimeHandler) post(ctx context.Context, tx application.Tx, reason application.Reason, refType, refID string, entries []application.LedgerEntry) (string, error) {
 	if len(entries) < 2 {
 		return "", nil
