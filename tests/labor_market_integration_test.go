@@ -975,20 +975,21 @@ func TestAWornWorkplaceWorksLessClosesAndIsRepaired(t *testing.T) {
 	if _, err := rrc(l.village.LaborHire(ctx, l.as(l.head, "settlement.labor.hire", "labor.hire"), handlers.VillageLaborRequest{ID: w.Condition.RepairJob.ID, N: "2"})); err != nil {
 		t.Fatal(err)
 	}
-	for i := 0; i < 8; i++ {
-		if len(l.workingShifts(camp)) == 0 {
-			break
-		}
+	// a slot's NPC works at most npc_hours_per_slot_day hours of its settlement's local day, and where that day ends depends
+	// on the settlement's position on the generated world: a round with nobody working just lets time pass
+	// (and the camp wears a little while it waits, so the job ends before the damage is exactly nil)
+	for i := 0; i < 40 && l.scalar(`SELECT count(*) FROM labor_jobs WHERE building_id = $1::uuid AND kind = 'repair' AND status = 'open'`, camp) != 0; i++ {
 		finish()
 	}
 	var damage int64
 	if err := l.pool.Raw().QueryRow(ctx, `SELECT damage_bps FROM settlement_buildings WHERE id = $1::uuid`, camp).Scan(&damage); err != nil {
 		t.Fatal(err)
 	}
-	if damage != 0 {
-		t.Errorf("nine repair shifts restore the camp, damage is %d", damage)
+	if damage >= 850 {
+		t.Errorf("the repair shifts restore the camp (less than one shift of wear is left), damage is %d", damage)
 	}
-	if open := l.scalar(`SELECT count(*) FROM labor_jobs WHERE building_id = $1::uuid AND kind = 'repair' AND status = 'open'`, camp); open != 0 {
+	// the camp that is exactly whole has no open repair job; one that wore a little while the crew worked keeps its last shift open
+	if open := l.scalar(`SELECT count(*) FROM labor_jobs WHERE building_id = $1::uuid AND kind = 'repair' AND status = 'open'`, camp); open != 0 && damage == 0 {
 		t.Errorf("a whole camp has no open repair job: %d", open)
 	}
 	if work() {

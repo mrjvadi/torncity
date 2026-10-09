@@ -51,14 +51,14 @@ func TestTheCarAsksTheDrivingLicence(t *testing.T) {
 	if offered, _ := options(handlers.PersonalRules{}); !offered {
 		t.Fatal("with no rule the car is offered as before")
 	}
-	if offered, text := options(handlers.PersonalRules{From: rule, GraceDays: 7}); !offered || !strings.Contains(text, "🪪") {
+	if offered, text := options(handlers.PersonalRules{From: rule, GraceDays: 7}); !offered || !strings.Contains(text, "travel.licence_") {
 		t.Errorf("during the grace the car is offered with the licence notice: offered %v, text %q", offered, text)
 	}
-	if offered, text := options(handlers.PersonalRules{From: rule, GraceDays: 0}); offered || !strings.Contains(text, "🪪") {
+	if offered, text := options(handlers.PersonalRules{From: rule, GraceDays: 0}); offered || !strings.Contains(text, "travel.licence_") {
 		t.Errorf("after the grace a rider without the licence is not offered the car and is told why: offered %v, text %q", offered, text)
 	}
 	certifyIn(t, w.pool, driver.ID, "driving_licence")
-	if offered, text := options(handlers.PersonalRules{From: rule, GraceDays: 0}); !offered || strings.Contains(text, "🪪") {
+	if offered, text := options(handlers.PersonalRules{From: rule, GraceDays: 0}); !offered || strings.Contains(text, "travel.licence_") {
 		t.Errorf("with the licence the car is offered and nothing is said: offered %v, text %q", offered, text)
 	}
 }
