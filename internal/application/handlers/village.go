@@ -103,6 +103,8 @@ type VillageHandler struct {
 	service ServiceRules
 	// personal are the rules of the personal prerequisites of a post (village_personal.go).
 	personal PersonalRules
+	// teacherRules are the teacher's skill in the literacy tick (village_teach.go).
+	teacherRules TeacherRules
 	// realItems is the grace of the real goods and the bare-handed share without tools (village_realitems.go).
 	realItems RealItemRules
 	// storage is the stores' keepers and spoilage (village_storage.go).

@@ -434,6 +434,9 @@ func (h *EducationHandler) payTeacher(ctx context.Context, tx application.Tx, en
 		if err != nil || !fresh {
 			return err
 		}
+		if err := h.trainTeacher(ctx, tx, seat.TeacherID, now); err != nil {
+			return err
+		}
 		return h.accrueTeaching(ctx, tx, seat.SettlementID, now)
 	}
 	t, err := tx.Education().TeacherAny(ctx, seat.TeacherID)
@@ -463,6 +466,9 @@ func (h *EducationHandler) payTeacher(ctx context.Context, tx application.Tx, en
 	}
 	fresh, err := tx.Education().PaySeat(ctx, enrollmentID, now, pay)
 	if err != nil || !fresh {
+		return err
+	}
+	if err := h.trainTeacher(ctx, tx, seat.TeacherID, now); err != nil {
 		return err
 	}
 	if err := h.accrueTeaching(ctx, tx, seat.SettlementID, now); err != nil {
@@ -508,6 +514,29 @@ func (h *EducationHandler) WithExperience(perClass int64) *EducationHandler {
 
 // accrueTeaching adds a finished class to the settlement's education experience, once a UTC day (the daily fence), when
 // the class was given in a founded settlement.
+// WithTeacherXP gives a player teacher the teaching skill points a finished class is worth (settlement.teacher_xp_per_class).
+func (h *EducationHandler) WithTeacherXP(perClass int64) *EducationHandler {
+	h.teacherXP = perClass
+	return h
+}
+
+// trainTeacher adds the teaching skill to the player teacher of a class that has just finished.
+func (h *EducationHandler) trainTeacher(ctx context.Context, tx application.Tx, teacherID string, now time.Time) error {
+	if h.teacherXP <= 0 || teacherID == "" {
+		return nil
+	}
+	t, err := tx.Education().TeacherAny(ctx, teacherID)
+	if err != nil || t.Kind == application.TeacherNPC || t.PlayerID == "" {
+		return err
+	}
+	skills, err := tx.Skills().List(ctx, t.PlayerID)
+	if err != nil {
+		return err
+	}
+	_, err = awardSkillXP(ctx, tx, h.content.Current(), t.PlayerID, skills, []skillAward{{Skill: "teaching", XP: h.teacherXP}}, now)
+	return err
+}
+
 func (h *EducationHandler) accrueTeaching(ctx context.Context, tx application.Tx, settlementID string, now time.Time) error {
 	if h.experiencePerClass <= 0 {
 		return nil

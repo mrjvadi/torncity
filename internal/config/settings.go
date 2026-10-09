@@ -465,6 +465,9 @@ type settlementSettings struct {
 	ServiceGraceDays                 *int64  `yaml:"service_grace_days"`
 	PersonalRuleAt                   *string `yaml:"personal_rule_at"`
 	PersonalGraceDays                *int64  `yaml:"personal_grace_days"`
+	TeacherBaseBPS                   *int64  `yaml:"teacher_base_bps"`
+	TeacherPerLevelBPS               *int64  `yaml:"teacher_per_level_bps"`
+	TeacherXPPerClass                *int64  `yaml:"teacher_xp_per_class"`
 	ResearchFreeSlots                *int64  `yaml:"research_free_slots"`
 	ResearchSpeedFloorBPS            *int64  `yaml:"research_speed_floor_bps"`
 	ResearchScholarFloorBPS          *int64  `yaml:"research_scholar_floor_bps"`
@@ -1581,6 +1584,15 @@ var coreSettings = []setting{
 	stringSetting("settlement", "service_rule_at",
 		func(c *Config) *string { return &c.Settlement.ServiceRuleAt },
 		func(f *fileConfig) *string { return f.Settlement.ServiceRuleAt }),
+	moneySetting("settlement", "teacher_base_bps",
+		func(c *Config) *int64 { return &c.Settlement.TeacherBaseBPS },
+		func(f *fileConfig) *int64 { return f.Settlement.TeacherBaseBPS }),
+	moneySetting("settlement", "teacher_per_level_bps",
+		func(c *Config) *int64 { return &c.Settlement.TeacherPerLevelBPS },
+		func(f *fileConfig) *int64 { return f.Settlement.TeacherPerLevelBPS }),
+	moneySetting("settlement", "teacher_xp_per_class",
+		func(c *Config) *int64 { return &c.Settlement.TeacherXPPerClass },
+		func(f *fileConfig) *int64 { return f.Settlement.TeacherXPPerClass }),
 	stringSetting("settlement", "personal_rule_at",
 		func(c *Config) *string { return &c.Settlement.PersonalRuleAt },
 		func(f *fileConfig) *string { return f.Settlement.PersonalRuleAt }),

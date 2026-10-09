@@ -483,6 +483,13 @@ availability:
   - {kind: skill, code: smithing, stage: village, growth: {open: true}, requires: {knowledge: [smithing]}, elsewhere: [{where: support}]}
   - {kind: skill, code: strength, stage: village, growth: {open: true, founding: true}, requires: {}, elsewhere: [{where: support}], note: "trained by training.start: bodyweight exercise needs no building"}
   - {kind: skill, code: farming, stage: village, growth: {open: true, founding: true}, requires: {}, elsewhere: [{where: support}]}
+  - {kind: skill, code: forestry, growth: {open: true, founding: true}, requires: {}, elsewhere: [{where: support}]}
+  - {kind: skill, code: herding, requires: {knowledge: [open_range_herding]}, elsewhere: [{where: support}]}
+  - {kind: skill, code: weaving, requires: {knowledge: [weaving]}, elsewhere: [{where: support}]}
+  - {kind: skill, code: pottery, requires: {knowledge: [pottery]}, elsewhere: [{where: support}]}
+  - {kind: skill, code: milling, requires: {knowledge: [milling]}, elsewhere: [{where: support}]}
+  - {kind: skill, code: baking, requires: {knowledge: [milling]}, elsewhere: [{where: support}]}
+  - {kind: skill, code: teaching, requires: {knowledge: [basic_literacy]}, elsewhere: [{where: support}]}
   - {kind: skill, code: herbalism, stage: village, growth: {open: true}, requires: {knowledge: [basic_medicine]}, elsewhere: [{where: support}]}
 
   # ---- company types (player businesses)

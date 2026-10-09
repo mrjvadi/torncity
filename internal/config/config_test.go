@@ -659,6 +659,9 @@ settlement:
   service_grace_days: 8
   personal_rule_at: "2026-11-04T00:00:00Z"
   personal_grace_days: 9
+  teacher_base_bps: 6100
+  teacher_per_level_bps: 151
+  teacher_xp_per_class: 21
   research_free_slots: 200
   research_speed_floor_bps: 201
   research_scholar_floor_bps: 202
@@ -1230,6 +1233,9 @@ var envOverrides = map[string]string{
 	"TORN_SETTLEMENT_SERVICE_GRACE_DAYS":                   "11",
 	"TORN_SETTLEMENT_PERSONAL_RULE_AT":                     "2026-12-03T00:00:00Z",
 	"TORN_SETTLEMENT_PERSONAL_GRACE_DAYS":                  "12",
+	"TORN_SETTLEMENT_TEACHER_BASE_BPS":                     "6200",
+	"TORN_SETTLEMENT_TEACHER_PER_LEVEL_BPS":                "152",
+	"TORN_SETTLEMENT_TEACHER_XP_PER_CLASS":                 "22",
 	"TORN_SETTLEMENT_RESEARCH_FREE_SLOTS":                  "300",
 	"TORN_SETTLEMENT_RESEARCH_SPEED_FLOOR_BPS":             "301",
 	"TORN_SETTLEMENT_RESEARCH_SCHOLAR_FLOOR_BPS":           "302",

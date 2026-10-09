@@ -65,6 +65,8 @@ type CompleteCourseRequest struct {
 // education. A course run by a player company will pay that company's
 // treasury instead (education.InstitutionCompany), in chargeFee.
 type EducationHandler struct {
+	// teacherXP is the teaching skill a finished class gives its player teacher (WithTeacherXP).
+	teacherXP int64
 	// personal are the rules of the personal prerequisites (a village class asks the student to read; WithPersonal).
 	personal PersonalRules
 	// experiencePerClass is the education experience a finished class in a founded settlement adds (WithExperience).

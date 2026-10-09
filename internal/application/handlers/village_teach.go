@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"github.com/mrjvadi/torncity/internal/presentation"
+	apperrors "github.com/mrjvadi/torncity/internal/shared/errors"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
@@ -38,9 +39,48 @@ import (
 //     work across many settlements but needs no leader-election machinery
 //     this codebase does not otherwise have for a bare periodic job.
 
-// teacherSkillBPS is the v1 fixed stand-in for "the leader's own skill",
-// documented above.
-const teacherSkillBPS = 6_000
+// TeacherRules are the teacher's skill in the literacy tick (settlement.teacher_*, docs/adr/0057): the literacy a class moves
+// follows its teacher. Zero rules keep the old fixed 6000.
+type TeacherRules struct {
+	BaseBPS, PerLevelBPS, XPPerClass int64
+}
+
+// fixedTeacherSkillBPS is what a settlement with no teacher rules teaches at.
+const fixedTeacherSkillBPS = 6_000
+
+// WithTeacherRules gives the village handler the teacher's skill rules.
+func (h *VillageHandler) WithTeacherRules(r TeacherRules) *VillageHandler {
+	h.teacherRules = r
+	return h
+}
+
+// teacherSkillOf is the skill the settlement's literacy classes teach at now: the best of the active teachers of the
+// literacy class (a player's teaching level lifts it, an NPC teaches at the base), the base when nobody teaches.
+func (h *VillageHandler) teacherSkillOf(ctx context.Context, tx application.Tx, settlementID string) (int64, error) {
+	r := h.teacherRules
+	if r.BaseBPS <= 0 {
+		return fixedTeacherSkillBPS, nil
+	}
+	teachers, err := tx.Education().SettlementTeachers(ctx, settlementID)
+	if err != nil {
+		return 0, err
+	}
+	best := r.BaseBPS
+	for _, t := range teachers {
+		if t.CourseCode != literacyCourse || t.Kind == application.TeacherNPC || t.PlayerID == "" {
+			continue
+		}
+		sk, err := tx.Skills().Get(ctx, t.PlayerID, "teaching")
+		if err != nil {
+			if apperrors.CodeOf(err) == apperrors.CodeNotFound {
+				continue
+			}
+			return 0, err
+		}
+		best = max(best, min(10_000, r.BaseBPS+r.PerLevelBPS*int64(sk.Level)))
+	}
+	return best, nil
+}
 
 // EnsureTeaching schedules a settlement's first literacy tick if none is
 // pending yet. Idempotent: called again on a settlement that already has
@@ -109,7 +149,11 @@ func (h *VillageHandler) Taught(ctx context.Context, meta envelope.Metadata, req
 		}
 
 		now := h.now()
-		next := settlementknowledge.AdvanceLiteracy(int64(shareBPS), h.teachRateBPS, teacherSkillBPS, capacityBPS)
+		teacherSkill, err := h.teacherSkillOf(ctx, tx, in.SettlementID)
+		if err != nil {
+			return err
+		}
+		next := settlementknowledge.AdvanceLiteracy(int64(shareBPS), h.teachRateBPS, teacherSkill, capacityBPS)
 
 		finish := now.Add(h.scale.RealWait(h.teachPeriod))
 		nextActionID, err := h.schedule(ctx, tx, application.SettlementTeachActionType, "settlement", in.SettlementID, in.SettlementID, now, finish)

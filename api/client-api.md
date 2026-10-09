@@ -1782,3 +1782,7 @@ ADR 0055, no migration. New type `PersonalNeed {kind, item, have, need, how}` (`
 - Carpentry and masonry no longer ask a level (`PersonalNeed` only appears for the smith's level 3 and the scholar's literacy).
 - Wages per shift follow the wage classes: raw trades 50 per half hour, skilled ones 65 to 75 (`WorkplaceLine.wage`).
 - Config: `labor.npc_hours_per_slot_day` (8) replaces `labor.npc_shifts_per_slot_day`.
+
+## The remaining stand-ins (2026-10-10)
+
+ADR 0057, no migration, no view change. New skills (names from the `skill.*` locale): forestry, herding, weaving, pottery, milling, baking, teaching; a shift in the matching workplace adds experience (the skills screen). The literacy a class moves follows the teacher's teaching level. Config `settlement.teacher_base_bps`, `teacher_per_level_bps`, `teacher_xp_per_class`.
