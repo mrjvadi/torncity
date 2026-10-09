@@ -188,6 +188,11 @@ func (h *VillageHandler) laborMarket(ctx context.Context, tx application.Tx, sna
 		return laborMarket{}, err
 	}
 	claims.Shop, claims.Keepers = shopSeat, storeSeats
+	if last, err := tx.Research().Last(ctx, s.CityID); err != nil {
+		return laborMarket{}, err
+	} else if last != nil {
+		claims.Scholars = min(last.ScholarsNPC, max(claims.StaffFree()-shopSeat-storeSeats, 0))
+	}
 	reserved := claims.Reserved()
 	available := claims.Free()
 	var reservedFrom *time.Time

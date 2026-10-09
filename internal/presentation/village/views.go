@@ -194,13 +194,24 @@ type KnowledgeLine struct {
 	// not unlocked, and TerrainOK whether its own terrain gate is met.
 	Missing   []presentation.Named
 	TerrainOK bool
+	// The quote of a project started now in the best free slot (ADR 0048): ResearchCost and ResearchTime above are
+	// already its price and time. SpeedBPS is the pace (10000 the base), AheadBPS the factor for being ahead of the
+	// world (10000 none), DiscountBPS the breakthrough discount, ShareBPS the sharing bonus; Slot is "free" or the
+	// building id. Zero when the item is not available to research now.
+	SpeedBPS, AheadBPS, DiscountBPS, ShareBPS int64
+	Slot                                      string
+	// Field is the field of work whose practice feeds the item's breakthrough progress.
+	Field string
 }
 
-// KnowledgeResearchLine is the research running now, if any.
+// KnowledgeResearchLine is a research running now.
 type KnowledgeResearchLine struct {
 	Knowledge presentation.Named
 	FinishAt  time.Time
 	Left      time.Duration
+	// Slot is "free" or the research building's id; SpeedBPS the pace it started at.
+	Slot     string
+	SpeedBPS int64
 }
 
 // KnowledgeListView is a settlement's own knowledge list.
@@ -212,7 +223,11 @@ type KnowledgeListView struct {
 	Treasury        int64
 	LiteracyPercent int
 	Running         *KnowledgeResearchLine
-	Lines           []KnowledgeLine
+	// Projects are all the research running now (Running is the oldest); Capacity how many the settlement can run at
+	// once (ADR 0048), so the screen says "2 of 3".
+	Projects []KnowledgeResearchLine
+	Capacity int
+	Lines    []KnowledgeLine
 	// Hidden is how many items further away are kept out of sight until
 	// the settlement comes closer (mirrors production.yml's own lab_later
 	// shape, ADR 0021 section 14).

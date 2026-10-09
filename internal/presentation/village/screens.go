@@ -235,12 +235,16 @@ func KnowledgeList(c presentation.Ctx, v KnowledgeListView) *presentation.Respon
 		if l.State != KnowledgeAvailable {
 			continue
 		}
-		a = append(a, act(AddrKnowledgeResearch, l.Knowledge.Code).About(l.Knowledge.Code))
+		research := act(AddrKnowledgeResearch, l.Knowledge.Code).About(l.Knowledge.Code)
+		if l.Slot != "" {
+			research = research.With("slot", l.Slot) // the slot the quote was worked on; a client may ask for another
+		}
+		a = append(a, research)
 		if l.BuyPrice > 0 {
 			a = append(a, act(AddrKnowledgeBuy, l.Knowledge.Code).About(l.Knowledge.Code))
 		}
 	}
-	a = append(a, back(AddrVillageOverview), refresh(AddrKnowledgeList))
+	a = append(a, act(AddrResearchDesk).Named("research.open"), back(AddrVillageOverview), refresh(AddrKnowledgeList))
 	return screenKnowledge.Response(c.Lang, v, a...)
 }
 

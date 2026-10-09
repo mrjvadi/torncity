@@ -40,11 +40,7 @@ func (h *VillageHandler) KnowledgeList(ctx context.Context, meta envelope.Metada
 		cell := w.Cells[s.WorldCellID]
 		terrain := terrainTagsFor(w, s)
 
-		running, err := tx.SettlementKnowledge().RunningResearch(ctx, s.CityID)
-		if err != nil {
-			return err
-		}
-		st, _, err := h.knowledgeStanding(ctx, tx, snap, s, terrain, running != nil)
+		st, _, err := h.knowledgeStanding(ctx, tx, snap, s, terrain, false)
 		if err != nil {
 			return err
 		}
@@ -52,13 +48,28 @@ func (h *VillageHandler) KnowledgeList(ctx context.Context, meta envelope.Metada
 		if err != nil {
 			return err
 		}
+		buildings, err := tx.SettlementBuildings().List(ctx, s.CityID)
+		if err != nil {
+			return err
+		}
+		rc, err := h.researchContext(ctx, tx, snap, s, buildings, int64(st.LiteracyShareBPS))
+		if err != nil {
+			return err
+		}
+		running := rc.state.Running
 
 		tree := snap.SettlementKnowledgeTree()
-		view = village.KnowledgeListView{Name: s.Name, Treasury: treasury, LiteracyPercent: st.LiteracyShareBPS / 100}
-		if running != nil {
-			d, _ := snap.SettlementKnowledgeDef(running.Code)
-			view.Running = &village.KnowledgeResearchLine{Knowledge: named(d.Code, d.Name), FinishAt: running.FinishAt,
-				Left: countdownTo(running.FinishAt, h.now())}
+		view = village.KnowledgeListView{Name: s.Name, Treasury: treasury, LiteracyPercent: st.LiteracyShareBPS / 100, Capacity: rc.state.Capacity}
+		runningCode := map[string]bool{}
+		for _, r := range running {
+			d, _ := snap.SettlementKnowledgeDef(r.Code)
+			runningCode[r.Code] = true
+			view.Projects = append(view.Projects, village.KnowledgeResearchLine{Knowledge: named(d.Code, d.Name), FinishAt: r.FinishAt,
+				Left: countdownTo(r.FinishAt, h.now()), Slot: r.SlotRef, SpeedBPS: r.SpeedBPS})
+		}
+		if len(view.Projects) > 0 {
+			first := view.Projects[0]
+			view.Running = &first
 		}
 		for _, code := range sortedKnowledgeCodes(snap) {
 			d, _ := snap.SettlementKnowledgeDef(code)
@@ -70,10 +81,11 @@ func (h *VillageHandler) KnowledgeList(ctx context.Context, meta envelope.Metada
 			switch {
 			case st.Owned.Has(code):
 				line.State = village.KnowledgeHeld
-			case running != nil && running.Code == code:
+			case runningCode[code]:
 				line.State = village.KnowledgeResearching
 			default:
 				line.ResearchCost, line.ResearchTime = d.Cost, h.scale.RealWait(t.Time)
+				line.Field = d.Field
 				if !d.Restricted {
 					price, err := h.scarcityPrice(ctx, tx, d.Cost, code)
 					if err != nil {
@@ -85,6 +97,18 @@ func (h *VillageHandler) KnowledgeList(ctx context.Context, meta envelope.Metada
 				line.TerrainOK = t.TerrainMode != settlementknowledge.TerrainRequired || st.Discounted(t) || hasAny(terrain, t.TerrainTags)
 				if err == nil {
 					line.State = village.KnowledgeAvailable
+					partners, perr := tx.Research().PartnersHolding(ctx, s.CityID, code)
+					if perr != nil {
+						return perr
+					}
+					// the price and pace of a project started now, in the slot that finishes it soonest (or, with
+					// every slot busy, in the free one, so the screen still says what it would cost)
+					q, ok := rc.best(d, t, partners)
+					if !ok {
+						q = rc.quote(d, t, rc.state.Slots[0], partners)
+					}
+					line.ResearchCost, line.ResearchTime = q.Cost, h.scale.RealWait(q.Duration)
+					line.SpeedBPS, line.AheadBPS, line.DiscountBPS, line.ShareBPS, line.Slot = q.SpeedBPS, q.AheadBPS, q.DiscountBPS, q.ShareBPS, q.Slot.Ref
 				} else {
 					line.State = village.KnowledgeLocked
 					line.Missing = missingNamed(snap, st.Missing(t, tree))

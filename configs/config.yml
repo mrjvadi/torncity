@@ -1371,6 +1371,44 @@ settlement:
   # screen warns "no keeper" and says until when.
   storage_keeper_rule_at: "2026-10-03T00:00:00Z"
   storage_keeper_grace_days: 14
+  # Research capacity and speed (docs/adr/0048): slots from staffed research buildings, speed from
+  # the scholars, a dearer price for what is ahead of the world, a discount for real work in the field.
+  # research projects every settlement can run with no research building (ADR 0048)
+  research_free_slots: 1
+  # the slowest a research slot may work, 10000 = the old single project; staff and buildings only add
+  research_speed_floor_bps: 10000
+  # speed any staffed scholar adds, however unskilled
+  research_scholar_floor_bps: 500
+  # speed each level of the scholarship skill adds to a scholar
+  research_skill_bps_per_level: 100
+  # the most one scholar adds
+  research_scholar_cap_bps: 2000
+  # the scholarship level an NPC scholar of the labour pool is taken to have
+  research_npc_scholar_level: 3
+  # speed a fully literate settlement adds to every slot (scaled by its literacy)
+  research_literacy_bonus_bps: 2000
+  # speed an item held by every settlement adds for one that lacks it (diffusion: the more the world knows it, the easier to learn)
+  research_catch_up_bps: 4000
+  # the world frontier is never lower than this depth of the knowledge tree
+  research_era_base_depth: 4
+  # share of settlements that must hold an item for its depth to count as reached by the world (Rogers: the innovators and early adopters together are about 16 percent)
+  research_era_share_bps: 1600
+  # extra cost and time per depth step an item is beyond the world frontier
+  research_ahead_per_step_bps: 3000
+  # the most extra cost and time for being ahead of the world
+  research_ahead_cap_bps: 10000
+  # speed each research-sharing partner that holds the item adds
+  research_share_per_partner_bps: 1000
+  # the most speed sharing pacts add to one project (the owner: +50 percent)
+  research_share_cap_bps: 5000
+  # points of real work in the item's field, per depth of the item, that give the whole breakthrough discount
+  research_breakthrough_need_per_depth: 100
+  # the most a breakthrough takes off the price and time of a project
+  research_breakthrough_max_bps: 4000
+  # points a finished work shift adds to its field (learning by doing)
+  research_experience_per_shift: 10
+  # scholarship experience a player scholar on duty earns each research day
+  research_scholar_xp: 40
   material_buy_max: 200
   material_buy_presets: [5, 20, 50]
   # Village treasury start-up. A village has no income until its abstract

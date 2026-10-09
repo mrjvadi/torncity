@@ -102,6 +102,12 @@ type SettlementResearch struct {
 	StartedAt           time.Time
 	FinishAt            time.Time
 	CompletedAt         *time.Time
+	// The quote the project started on (ADR 0048): the slot it took ("free" or a research building's id), its speed,
+	// the ahead-of-era factor, the breakthrough discount, the sharing bonus, and the experience points it spent.
+	// All in basis points, fixed at the start.
+	SlotRef                                   string
+	SpeedBPS, AheadBPS, DiscountBPS, ShareBPS int64
+	SpentPoints                               int64
 }
 
 // SettlementBuildingInstance is one settlement_buildings row (migration

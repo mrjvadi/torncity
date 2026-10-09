@@ -2824,6 +2824,12 @@ export interface KnowledgeLine {
   buy_price: number
   missing: Named[] | null
   terrain_ok: boolean
+  speed_bps: number
+  ahead_bps: number
+  discount_bps: number
+  share_bps: number
+  slot: string
+  field: string
 }
 
 export interface KnowledgeListView {
@@ -2832,6 +2838,8 @@ export interface KnowledgeListView {
   treasury: number
   literacy_percent: number
   running: KnowledgeResearchLine | null
+  projects: KnowledgeResearchLine[] | null
+  capacity: number
   lines: KnowledgeLine[] | null
   hidden: number
 }
@@ -2840,6 +2848,8 @@ export interface KnowledgeResearchLine {
   knowledge: Named
   finish_at: string | null
   left_seconds: number
+  slot: string
+  speed_bps: number
 }
 
 export interface KnowledgeUnlock {
@@ -4847,10 +4857,83 @@ export interface Requirement {
   trip: TripHint | null
 }
 
+export interface ResearchBoardView {
+  name: string
+  capacity: number
+  running: number
+  frontier: number
+  literacy_percent: number
+  slots: ResearchSlotLine[] | null
+  buildings: ResearchBuildingLine[] | null
+  projects: ResearchProjectLine[] | null
+  pacts: ResearchPactLine[] | null
+  neighbours: Named[] | null
+  experience: ResearchExperienceLine[] | null
+  may_share: boolean
+  share_cap_bps: number
+}
+
+export interface ResearchBuildingLine {
+  id: string
+  building: Named
+  open: boolean
+  idle: string
+  slots: number
+  needed: number
+  posts: number
+  players: number
+  np_cs: number
+  wage: number
+  bonus_bps: number
+  upkeep: ResearchUpkeepLine[] | null
+  mine: boolean
+  can_take: boolean
+}
+
+export interface ResearchExperienceLine {
+  field: string
+  points: number
+  per: number
+  max_bps: number
+}
+
 export interface ResearchLine {
   tech: Named
   finish_at: string | null
   left_seconds: number
+}
+
+export interface ResearchPactLine {
+  id: string
+  partner: Named
+  state: string
+}
+
+export interface ResearchProjectLine {
+  knowledge: Named
+  slot: string
+  building: Named
+  speed_bps: number
+  ahead_bps: number
+  discount_bps: number
+  share_bps: number
+  finish_at: string | null
+  left_seconds: number
+}
+
+export interface ResearchSlotLine {
+  ref: string
+  building: Named
+  capacity: number
+  used: number
+  bonus_bps: number
+  staff_bps: number
+}
+
+export interface ResearchUpkeepLine {
+  item: Named
+  qty: number
+  have: number
 }
 
 export interface ReserveView {
@@ -6545,6 +6628,7 @@ export interface ScreenViews {
   recruit_refusal: RecruitRefusalView
   refusal: RefusalView
   report_confirm: ReportConfirmView
+  research: ResearchBoardView
   retrofit: RetrofitView
   reverse_lab: ReverseLabView
   sanction_blocked: SanctionBlockedView

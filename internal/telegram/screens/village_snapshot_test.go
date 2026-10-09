@@ -72,6 +72,17 @@ func villageSnapshots(c Context, who people, add func(string, *presenter.Respons
 		},
 		Hidden: 6,
 	}))
+	add("Knowledge list · two projects in two slots, with notes on pace and price", KnowledgeList(g, KnowledgeListView{
+		Name: villageNameFor(c), Treasury: 12_400, LiteracyPercent: 18, Capacity: 3,
+		Projects: []KnowledgeResearchLine{
+			{Knowledge: recordKeeping, FinishAt: snapshotNow.Add(30 * time.Hour), Left: 30 * time.Hour, Slot: "free", SpeedBPS: 10_000},
+			{Knowledge: basicLiteracy, FinishAt: snapshotNow.Add(12 * time.Hour), Left: 12 * time.Hour, Slot: "b-lab", SpeedBPS: 14_000},
+		},
+		Lines: []KnowledgeLine{
+			{Knowledge: canal, State: KnowledgeAvailable, ResearchCost: 3900, ResearchTime: 21 * time.Hour, BuyPrice: 5400,
+				SpeedBPS: 14_000, AheadBPS: 13_000, DiscountBPS: 1_000, ShareBPS: 2_000, Slot: "b-lab"},
+		},
+	}))
 	add("Knowledge list · nothing to show yet", KnowledgeList(g, KnowledgeListView{
 		Name: villageNameFor(c), Treasury: 900, LiteracyPercent: 2,
 	}))
@@ -93,6 +104,34 @@ func villageSnapshots(c Context, who people, add func(string, *presenter.Respons
 		},
 	}))
 	add("Construction progress · queue empty", ConstructionProgress(g, ConstructionProgressView{Name: villageNameFor(c)}))
+	library := sampleNamed(c.Lang, "library", "کتابخانه", "Library")
+	lab := sampleNamed(c.Lang, "laboratory", "آزمایشگاه", "Laboratory")
+	wool := sampleNamed(c.Lang, "wool", "پشم", "Wool")
+	add("Research desk · a laboratory at work, a library short of paper, a pact offered", ResearchBoard(g, ResearchBoardView{
+		Name: villageNameFor(c), Capacity: 3, Running: 2, Frontier: 4, LiteracyPercent: 40, MayShare: true, ShareCapBPS: 5_000,
+		Slots: []village.ResearchSlotLine{{Ref: "free", Capacity: 1, Used: 1}, {Ref: "b-lab", Building: lab, Capacity: 2, Used: 1, BonusBPS: 1_000, StaffBPS: 1_200}},
+		Buildings: []village.ResearchBuildingLine{
+			{ID: "b-lab", Building: lab, Open: true, Slots: 2, Needed: 2, Posts: 3, Players: 1, NPCs: 1, Wage: 130, BonusBPS: 1_000,
+				Upkeep: []village.ResearchUpkeepLine{{Item: wool, Qty: 1, Have: 9}}, Mine: true},
+			{ID: "b-lib", Building: library, Idle: village.ResearchIdleNoUpkeep, Slots: 1, Needed: 1, Posts: 1, Wage: 130, BonusBPS: 500,
+				Upkeep: []village.ResearchUpkeepLine{{Item: wool, Qty: 1, Have: 0}}, CanTake: false},
+		},
+		Projects: []village.ResearchProjectLine{
+			{Knowledge: recordKeeping, Slot: "free", SpeedBPS: 10_000, AheadBPS: 10_000, FinishAt: snapshotNow.Add(30 * time.Hour), Left: 30 * time.Hour},
+			{Knowledge: basicLiteracy, Slot: "b-lab", Building: lab, SpeedBPS: 14_000, AheadBPS: 13_000, ShareBPS: 2_000, DiscountBPS: 1_000,
+				FinishAt: snapshotNow.Add(12 * time.Hour), Left: 12 * time.Hour},
+		},
+		Pacts: []village.ResearchPactLine{
+			{ID: "p1", Partner: sampleNamed(c.Lang, "hamsaye", "همسایه", "Neighbour"), State: village.ResearchPactActive},
+			{ID: "p2", Partner: sampleNamed(c.Lang, "darya", "دریا", "Sea"), State: village.ResearchPactIncoming},
+		},
+		Neighbours: []Named{sampleNamed(c.Lang, "kuh", "کوه", "Hill")},
+		Experience: []village.ResearchExperienceLine{{Field: "craft", Points: 240, Per: 100, MaxBPS: 4_000}},
+	}))
+	add("Research desk · no research building yet, the free slot only", ResearchBoard(g, ResearchBoardView{
+		Name: villageNameFor(c), Capacity: 1, Frontier: 4, LiteracyPercent: 2, ShareCapBPS: 5_000,
+		Slots: []village.ResearchSlotLine{{Ref: "free", Capacity: 1}},
+	}))
 
 	// The panel of one placed building, per type (village_building.go). The ids
 	// are real uuids: the longest address a panel carries must fit Telegram's

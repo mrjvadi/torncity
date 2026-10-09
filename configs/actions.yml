@@ -311,6 +311,7 @@ commands:
   settlement.overview: {kind: navigation, icon: "action:village"}
   settlement.knowledge: {kind: navigation, icon: "action:knowledge"}
   settlement.knowledge.research: {kind: primary, icon: "action:research"}
+  settlement.research: {kind: navigation, icon: "action:research"}
   settlement.knowledge.buy: {kind: primary, icon: "action:buy"}
   settlement.build: {kind: navigation, icon: "action:build"}
   settlement.build.lots: {kind: navigation, icon: "action:lots"}

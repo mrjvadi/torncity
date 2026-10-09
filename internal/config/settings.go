@@ -424,42 +424,60 @@ type settlementSettings struct {
 	FoundingCurrencyCodeLen   *int    `yaml:"founding_currency_code_len"`
 	FoundingCurrencySymbolMax *int    `yaml:"founding_currency_symbol_max"`
 
-	TeachPeriod                  *string `yaml:"teach_period"`
-	TeachRateBPS                 *int64  `yaml:"teach_rate_bps"`
-	BaseSchoolCapacityBPS        *int64  `yaml:"base_school_capacity_bps"`
-	ScarcityKBPS                 *int64  `yaml:"scarcity_k_bps"`
-	ScarcityFloorBPS             *int64  `yaml:"scarcity_floor_bps"`
-	ScarcityCapBPS               *int64  `yaml:"scarcity_cap_bps"`
-	SellerBandBPS                *int64  `yaml:"seller_band_bps"`
-	DemolitionSalvageBPS         *int64  `yaml:"demolition_salvage_bps"`
-	MaterialMarkupBPS            *int64  `yaml:"material_markup_bps"`
-	StockBaseCapacity            *int64  `yaml:"stock_base_capacity"`
-	BuildHomesPerCrew            *int64  `yaml:"build_homes_per_crew"`
-	CharterMaxOffices            *int64  `yaml:"charter_max_offices"`
-	CharterMaxSeats              *int64  `yaml:"charter_max_seats"`
-	CharterMaxPermissions        *int64  `yaml:"charter_max_permissions"`
-	CharterTitleMin              *int64  `yaml:"charter_title_min"`
-	CharterTitleMax              *int64  `yaml:"charter_title_max"`
-	CharterElectionTermDays      *int64  `yaml:"charter_election_term_days"`
-	CharterCandidacyHours        *int64  `yaml:"charter_candidacy_hours"`
-	CharterVotingHours           *int64  `yaml:"charter_voting_hours"`
-	CharterRecallMinTenureDays   *int64  `yaml:"charter_recall_min_tenure_days"`
-	CharterRecallSignatureBPS    *int64  `yaml:"charter_recall_signature_bps"`
-	CharterRecallMinSignatures   *int64  `yaml:"charter_recall_min_signatures"`
-	CharterRecallVoteHours       *int64  `yaml:"charter_recall_vote_hours"`
-	CharterRecallCooldownDays    *int64  `yaml:"charter_recall_cooldown_days"`
-	CharterAmendVoteHours        *int64  `yaml:"charter_amend_vote_hours"`
-	CharterAmendQuorumBPS        *int64  `yaml:"charter_amend_quorum_bps"`
-	CharterAmendVoteMinResidents *int64  `yaml:"charter_amend_vote_min_residents"`
-	CharterActingDays            *int64  `yaml:"charter_acting_days"`
-	CharterActingSpendCap        *int64  `yaml:"charter_acting_spend_cap"`
-	CharterMinResidencyDays      *int64  `yaml:"charter_min_residency_days"`
-	StorageSpoilKeptBPS          *int64  `yaml:"storage_spoil_kept_bps"`
-	StorageSpoilUnkeptBPS        *int64  `yaml:"storage_spoil_unkept_bps"`
-	StorageKeeperRuleAt          *string `yaml:"storage_keeper_rule_at"`
-	StorageKeeperGraceDays       *int64  `yaml:"storage_keeper_grace_days"`
-	MaterialBuyMax               *int64  `yaml:"material_buy_max"`
-	MaterialBuyPresets           []int64 `yaml:"material_buy_presets"`
+	TeachPeriod                      *string `yaml:"teach_period"`
+	TeachRateBPS                     *int64  `yaml:"teach_rate_bps"`
+	BaseSchoolCapacityBPS            *int64  `yaml:"base_school_capacity_bps"`
+	ScarcityKBPS                     *int64  `yaml:"scarcity_k_bps"`
+	ScarcityFloorBPS                 *int64  `yaml:"scarcity_floor_bps"`
+	ScarcityCapBPS                   *int64  `yaml:"scarcity_cap_bps"`
+	SellerBandBPS                    *int64  `yaml:"seller_band_bps"`
+	DemolitionSalvageBPS             *int64  `yaml:"demolition_salvage_bps"`
+	MaterialMarkupBPS                *int64  `yaml:"material_markup_bps"`
+	StockBaseCapacity                *int64  `yaml:"stock_base_capacity"`
+	BuildHomesPerCrew                *int64  `yaml:"build_homes_per_crew"`
+	CharterMaxOffices                *int64  `yaml:"charter_max_offices"`
+	CharterMaxSeats                  *int64  `yaml:"charter_max_seats"`
+	CharterMaxPermissions            *int64  `yaml:"charter_max_permissions"`
+	CharterTitleMin                  *int64  `yaml:"charter_title_min"`
+	CharterTitleMax                  *int64  `yaml:"charter_title_max"`
+	CharterElectionTermDays          *int64  `yaml:"charter_election_term_days"`
+	CharterCandidacyHours            *int64  `yaml:"charter_candidacy_hours"`
+	CharterVotingHours               *int64  `yaml:"charter_voting_hours"`
+	CharterRecallMinTenureDays       *int64  `yaml:"charter_recall_min_tenure_days"`
+	CharterRecallSignatureBPS        *int64  `yaml:"charter_recall_signature_bps"`
+	CharterRecallMinSignatures       *int64  `yaml:"charter_recall_min_signatures"`
+	CharterRecallVoteHours           *int64  `yaml:"charter_recall_vote_hours"`
+	CharterRecallCooldownDays        *int64  `yaml:"charter_recall_cooldown_days"`
+	CharterAmendVoteHours            *int64  `yaml:"charter_amend_vote_hours"`
+	CharterAmendQuorumBPS            *int64  `yaml:"charter_amend_quorum_bps"`
+	CharterAmendVoteMinResidents     *int64  `yaml:"charter_amend_vote_min_residents"`
+	CharterActingDays                *int64  `yaml:"charter_acting_days"`
+	CharterActingSpendCap            *int64  `yaml:"charter_acting_spend_cap"`
+	CharterMinResidencyDays          *int64  `yaml:"charter_min_residency_days"`
+	StorageSpoilKeptBPS              *int64  `yaml:"storage_spoil_kept_bps"`
+	StorageSpoilUnkeptBPS            *int64  `yaml:"storage_spoil_unkept_bps"`
+	StorageKeeperRuleAt              *string `yaml:"storage_keeper_rule_at"`
+	StorageKeeperGraceDays           *int64  `yaml:"storage_keeper_grace_days"`
+	ResearchFreeSlots                *int64  `yaml:"research_free_slots"`
+	ResearchSpeedFloorBPS            *int64  `yaml:"research_speed_floor_bps"`
+	ResearchScholarFloorBPS          *int64  `yaml:"research_scholar_floor_bps"`
+	ResearchSkillBPSPerLevel         *int64  `yaml:"research_skill_bps_per_level"`
+	ResearchScholarCapBPS            *int64  `yaml:"research_scholar_cap_bps"`
+	ResearchNPCScholarLevel          *int64  `yaml:"research_npc_scholar_level"`
+	ResearchLiteracyBonusBPS         *int64  `yaml:"research_literacy_bonus_bps"`
+	ResearchCatchUpBPS               *int64  `yaml:"research_catch_up_bps"`
+	ResearchEraBaseDepth             *int64  `yaml:"research_era_base_depth"`
+	ResearchEraShareBPS              *int64  `yaml:"research_era_share_bps"`
+	ResearchAheadPerStepBPS          *int64  `yaml:"research_ahead_per_step_bps"`
+	ResearchAheadCapBPS              *int64  `yaml:"research_ahead_cap_bps"`
+	ResearchSharePerPartnerBPS       *int64  `yaml:"research_share_per_partner_bps"`
+	ResearchShareCapBPS              *int64  `yaml:"research_share_cap_bps"`
+	ResearchBreakthroughNeedPerDepth *int64  `yaml:"research_breakthrough_need_per_depth"`
+	ResearchBreakthroughMaxBPS       *int64  `yaml:"research_breakthrough_max_bps"`
+	ResearchExperiencePerShift       *int64  `yaml:"research_experience_per_shift"`
+	ResearchScholarXP                *int64  `yaml:"research_scholar_xp"`
+	MaterialBuyMax                   *int64  `yaml:"material_buy_max"`
+	MaterialBuyPresets               []int64 `yaml:"material_buy_presets"`
 
 	FoundingGrant   *int64  `yaml:"founding_grant"`
 	DonationMin     *int64  `yaml:"donation_min"`
@@ -1543,6 +1561,60 @@ var coreSettings = []setting{
 	moneySetting("settlement", "storage_keeper_grace_days",
 		func(c *Config) *int64 { return &c.Settlement.StorageKeeperGraceDays },
 		func(f *fileConfig) *int64 { return f.Settlement.StorageKeeperGraceDays }),
+	moneySetting("settlement", "research_free_slots",
+		func(c *Config) *int64 { return &c.Settlement.ResearchFreeSlots },
+		func(f *fileConfig) *int64 { return f.Settlement.ResearchFreeSlots }),
+	moneySetting("settlement", "research_speed_floor_bps",
+		func(c *Config) *int64 { return &c.Settlement.ResearchSpeedFloorBPS },
+		func(f *fileConfig) *int64 { return f.Settlement.ResearchSpeedFloorBPS }),
+	moneySetting("settlement", "research_scholar_floor_bps",
+		func(c *Config) *int64 { return &c.Settlement.ResearchScholarFloorBPS },
+		func(f *fileConfig) *int64 { return f.Settlement.ResearchScholarFloorBPS }),
+	moneySetting("settlement", "research_skill_bps_per_level",
+		func(c *Config) *int64 { return &c.Settlement.ResearchSkillBPSPerLevel },
+		func(f *fileConfig) *int64 { return f.Settlement.ResearchSkillBPSPerLevel }),
+	moneySetting("settlement", "research_scholar_cap_bps",
+		func(c *Config) *int64 { return &c.Settlement.ResearchScholarCapBPS },
+		func(f *fileConfig) *int64 { return f.Settlement.ResearchScholarCapBPS }),
+	moneySetting("settlement", "research_npc_scholar_level",
+		func(c *Config) *int64 { return &c.Settlement.ResearchNPCScholarLevel },
+		func(f *fileConfig) *int64 { return f.Settlement.ResearchNPCScholarLevel }),
+	moneySetting("settlement", "research_literacy_bonus_bps",
+		func(c *Config) *int64 { return &c.Settlement.ResearchLiteracyBonusBPS },
+		func(f *fileConfig) *int64 { return f.Settlement.ResearchLiteracyBonusBPS }),
+	moneySetting("settlement", "research_catch_up_bps",
+		func(c *Config) *int64 { return &c.Settlement.ResearchCatchUpBPS },
+		func(f *fileConfig) *int64 { return f.Settlement.ResearchCatchUpBPS }),
+	moneySetting("settlement", "research_era_base_depth",
+		func(c *Config) *int64 { return &c.Settlement.ResearchEraBaseDepth },
+		func(f *fileConfig) *int64 { return f.Settlement.ResearchEraBaseDepth }),
+	moneySetting("settlement", "research_era_share_bps",
+		func(c *Config) *int64 { return &c.Settlement.ResearchEraShareBPS },
+		func(f *fileConfig) *int64 { return f.Settlement.ResearchEraShareBPS }),
+	moneySetting("settlement", "research_ahead_per_step_bps",
+		func(c *Config) *int64 { return &c.Settlement.ResearchAheadPerStepBPS },
+		func(f *fileConfig) *int64 { return f.Settlement.ResearchAheadPerStepBPS }),
+	moneySetting("settlement", "research_ahead_cap_bps",
+		func(c *Config) *int64 { return &c.Settlement.ResearchAheadCapBPS },
+		func(f *fileConfig) *int64 { return f.Settlement.ResearchAheadCapBPS }),
+	moneySetting("settlement", "research_share_per_partner_bps",
+		func(c *Config) *int64 { return &c.Settlement.ResearchSharePerPartnerBPS },
+		func(f *fileConfig) *int64 { return f.Settlement.ResearchSharePerPartnerBPS }),
+	moneySetting("settlement", "research_share_cap_bps",
+		func(c *Config) *int64 { return &c.Settlement.ResearchShareCapBPS },
+		func(f *fileConfig) *int64 { return f.Settlement.ResearchShareCapBPS }),
+	moneySetting("settlement", "research_breakthrough_need_per_depth",
+		func(c *Config) *int64 { return &c.Settlement.ResearchBreakthroughNeedPerDepth },
+		func(f *fileConfig) *int64 { return f.Settlement.ResearchBreakthroughNeedPerDepth }),
+	moneySetting("settlement", "research_breakthrough_max_bps",
+		func(c *Config) *int64 { return &c.Settlement.ResearchBreakthroughMaxBPS },
+		func(f *fileConfig) *int64 { return f.Settlement.ResearchBreakthroughMaxBPS }),
+	moneySetting("settlement", "research_experience_per_shift",
+		func(c *Config) *int64 { return &c.Settlement.ResearchExperiencePerShift },
+		func(f *fileConfig) *int64 { return f.Settlement.ResearchExperiencePerShift }),
+	moneySetting("settlement", "research_scholar_xp",
+		func(c *Config) *int64 { return &c.Settlement.ResearchScholarXP },
+		func(f *fileConfig) *int64 { return f.Settlement.ResearchScholarXP }),
 	moneySetting("settlement", "material_buy_max",
 		func(c *Config) *int64 { return &c.Settlement.MaterialBuyMax },
 		func(f *fileConfig) *int64 { return f.Settlement.MaterialBuyMax }),

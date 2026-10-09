@@ -13,6 +13,7 @@ func init() {
 	Register(village.ScreenSettlementWho, screens.SettlementWho)
 	Register(village.ScreenVillageRefusal, screens.VillageRefusal)
 	Register(village.ScreenKnowledgeList, screens.KnowledgeList)
+	Register(village.ScreenResearch, screens.ResearchBoard)
 	Register(village.ScreenBuildMenu, screens.BuildMenu)
 	Register(village.ScreenConstructionProgress, screens.ConstructionProgress)
 	Register(village.ScreenLotGrid, screens.LotGrid)

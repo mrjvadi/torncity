@@ -147,6 +147,18 @@ type VillageInvariants struct {
 	LotOrphans, LotWorkMismatched, LotShiftsWithoutJob int64
 	LotMaterialsMismatched, LotFeeMismatched           int64
 	LotHistoryGuards                                   int64
+	// Research capacity (migration 0134, docs/adr/0048): Research is whether the tables exist. ResearchWageLedger and
+	// ResearchWageRows are the scholars' wages in the ledger and in the research days, ResearchWageMismatched the days
+	// whose wage transaction is not exactly what the row says; ResearchDayBroken days whose counts are not their
+	// building rows; ResearchUpkeepLedger and ResearchUpkeepRows the upkeep units in the item journal and in the days;
+	// ResearchSlotBroken projects whose slot is not a research building of their settlement; ResearchPostBroken posts
+	// outside their settlement; ResearchPactBroken pacts whose dates do not fit their status.
+	Research                                  bool
+	ResearchWageLedger, ResearchWageRows      int64
+	ResearchWageMismatched, ResearchDayBroken int64
+	ResearchUpkeepLedger, ResearchUpkeepRows  int64
+	ResearchSlotBroken, ResearchPostBroken    int64
+	ResearchPactBroken                        int64
 	// The reserve tools (migration 0131): Reserve is whether the tables exist. ReserveFlowMismatched counts
 	// moneys whose intervention_out/in counters differ from the ledger's pot legs; ReleasedMismatched those whose
 	// released_sup differs from what left the pot for good (excess withdrawn, claims, retirement remainder);
@@ -178,7 +190,9 @@ func (v VillageInvariants) WorkNodesOK() bool {
 		(!v.Reserve || (v.ReserveFlowMismatched == 0 && v.ReleasedMismatched == 0 && v.ClaimMismatched == 0 && v.ClaimOverdrawn == 0 &&
 			v.WithdrawalMismatched == 0 && v.RetiredPotMismatched == 0 && v.MacroGuards == 2)) &&
 		(!v.Lots || (v.LotOrphans == 0 && v.LotWorkMismatched == 0 && v.LotShiftsWithoutJob == 0 && v.LotMaterialsMismatched == 0 &&
-			v.LotFeeMismatched == 0 && v.LotHistoryGuards == 2))
+			v.LotFeeMismatched == 0 && v.LotHistoryGuards == 2)) &&
+		(!v.Research || (v.ResearchWageLedger == v.ResearchWageRows && v.ResearchWageMismatched == 0 && v.ResearchDayBroken == 0 &&
+			v.ResearchUpkeepLedger == v.ResearchUpkeepRows && v.ResearchSlotBroken == 0 && v.ResearchPostBroken == 0 && v.ResearchPactBroken == 0))
 }
 
 // TeachingOK reports whether the teaching checks hold.

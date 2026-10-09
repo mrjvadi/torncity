@@ -63,7 +63,7 @@ func renderVillageRefusal(c Context, v VillageRefusalView) *presenter.Response {
 		VillageDonateRange, VillageDonateNoCash, VillageBatch, VillageNoRoad, VillagePromotionTop,
 		VillageStorageFull, VillageNotEnough, VillageAlreadyWorking, VillageWorkplaceFull, VillageNotWorkplace,
 		LaborNoJob, LaborNotHere, LaborFullyStaffed, LaborBudgetSpent, LaborNotEmployer, LaborNoNPC, LaborWageTooLow,
-		LaborEmployerBroke, LaborNoSite, village.LaborNeedsRepair, village.LaborNoFood, village.VillageDeskEmpty, village.VillageDeskNoSUP, village.VillageDeskFunds, village.VillageDeskMoved, village.ReserveFunds, village.ReserveNoUnits, village.ReserveNoExcess, village.ReserveBudget, village.ReserveWinding, village.ReserveNotWind, village.ReserveNothing, village.ReserveInvalid, village.ReserveNotFound, village.LotNotYours, village.LotNotBuilt, village.LotBusy, village.LotNoFunction, village.LotNoModule, village.LotNoArea, village.LotSlotFull, village.LotNotBuilable, village.LotStoreys, village.LotNothing, village.LotTemplates, village.LotNoTemplate, village.LotInvalid, village.LotKeepOne, village.VillageRoadReserved, village.VillageReserved:
+		LaborEmployerBroke, LaborNoSite, village.LaborNeedsRepair, village.LaborNoFood, village.VillageDeskEmpty, village.VillageDeskNoSUP, village.VillageDeskFunds, village.VillageDeskMoved, village.ReserveFunds, village.ReserveNoUnits, village.ReserveNoExcess, village.ReserveBudget, village.ReserveWinding, village.ReserveNotWind, village.ReserveNothing, village.ReserveInvalid, village.ReserveNotFound, village.LotNotYours, village.LotNotBuilt, village.LotBusy, village.LotNoFunction, village.LotNoModule, village.LotNoArea, village.LotSlotFull, village.LotNotBuilable, village.LotStoreys, village.LotNothing, village.LotTemplates, village.LotNoTemplate, village.LotInvalid, village.LotKeepOne, village.VillageRoadReserved, village.VillageReserved, village.ResearchNoPost, village.ResearchPostHeld, village.ResearchNoPostHeld, village.ResearchPactOpen, village.ResearchPactSelf, village.ResearchPactNotFound, village.ResearchNoSlot:
 	default:
 		if isRoadRefusal(kind) {
 			break
@@ -225,11 +225,21 @@ func renderKnowledgeList(c Context, v KnowledgeListView) *presenter.Response {
 		c.T("knowledge.treasury", map[string]any{"amount": FormatMoney(c, v.Treasury)}),
 		c.T("knowledge.literacy", map[string]any{"percent": v.LiteracyPercent}),
 	)
-	running := ""
-	if r := v.Running; r != nil {
-		running = c.T("knowledge.running", map[string]any{
+	var runs []string
+	for _, r := range v.Projects {
+		runs = append(runs, c.T("knowledge.running", map[string]any{
 			"knowledge": c.SettlementKnowledgeName(r.Knowledge), "time": FormatClock(c, r.FinishAt), "duration": FormatDuration(c, r.Left),
-		})
+		}))
+	}
+	if len(runs) == 0 && v.Running != nil {
+		r := v.Running
+		runs = append(runs, c.T("knowledge.running", map[string]any{
+			"knowledge": c.SettlementKnowledgeName(r.Knowledge), "time": FormatClock(c, r.FinishAt), "duration": FormatDuration(c, r.Left),
+		}))
+	}
+	running := body(runs...)
+	if v.Capacity > 0 {
+		running = body(c.T("knowledge.capacity", map[string]any{"running": FormatNumber(c, int64(len(runs))), "capacity": FormatNumber(c, int64(v.Capacity))}), running)
 	}
 
 	var lines []string
@@ -253,7 +263,13 @@ func renderKnowledgeList(c Context, v KnowledgeListView) *presenter.Response {
 				args["missing"] = c.list(names)
 			}
 		}
-		lines = append(lines, c.T(key, args))
+		line := c.T(key, args)
+		if l.State == KnowledgeAvailable {
+			if notes := researchNotes(c, l.SpeedBPS, l.AheadBPS, l.DiscountBPS, l.ShareBPS); notes != "" {
+				line += " (" + notes + ")"
+			}
+		}
+		lines = append(lines, line)
 
 		if l.State == KnowledgeAvailable {
 			if btn, ok := keyboards.Button(c.T("knowledge.button.research", map[string]any{"knowledge": c.SettlementKnowledgeName(l.Knowledge)}),
@@ -279,6 +295,9 @@ func renderKnowledgeList(c Context, v KnowledgeListView) *presenter.Response {
 
 	kb := keyboards.New()
 	kb.Grid(2, buttons...)
+	if desk, ok := keyboards.Button(c.T("knowledge.button.desk", nil), AddrResearchDesk); ok {
+		kb.Row(desk)
+	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrVillageOverview, RefreshData: AddrKnowledgeList}))
 
 	return c.respond(paragraphs(head, running, list, later), kb.Build())

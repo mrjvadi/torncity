@@ -63,6 +63,23 @@ No buildings stand here yet.
 🔭 6 more items unlock beyond these.
   ───
   [🔬 Research Canal irrigation] → settlement:knowledge.research:canal_irrigation   │   [💰 Buy Canal irrigation] → settlement:knowledge.buy:canal_irrigation
+  [🔬 Research and scholars] → settlement:research
+  [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:knowledge
+
+━━━ Knowledge list · two projects in two slots, with notes on pace and price ━━━
+(edits message 42)
+📚 Knowledge of Korendal
+🏦 Treasury: 12,400 SUP
+📖 Literacy: 18%
+
+🧪 Projects at once: 2 of 3
+⏳ Researching Record keeping - finishes at 20:35 - 30h left
+⏳ Researching Basic literacy - finishes at 02:35 - 12h left
+
+🔬 Canal irrigation - research cost 3,900 SUP (21h) - ready-made price: 5,400 SUP (40% faster, 30% dearer for being ahead of the world, 10% cheaper from work experience, 20% faster through a pact)
+  ───
+  [🔬 Research Canal irrigation] → settlement:knowledge.research:canal_irrigation   │   [💰 Buy Canal irrigation] → settlement:knowledge.buy:canal_irrigation
+  [🔬 Research and scholars] → settlement:research
   [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:knowledge
 
 ━━━ Knowledge list · nothing to show yet ━━━
@@ -73,6 +90,7 @@ No buildings stand here yet.
 
 No knowledge to show.
   ───
+  [🔬 Research and scholars] → settlement:research
   [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:knowledge
 
 ━━━ Build menu · a mix of ready and locked ━━━
@@ -105,6 +123,54 @@ No knowledge to show.
 Nothing is queued.
   ───
   [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:build.progress
+
+━━━ Research desk · a laboratory at work, a library short of paper, a pact offered ━━━
+(edits message 42)
+🔬 Research of Korendal
+🧪 Projects at once: 2 of 3
+🌍 The world's knowledge has reached step 4; research beyond it costs more and goes slower.
+
+🧪 Research slots:
+• The settlement's free slot: 1 of 1
+• Laboratory: 1 of 2 - building speed +10%, scholars +12%
+
+🏛 Research buildings:
+✅ Laboratory - open; 1 resident scholars and 1 town scholars at work (a scholar's day pays 130 SUP)
+   Daily upkeep: Wool 1 (in stock: 9)
+💤 Library - did not work today: paper, fuel or reagents are short in the stock
+   Daily upkeep: Wool 1 (in stock: 0)
+
+⏳ Research in progress:
+• Record keeping (free slot) - done at 20:35 - 30h left - speed 100%
+• Basic literacy (Laboratory) - done at 02:35 - 12h left - speed 140% (30% dearer for being ahead of the world, 10% cheaper from work experience, 20% faster through a pact)
+
+🤝 Research-sharing pacts (each partner settlement that holds the knowledge speeds the research up, to 50% at most):
+• With Neighbour: in force
+• Sea offered a pact; the answer is yours
+
+🛠 Work experience (makes the next project in that field cheaper):
+• Crafts: 240 points
+  ───
+  [🚪 Leave the scholar's post] → settlement:research:leave
+  [🛑 End the pact with Neighbour] → settlement:research:end:p1
+  [✅ Accept the pact with Sea] → settlement:research:accept:p2
+  [❌ Decline] → settlement:research:decline:p2
+  [🤝 Pact with Hill] → settlement:research:propose:kuh
+  [🔙 Back] → settlement:knowledge   │   [🔄 Refresh] → settlement:research
+
+━━━ Research desk · no research building yet, the free slot only ━━━
+(edits message 42)
+🔬 Research of Korendal
+🧪 Projects at once: 0 of 1
+🌍 The world's knowledge has reached step 4; research beyond it costs more and goes slower.
+
+🧪 Research slots:
+• The settlement's free slot: 0 of 1
+
+🏛 Research buildings:
+No library, laboratory or higher school yet; until then there is only the one free slot.
+  ───
+  [🔙 Back] → settlement:knowledge   │   [🔄 Refresh] → settlement:research
 
 ━━━ Building panel · a granary with its stock ━━━
 (edits message 42)

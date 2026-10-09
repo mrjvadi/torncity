@@ -168,6 +168,10 @@ type Tx interface {
 	// VillageStorage holds the days of a settlement's stores: their keepers,
 	// wages and spoilage (storage and market audit P2); see ports_vstorage.go.
 	VillageStorage() VillageStorageRepository
+	// Research holds research capacity: the running projects, the research days,
+	// the scholars' posts, the settlement's experience and its sharing pacts
+	// (ADR 0048, migration 0134); see ports_research.go.
+	Research() ResearchRepository
 	// Charters holds each settlement's offices, seats and audit (ADR 0044
 	// section 6, migration 0121); see ports_charter.go.
 	Charters() CharterRepository

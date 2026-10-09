@@ -3,6 +3,7 @@ package content
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/mrjvadi/torncity/internal/domain/item"
 	"github.com/mrjvadi/torncity/internal/domain/settlementknowledge"
@@ -61,7 +62,10 @@ type SettlementKnowledgeDef struct {
 	// Family and Generation make this item one level of a leveled series —
 	// carpentry, carpentry_ii, ... — the same shape production.yml's own
 	// technologies use.
-	Family     string `yaml:"family,omitempty" json:"family,omitempty"`
+	Family string `yaml:"family,omitempty" json:"family,omitempty"`
+	// Field is the field of work whose real practice feeds this item's breakthrough progress (ADR 0048): craft,
+	// food, health, water_infra, security, education, market, infrastructure. Empty means no breakthrough.
+	Field      string `yaml:"field,omitempty" json:"field,omitempty"`
 	Generation int    `yaml:"generation,omitempty" json:"generation,omitempty"`
 	// MinLiteracyShareBPS gates this item on the settlement's own literacy
 	// share (ADR 0031 section 4.4), 0-10000; zero means no gate.
@@ -122,6 +126,24 @@ func (d SettlementKnowledgeDef) Tech() settlementknowledge.Tech {
 	}
 }
 
+// The floor of a research project's base price and time (ADR 0048 point 3): nothing is researched for less.
+const (
+	MinResearchCost int64 = 100
+	MinResearchTime       = time.Hour
+)
+
+// ResearchFields are the fields of work whose practice feeds breakthrough progress: the roles of the buildings that
+// work (ADR 0048 point 9). An item names the field of the work it grows out of.
+var ResearchFields = map[string]bool{
+	"craft": true, "food": true, "health": true, "water_infra": true,
+	"security": true, "education": true, "market": true, "infrastructure": true,
+}
+
+func mustDuration(s string) time.Duration {
+	d, _ := optionalDuration(s)
+	return d
+}
+
 // validateSettlementKnowledge checks the settlement knowledge content against
 // the skills, and against internal/domain/settlementknowledge's own tree
 // rules.
@@ -157,6 +179,14 @@ func (p *Pack) validateSettlementKnowledge(problems *[]error) {
 		}
 		if d.Skill != "" && !skills.Has(d.Skill) {
 			bad("%s %q needs unknown skill %q", where, d.Code, d.Skill)
+		}
+		if d.Field != "" && !ResearchFields[d.Field] {
+			bad("%s %q names the unknown research field %q", where, d.Code, d.Field)
+		}
+		// ADR 0048: speed and breakthroughs divide and discount a project, so the base needs a floor, or a fast
+		// slot with a discount could make an item free and instant.
+		if d.IsModeEligible() && (d.Cost < MinResearchCost || mustDuration(d.Time) < MinResearchTime) {
+			bad("%s %q researches for less than the floor (cost %d, time %s): at least %d and %s (ADR 0048)", where, d.Code, d.Cost, d.Time, MinResearchCost, MinResearchTime)
 		}
 		techs = append(techs, d.Tech())
 	}
