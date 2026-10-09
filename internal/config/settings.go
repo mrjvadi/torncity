@@ -476,6 +476,10 @@ type settlementSettings struct {
 	ResearchBreakthroughMaxBPS       *int64  `yaml:"research_breakthrough_max_bps"`
 	ResearchExperiencePerShift       *int64  `yaml:"research_experience_per_shift"`
 	ResearchScholarXP                *int64  `yaml:"research_scholar_xp"`
+	ExportPriceBPS                   *int64  `yaml:"export_price_bps"`
+	ExportCapBase                    *int64  `yaml:"export_cap_base"`
+	ExportCapPerResident             *int64  `yaml:"export_cap_per_resident"`
+	ExportKeepPresets                []int64 `yaml:"export_keep_presets"`
 	MaterialBuyMax                   *int64  `yaml:"material_buy_max"`
 	MaterialBuyPresets               []int64 `yaml:"material_buy_presets"`
 
@@ -1615,6 +1619,18 @@ var coreSettings = []setting{
 	moneySetting("settlement", "research_scholar_xp",
 		func(c *Config) *int64 { return &c.Settlement.ResearchScholarXP },
 		func(f *fileConfig) *int64 { return f.Settlement.ResearchScholarXP }),
+	moneySetting("settlement", "export_price_bps",
+		func(c *Config) *int64 { return &c.Settlement.ExportPriceBPS },
+		func(f *fileConfig) *int64 { return f.Settlement.ExportPriceBPS }),
+	moneySetting("settlement", "export_cap_base",
+		func(c *Config) *int64 { return &c.Settlement.ExportCapBase },
+		func(f *fileConfig) *int64 { return f.Settlement.ExportCapBase }),
+	moneySetting("settlement", "export_cap_per_resident",
+		func(c *Config) *int64 { return &c.Settlement.ExportCapPerResident },
+		func(f *fileConfig) *int64 { return f.Settlement.ExportCapPerResident }),
+	moneyListSetting("settlement", "export_keep_presets",
+		func(c *Config) *[]int64 { return &c.Settlement.ExportKeepPresets },
+		func(f *fileConfig) []int64 { return f.Settlement.ExportKeepPresets }),
 	moneySetting("settlement", "material_buy_max",
 		func(c *Config) *int64 { return &c.Settlement.MaterialBuyMax },
 		func(f *fileConfig) *int64 { return f.Settlement.MaterialBuyMax }),

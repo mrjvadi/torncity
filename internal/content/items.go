@@ -62,6 +62,9 @@ type ComponentDef struct {
 	// 4.1): the always-reachable source of a basic building material, so a
 	// prerequisite is never a dead end.
 	VillageBuy bool `yaml:"village_buy,omitempty" json:"village_buy,omitempty"`
+	// VillageSell lets a village's trader buy its surplus of it on market day, at BasePrice times the export price
+	// share (ADR 0049): the way what the settlement's workplaces make reaches its treasury.
+	VillageSell bool `yaml:"village_sell,omitempty" json:"village_sell,omitempty"`
 }
 
 // Component converts the definition to the domain value.

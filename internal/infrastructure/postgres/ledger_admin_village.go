@@ -147,6 +147,15 @@ type VillageInvariants struct {
 	LotOrphans, LotWorkMismatched, LotShiftsWithoutJob int64
 	LotMaterialsMismatched, LotFeeMismatched           int64
 	LotHistoryGuards                                   int64
+	// The market day (migration 0136, docs/adr/0049): Trade is whether the tables exist. TradeLedger and TradeRows are the
+	// export sales in the ledger and in the days; TradeItems and TradeLineUnits the goods in the item journal and in the
+	// lines; TradeDayBroken days whose gross is not their lines or whose transactions are not exactly the gross and the
+	// wage; TradeWageLedger and TradeWageRows the clerks' wages.
+	Trade                          bool
+	TradeLedger, TradeRows         int64
+	TradeItems, TradeLineUnits     int64
+	TradeDayBroken                 int64
+	TradeWageLedger, TradeWageRows int64
 	// The refund of the national levy (migration 0135): LevyRefunds is whether the table exists. LevyRefundLedger and
 	// LevyRefundRows are the refunds in the ledger and in the rows; LevyRefundMismatched the refunds that are not exactly
 	// what national_levy took from that settlement, or whose transaction is not exactly that amount.
@@ -197,6 +206,7 @@ func (v VillageInvariants) WorkNodesOK() bool {
 			v.WithdrawalMismatched == 0 && v.RetiredPotMismatched == 0 && v.MacroGuards == 2)) &&
 		(!v.Lots || (v.LotOrphans == 0 && v.LotWorkMismatched == 0 && v.LotShiftsWithoutJob == 0 && v.LotMaterialsMismatched == 0 &&
 			v.LotFeeMismatched == 0 && v.LotHistoryGuards == 2)) &&
+		(!v.Trade || (v.TradeLedger == v.TradeRows && v.TradeItems == v.TradeLineUnits && v.TradeDayBroken == 0 && v.TradeWageLedger == v.TradeWageRows)) &&
 		(!v.LevyRefunds || (v.LevyRefundLedger == v.LevyRefundRows && v.LevyRefundMismatched == 0)) &&
 		(!v.Research || (v.ResearchWageLedger == v.ResearchWageRows && v.ResearchWageMismatched == 0 && v.ResearchDayBroken == 0 &&
 			v.ResearchUpkeepLedger == v.ResearchUpkeepRows && v.ResearchSlotBroken == 0 && v.ResearchPostBroken == 0 && v.ResearchPactBroken == 0))

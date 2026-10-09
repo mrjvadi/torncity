@@ -312,6 +312,7 @@ commands:
   settlement.knowledge: {kind: navigation, icon: "action:knowledge"}
   settlement.knowledge.research: {kind: primary, icon: "action:research"}
   settlement.research: {kind: navigation, icon: "action:research"}
+  settlement.trade: {kind: navigation, icon: "action:market"}
   settlement.knowledge.buy: {kind: primary, icon: "action:buy"}
   settlement.build: {kind: navigation, icon: "action:build"}
   settlement.build.lots: {kind: navigation, icon: "action:lots"}

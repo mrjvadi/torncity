@@ -104,6 +104,22 @@ func villageSnapshots(c Context, who people, add func(string, *presenter.Respons
 		},
 	}))
 	add("Construction progress · queue empty", ConstructionProgress(g, ConstructionProgressView{Name: villageNameFor(c)}))
+	tWood := sampleNamed(c.Lang, "timber", "الوار", "Timber")
+	tWool := sampleNamed(c.Lang, "wool", "پشم", "Wool")
+	add("Trade desk · goods on sale, the last market day sold", TradeDesk(g, TradeDeskView{
+		Name: villageNameFor(c), HasPost: true, Cap: 480, PriceBPS: 9000, Prospect: 117, MayOrder: true, KeepPresets: []int64{10, 25},
+		Items: []village.TradeItemLine{
+			{Item: tWood, Stock: 39, Reference: 15, Unit: 13, On: true, Keep: 30, Surplus: 9},
+			{Item: tWool, Stock: 25, Reference: 12, Unit: 10, On: false},
+		},
+		Last: &village.TradeDayLine{Outcome: "sold", Gross: 130, Wage: 35, At: snapshotNow, Lines: []village.TradeSoldLine{{Item: tWood, Qty: 10, Unit: 13}}},
+	}))
+	add("Trade desk · no clerk could be found, a resident without the permission", TradeDesk(g, TradeDeskView{
+		Name: villageNameFor(c), HasPost: true, Cap: 480, PriceBPS: 9000,
+		Items: []village.TradeItemLine{{Item: tWood, Stock: 39, Reference: 15, Unit: 13, On: true, Keep: 0, Surplus: 39}},
+		Last:  &village.TradeDayLine{Outcome: "no_clerk", At: snapshotNow},
+	}))
+	add("Trade desk · no market post yet", TradeDesk(g, TradeDeskView{Name: villageNameFor(c), Cap: 400, PriceBPS: 9000}))
 	library := sampleNamed(c.Lang, "library", "کتابخانه", "Library")
 	lab := sampleNamed(c.Lang, "laboratory", "آزمایشگاه", "Laboratory")
 	wool := sampleNamed(c.Lang, "wool", "پشم", "Wool")

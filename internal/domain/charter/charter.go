@@ -58,6 +58,8 @@ const (
 	ResearchStart Permission = "research.start"
 	// ResearchShare proposes, accepts and ends the settlement's research-sharing pacts (ADR 0048).
 	ResearchShare Permission = "research.share"
+	// TradeExport puts the settlement's goods on sale to the travelling trader and sets what it keeps back (ADR 0049).
+	TradeExport Permission = "trade.export"
 
 	PolicePatrol Permission = "police.patrol"
 	PoliceFine   Permission = "police.fine"
@@ -109,7 +111,7 @@ var catalogue = []Def{
 	{LotSell, "land", false, true}, {PublicBuild, "land", false, true}, {PublicDemolish, "land", false, true},
 	{CitizenAdmit, "people", false, false}, {CitizenBan, "people", false, false},
 	{StaffHire, "people", false, true}, {StaffFire, "people", false, true}, {JobsPost, "people", false, true},
-	{ResearchStart, "knowledge", false, true}, {ResearchShare, "knowledge", false, true},
+	{ResearchStart, "knowledge", false, true}, {ResearchShare, "knowledge", false, true}, {TradeExport, "treasury", false, true},
 	{PolicePatrol, "order", false, false}, {PoliceFine, "order", true, false}, {CourtJudge, "order", false, false},
 	{ElectionCall, "politics", false, false},
 	{OfficeCreate, "politics", false, true}, {OfficeEdit, "politics", false, true},

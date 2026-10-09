@@ -377,6 +377,27 @@ func (s *Snapshot) VillageMaterialPrice(item string, markupBPS int64) (int64, bo
 	return (c.BasePrice*markupBPS + 9999) / 10000, true
 }
 
+// VillageExportPrices is, for every component a village's trader buys, its reference price (ADR 0049).
+func (s *Snapshot) VillageExportPrices() map[string]int64 {
+	out := map[string]int64{}
+	for _, c := range s.ComponentDefs() {
+		if c.VillageSell && c.BasePrice > 0 {
+			out[c.Code] = c.BasePrice
+		}
+	}
+	return out
+}
+
+// VillageExports lists the component codes a village's trader buys, sorted.
+func (s *Snapshot) VillageExports() []string {
+	var out []string
+	for code := range s.VillageExportPrices() {
+		out = append(out, code)
+	}
+	sort.Strings(out)
+	return out
+}
+
 // VillageMaterials lists the component codes a village may buy, sorted.
 func (s *Snapshot) VillageMaterials() []string {
 	var out []string

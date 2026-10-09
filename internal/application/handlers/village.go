@@ -97,6 +97,8 @@ type VillageHandler struct {
 	stockBaseCapacity int64
 	// research is the research capacity and speed rules (village_research.go).
 	research ResearchRules
+	// trade is the market day's rules (village_trade.go).
+	trade TradeRules
 	// storage is the stores' keepers and spoilage (village_storage.go).
 	storage            StorageRules
 	materialBuyMax     int64

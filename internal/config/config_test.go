@@ -670,6 +670,10 @@ settlement:
   research_breakthrough_max_bps: 215
   research_experience_per_shift: 216
   research_scholar_xp: 217
+  export_price_bps: 9001
+  export_cap_base: 401
+  export_cap_per_resident: 41
+  export_keep_presets: [11, 26, 51]
   material_buy_max: 201
   material_buy_presets: [6, 21, 51]
   founding_grant: 10001
@@ -1230,6 +1234,10 @@ var envOverrides = map[string]string{
 	"TORN_SETTLEMENT_RESEARCH_BREAKTHROUGH_MAX_BPS":        "315",
 	"TORN_SETTLEMENT_RESEARCH_EXPERIENCE_PER_SHIFT":        "316",
 	"TORN_SETTLEMENT_RESEARCH_SCHOLAR_XP":                  "317",
+	"TORN_SETTLEMENT_EXPORT_PRICE_BPS":                     "9002",
+	"TORN_SETTLEMENT_EXPORT_CAP_BASE":                      "402",
+	"TORN_SETTLEMENT_EXPORT_CAP_PER_RESIDENT":              "42",
+	"TORN_SETTLEMENT_EXPORT_KEEP_PRESETS":                  "12,27,52",
 	"TORN_SETTLEMENT_MATERIAL_BUY_MAX":                     "202",
 	"TORN_SETTLEMENT_MATERIAL_BUY_PRESETS":                 "7,22,52",
 	"TORN_SETTLEMENT_DONATION_MIN":                         "102",

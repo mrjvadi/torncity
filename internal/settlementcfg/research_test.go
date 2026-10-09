@@ -26,3 +26,15 @@ func TestShippedResearchRules(t *testing.T) {
 		t.Errorf("the free slot with no literacy and nobody ahead is the plain project: %+v", q)
 	}
 }
+
+// The market day the service boots with: the trader pays less than the reference price (so a round trip through
+// Support, where the settlement buys above it, always loses) and one visit has a bounded load.
+func TestShippedTradeRules(t *testing.T) {
+	r := Trade(config.Defaults().Settlement)
+	if !r.Enabled() || r.PriceBPS >= 10_000 || r.CapBase <= 0 {
+		t.Fatalf("the shipped market day: %+v", r)
+	}
+	if got := r.Cap(10); got != r.CapBase+10*r.CapPerResident {
+		t.Errorf("the cap of ten residents is %d", got)
+	}
+}

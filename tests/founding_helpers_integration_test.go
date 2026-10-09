@@ -124,6 +124,8 @@ func cleanupFounding(t *testing.T, pool *postgres.Pool, chats func() []int64) {
 					`DELETE FROM research_pacts WHERE settlement_a = $1::uuid OR settlement_b = $1::uuid`,
 					`DELETE FROM settlement_experience WHERE settlement_id = $1::uuid`,
 					`DELETE FROM research_days WHERE settlement_id = $1::uuid`,
+					`DELETE FROM trade_days WHERE settlement_id = $1::uuid`,
+					`DELETE FROM trade_orders WHERE settlement_id = $1::uuid`,
 					`DELETE FROM game_actions WHERE reference_type = 'settlement' AND reference_id = $1::uuid`,
 					`DELETE FROM settlement_literacy WHERE settlement_id = $1::uuid`,
 					`DELETE FROM settlement_knowledge_owned WHERE settlement_id = $1::uuid`,

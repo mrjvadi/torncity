@@ -241,6 +241,9 @@ func (t *tx) VillageStorage() application.VillageStorageRepository {
 // Research returns research capacity: running projects, research days, scholars' posts, experience and pacts (migration 0134).
 func (t *tx) Research() application.ResearchRepository { return &ResearchRepository{q: t.q} }
 
+// Trade returns the market day's orders and days (migration 0136).
+func (t *tx) Trade() application.TradeRepository { return &TradeRepository{q: t.q} }
+
 // Charters returns the offices, seats and audit of the settlements' charters (migration 0121).
 func (t *tx) Charters() application.CharterRepository { return &CharterRepository{q: t.q} }
 

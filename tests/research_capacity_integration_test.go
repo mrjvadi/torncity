@@ -45,6 +45,8 @@ func newResearchEnv(t *testing.T) *researchEnv {
 			`DELETE FROM research_pacts WHERE settlement_a = $1::uuid OR settlement_b = $1::uuid`,
 			`DELETE FROM settlement_experience WHERE settlement_id = $1::uuid`,
 			`DELETE FROM research_days WHERE settlement_id = $1::uuid`,
+			`DELETE FROM trade_days WHERE settlement_id = $1::uuid`,
+			`DELETE FROM trade_orders WHERE settlement_id = $1::uuid`,
 			`ALTER TABLE item_movements DISABLE TRIGGER item_movements_append_only`,
 			`DELETE FROM item_movements WHERE to_org = $1::uuid OR from_org = $1::uuid`,
 			`ALTER TABLE item_movements ENABLE TRIGGER item_movements_append_only`,

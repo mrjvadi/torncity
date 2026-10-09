@@ -146,6 +146,7 @@ components:
     # a village buys food from Support (ADR 0041 12: procurement is always there), so a new
     # city's hired crews can eat before it has a farm of its own
     village_buy: true
+    village_sell: true
   - code: cotton
     shelf: materials.fibre
     name: Cotton
@@ -162,6 +163,7 @@ components:
     attributes: {quality: 50}
     production: {method: grow, by: [farm], inputs: [{component: seed_grain, quantity: 3}], batch: 4, skill: logistics}
     village_buy: true
+    village_sell: true
 
   # --- Village materials (docs/adr/0033, section 4.1) ---------------------------
   # What a village builds with and works in. `village_buy: true` lets the
@@ -170,11 +172,11 @@ components:
   # end; the settlement_buildings.yml workplaces `produce` and `consume` them.
   # The reachability lint (internal/content/villagereach.go) refuses a material
   # a village could neither buy nor produce.
-  - {code: stone, shelf: materials.mineral, weight_g: 10000, name: Stone,  category: mineral, base_price: 6,  attributes: {quality: 50}, village_buy: true}
-  - {code: wool, shelf: materials.fibre, weight_g: 500,  name: Wool,   category: fibre,   base_price: 12, attributes: {quality: 50}, village_buy: true}
-  - {code: plank, shelf: materials.wood, weight_g: 6000, name: Planks, category: wood,    base_price: 30, attributes: {quality: 50}}
-  - {code: brick, shelf: materials.mineral, weight_g: 3000, name: Bricks, category: mineral, base_price: 14, attributes: {quality: 50}}
-  - {code: cloth, shelf: materials.fibre, weight_g: 400, name: Cloth,  category: fibre,   base_price: 40, attributes: {quality: 50}}
+  - {code: stone, shelf: materials.mineral, weight_g: 10000, name: Stone,  category: mineral, base_price: 6,  attributes: {quality: 50}, village_buy: true, village_sell: true}
+  - {code: wool, shelf: materials.fibre, weight_g: 500,  name: Wool,   category: fibre,   base_price: 12, attributes: {quality: 50}, village_buy: true, village_sell: true}
+  - {code: plank, shelf: materials.wood, weight_g: 6000, name: Planks, category: wood,    base_price: 30, attributes: {quality: 50}, village_sell: true}
+  - {code: brick, shelf: materials.mineral, weight_g: 3000, name: Bricks, category: mineral, base_price: 14, attributes: {quality: 50}, village_sell: true}
+  - {code: cloth, shelf: materials.fibre, weight_g: 400, name: Cloth,  category: fibre,   base_price: 40, attributes: {quality: 50}, village_sell: true}
 
   # --- Made from other components by factories and kitchens ----------------
   # A design counts flour in grams: one wheat mills into a hundred.

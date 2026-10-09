@@ -139,6 +139,16 @@ func (h *VillageHandler) Taught(ctx context.Context, meta envelope.Metadata, req
 				return err
 			}
 		}
+		// The market day rides the tick too (trade_days: one row per settlement and local day).
+		if h.trade.enabled() {
+			s, err := tx.Settlements().ByID(ctx, in.SettlementID)
+			if err != nil {
+				return err
+			}
+			if _, err := h.SettleTradeDay(ctx, tx, snap, s, buildings); err != nil {
+				return err
+			}
+		}
 		if next == int64(shareBPS) {
 			return nil // no visible change (no school yet); nothing worth announcing
 		}

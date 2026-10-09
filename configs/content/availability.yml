@@ -87,6 +87,7 @@ staff_roles:
   - {code: loan_officer, building: {code: bank}, personal: [{kind: skill, code: finance, min: 2}, {kind: certificate, code: credit_analysis}], support_npc: true, note: "RESEARCH 2026-10-03 6.5; the course credit_analysis is in education.yml"}
   - {code: bank_manager, building: {code: bank}, personal: [{kind: skill, code: management, min: 3}, {kind: skill, code: finance, min: 3}], support_npc: true, note: "RESEARCH 2026-10-03 6.5"}
   - {code: scholar, building: {role: research, tier: 1}, skill: scholarship, wage_bps: 13000, personal: [{kind: literacy}], support_npc: true, note: "ADR 0048: the reader, the experimenter, the lecturer; a player holds the post by taking it, an NPC of the labour pool fills the rest"}
+  - {code: market_clerk, building: {code: barter_post}, skill: trade, wage_bps: 11000, personal: [{kind: literacy}], support_npc: true, note: "ADR 0049: the clerk of the market weighs, records and takes the tolls; paid per market day on which a trader came"}
   - {code: banksman, skill: "", support_npc: true, note: "ADR 0045 8.3 (the hoist's banksman); prerequisite, skill and wage class not written (needs research)"}
 
 # Personal prerequisites that no certifying course provides yet.
