@@ -75,3 +75,60 @@ func (r *SettlementTreasuryRepository) FoundedWithoutGrant(ctx context.Context) 
 	}
 	return out, rows.Err()
 }
+
+// LevyTaken is, per founded settlement, what the national levy took from its treasury.
+func (r *SettlementTreasuryRepository) LevyTaken(ctx context.Context) (map[string]int64, error) {
+	rows, err := r.q.Query(ctx, `
+		SELECT c.id::text, SUM(-e.amount)::bigint
+		  FROM ledger_entries e
+		  JOIN accounts a ON a.id = e.account_id AND a.kind = 'city_treasury'
+		  JOIN cities c ON c.id = a.owner_id AND c.origin = 'founded'
+		 WHERE e.reason = 'national_levy' AND e.amount < 0
+		 GROUP BY c.id`)
+	if err != nil {
+		return nil, fmt.Errorf("postgres: summing the national levy: %w", err)
+	}
+	defer rows.Close()
+	out := map[string]int64{}
+	for rows.Next() {
+		var id string
+		var n int64
+		if err := rows.Scan(&id, &n); err != nil {
+			return nil, fmt.Errorf("postgres: scanning the national levy: %w", err)
+		}
+		out[id] = n
+	}
+	return out, rows.Err()
+}
+
+// LevyRefunded lists the settlements already refunded.
+func (r *SettlementTreasuryRepository) LevyRefunded(ctx context.Context) (map[string]bool, error) {
+	rows, err := r.q.Query(ctx, `SELECT settlement_id::text FROM levy_refunds`)
+	if err != nil {
+		return nil, fmt.Errorf("postgres: listing levy refunds: %w", err)
+	}
+	defer rows.Close()
+	out := map[string]bool{}
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			return nil, fmt.Errorf("postgres: scanning levy refunds: %w", err)
+		}
+		out[id] = true
+	}
+	return out, rows.Err()
+}
+
+// RecordLevyRefund inserts the settlement's refund row; the primary key makes a second one a no-op that reports false.
+func (r *SettlementTreasuryRepository) RecordLevyRefund(ctx context.Context, x application.LevyRefund) (bool, error) {
+	tag, err := r.q.Exec(ctx, `
+		INSERT INTO levy_refunds (settlement_id, country_id, levy, from_state_treasury, from_defence_fund, from_source,
+		                          ledger_transaction_id, reason, operator, created_at)
+		VALUES ($1::uuid, $2::uuid, $3, $4, $5, $6, $7::uuid, $8, $9, $10)
+		ON CONFLICT (settlement_id) DO NOTHING`,
+		x.SettlementID, x.CountryID, x.Levy, x.FromStateTreasury, x.FromDefenceFund, x.FromSource, x.LedgerTransactionID, x.Reason, x.Operator, x.At.UTC())
+	if err != nil {
+		return false, fmt.Errorf("postgres: recording a levy refund: %w", err)
+	}
+	return tag.RowsAffected() == 1, nil
+}

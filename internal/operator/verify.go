@@ -196,6 +196,11 @@ func VerifyChecks(v postgres.LedgerVerification, cfg *config.Config) []Check {
 		out.add(t.LotHistoryGuards == 2, fmt.Sprintf("the conversion history is append-only (%d of 2 guards)", t.LotHistoryGuards))
 	}
 
+	if v.Village && v.LevyRefunds {
+		t := v.VillageInvariants
+		out.add(t.LevyRefundLedger == t.LevyRefundRows && t.LevyRefundMismatched == 0, fmt.Sprintf("the levy refunds in the ledger match the refund rows (%d = %d), and each refund is exactly what the national levy took from that settlement, in one transaction of that amount (%d mismatched)", t.LevyRefundLedger, t.LevyRefundRows, t.LevyRefundMismatched))
+	}
+
 	if v.Village && v.Research {
 		t := v.VillageInvariants
 		out.add(t.ResearchWageLedger == t.ResearchWageRows && t.ResearchWageMismatched == 0, fmt.Sprintf("scholar wages in the ledger match the research days (%d = %d), each one the transaction its day names (%d mismatched)", t.ResearchWageLedger, t.ResearchWageRows, t.ResearchWageMismatched))

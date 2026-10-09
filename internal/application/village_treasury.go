@@ -71,6 +71,12 @@ type SettlementTreasuryRepository interface {
 	RecordGrant(ctx context.Context, settlementID string, amount int64, ledgerTransactionID, source, grantedBy string, at time.Time) (bool, error)
 	// RecordDonation inserts one donation row.
 	RecordDonation(ctx context.Context, d SettlementDonation) error
+	// LevyTaken is, per founded settlement, what the national levy took from its treasury (the debits of reason
+	// national_levy); LevyRefunded the settlements already refunded; RecordLevyRefund writes the refund's row and
+	// reports whether it did (false: the settlement was refunded already). See levy_refund.go.
+	LevyTaken(ctx context.Context) (map[string]int64, error)
+	LevyRefunded(ctx context.Context) (map[string]bool, error)
+	RecordLevyRefund(ctx context.Context, r LevyRefund) (bool, error)
 	// RecordTopup inserts one operator top-up row.
 	RecordTopup(ctx context.Context, id, settlementID string, amount int64, ledgerTransactionID, grantedBy, reason string, at time.Time) error
 	// FoundedWithoutGrant lists, oldest first, every founded settlement that

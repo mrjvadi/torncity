@@ -287,7 +287,8 @@ func (h *MilitaryHandler) settle(ctx context.Context, tx application.Tx, snap *c
 	clock *application.MilitaryClock, now time.Time,
 ) error {
 	country := clock.CountryID
-	cities, err := tx.Diplomacy().CitiesOf(ctx, country)
+	// Only the content cities pay: a founded settlement belongs to no country its players made (ADR 0044).
+	cities, err := tx.Diplomacy().LevyCitiesOf(ctx, country)
 	if err != nil {
 		return err
 	}
