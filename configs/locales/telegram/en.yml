@@ -177,6 +177,12 @@ village:
     city: "🏙 the city of {name}"
   population: "👥 Population: {population} of {cap}"
   treasury: "🏦 City treasury: {amount}"
+  personal:
+    level: "level {need} (you are level {have})"
+    skill: "the skill {item} to level {need} (you have {have})"
+    certificate: "the certificate {item}"
+    literacy: "reading and writing (the certificate {item})"
+    rank: "a rank"
   watch:
     need: "{item} {qty}"
     grace: "ℹ️ {building}: stays open as it is until {until}; from that day it asks every day for staff, a wage and these: {needs}."
@@ -409,6 +415,7 @@ village:
     next_research: "• You could research {name}"
     next_build: "• You could build {name}"
   refusal:
+    personal: "🔒 This work asks for something you do not have yet: {needs}. Get it from a class or training and come back."
     charter_title: "🔒 That office name does not fit: it must be a few characters long and not a reserved word."
     charter_title_taken: "🔒 Another office has that name."
     charter_caps: "🔒 That is over the cap of offices, seats or permissions."
@@ -825,6 +832,7 @@ village:
     no_market: "The town money's market, reserve and cover are not built yet and no made-up rate is given; once the town money is issued its market rate shows here."
     hint: "The cheaper the basket, the more the town's money buys."
   work:
+    personal_warn: "ℹ️ From {until} this work asks of you: {needs}. Until then you may go on as you are."
     title: "⚒ Work in {village}"
     material: "{qty} {name}"
     place: "• {building}: per shift ({shift}) {produces} - wage {wage} - places taken: {busy} of {workers}"

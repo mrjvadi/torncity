@@ -12,6 +12,7 @@ import "sort"
 //	trade:<building>     a market day that sold, at a market post
 //	research:<building>  a day scholars worked in a research building
 //	teaching:<building>  a day a class of an education building taught someone to read
+//	class:<building>     a finished class a certified teacher gave in the building (once a day)
 func (s *Snapshot) FieldSources() map[string][]string {
 	out := map[string][]string{}
 	add := func(field, src string) {
@@ -30,6 +31,7 @@ func (s *Snapshot) FieldSources() map[string][]string {
 		add(field, "build:"+d.Code)
 		if d.Role == "education" && field == "education" {
 			add("education", "teaching:"+d.Code)
+			add("education", "class:"+d.Code)
 		}
 	}
 	for _, f := range s.schema.functions {

@@ -495,7 +495,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			}).
 			WithLabor(laborRules(cfg.Labor), cfg.Labor.HirePresets, cfg.Labor.WagePresets).
 			WithActivities(activityRules(cfg)).
-			WithShop(shopRules(cfg)).WithStorage(storageRules(cfg)).WithResearch(researchRules(cfg)).WithTrade(tradeRules(cfg)).WithRealItems(realItemRules(cfg)).WithService(serviceRules(cfg)).WithCurrencyRules(currencyRules(cfg, postgres.NewPolicyReader(pool, nil))).
+			WithShop(shopRules(cfg)).WithStorage(storageRules(cfg)).WithResearch(researchRules(cfg)).WithTrade(tradeRules(cfg)).WithRealItems(realItemRules(cfg)).WithService(serviceRules(cfg)).WithPersonal(personalRules(cfg)).WithCurrencyRules(currencyRules(cfg, postgres.NewPolicyReader(pool, nil))).
 			WithLotRules(lotRules),
 	}
 
@@ -504,6 +504,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	h.jobs, h.education = newWorkHandlers(uow, messages, registry, cities,
 		postgres.NewPolicyReader(pool, nil), gametime.Scale(cfg.Game.TimeScale), cfg.Game.IdempotencyTTL)
 	h.education.WithHomeCity(cfg.Settlement.HomeCityCode)
+	h.education.WithExperience(cfg.Settlement.ResearchExperiencePerShift)
 	h.training = handlers.NewTrainingHandler(uow, uuidGenerator{}, messages, registry, cities, trainingRules(cfg.Training),
 		cfg.Settlement.HomeCityCode, cfg.Game.IdempotencyTTL, nil)
 	h.training.WithTrainer(h.village.TrainerSeat)

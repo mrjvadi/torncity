@@ -86,6 +86,8 @@ type VillageRefusalView struct {
 	Action  string             `json:"action,omitempty"`
 	Subject presentation.Named `json:"subject,omitempty"`
 	Needs   []VillageNeed      `json:"needs,omitempty"`
+	// Personal is what the player lacks for a post (kind "personal", ADR 0055).
+	Personal []PersonalNeed `json:"personal,omitempty"`
 }
 
 // VillageRoleLine is one role's own standing building(s), for the
@@ -966,6 +968,8 @@ const (
 	VillageWorkplaceFull = "workplace_full"
 	// VillageNotWorkplace: the building cannot be worked in (yet).
 	VillageNotWorkplace = "not_workplace"
+	// VillagePersonal: the post asks a level, a skill, a certificate or literacy the player lacks (ADR 0055).
+	VillagePersonal = "personal"
 )
 
 // What a refusal's need is.
@@ -1125,6 +1129,9 @@ type WorkplaceLine struct {
 	Workers, Busy int
 	// Ready reports that the stock holds the inputs of one shift.
 	Ready bool
+	// Personal is what the viewer lacks for a shift here (the personal prerequisites of the staff role); the shift is
+	// refused for it from WorkView.PersonalUntil on, until then it only warns.
+	Personal []PersonalNeed `json:"personal,omitempty"`
 }
 
 // WorkShiftLine is a shift in progress.
@@ -1146,6 +1153,8 @@ type WorkView struct {
 	Suggest []presentation.Named
 	// Started is set on the screen shown right after a shift began.
 	Started bool
+	// PersonalUntil is when the grace of the personal prerequisites ends (zero: no grace, or none needed).
+	PersonalUntil time.Time `json:"personal_until,omitempty"`
 	// Used and Capacity are the stock's units and room.
 	Used, Capacity int64
 }
@@ -1669,4 +1678,22 @@ type ServiceLine struct {
 	Grace      bool
 	GraceUntil time.Time
 	Needs      []MaterialLine
+}
+
+// What a personal prerequisite is (the kinds of the staff roles' `personal` lists).
+const (
+	PersonalLevel       = "level"
+	PersonalSkill       = "skill"
+	PersonalCertificate = "certificate"
+	PersonalLiteracy    = "literacy"
+	PersonalRank        = "rank"
+)
+
+// PersonalNeed is one personal prerequisite the viewer lacks for a post (ADR 0055): a level, a skill of a level, a
+// certificate (Item names the course), literacy. Have and Need count a level or a skill; How is how to get it.
+type PersonalNeed struct {
+	Kind       string
+	Item       presentation.Named
+	Have, Need int64
+	How        string
 }

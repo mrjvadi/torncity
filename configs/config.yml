@@ -1383,6 +1383,11 @@ settlement:
   # while a person of the pool staffs it, even with the store thin, so no live settlement loses its coverage overnight.
   service_rule_at: "2026-10-12T00:00:00Z"
   service_grace_days: 7
+  # Personal prerequisites of a post (docs/adr/0055): a workplace's staff role may ask a level, a skill, a certificate or
+  # literacy of the player who works there, a scholar's post literacy. From this date a player who lacks them is
+  # refused, naming what is missing; for this many real days after it he may still work, with a notice.
+  personal_rule_at: "2026-10-12T00:00:00Z"
+  personal_grace_days: 7
   # Research capacity and speed (docs/adr/0048): slots from staffed research buildings, speed from
   # the scholars, a dearer price for what is ahead of the world, a discount for real work in the field.
   # research projects every settlement can run with no research building (ADR 0048)

@@ -141,6 +141,7 @@ const VillageNotEnough = village.VillageNotEnough
 const VillageAlreadyWorking = village.VillageAlreadyWorking
 const VillageWorkplaceFull = village.VillageWorkplaceFull
 const VillageNotWorkplace = village.VillageNotWorkplace
+const VillagePersonal = village.VillagePersonal
 const NeedMaterial = village.NeedMaterial
 const NeedKnowledge = village.NeedKnowledge
 const NeedBuilding = village.NeedBuilding

@@ -65,6 +65,8 @@ type CompleteCourseRequest struct {
 // education. A course run by a player company will pay that company's
 // treasury instead (education.InstitutionCompany), in chargeFee.
 type EducationHandler struct {
+	// experiencePerClass is the education experience a finished class in a founded settlement adds (WithExperience).
+	experiencePerClass int64
 	uow     application.UnitOfWork
 	ids     IDGenerator
 	msgs    Translator

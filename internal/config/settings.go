@@ -463,6 +463,8 @@ type settlementSettings struct {
 	ToolBareHandsBPS                 *int64  `yaml:"tool_bare_hands_bps"`
 	ServiceRuleAt                    *string `yaml:"service_rule_at"`
 	ServiceGraceDays                 *int64  `yaml:"service_grace_days"`
+	PersonalRuleAt                   *string `yaml:"personal_rule_at"`
+	PersonalGraceDays                *int64  `yaml:"personal_grace_days"`
 	ResearchFreeSlots                *int64  `yaml:"research_free_slots"`
 	ResearchSpeedFloorBPS            *int64  `yaml:"research_speed_floor_bps"`
 	ResearchScholarFloorBPS          *int64  `yaml:"research_scholar_floor_bps"`
@@ -1579,6 +1581,12 @@ var coreSettings = []setting{
 	stringSetting("settlement", "service_rule_at",
 		func(c *Config) *string { return &c.Settlement.ServiceRuleAt },
 		func(f *fileConfig) *string { return f.Settlement.ServiceRuleAt }),
+	stringSetting("settlement", "personal_rule_at",
+		func(c *Config) *string { return &c.Settlement.PersonalRuleAt },
+		func(f *fileConfig) *string { return f.Settlement.PersonalRuleAt }),
+	moneySetting("settlement", "personal_grace_days",
+		func(c *Config) *int64 { return &c.Settlement.PersonalGraceDays },
+		func(f *fileConfig) *int64 { return f.Settlement.PersonalGraceDays }),
 	moneySetting("settlement", "service_grace_days",
 		func(c *Config) *int64 { return &c.Settlement.ServiceGraceDays },
 		func(f *fileConfig) *int64 { return f.Settlement.ServiceGraceDays }),

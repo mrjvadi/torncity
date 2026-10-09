@@ -51,6 +51,15 @@ func VillageRefusal(c Context, v VillageRefusalView) *presenter.Response {
 }
 
 func renderVillageRefusal(c Context, v VillageRefusalView) *presenter.Response {
+	if v.Kind == VillagePersonal {
+		back := v.Back.Address()
+		if back == "" {
+			back = AddrVillageOverview
+		}
+		kb := keyboards.New()
+		kb.Nav(c.nav(keyboards.Nav{BackData: back}))
+		return c.respond(c.T("village.refusal.personal", map[string]any{"needs": personalList(c, v.Personal)}), kb.Build())
+	}
 	if len(v.Needs) > 0 {
 		return renderVillageNeeds(c, v)
 	}
@@ -692,4 +701,20 @@ func serviceNote(c Context, v VillageOverviewView) string {
 		}
 	}
 	return body(lines...)
+}
+
+// personalList words what a player lacks for a post, one need after another.
+func personalList(c Context, needs []village.PersonalNeed) string {
+	var out []string
+	for _, n := range needs {
+		args := map[string]any{"have": FormatNumber(c, n.Have), "need": FormatNumber(c, n.Need)}
+		switch n.Kind {
+		case village.PersonalSkill:
+			args["item"] = c.named("skill."+n.Item.Code, n.Item.Name)
+		case village.PersonalCertificate, village.PersonalLiteracy:
+			args["item"] = c.named("course."+n.Item.Code, n.Item.Name)
+		}
+		out = append(out, c.T("village.personal."+n.Kind, args))
+	}
+	return c.list(out)
 }
