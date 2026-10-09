@@ -1844,7 +1844,7 @@ func Defaults() *Config {
 			StorageSpoilUnkeptBPS:            30,
 			StorageKeeperRuleAt:              "2026-10-03T00:00:00Z",
 			StorageKeeperGraceDays:           14,
-			RealItemsRuleAt:                  "2026-10-12T00:00:00Z",
+			RealItemsRuleAt:                  "2026-10-10T18:00:00Z",
 			RealItemsGraceDays:               7,
 			ToolBareHandsBPS:                 6000,
 			ResearchFreeSlots:                1,
