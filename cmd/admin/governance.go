@@ -79,24 +79,38 @@ func policyCommand(ctx context.Context, args []string) error {
 	return policyShow(ctx, args[1:])
 }
 
-// placeFlags are the two ways an operator names a jurisdiction.
+// placeFlags are the ways an operator names a jurisdiction: a city, a country, or any other kind by
+// kind:code (the Reserve Bank, ADR 0033 phase 4, is reserve:support_reserve_bank).
 type placeFlags struct {
-	city, country *string
+	city, country, other *string
 }
 
 func addPlaceFlags(fs *flag.FlagSet) placeFlags {
 	return placeFlags{
 		city:    fs.String("city", "", "city code"),
 		country: fs.String("country", "", "country code"),
+		other:   fs.String("jurisdiction", "", "any other place as kind:code, e.g. reserve:support_reserve_bank"),
 	}
 }
 
 // resolve returns the (kind, code) named, or ok=false when neither is given.
 func (p placeFlags) resolve() (kind, code string, ok bool, err error) {
-	city, country := strings.TrimSpace(*p.city), strings.TrimSpace(*p.country)
+	city, country, other := strings.TrimSpace(*p.city), strings.TrimSpace(*p.country), strings.TrimSpace(*p.other)
+	named := 0
+	for _, v := range []string{city, country, other} {
+		if v != "" {
+			named++
+		}
+	}
 	switch {
-	case city != "" && country != "":
-		return "", "", false, errors.New("name one place: --city or --country, not both")
+	case named > 1:
+		return "", "", false, errors.New("name one place: --city, --country or --jurisdiction")
+	case other != "":
+		k, c, found := strings.Cut(other, ":")
+		if !found || strings.TrimSpace(k) == "" || strings.TrimSpace(c) == "" {
+			return "", "", false, errors.New("--jurisdiction takes kind:code, e.g. reserve:support_reserve_bank")
+		}
+		return strings.TrimSpace(k), strings.TrimSpace(c), true, nil
 	case city != "":
 		return "city", city, true, nil
 	case country != "":
@@ -135,7 +149,7 @@ func officeChange(ctx context.Context, args []string, appoint bool) error {
 		return fmt.Errorf("%s: %w", name, err)
 	}
 	if !ok {
-		return fmt.Errorf("%s: name the place with --city or --country", name)
+		return fmt.Errorf("%s: name the place with --city, --country or --jurisdiction", name)
 	}
 	if appoint && strings.TrimSpace(*player) == "" {
 		return fmt.Errorf("%s: --player is required", name)
