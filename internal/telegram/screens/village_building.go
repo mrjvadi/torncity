@@ -194,11 +194,6 @@ func renderBuildingUpgrade(c Context, v BuildingView, name string, blocks []stri
 			}
 			continue
 		}
-		if u.NeedsTier != "" {
-			args["tier"] = c.T("village.tier_name."+u.NeedsTier, nil)
-			lines = append(lines, c.T("building.upgrade.needs_tier", args))
-			continue
-		}
 		names := make([]string, 0, len(u.Missing))
 		for _, m := range u.Missing {
 			names = append(names, c.SettlementKnowledgeName(m))

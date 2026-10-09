@@ -265,6 +265,19 @@ func (h *VillageHandler) upgradeLines(ctx context.Context, tx application.Tx, sn
 	if err != nil {
 		return nil, err
 	}
+	buildings, err := tx.SettlementBuildings().List(ctx, s.CityID)
+	if err != nil {
+		return nil, err
+	}
+	stock, err := h.stockOf(ctx, tx, snap, s.CityID, buildings)
+	if err != nil {
+		return nil, err
+	}
+	treasury, err := treasuryBalance(ctx, tx, s.CityID)
+	if err != nil {
+		return nil, err
+	}
+	pc := pathContext{snap: snap, tier: s.Tier, owned: st.Owned, caps: capabilities, standing: standingCodes(buildings), stock: stock.Units, markup: h.materialMarkupBPS}
 	var out []village.BuildingUpgradeLine
 	for _, code := range sortedBuildingCodes(snap) {
 		o, _ := snap.SettlementBuildingDef(code)
@@ -272,45 +285,38 @@ func (h *VillageHandler) upgradeLines(ctx context.Context, tx application.Tx, sn
 		if o.Role != d.Role || o.Tier != next {
 			continue
 		}
+		wait := waitOf(def)
 		line := village.BuildingUpgradeLine{
-			ExpectedWait: waitOf(def),
-			Building:     named(o.Code, o.Name), Tier: o.Tier, CostMoney: o.CostMoney,
+			ExpectedWait: wait, Shifts: wait.Shifts,
+			Building: named(o.Code, o.Name), Tier: o.Tier, CostMoney: o.CostMoney,
 			BuildTime: h.scale.RealWait(def.BuildTime), Available: true,
 		}
-		// The step above the settlement's own tier is still revealed on
-		// request (the owner's disclosure rule), with the tier it opens at.
+		upgradeDetails(snap, o, &line)
 		listed, lerr := ListedInTx(ctx, tx, snap, "upgrade_list", s.CityID, o.Code, def.ListedAt(s.Tier))
 		if lerr != nil {
 			return nil, lerr
 		}
 		if !listed {
 			line.Available = false
-			out = append(out, line)
-			continue
 		}
-		for _, k := range def.RequiresKnowledge {
-			if !st.Owned.Has(k) {
+		// Everything the step lacks, as structured lines: knowledge, the building a promotion needs, literacy, the
+		// materials and the money.
+		line.Needs = pc.prereqsOf(pc.placementNeeds(def), def)
+		if n := literacyNeed(st.LiteracyShareBPS, def.MinLiteracyShareBPS); n != nil {
+			line.Needs = append(line.Needs, *n)
+		}
+		for _, n := range line.Needs {
+			if n.Kind == village.PrereqKnowledge {
+				line.Missing = append(line.Missing, n.Item)
+			}
+			if n.Kind != village.PrereqItem {
 				line.Available = false
-				line.Missing = append(line.Missing, named(k, k))
 			}
 		}
-		for _, cp := range def.RequiresKnowledgeCapability {
-			if !capabilities.Has(cp) {
-				line.Available = false
-			}
+		if n := moneyNeed(treasury, o.CostMoney); n != nil {
+			line.Needs = append(line.Needs, *n)
 		}
-		if def.RequiresBuildingRole != nil && built[*def.RequiresBuildingRole] < 1 {
-			line.Available = false
-		}
-		if def.MinLiteracyShareBPS > 0 && st.LiteracyShareBPS < def.MinLiteracyShareBPS {
-			line.Available = false
-		}
-		// Missing knowledge is shown by its authored name.
-		for i, m := range line.Missing {
-			if kd, ok := snap.SettlementKnowledgeDef(m.Code); ok {
-				line.Missing[i] = named(kd.Code, kd.Name)
-			}
-		}
+		line.Ready = line.Available && len(line.Needs) == 0
 		out = append(out, line)
 	}
 	return out, nil

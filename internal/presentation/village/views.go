@@ -194,6 +194,9 @@ type KnowledgeLine struct {
 	// not unlocked, and TerrainOK whether its own terrain gate is met.
 	Missing   []presentation.Named
 	TerrainOK bool
+	// Needs is everything the item lacks as structured lines (the missing knowledge, the land, the literacy, the
+	// treasury), each with how to get it; empty when it can be started.
+	Needs []Prerequisite
 	// The quote of a project started now in the best free slot (ADR 0048): ResearchCost and ResearchTime above are
 	// already its price and time. SpeedBPS is the pace (10000 the base), AheadBPS the factor for being ahead of the
 	// world (10000 none), DiscountBPS the breakthrough discount, ShareBPS the sharing bonus; Slot is "free" or the
@@ -466,7 +469,7 @@ type BuildingResearchLine struct {
 	Left      time.Duration
 }
 
-// BuildingUpgradeLine is one building of the next tier of the role.
+// BuildingUpgradeLine is one building of the next tier of the role, with everything the next step needs and gives.
 type BuildingUpgradeLine struct {
 	Building  presentation.Named
 	Tier      int
@@ -474,13 +477,25 @@ type BuildingUpgradeLine struct {
 	BuildTime time.Duration
 	// ExpectedWait is the wait to show (BuildTime above is worker effort, not a wait).
 	ExpectedWait BuildWaitView
-	// Available is false while a prerequisite is missing; Missing names the
-	// knowledge items that are.
+	// Available is false while a prerequisite of knowledge, buildings or literacy is missing; Ready is true when
+	// nothing at all is missing (materials and money included). Missing names the knowledge items that are
+	// missing, for older clients: Needs says all of it.
 	Available bool
+	Ready     bool
 	Missing   []presentation.Named
-	// NeedsTier is the settlement tier ("town", "city") this building opens
-	// at, when the settlement has not reached it yet; empty otherwise.
-	NeedsTier string
+	// Materials are what the build uses up, Shifts the crew shifts it takes; Needs every missing prerequisite as a
+	// structured line (knowledge, building, item, money, literacy), each with how to get it.
+	Materials []WorkItemLine
+	Shifts    int64
+	Needs     []Prerequisite
+	// What the new level seats and uses: its staff posts, the money upkeep per day, the inputs and fuel a working day
+	// draws; and what it adds: the plain effects (coverage, housing) and the capacity lines (research slots, storage
+	// room).
+	Staff       []UpgradeStaffLine
+	UpkeepMoney int64
+	Consumes    []WorkItemLine
+	Effects     []BuildingEffectLine
+	Capacity    []UpgradeCapacityLine
 }
 
 // BuildingView is one placed building's own panel.
