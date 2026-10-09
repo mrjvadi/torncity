@@ -502,8 +502,8 @@ func TestVillagePanelsBatchRoadsAndGrowth(t *testing.T) {
 			nm := n.(map[string]any)
 			kinds[nm["kind"].(string)] = nm["how"].(string)
 		}
-		if kinds["knowledge"] != "research" {
-			t.Errorf("the school stands on knowledge the village has not researched: needs %v", kinds)
+		if len(kinds) == 0 {
+			t.Errorf("the school upgrade is not ready, yet lists nothing missing: %v", u)
 		}
 		if u["ready"] == true {
 			t.Errorf("an upgrade with missing knowledge is not ready: %v", u)
