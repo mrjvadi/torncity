@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
+	"github.com/mrjvadi/torncity/internal/config"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/infrastructure/postgres"
 	ops "github.com/mrjvadi/torncity/internal/operator"
@@ -40,6 +41,8 @@ func contentUsage() {
   load --reason "why" [--by NAME]
                             validate, then store as a new active version
   status                    report the active version, read back from the database
+  audit [--src DIR]         list what the content promises and the game cannot keep (money, distance, reader, real
+                            items); writes nothing and always exits 0
 
 TORN_CONTENT_DIR overrides the content directory (default `+defaultContentDir+`).
 --by names the operator in the audit row; it defaults to $`+operatorEnv+`, then
@@ -61,6 +64,8 @@ func contentCommand(ctx context.Context, args []string) error {
 		return contentLoad(ctx, args[1:])
 	case "status":
 		return contentStatus(ctx, args[1:])
+	case "audit":
+		return contentAudit(args[1:])
 	default:
 		contentUsage()
 		os.Exit(2)
@@ -313,5 +318,43 @@ func contentStatus(ctx context.Context, args []string) error {
 			fmt.Printf("\n%s DIFFERS from the active version (local checksum %s)\n", contentDir(), local.Checksum)
 		}
 	}
+	return nil
+}
+
+// contentAudit prints the findings of the content audit (docs/adr/0056): a list, never a failure. --src points at the repo
+// root whose Go source is read for the reader check (the default is the working directory); without Go source there the
+// reader check is skipped and says so.
+func contentAudit(args []string) error {
+	fs := flag.NewFlagSet("content audit", flag.ExitOnError)
+	fs.Usage = contentUsage
+	src := fs.String("src", ".", "the repository root whose Go source is read")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	pack, err := loadAndValidate(contentDir())
+	if err != nil {
+		return err
+	}
+	cfg := config.Defaults()
+	o := content.AuditOptions{
+		FoundingGrant: cfg.Settlement.FoundingGrant,
+		EarnPerDay:    cfg.Settlement.ExportCapBase + cfg.Settlement.ExportCapPerResident*10,
+		HorizonDays:   30, WalkKm: 40, CartKm: 150,
+	}
+	if reach, err := cfg.Travel.WorldReachMap(); err == nil {
+		o.WalkKm, o.CartKm = reach["walk"], reach["cart"]
+	}
+	if lits, fields, err := content.ScanSource(*src+"/internal", *src+"/cmd"); err == nil {
+		o.Literals, o.Fields = lits, fields
+	} else {
+		fmt.Fprintf(os.Stderr, "the Go source under %s was not read, the reader check is skipped: %v\n", *src, err)
+	}
+	findings := pack.Audit(o)
+	for _, f := range findings {
+		fmt.Printf("%s\t%s\t%s\t%s\n", f.Check, f.Kind, f.Code, f.Detail)
+	}
+	counts := content.AuditCounts(findings)
+	fmt.Fprintf(os.Stderr, "%d findings: money %d, distance %d, reader %d, real %d\n", len(findings), counts[content.AuditMoney],
+		counts[content.AuditDistance], counts[content.AuditReader], counts[content.AuditReal])
 	return nil
 }
