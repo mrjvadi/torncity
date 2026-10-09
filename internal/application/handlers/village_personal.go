@@ -8,6 +8,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/presentation"
 	"github.com/mrjvadi/torncity/internal/presentation/village"
+	apperrors "github.com/mrjvadi/torncity/internal/shared/errors"
 )
 
 // The personal prerequisites of a post (docs/adr/0055, plan A7). A staff role of the content may ask its holder for a
@@ -61,10 +62,14 @@ type personalStanding struct {
 func (h *VillageHandler) standingOf(ctx context.Context, tx application.Tx, playerID string) (personalStanding, error) {
 	st := personalStanding{skills: map[string]int{}, certs: map[string]bool{}}
 	stats, err := tx.Stats().Get(ctx, playerID)
-	if err != nil {
+	switch {
+	case err == nil:
+		st.level = stats.Level
+	case apperrors.CodeOf(err) == apperrors.CodeNotFound:
+		st.level = 1 // a player who has no stats row yet is at the first level
+	default:
 		return st, err
 	}
-	st.level = stats.Level
 	skills, err := tx.Skills().List(ctx, playerID)
 	if err != nil {
 		return st, err

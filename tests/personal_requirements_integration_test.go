@@ -7,8 +7,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/application/handlers"
 	"github.com/mrjvadi/torncity/internal/config"
+	"github.com/mrjvadi/torncity/internal/infrastructure/postgres"
 	"github.com/mrjvadi/torncity/internal/presentation"
 	"github.com/mrjvadi/torncity/internal/presentation/village"
 )
@@ -45,9 +47,7 @@ func (e *personalEnv) work() *presentation.Response {
 
 func (e *personalEnv) setLevel(n int) {
 	e.t.Helper()
-	if _, err := e.pool.Raw().Exec(testCtx(e.t), `UPDATE player_stats SET level = $2 WHERE player_id = $1::uuid`, e.worker.ID, n); err != nil {
-		e.t.Fatal(err)
-	}
+	setLevelOf(e.t, e.researchEnv, e.worker.ID, n)
 }
 
 // During the grace a player below level 2 may still work at the carpenter's, and the work screen warns him what will be
@@ -103,9 +103,7 @@ func TestPersonalPrerequisitesRefuseAfterTheGrace(t *testing.T) {
 	e.stock("charcoal", 2)
 	smithy := e.building("smithy")
 	other := e.scholar()
-	if _, err := e.pool.Raw().Exec(testCtx(t), `UPDATE player_stats SET level = 1 WHERE player_id = $1::uuid`, other.ID); err != nil {
-		t.Fatal(err)
-	}
+	setLevelOf(t, e.researchEnv, other.ID, 1)
 	resp2, err := rrc(e.village.Work(testCtx(t), e.as(other, "settlement.work", "work"), handlers.VillageWorkRequest{ID: smithy}))
 	if err != nil || strings.Contains(resp2.Text, "شرط شخصی") {
 		t.Fatalf("the labourer's post at the smithy asks nothing: %v %q", err, resp2.Text)
@@ -128,10 +126,68 @@ func TestPersonalLiteracyForAScholarsPost(t *testing.T) {
 	if r := take(); !strings.Contains(r.Text, "شرط شخصی") {
 		t.Fatalf("an illiterate player took a scholar's post: %q", r.Text)
 	}
-	if _, err := e.pool.Raw().Exec(testCtx(t), `INSERT INTO certifications (id, player_id, course_code, issued_at) VALUES (gen_random_uuid(), $1::uuid, 'literacy_class', now())`, reader.ID); err != nil {
-		t.Skipf("cannot issue the certificate in this schema: %v", err)
-	}
+	certify(t, e.researchEnv, reader.ID, "literacy_class")
 	if r := take(); strings.Contains(r.Text, "شرط شخصی") {
 		t.Fatalf("a literate player was refused: %q", r.Text)
 	}
+}
+
+// setLevelOf gives a player the stats row at a level (the row is made on first contact in the game).
+func setLevelOf(t *testing.T, e *researchEnv, playerID string, level int) {
+	t.Helper()
+	ctx := testCtx(t)
+	if _, err := postgres.NewStatsRepository(e.pool).EnsureDefaults(ctx, playerID, application.Stats{
+		PlayerID: playerID, Level: level, Health: 100, MaxHealth: 100, Energy: 100, MaxEnergy: 100, UpdatedAt: time.Now().UTC(),
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := e.pool.Raw().Exec(ctx, `UPDATE player_stats SET level = $2 WHERE player_id = $1::uuid`, playerID, level); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// certify gives a player a course certificate without the course (the enrolment it names is a bare row; the foreign keys are
+// switched off for this one transaction).
+func certify(t *testing.T, e *researchEnv, playerID, course string) {
+	t.Helper()
+	ctx := testCtx(t)
+	tx, err := e.pool.Raw().Begin(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+	if _, err := tx.Exec(ctx, `SET LOCAL session_replication_role = replica`); err != nil {
+		t.Fatal(err)
+	}
+	enrol := newUUID(t)
+	if _, err := tx.Exec(ctx, `INSERT INTO enrollments (id, player_id, course_code, game_action_id, status, fee, started_at, completes_at, completed_at)
+		VALUES ($1::uuid, $2::uuid, $3, gen_random_uuid(), 'completed', 0, now() - interval '2 hours', now() - interval '1 hour', now() - interval '1 hour')`, enrol, playerID, course); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := tx.Exec(ctx, `INSERT INTO certifications (id, player_id, course_code, enrollment_id, issued_at) VALUES (gen_random_uuid(), $1::uuid, $2, $3::uuid, now())`, playerID, course, enrol); err != nil {
+		t.Fatal(err)
+	}
+	if err := tx.Commit(ctx); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		c := testCtx(t)
+		tx, err := e.pool.Raw().Begin(c)
+		if err != nil {
+			t.Errorf("cleanup: %v", err)
+			return
+		}
+		defer func() { _ = tx.Rollback(c) }()
+		for _, stmt := range []string{`SET LOCAL session_replication_role = replica`,
+			`DELETE FROM certifications WHERE player_id = $1::uuid`, `DELETE FROM enrollments WHERE player_id = $1::uuid`} {
+			var args []any
+			if strings.Contains(stmt, "$1") {
+				args = append(args, playerID)
+			}
+			if _, err := tx.Exec(c, stmt, args...); err != nil {
+				t.Errorf("cleanup %q: %v", stmt, err)
+			}
+		}
+		_ = tx.Commit(c)
+	})
 }

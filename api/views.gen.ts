@@ -4208,6 +4208,14 @@ export interface Person {
   code: string
 }
 
+export interface PersonalNeed {
+  kind: string
+  item: Named
+  have: number
+  need: number
+  how: string
+}
+
 export interface Photo {
   file_id: string
   user_id: number
@@ -4895,6 +4903,8 @@ export interface ResearchBoardView {
   neighbours: Named[] | null
   experience: ResearchExperienceLine[] | null
   stand_in_until: string | null
+  personal: PersonalNeed[] | null
+  personal_until: string | null
   may_share: boolean
   share_cap_bps: number
 }
@@ -6123,6 +6133,7 @@ export interface VillageRefusalView {
   action: string
   subject: Named
   needs: VillageNeed[] | null
+  personal: PersonalNeed[] | null
 }
 
 export interface VillageRoleLine {
@@ -6469,6 +6480,7 @@ export interface WorkView {
   mine: WorkShiftLine | null
   suggest: Named[] | null
   started: boolean
+  personal_until: string | null
   used: number
   capacity: number
 }
@@ -6483,6 +6495,7 @@ export interface WorkplaceLine {
   workers: number
   busy: number
   ready: boolean
+  personal: PersonalNeed[] | null
 }
 
 export interface WornBagLine {
