@@ -65,6 +65,10 @@ type ComponentDef struct {
 	// VillageSell lets a village's trader buy its surplus of it on market day, at BasePrice times the export price
 	// share (ADR 0049): the way what the settlement's workplaces make reaches its treasury.
 	VillageSell bool `yaml:"village_sell,omitempty" json:"village_sell,omitempty"`
+	// StandIn is the older material that stood in for this item before it had a producer (wool for paper, timber for
+	// firewood). During the grace window after the real item arrived (settlement.real_items_*) a settlement with none of the
+	// item in its stock may use one unit of the stand-in per unit asked, so no live settlement stops overnight.
+	StandIn string `yaml:"stand_in,omitempty" json:"stand_in,omitempty"`
 }
 
 // Component converts the definition to the domain value.
@@ -392,6 +396,17 @@ func (p *Pack) validateItems(problems *[]error) {
 		}
 		if err := item.ValidateComponent(c.Component(), categories); err != nil {
 			add(fmt.Errorf("%w: %w", ErrInvalidItemContent, err))
+		}
+		if c.StandIn != "" {
+			known := false
+			for _, o := range p.Components {
+				if o.Code == c.StandIn && o.StandIn == "" && o.Code != c.Code {
+					known = true
+				}
+			}
+			if !known {
+				add(fmt.Errorf("%w: component %q names stand-in %q, which is not another component without a stand-in of its own", ErrInvalidItemContent, c.Code, c.StandIn))
+			}
 		}
 		if c.BasePrice < 1 || c.BasePrice > shop.MaxPrice {
 			add(fmt.Errorf("%w: component %q base price %d is outside 1..%d", ErrInvalidItemContent, c.Code, c.BasePrice, shop.MaxPrice))

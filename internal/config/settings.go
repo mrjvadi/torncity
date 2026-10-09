@@ -458,6 +458,9 @@ type settlementSettings struct {
 	StorageSpoilUnkeptBPS            *int64  `yaml:"storage_spoil_unkept_bps"`
 	StorageKeeperRuleAt              *string `yaml:"storage_keeper_rule_at"`
 	StorageKeeperGraceDays           *int64  `yaml:"storage_keeper_grace_days"`
+	RealItemsRuleAt                  *string `yaml:"real_items_rule_at"`
+	RealItemsGraceDays               *int64  `yaml:"real_items_grace_days"`
+	ToolBareHandsBPS                 *int64  `yaml:"tool_bare_hands_bps"`
 	ResearchFreeSlots                *int64  `yaml:"research_free_slots"`
 	ResearchSpeedFloorBPS            *int64  `yaml:"research_speed_floor_bps"`
 	ResearchScholarFloorBPS          *int64  `yaml:"research_scholar_floor_bps"`
@@ -1565,6 +1568,15 @@ var coreSettings = []setting{
 	moneySetting("settlement", "storage_keeper_grace_days",
 		func(c *Config) *int64 { return &c.Settlement.StorageKeeperGraceDays },
 		func(f *fileConfig) *int64 { return f.Settlement.StorageKeeperGraceDays }),
+	stringSetting("settlement", "real_items_rule_at",
+		func(c *Config) *string { return &c.Settlement.RealItemsRuleAt },
+		func(f *fileConfig) *string { return f.Settlement.RealItemsRuleAt }),
+	moneySetting("settlement", "real_items_grace_days",
+		func(c *Config) *int64 { return &c.Settlement.RealItemsGraceDays },
+		func(f *fileConfig) *int64 { return f.Settlement.RealItemsGraceDays }),
+	moneySetting("settlement", "tool_bare_hands_bps",
+		func(c *Config) *int64 { return &c.Settlement.ToolBareHandsBPS },
+		func(f *fileConfig) *int64 { return f.Settlement.ToolBareHandsBPS }),
 	moneySetting("settlement", "research_free_slots",
 		func(c *Config) *int64 { return &c.Settlement.ResearchFreeSlots },
 		func(f *fileConfig) *int64 { return f.Settlement.ResearchFreeSlots }),

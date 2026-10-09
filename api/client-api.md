@@ -1736,3 +1736,15 @@ ADR 0049, migration 0136. Once a local day a travelling trader buys the surplus 
 View `TradeDeskView {name, has_post, cap, price_bps, prospect, may_order, keep_presets[], items[], last}` (in `api/views.gen.ts`). `items[]`: `{item, stock, reference, unit, on, keep, surplus}`. `last`: `{outcome, gross, wage, at, lines[{item, qty, unit}]}`; outcomes `sold`, `no_clerk`, `no_wage`, `nothing`, `too_little`, `no_road`. Without the post the view has `has_post: false` (show «not available here» and what to build).
 
 New charter permission `trade.export` (group treasury); the head office of stored charters gets it with the migration. Ledger reasons for finance screens: `export_sale` (system source to treasury) and `market_clerk_wage` (treasury to sink); item reason `exported`. Config: `settlement.export_price_bps`, `export_cap_base`, `export_cap_per_resident`, `export_keep_presets`. Refusals use the existing village refusal kinds (permission, unknown good).
+
+## Real village goods and tool wear (2026-10-09)
+
+ADR 0050, no migration. Content: new components `firewood`, `clay`, `hide`, `rag`, `paper`, `tools`, `pots`; new workplaces `clay_pit`, `tool_workshop`, `paper_mill`; new knowledge `papermaking`. The woodcutter also yields firewood, the pasture hides, the weaving shed rags, the pottery kiln pots.
+
+Views (in `api/views.gen.ts`, regenerated):
+- `MaterialsView` gains `stand_ins[{item, stand}]` and `stand_in_until`: while the grace lasts, `stand` still does in place of `item` (wool for paper, timber for firewood); empty afterwards.
+- `ResearchBoardView` gains `stand_in_until`; each `ResearchUpkeepLine` gains `stand_in` (a named item, empty code when none) and `stand_in_have`. The research buildings now ask for `paper` and `firewood`.
+- `WorkNode` (the building panel's work block) gains `tool_wear_bps` (the share of a tool one shift wears, 0 = needs none), `tools_have`, `bare_hands` (the next shift works at `bare_hands_bps` of its output because its tool is worn out and the stock has none).
+- `TradeDeskView` gains `next_at` (the next market day: the settlement's next local midnight) and `clerk {seat_building, filled, wage, staffed_by}` (`staffed_by` is `npc`: a worker of the settlement's pool).
+
+Config: `settlement.real_items_rule_at`, `real_items_grace_days`, `tool_bare_hands_bps`. Event `shift_started` carries `tool_used` and `bare_handed`.

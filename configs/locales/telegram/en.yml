@@ -572,6 +572,8 @@ village:
     store_kept: "✅ {name}: has a storekeeper ({wage} a day)"
     store_unkept: "⚠️ {name}: no storekeeper, its room does not count. The treasury must pay the wage and someone in the pool must be free."
     store_communal: "⚠️ {name}: no storekeeper; the residents look after it by rota and {room} spaces count. Hire a keeper for the full room and less spoilage: the treasury pays the wage and someone in the pool must be free."
+    stand_in: "🔁 These goods now have a real producer; until {until} the older material still serves when the real one is not in store: {lines}. After that only the real good."
+    stand_in_line: "{stand} in place of {item}"
     store_grace: "⚠️ {name}: no storekeeper. Its room still counts until {until}, then it stops. Hire a keeper to keep it: the treasury pays the wage and someone in the pool must be free."
     spoil: "🥬 The food in the stock spoils {pct} a day."
     stock_title: "📥 In the stock:"
@@ -942,6 +944,10 @@ trade:
   item:
     on: "• {item}: {stock} in store - {unit} each (reference {ref}) - you keep {keep}, surplus {surplus}"
     off: "• {item}: {stock} in store - {unit} each (reference {ref}) - not on sale"
+  next: "🗓 Next market day: {date}, {time}"
+  clerk:
+    filled: "🧾 The clerk of the market works at {building}; on a day the trader comes he is paid {wage}."
+    empty: "⚠️ No free person of the town could take the clerk's seat at {building}; without him the trader does not come."
   prospect: "If he came today he would pay {amount}."
   sold_line: "{item} {qty} (at {unit} each)"
   last:
@@ -972,6 +978,7 @@ research:
     waiting: "⏳ {building} - waiting for scholars; it needs {needed} to open (seats up to {posts})"
     upkeep: "   Daily upkeep: {items}"
   upkeep_item: "{item} {qty} (in stock: {have})"
+  upkeep_item_stand_in: "{item} {qty} (in stock: {have}; until {until} {stand} still does: {stand_have})"
   idle:
     no_scholars: "too few scholars"
     no_wage: "the treasury cannot pay the scholars"
@@ -1065,6 +1072,8 @@ building:
     idle: "💤 Not working right now."
     no_food: "• No food for the workers; hired labourers do not start a shift without it."
     food: "🍞 A shift eats {points} food points; the food on hand feeds {shifts} shifts."
+    tools: "🔨 One tool wears out about every {shifts} shifts (tools in store: {have})."
+    tools_bare: "🔨 The tool is worn out and the store has none; the next shift yields only {percent}%. Tools come from a tool workshop or the market post."
     needs_repair: "• The workplace is too worn to work; it needs repair."
     condition: "🛠 Condition {percent}%, wearing {decay} hundredths of a percent a day; until it is repaired it gives only {output}% of its output."
     repair_open: "🔧 A repair job is open: {left} shifts left."

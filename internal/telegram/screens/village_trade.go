@@ -64,6 +64,16 @@ func renderTradeDesk(c Context, v village.TradeDeskView) *presenter.Response {
 		kb.Row(row...)
 	}
 	prospect := c.T("trade.prospect", map[string]any{"amount": FormatMoney(c, v.Prospect)})
+	if !v.NextAt.IsZero() {
+		prospect = paragraphs(prospect, c.T("trade.next", map[string]any{"time": FormatClock(c, v.NextAt), "date": FormatDate(c, v.NextAt)}))
+	}
+	if k := v.Clerk; k != nil {
+		key := "trade.clerk.filled"
+		if !k.Filled {
+			key = "trade.clerk.empty"
+		}
+		prospect = paragraphs(prospect, c.T(key, map[string]any{"building": c.SettlementBuildingName(k.SeatBuilding), "wage": FormatMoney(c, k.Wage)}))
+	}
 	last := ""
 	if l := v.Last; l != nil {
 		var sold []string

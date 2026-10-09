@@ -156,6 +156,10 @@ type VillageInvariants struct {
 	TradeItems, TradeLineUnits     int64
 	TradeDayBroken                 int64
 	TradeWageLedger, TradeWageRows int64
+	// The tool wear (docs/adr/0050): ToolInputs are the tools the item journal shows leaving the stores as shift inputs,
+	// ToolShiftUnits the tools the shifts recorded as consumed, ToolWearBroken the workplaces whose wear is out of range.
+	ToolInputs, ToolShiftUnits int64
+	ToolWearBroken             int64
 	// The refund of the national levy (migration 0135): LevyRefunds is whether the table exists. LevyRefundLedger and
 	// LevyRefundRows are the refunds in the ledger and in the rows; LevyRefundMismatched the refunds that are not exactly
 	// what national_levy took from that settlement, or whose transaction is not exactly that amount.
@@ -206,6 +210,7 @@ func (v VillageInvariants) WorkNodesOK() bool {
 			v.WithdrawalMismatched == 0 && v.RetiredPotMismatched == 0 && v.MacroGuards == 2)) &&
 		(!v.Lots || (v.LotOrphans == 0 && v.LotWorkMismatched == 0 && v.LotShiftsWithoutJob == 0 && v.LotMaterialsMismatched == 0 &&
 			v.LotFeeMismatched == 0 && v.LotHistoryGuards == 2)) &&
+		v.ToolInputs == v.ToolShiftUnits && v.ToolWearBroken == 0 &&
 		(!v.Trade || (v.TradeLedger == v.TradeRows && v.TradeItems == v.TradeLineUnits && v.TradeDayBroken == 0 && v.TradeWageLedger == v.TradeWageRows)) &&
 		(!v.LevyRefunds || (v.LevyRefundLedger == v.LevyRefundRows && v.LevyRefundMismatched == 0)) &&
 		(!v.Research || (v.ResearchWageLedger == v.ResearchWageRows && v.ResearchWageMismatched == 0 && v.ResearchDayBroken == 0 &&

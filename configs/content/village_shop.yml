@@ -68,5 +68,7 @@ village_shop:
     - {item: stone,        class: other, markup_bps: 12000, per_head_milli: 200, floor: 8, tradable: true, requires: {buildings: [{code: barter_post}]}}
     # --- the village's own timber: only where a woodcutter's camp stands ------
     - {item: timber,       class: other, markup_bps: 12000, per_head_milli: 200, floor: 6, requires: {buildings: [{code: woodcutter_camp}]}}
+    # --- the fuel of a home's hearth: split at the same camp (docs/adr/0050) -----
+    - {item: firewood,     class: other, markup_bps: 12000, per_head_milli: 200, floor: 6, requires: {buildings: [{code: woodcutter_camp}]}}
     # --- what the shop building stocks ---------------------------------------
     - {item: bag_daypack,  class: other, markup_bps: 11500, per_head_milli: 10,  floor: 1, tradable: true, requires: {buildings: [{code: general_store}]}}

@@ -99,6 +99,8 @@ type VillageHandler struct {
 	research ResearchRules
 	// trade is the market day's rules (village_trade.go).
 	trade TradeRules
+	// realItems is the grace of the real goods and the bare-handed share without tools (village_realitems.go).
+	realItems RealItemRules
 	// storage is the stores' keepers and spoilage (village_storage.go).
 	storage            StorageRules
 	materialBuyMax     int64

@@ -6,6 +6,7 @@ import (
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
+	"github.com/mrjvadi/torncity/internal/domain/labor"
 	village "github.com/mrjvadi/torncity/internal/presentation/village"
 )
 
@@ -111,6 +112,13 @@ func (h *VillageHandler) nodeWork(ctx context.Context, tx application.Tx, snap *
 				total += stock.Units[f.Item] * f.Points
 			}
 			w.FoodShifts = total / w.MealPoints
+		}
+		if wear := d.Def().Work.ToolWearBPS; wear > 0 {
+			w.ToolWearBPS, w.ToolsHave = wear, stock.Units[ToolItem]
+			if carry, err := tx.SettlementTreasury().Carry(ctx, b.ID); err == nil && carry[ToolWearKey]+wear >= labor.BPS &&
+				w.ToolsHave < 1 && h.realItems.BareHandsBPS > 0 && !h.realItems.InGrace(h.now()) {
+				w.BareHands, w.BareHandsBPS = true, h.realItems.BareHandsBPS
+			}
 		}
 		for _, c := range materialCodes(d.Consumes) {
 			if have := stock.Units[c]; have < d.Consumes[c] {

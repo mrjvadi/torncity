@@ -287,7 +287,12 @@ func (h *VillageHandler) researchBoard(ctx context.Context, tx application.Tx, s
 		}
 		sort.Strings(items)
 		for _, it := range items {
-			line.Upkeep = append(line.Upkeep, village.ResearchUpkeepLine{Item: itemNamed(snap, it), Qty: int64(site.def.Research.Upkeep[it]), Have: stock[it]})
+			ul := village.ResearchUpkeepLine{Item: itemNamed(snap, it), Qty: int64(site.def.Research.Upkeep[it]), Have: stock[it]}
+			if si := h.realItems.standIns(snap, h.now())[it]; si != "" {
+				ul.StandIn, ul.StandInHave = itemNamed(snap, si), stock[si]
+				view.StandInUntil = h.realItems.GraceUntil()
+			}
+			line.Upkeep = append(line.Upkeep, ul)
 		}
 		line.Mine = mine != nil && mine.BuildingID == site.b.ID
 		line.CanTake = mine == nil && held < site.posts

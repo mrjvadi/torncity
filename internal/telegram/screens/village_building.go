@@ -297,6 +297,14 @@ func workBlock(c Context, v BuildingView) []string {
 	if w.MealPoints > 0 {
 		out = append(out, c.T("building.work.food", map[string]any{"points": w.MealPoints, "shifts": w.FoodShifts}))
 	}
+	if w.ToolWearBPS > 0 {
+		key := "building.work.tools"
+		if w.BareHands {
+			key = "building.work.tools_bare"
+		}
+		out = append(out, c.T(key, map[string]any{"shifts": (10_000 + w.ToolWearBPS - 1) / w.ToolWearBPS, "have": w.ToolsHave,
+			"percent": PercentFromBPS(c, int(w.BareHandsBPS))}))
+	}
 	items := func(ls []village.WorkItemLine) string {
 		var parts []string
 		for _, l := range ls {

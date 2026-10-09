@@ -329,6 +329,9 @@ settlement_building:
   masonry_workshop: Masonry workshop
   weaving_shed: Weaving shed
   pottery_kiln: Pottery kiln
+  clay_pit: Clay pit
+  tool_workshop: Tool workshop
+  paper_mill: Paper mill
   smithy: Smithy
   watch_hut: Watch hut
   militia_camp: Militia camp
@@ -927,6 +930,7 @@ component:
   timber: Timber
   stone: Stone
   wool: Wool
+  rag: Rags
   plank: Planks
   brick: Bricks
   cloth: Cloth

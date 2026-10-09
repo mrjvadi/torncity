@@ -283,7 +283,7 @@ func TestResearchTheFreeSlotKeepsTheOldBehaviour(t *testing.T) {
 func TestResearchAStaffedLibraryOpensASlot(t *testing.T) {
 	e := newResearchEnv(t)
 	lib := e.building("library")
-	e.stock("wool", 5)
+	e.stock("paper", 5)
 	treasury0 := e.treasury()
 
 	d, resp := e.desk(e.head, "", "")
@@ -296,13 +296,13 @@ func TestResearchAStaffedLibraryOpensASlot(t *testing.T) {
 	if len(d.Buildings) != 1 || !d.Buildings[0].Open || d.Buildings[0].NPCs != 1 || d.Buildings[0].Idle != "" {
 		t.Errorf("the library should be open with one town scholar: %+v", d.Buildings)
 	}
-	// the day was paid once: wages to the sink, one unit of wool used up, the day on record
+	// the day was paid once: wages to the sink, one unit of paper used up, the day on record
 	wage := e.scalar(`SELECT wage_npc FROM research_days WHERE settlement_id = $1::uuid`, e.cityID)
 	if wage <= 0 || treasury0-e.treasury() != wage {
 		t.Errorf("the treasury paid %d, the day says %d", treasury0-e.treasury(), wage)
 	}
-	if got := e.held("wool"); got != 4 {
-		t.Errorf("a working day uses one wool: %d left of 5", got)
+	if got := e.held("paper"); got != 4 {
+		t.Errorf("a working day uses one paper: %d left of 5", got)
 	}
 	for i := 0; i < 3; i++ { // looks, redeliveries and another reader change nothing
 		e.desk(e.head, "", "")
@@ -313,8 +313,8 @@ func TestResearchAStaffedLibraryOpensASlot(t *testing.T) {
 	if got := e.scalar(`SELECT count(*) FROM research_days WHERE settlement_id = $1::uuid`, e.cityID); got != 1 {
 		t.Errorf("one research day, %d rows", got)
 	}
-	if treasury0-e.treasury() != wage || e.held("wool") != 4 {
-		t.Errorf("the day was paid twice: treasury %d, wool %d", treasury0-e.treasury(), e.held("wool"))
+	if treasury0-e.treasury() != wage || e.held("paper") != 4 {
+		t.Errorf("the day was paid twice: treasury %d, paper %d", treasury0-e.treasury(), e.held("paper"))
 	}
 
 	// two projects at once; the quicker slot is chosen first
@@ -352,32 +352,32 @@ func TestResearchAStaffedLibraryOpensASlot(t *testing.T) {
 	e.verify()
 }
 
-// A library with no wool, or with a treasury that cannot pay, stands idle and gives no slot; the desk says why.
+// A library with no paper, or with a treasury that cannot pay, stands idle and gives no slot; the desk says why.
 func TestResearchAnIdleLibraryGivesNothing(t *testing.T) {
 	e := newResearchEnv(t)
 	e.building("library")
 
 	d, _ := e.desk(e.head, "", "")
 	if d.Capacity != 1 || len(d.Buildings) != 1 || d.Buildings[0].Open || d.Buildings[0].Idle != village.ResearchIdleNoUpkeep {
-		t.Fatalf("no wool in the stock: %+v", d)
+		t.Fatalf("no paper in the stock: %+v", d)
 	}
 	if e.scalar(`SELECT wage_npc + wage_player FROM research_days WHERE settlement_id = $1::uuid`, e.cityID) != 0 {
 		t.Error("nobody is paid for a day the library did not work")
 	}
-	// the same day stays settled: wool arriving later today does not reopen it (a day is judged once)
-	e.stock("wool", 3)
+	// the same day stays settled: paper arriving later today does not reopen it (a day is judged once)
+	e.stock("paper", 3)
 	if d, _ = e.desk(e.head, "", ""); d.Capacity != 1 {
 		t.Errorf("the day was judged once: %+v", d)
 	}
-	// tomorrow, with wool but an empty treasury
+	// tomorrow, with paper but an empty treasury
 	e.clock.Advance(26 * time.Hour)
 	e.drainTreasury()
 	d, _ = e.desk(e.head, "", "")
 	if d.Capacity != 1 || d.Buildings[0].Open || d.Buildings[0].Idle != village.ResearchIdleNoWage {
 		t.Errorf("an empty treasury cannot pay the scholars: %+v", d.Buildings)
 	}
-	if e.held("wool") != 3 {
-		t.Errorf("a day that did not work uses nothing up: %d wool", e.held("wool"))
+	if e.held("paper") != 3 {
+		t.Errorf("a day that did not work uses nothing up: %d paper", e.held("paper"))
 	}
 	e.verify()
 }
@@ -387,7 +387,7 @@ func TestResearchAnIdleLibraryGivesNothing(t *testing.T) {
 func TestResearchAPlayerScholar(t *testing.T) {
 	e := newResearchEnv(t)
 	lib := e.building("library")
-	e.stock("wool", 5)
+	e.stock("paper", 5)
 	scholar := e.scholar()
 
 	d, resp := e.desk(scholar, village.ResearchActionPost, lib)

@@ -54,17 +54,17 @@ item_storage:
   - {code: plank,    source: "ADR 0041 6.4", evidence: adr, requires: {}, class: goods, bulk: 2}
   - {code: cloth,    source: "ADR 0041 6.4", evidence: adr, requires: {}, class: goods, bulk: 1}
   - {code: wool,     source: "ADR 0041 6.4", evidence: adr, requires: {}, class: goods, bulk: 1}
-  - {code: tools,    planned: true, source: "ADR 0041 6.4, 8.12", evidence: adr, requires: {}, class: goods, bulk: 1, note: "the village tool kit; the existing `tool` is an archetype of company goods, not a component"}
+  - {code: tools,     source: "ADR 0041 6.4, 8.12", evidence: adr, requires: {}, class: goods, bulk: 1, note: "the village tool kit; the existing `tool` is an archetype of company goods, not a component"}
   - {code: bandage,  source: "ADR 0041 6.4", evidence: adr, requires: {}, class: goods, bulk: 1}
   - {code: brick,    source: "ADR 0045 4.3", evidence: adr, requires: {}, class: bulk, bulk: 2, needs_research: [class, bulk], note: "ADR 0041 6.4 does not list bricks; stone's bulk is used as a stand-in until the owner sets it"}
   # planned: new village goods
-  - {code: firewood,    planned: true, source: "ADR 0041 6.4, 6.6", evidence: adr, requires: {}, class: bulk, bulk: 1}
+  - {code: firewood,     source: "ADR 0041 6.4, 6.6", evidence: adr, requires: {}, class: bulk, bulk: 1}
   - {code: cut_stone,   planned: true, source: "ADR 0041 6.4, 8.11", evidence: adr, requires: {}, class: bulk, bulk: 2}
-  - {code: clay,        planned: true, raw: true, source: "ADR 0041 6.4", evidence: adr, requires: {}, class: bulk, bulk: 1}
+  - {code: clay,         source: "ADR 0041 6.4", evidence: adr, requires: {}, class: bulk, bulk: 1}
   - {code: cheese,      planned: true, raw: true, source: "ADR 0041 6.4, 6.5", evidence: adr, requires: {}, class: food, bulk: 1, food_points: 4}
   - {code: fish,        planned: true, raw: true, source: "ADR 0041 6.4, 6.5", evidence: adr, requires: {}, class: food, bulk: 1, food_points: 4}
   - {code: tea,         source: "ADR 0041 6.4, 6.5", evidence: adr, requires: {}, class: food, bulk: 1, food_points: 0}
-  - {code: pots,        planned: true, source: "ADR 0041 6.4, 8.14", evidence: adr, requires: {}, class: goods, bulk: 1}
+  - {code: pots,         source: "ADR 0041 6.4, 8.14", evidence: adr, requires: {}, class: goods, bulk: 1}
   - {code: flour_sack,  planned: true, source: "ADR 0041 12", evidence: adr, requires: {}, class: food, bulk: 1, food_points: 0}
   - {code: charcoal,    planned: true, source: "ADR 0045 4.3", evidence: adr, requires: {}, class: bulk, bulk: 1, needs_research: [bulk]}
   - {code: limestone,   planned: true, raw: true, source: "ADR 0045 4.3", evidence: adr, requires: {}, class: bulk, bulk: 2, needs_research: [bulk]}
@@ -76,12 +76,13 @@ item_storage:
   - {code: fulled_cloth, planned: true, source: "ADR 0045 4.3", evidence: adr, requires: {}, class: goods, bulk: 1, needs_research: [bulk]}
   - {code: flax,        planned: true, raw: true, source: "ADR 0045 4.3", evidence: adr, requires: {}, class: goods, bulk: 1, needs_research: [bulk]}
   - {code: linen,       planned: true, source: "ADR 0045 4.3", evidence: adr, requires: {}, class: goods, bulk: 1, needs_research: [bulk]}
-  - {code: hide,        planned: true, raw: true, source: "ADR 0045 4.3", evidence: adr, requires: {}, class: goods, bulk: 2, needs_research: [bulk]}
+  - {code: hide,         source: "ADR 0045 4.3", evidence: adr, requires: {}, class: goods, bulk: 2}
   - {code: bark,        planned: true, raw: true, source: "ADR 0045 4.3", evidence: adr, requires: {}, class: bulk, bulk: 1, needs_research: [bulk]}
   - {code: leather,     planned: true, source: "ADR 0045 4.3", evidence: adr, requires: {}, class: goods, bulk: 1, needs_research: [bulk]}
   - {code: bloom,       planned: true, source: "ADR 0045 4.3", evidence: adr, requires: {}, class: bulk, bulk: 2, needs_research: [bulk]}
   - {code: bar_iron,    planned: true, source: "ADR 0045 4.3", evidence: adr, requires: {}, class: goods, bulk: 1, needs_research: [bulk]}
-  - {code: paper,       planned: true, raw: true, source: "RESEARCH 2026-10-03 5.3, 6.3", evidence: I, requires: {}, class: goods, bulk: 1, needs_research: [class, bulk, source_of_paper], note: "paper and ink for the register and the bank; the research says to check it against items.yml, which has no paper"}
+  - {code: paper,        source: "RESEARCH 2026-10-03 5.3, 6.3", evidence: I, requires: {}, class: goods, bulk: 1, note: "paper and ink for the register and the bank; the research says to check it against items.yml, which has no paper"}
+  - {code: rag,         source: "ADR 0050, plan A2: the weaving shed's offcuts", evidence: adr, requires: {}, class: goods, bulk: 1}
   - {code: fibre,       planned: true, raw: true, source: "ADR 0045 4.3", evidence: adr, requires: {}, class: goods, bulk: 1, needs_research: [bulk]}
   - {code: rope,        planned: true, source: "ADR 0045 4.3", evidence: adr, requires: {}, class: goods, bulk: 1, needs_research: [bulk]}
 
@@ -796,7 +797,7 @@ building_functions:
     if_unstaffed: idle
     consumes: {inputs: {wool: 1}, food_points: 2}
     produces: {service: research_slot}
-    research: {slots: 1, min_staff: 1, bonus_bps: 500, upkeep: {wool: 1}}
+    research: {slots: 1, min_staff: 1, bonus_bps: 500, upkeep: {paper: 1}}
     links: {from: [civic_hall]}
     ledger_reasons: [scholar_wage, scholar_wage_npc]
     replaces: [library]
@@ -818,7 +819,7 @@ building_functions:
     if_unstaffed: idle
     consumes: {inputs: {timber: 2, wool: 1}, food_points: 2}
     produces: {service: research_slot}
-    research: {slots: 2, min_staff: 2, bonus_bps: 1000, upkeep: {timber: 2, wool: 1}}
+    research: {slots: 2, min_staff: 2, bonus_bps: 1000, upkeep: {firewood: 2, paper: 1}}
     links: {from: [library, woodcutter_yard]}
     ledger_reasons: [scholar_wage, scholar_wage_npc]
     replaces: [laboratory]
@@ -840,7 +841,7 @@ building_functions:
     if_unstaffed: idle
     consumes: {inputs: {timber: 2, wool: 2}, food_points: 2}
     produces: {service: research_slot}
-    research: {slots: 3, min_staff: 3, bonus_bps: 1500, upkeep: {timber: 2, wool: 2}}
+    research: {slots: 3, min_staff: 3, bonus_bps: 1500, upkeep: {firewood: 2, paper: 2}}
     links: {from: [library, laboratory]}
     ledger_reasons: [scholar_wage, scholar_wage_npc]
     replaces: [academy]

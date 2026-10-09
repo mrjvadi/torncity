@@ -267,21 +267,26 @@ func (h *VillageHandler) settleResearchDay(ctx context.Context, tx application.T
 		need := site.def.Research.MinStaff
 		npcs := max(need-len(players), 0)
 		wage := int64(len(players)+npcs) * (wagePer * site.wageBPS / 10_000)
+		wantUp := map[string]int64{}
+		for it, q := range site.def.Research.Upkeep {
+			wantUp[it] = int64(q)
+		}
+		use, usable := h.realItems.resolveUse(snap, stock, wantUp, now)
 		switch {
 		case int64(npcs) > npcFree:
 			// not enough people for the posts: it stands idle, nobody is paid today
 			row.Idle = village.ResearchIdleNoScholars
 		case treasury < wage:
 			row.Idle = village.ResearchIdleNoWage
-		case !stockHas(stock, site.def.Research.Upkeep):
+		case !usable:
 			row.Idle = village.ResearchIdleNoUpkeep
 		default:
 			row.Staffed = true
 			treasury -= wage
 			npcFree -= int64(npcs)
-			for it, q := range site.def.Research.Upkeep {
-				stock[it] -= int64(q)
-				upkeep[it] += int64(q)
+			for it, q := range use {
+				stock[it] -= q
+				upkeep[it] += q
 			}
 			for i := 0; i < npcs; i++ {
 				skills = append(skills, h.research.Rules.NPCScholarLevel)

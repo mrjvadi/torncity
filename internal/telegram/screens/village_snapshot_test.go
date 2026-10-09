@@ -107,7 +107,7 @@ func villageSnapshots(c Context, who people, add func(string, *presenter.Respons
 	tWood := sampleNamed(c.Lang, "timber", "الوار", "Timber")
 	tWool := sampleNamed(c.Lang, "wool", "پشم", "Wool")
 	add("Trade desk · goods on sale, the last market day sold", TradeDesk(g, TradeDeskView{
-		Name: villageNameFor(c), HasPost: true, Cap: 480, PriceBPS: 9000, Prospect: 117, MayOrder: true, KeepPresets: []int64{10, 25},
+		Name: villageNameFor(c), HasPost: true, Cap: 480, PriceBPS: 9000, Prospect: 117, MayOrder: true, KeepPresets: []int64{10, 25}, NextAt: snapshotNow.Add(13 * time.Hour), Clerk: &village.TradeClerkLine{SeatBuilding: Named{Code: "barter_post"}, Filled: true, Wage: 35, StaffedBy: "npc"},
 		Items: []village.TradeItemLine{
 			{Item: tWood, Stock: 39, Reference: 15, Unit: 13, On: true, Keep: 30, Surplus: 9},
 			{Item: tWool, Stock: 25, Reference: 12, Unit: 10, On: false},

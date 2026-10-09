@@ -129,6 +129,12 @@ type WorkNode struct {
 	Condition *WorkCondition `json:"condition,omitempty"`
 	// Job is the posted job of the workplace (nil when the head has not posted one).
 	Job *WorkJob `json:"job,omitempty"`
+	// ToolWearBPS is the share of a tool one shift wears (0: the work needs none), ToolsHave the tools in the stock, and
+	// BareHands says the next shift works at BareHandsBPS of its output because its tool is worn out and the stock has none.
+	ToolWearBPS  int64 `json:"tool_wear_bps,omitempty"`
+	ToolsHave    int64 `json:"tools_have,omitempty"`
+	BareHands    bool  `json:"bare_hands,omitempty"`
+	BareHandsBPS int64 `json:"bare_hands_bps,omitempty"`
 	// IfUnstaffed is what the content says stands without staff: idle, base_room, decays.
 	IfUnstaffed string `json:"if_unstaffed,omitempty"`
 }

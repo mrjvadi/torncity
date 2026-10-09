@@ -652,6 +652,9 @@ settlement:
   storage_spoil_unkept_bps: 31
   storage_keeper_rule_at: "2026-11-01T00:00:00Z"
   storage_keeper_grace_days: 21
+  real_items_rule_at: "2026-11-02T00:00:00Z"
+  real_items_grace_days: 9
+  tool_bare_hands_bps: 5500
   research_free_slots: 200
   research_speed_floor_bps: 201
   research_scholar_floor_bps: 202
@@ -1216,6 +1219,9 @@ var envOverrides = map[string]string{
 	"TORN_SETTLEMENT_STORAGE_SPOIL_UNKEPT_BPS":             "32",
 	"TORN_SETTLEMENT_STORAGE_KEEPER_RULE_AT":               "2026-12-01T00:00:00Z",
 	"TORN_SETTLEMENT_STORAGE_KEEPER_GRACE_DAYS":            "22",
+	"TORN_SETTLEMENT_REAL_ITEMS_RULE_AT":                   "2026-12-01T00:00:00Z",
+	"TORN_SETTLEMENT_REAL_ITEMS_GRACE_DAYS":                "10",
+	"TORN_SETTLEMENT_TOOL_BARE_HANDS_BPS":                  "5600",
 	"TORN_SETTLEMENT_RESEARCH_FREE_SLOTS":                  "300",
 	"TORN_SETTLEMENT_RESEARCH_SPEED_FLOOR_BPS":             "301",
 	"TORN_SETTLEMENT_RESEARCH_SCHOLAR_FLOOR_BPS":           "302",

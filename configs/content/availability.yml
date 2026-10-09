@@ -117,6 +117,9 @@ availability:
   - {kind: building, code: smithy, stage: village}
   - {kind: building, code: weaving_shed, stage: village}
   - {kind: building, code: pottery_kiln, stage: village}
+  - {kind: building, code: clay_pit, requires: {knowledge: [pottery]}, elsewhere: [{where: support}]}
+  - {kind: building, code: tool_workshop, requires: {knowledge: [carpentry]}, elsewhere: [{where: support}]}
+  - {kind: building, code: paper_mill, requires: {knowledge: [papermaking]}, elsewhere: [{where: support}]}
   - {kind: building, code: manufactory, stage: city}
   - {kind: building, code: factory, stage: city}
   - {kind: building, code: small_pit, stage: village, growth: {open: true, founding: true, row: 23}}
@@ -202,6 +205,7 @@ availability:
   - {kind: knowledge, code: road_code}
   - {kind: knowledge, code: military_drill}
   - {kind: knowledge, code: printing}
+  - {kind: knowledge, code: papermaking, elsewhere: [{where: support}]}
 
   # ---- courses and education (ADR 0038 section 5 and owner decisions 4 and 6): a course needs the knowledge, the building and a teacher; Support teaches every one
   - {kind: course, code: first_aid, stage: village, requires: {knowledge: [basic_medicine], buildings: [{role: health, tier: 1}]}, elsewhere: [{where: support}], note: "taught by the health worker, who is trained in Support (no teacher role needed: avoids a circle)"}
@@ -360,6 +364,13 @@ availability:
   - {kind: component, code: brick, stage: village, growth: {open: true, founding: true, row: 203}, requires: {}}
   - {kind: component, code: cloth, stage: village, growth: {open: true, founding: true, row: 204}, requires: {}}
   - {kind: component, code: flour, stage: village, growth: {open: true, founding: true, row: 205}, requires: {}}
+  - {kind: component, code: firewood, requires: {buildings: [{code: woodcutter_camp}]}, note: "ADR 0050: cut with the timber at the woodcutter's camp"}
+  - {kind: component, code: clay, requires: {buildings: [{code: clay_pit}]}, elsewhere: [{where: support}], note: "ADR 0050: dug on a riverside lot; bought from Support by a village (village_buy)"}
+  - {kind: component, code: hide, requires: {buildings: [{code: pasture_range}]}, note: "ADR 0050: the herd's culled animals' hides; the tannery is a later link"}
+  - {kind: component, code: rag, requires: {buildings: [{code: weaving_shed}]}, note: "ADR 0050: the offcuts of the weaving shed"}
+  - {kind: component, code: paper, requires: {buildings: [{code: paper_mill}]}, elsewhere: [{where: support}], note: "ADR 0050: from rags at a paper mill; bought from Support by a village (village_buy)"}
+  - {kind: component, code: tools, requires: {buildings: [{code: tool_workshop}]}, elsewhere: [{where: support}], note: "ADR 0050: wooden-hafted stone tools; bought from Support by a village (village_buy)"}
+  - {kind: component, code: pots, requires: {buildings: [{code: pottery_kiln}]}, note: "ADR 0050: fired from clay with firewood"}
   - {kind: component, code: tool_steel, stage: town, requires: {knowledge: [smithing], buildings: [{code: smithy}]}}
   - {kind: component, code: plastic_case, stage: city, requires: {buildings: [{role: craft, tier: 3}]}}
   - {kind: component, code: circuit_board, stage: city, requires: {buildings: [{role: craft, tier: 3}]}}

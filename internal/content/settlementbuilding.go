@@ -113,6 +113,10 @@ type SettlementBuildingDef struct {
 	Workers  int              `yaml:"workers,omitempty" json:"workers,omitempty"`
 	Shift    string           `yaml:"shift,omitempty" json:"shift,omitempty"`
 	Wage     int64            `yaml:"wage,omitempty" json:"wage,omitempty"`
+	// ToolWearBPS is how much of a tool one shift wears, in ten-thousandths of one `tools` unit: a workplace at 300 uses one
+	// tool in about thirty-three shifts. With none in the stock the shift works bare-handed at a share of its output
+	// (settlement.tool_bare_hands_bps). 0: the work needs no tools.
+	ToolWearBPS int64 `yaml:"tool_wear_bps,omitempty" json:"tool_wear_bps,omitempty"`
 	// Trains is the skill (and the experience) a finished shift here gives the
 	// worker: the trade is learned by doing it. The skill is in skills.yml.
 	Trains *SkillXPDef `yaml:"trains,omitempty" json:"trains,omitempty"`
@@ -161,7 +165,7 @@ func (d SettlementBuildingDef) Def() settlementbuilding.Def {
 		shift, _ := optionalDuration(d.Shift)
 		out.Work = settlementbuilding.Work{
 			Produces: copyQuantities(d.Produces), Consumes: copyQuantities(d.Consumes),
-			Workers: d.Workers, Shift: shift, Wage: d.Wage,
+			Workers: d.Workers, Shift: shift, Wage: d.Wage, ToolWearBPS: d.ToolWearBPS,
 		}
 	}
 	if len(d.CostMaterials) > 0 {

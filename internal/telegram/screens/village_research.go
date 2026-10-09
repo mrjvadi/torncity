@@ -81,7 +81,13 @@ func renderResearchBoard(c Context, v village.ResearchBoardView) *presenter.Resp
 		}
 		var ups []string
 		for _, u := range b.Upkeep {
-			ups = append(ups, c.T("research.upkeep_item", map[string]any{"item": c.named("component."+u.Item.Code, u.Item.Name), "qty": FormatNumber(c, u.Qty), "have": FormatNumber(c, u.Have)}))
+			args := map[string]any{"item": c.named("component."+u.Item.Code, u.Item.Name), "qty": FormatNumber(c, u.Qty), "have": FormatNumber(c, u.Have)}
+			key := "research.upkeep_item"
+			if u.StandIn.Code != "" && !v.StandInUntil.IsZero() {
+				key = "research.upkeep_item_stand_in"
+				args["stand"], args["stand_have"], args["until"] = c.named("component."+u.StandIn.Code, u.StandIn.Name), FormatNumber(c, u.StandInHave), FormatDate(c, v.StandInUntil)
+			}
+			ups = append(ups, c.T(key, args))
 		}
 		if len(ups) > 0 {
 			houses = append(houses, c.T("research.building.upkeep", map[string]any{"items": c.list(ups)}))

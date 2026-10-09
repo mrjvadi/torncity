@@ -64,7 +64,7 @@ func TestStoreroomsAndShelvesRaiseTheHomeStore(t *testing.T) {
 	e.verifyLots()
 }
 
-// A hearth in the house makes the rest warm: a unit of timber from the home store buys a quarter more, and without it
+// A hearth in the house makes the rest warm: a unit of firewood from the home store buys a quarter more, and without it
 // the rest works as before.
 func TestAHearthMakesTheRestWarm(t *testing.T) {
 	e := newLotEnv(t)
@@ -95,12 +95,12 @@ func TestAHearthMakesTheRestWarm(t *testing.T) {
 		t.Errorf("without wood the rest is plain: %q", n)
 	}
 	e.clock.Advance(2 * time.Hour)
-	e.give(owner, application.HoldHome, "timber", 2)
+	e.give(owner, application.HoldHome, "firewood", 2)
 	if n := rest(); n != "rested_warm" {
 		t.Errorf("with wood and a hearth the rest is warm: %q", n)
 	}
-	if got := e.held(owner, application.HoldHome, "timber"); got != 1 {
-		t.Errorf("the hearth burnt %d timber, want 1", 2-got)
+	if got := e.held(owner, application.HoldHome, "firewood"); got != 1 {
+		t.Errorf("the hearth burnt %d firewood, want 1", 2-got)
 	}
 	e.verifyLots()
 }

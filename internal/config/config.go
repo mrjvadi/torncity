@@ -1007,6 +1007,13 @@ type Settlement struct {
 	// real days after it, so no town loses room overnight; 0 days switches the grace off.
 	StorageKeeperRuleAt    string // settlement.storage_keeper_rule_at
 	StorageKeeperGraceDays int64  // settlement.storage_keeper_grace_days
+	// The real village goods (docs/adr/0050, plan A2). RealItemsRuleAt (RFC 3339) is when firewood, paper and tools became
+	// real goods: for RealItemsGraceDays real days after it the older stand-in (timber for firewood, wool for paper) still
+	// works for a settlement with none of the real item, and a workplace without tools keeps its full output; after it a shift
+	// without tools yields ToolBareHandsBPS of its output. 0 days switches the grace off.
+	RealItemsRuleAt    string // settlement.real_items_rule_at
+	RealItemsGraceDays int64  // settlement.real_items_grace_days
+	ToolBareHandsBPS   int64  // settlement.tool_bare_hands_bps
 	// Research capacity and speed (ADR 0048, internal/domain/research).
 	ResearchFreeSlots                int64 // settlement.research_free_slots
 	ResearchSpeedFloorBPS            int64 // settlement.research_speed_floor_bps
@@ -1837,6 +1844,9 @@ func Defaults() *Config {
 			StorageSpoilUnkeptBPS:            30,
 			StorageKeeperRuleAt:              "2026-10-03T00:00:00Z",
 			StorageKeeperGraceDays:           14,
+			RealItemsRuleAt:                  "2026-10-12T00:00:00Z",
+			RealItemsGraceDays:               7,
+			ToolBareHandsBPS:                 6000,
 			ResearchFreeSlots:                1,
 			ResearchSpeedFloorBPS:            10000,
 			ResearchScholarFloorBPS:          500,

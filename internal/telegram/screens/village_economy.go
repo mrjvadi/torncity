@@ -221,6 +221,7 @@ func renderVillageMaterials(c Context, v MaterialsView) *presenter.Response {
 		transitionNote(c, v),
 		body(stores...),
 		spoil,
+		standInNote(c, v),
 		c.T("village.materials.stock_title", nil)+"\n"+stockText,
 		c.T("village.materials.market_title", nil)+"\n"+body(market...),
 		c.T("village.materials.hint", nil),
@@ -345,4 +346,16 @@ func renderVillageWork(c Context, v WorkView) *presenter.Response {
 	kb.Row(villageButtons(c, "village.button.materials", AddrMaterials, "village.button.build", AddrBuildMenu)...)
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrVillageOverview, RefreshData: AddrWork}))
 	return c.respond(text, kb.Build())
+}
+
+// standInNote says which older material still stands in for a real good, and until when.
+func standInNote(c Context, v village.MaterialsView) string {
+	if len(v.StandIns) == 0 || v.StandInUntil.IsZero() {
+		return ""
+	}
+	var lines []string
+	for _, l := range v.StandIns {
+		lines = append(lines, c.T("village.materials.stand_in_line", map[string]any{"item": c.ComponentName(l.Item), "stand": c.ComponentName(l.Stand)}))
+	}
+	return c.T("village.materials.stand_in", map[string]any{"until": FormatDate(c, v.StandInUntil), "lines": c.list(lines)})
 }

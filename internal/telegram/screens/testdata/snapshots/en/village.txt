@@ -135,6 +135,10 @@ What the trader buys:
 
 If he came today he would pay 117 SUP.
 
+🗓 Next market day: 24 September 2026, 03:35
+
+🧾 The clerk of the market works at City market; on a day the trader comes he is paid 35 SUP.
+
 ✅ Last market day (14:35): you sold Timber 10 (at 13 SUP each) - 130 SUP in all; the clerk's day cost 35 SUP.
   ───
   [Timber - all] → settlement:trade:keep:timber:0   │   [keep 10] → settlement:trade:keep:timber:10   │   [keep 25] → settlement:trade:keep:timber:25   │   [✖] → settlement:trade:off:timber

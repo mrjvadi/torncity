@@ -57,6 +57,14 @@ func researchRules(cfg *config.Config) handlers.ResearchRules {
 		ExperiencePerShift: cfg.Settlement.ResearchExperiencePerShift, ScholarXP: cfg.Settlement.ResearchScholarXP}
 }
 
+// realItemRules reads the grace of the real village goods (settlement.real_items_*, settlement.tool_bare_hands_bps):
+// the date they became the rule, the days the older stand-ins still serve and the output of a shift without tools
+// (docs/adr/0050).
+func realItemRules(cfg *config.Config) handlers.RealItemRules {
+	from, _ := time.Parse(time.RFC3339, cfg.Settlement.RealItemsRuleAt) // not an instant: no grace
+	return handlers.RealItemRules{From: from, GraceDays: cfg.Settlement.RealItemsGraceDays, BareHandsBPS: cfg.Settlement.ToolBareHandsBPS}
+}
+
 // tradeRules reads the market day's tuning (settlement.export_*, game.clock_epoch): the rules of the domain, the game
 // clock their days are counted on and the amounts the trade desk offers to keep back (ADR 0049).
 func tradeRules(cfg *config.Config) handlers.TradeRules {
