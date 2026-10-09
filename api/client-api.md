@@ -1724,3 +1724,15 @@ Ledger (finance screens): new reasons `scholar_wage` (treasury to the scholar's 
 ## The national levy is stopped and refunded (2026-10-09)
 
 The defence period of ADR 0022 no longer levies founded settlements (`Diplomacy.LevyCitiesOf`). `admin settlement refund-national-levy --reason ...` returns to each settlement exactly what `national_levy` took from its treasury (migration 0135, ledger reason `levy_refund`: from the country's state treasury and defence fund in proportion, the rest from the system source), once per settlement. Finance screens: a new reason `levy_refund` (credit to a city treasury).
+
+## The market day: `settlement.trade` (2026-10-09)
+
+ADR 0049, migration 0136. Once a local day a travelling trader buys the surplus of the goods the head put on sale, if the barter post stands with its clerk of the market (NPC seat) and the treasury can pay him.
+
+| Command | Args | What it does |
+|---|---|---|
+| `settlement.trade` | `action`?, `code`?, `n`? | Without `action`: the trade desk (screen `trade`, view `TradeDeskView`); reading it also settles today's market day. `action` `keep` with `code` (an item with `village_sell`) and `n` (units the head keeps, 0 or more) puts the item on sale above `n`; `off` with `code` takes it off. Needs the charter permission `trade.export` |
+
+View `TradeDeskView {name, has_post, cap, price_bps, prospect, may_order, keep_presets[], items[], last}` (in `api/views.gen.ts`). `items[]`: `{item, stock, reference, unit, on, keep, surplus}`. `last`: `{outcome, gross, wage, at, lines[{item, qty, unit}]}`; outcomes `sold`, `no_clerk`, `no_wage`, `nothing`, `too_little`, `no_road`. Without the post the view has `has_post: false` (show «not available here» and what to build).
+
+New charter permission `trade.export` (group treasury); the head office of stored charters gets it with the migration. Ledger reasons for finance screens: `export_sale` (system source to treasury) and `market_clerk_wage` (treasury to sink); item reason `exported`. Config: `settlement.export_price_bps`, `export_cap_base`, `export_cap_per_resident`, `export_keep_presets`. Refusals use the existing village refusal kinds (permission, unknown good).
