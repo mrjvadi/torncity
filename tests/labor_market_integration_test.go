@@ -114,6 +114,9 @@ func (l *laborEnv) as(p *application.Player, command, action string) envelope.Me
 
 func (l *laborEnv) resident() *application.Player {
 	p := insertPlayer(l.t, l.pool)
+	l.t.Cleanup(func() { // a shift teaches its trade: the player's skills go before the player
+		_, _ = l.pool.Raw().Exec(testCtx(l.t), `DELETE FROM player_skills WHERE player_id = $1::uuid`, p.ID)
+	})
 	if _, err := l.pool.Raw().Exec(testCtx(l.t), `UPDATE players SET residence_city_id = $1::uuid WHERE id = $2::uuid`, l.cityID, p.ID); err != nil {
 		l.t.Fatal(err)
 	}

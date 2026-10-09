@@ -334,3 +334,30 @@ func TestRealItemsIronTierChain(t *testing.T) {
 	}
 	w.verify()
 }
+
+// The trades of the working buildings are skills a shift teaches (ADR 0057): a woodcutter learns forestry, a miller milling.
+func TestAShiftTeachesItsTrade(t *testing.T) {
+	for _, c := range []struct {
+		building string
+		stock    map[string]int64
+		skill    string
+		xp       int64
+	}{
+		{"woodcutter_camp", nil, "forestry", 15},
+		{"mill", map[string]int64{"wheat": 20}, "milling", 20},
+		{"pottery_kiln", map[string]int64{"clay": 6, "firewood": 2}, "pottery", 20},
+	} {
+		t.Run(c.skill, func(t *testing.T) {
+			w := newWorkplaceEnv(t, c.building)
+			w.village.WithRealItems(realItemRules(w.cfg, w.clock.Now(), time.Hour))
+			for it, n := range c.stock {
+				w.stock(it, n)
+			}
+			w.shift()
+			got := w.scalar(`SELECT COALESCE((SELECT xp FROM player_skills WHERE player_id = $1::uuid AND skill_code = $2), 0)`, w.worker.ID, c.skill)
+			if got != c.xp {
+				t.Errorf("a shift at %s should teach %d points of %s, it taught %d", c.building, c.xp, c.skill, got)
+			}
+		})
+	}
+}

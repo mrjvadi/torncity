@@ -246,6 +246,8 @@ func deletePlayer(t *testing.T, pool *postgres.Pool, playerID string) {
 	for _, stmt := range []string{
 		`DELETE FROM idempotency_keys WHERE player_id = $1::uuid`,
 		`DELETE FROM player_bot_links WHERE player_id = $1::uuid`,
+		// a shift in a working building teaches its trade (docs/adr/0057)
+		`DELETE FROM player_skills WHERE player_id = $1::uuid`,
 		// A war strike hurts everyone in a city, which gives a player the
 		// test never played a stats row.
 		`DELETE FROM player_stats WHERE player_id = $1::uuid`,

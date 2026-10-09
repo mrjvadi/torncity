@@ -120,3 +120,8 @@ func currencyRules(cfg *config.Config, policy application.PolicyReader) applicat
 		Reserve: reserveRules(cfg, policy),
 	}
 }
+
+// teacherRules reads the teacher's skill in the literacy tick (settlement.teacher_*; docs/adr/0057).
+func teacherRules(cfg *config.Config) handlers.TeacherRules {
+	return handlers.TeacherRules{BaseBPS: cfg.Settlement.TeacherBaseBPS, PerLevelBPS: cfg.Settlement.TeacherPerLevelBPS, XPPerClass: cfg.Settlement.TeacherXPPerClass}
+}

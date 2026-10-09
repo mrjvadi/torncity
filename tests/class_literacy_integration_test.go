@@ -118,3 +118,40 @@ func TestAVillageClassAsksTheStudentToRead(t *testing.T) {
 		t.Fatalf("the literacy class should be open to someone who cannot read")
 	}
 }
+
+// A home teacher learns to teach: a finished class gives the player teacher points of the teaching skill, and the
+// literacy tick runs with the teacher rules.
+func TestAHomeTeacherLearnsToTeach(t *testing.T) {
+	e := newTeachEnv(t)
+	cfg := config.Defaults()
+	e.edu.WithTeacherXP(cfg.Settlement.TeacherXPPerClass)
+	e.village.WithTeacherRules(handlers.TeacherRules{BaseBPS: cfg.Settlement.TeacherBaseBPS, PerLevelBPS: cfg.Settlement.TeacherPerLevelBPS, XPPerClass: cfg.Settlement.TeacherXPPerClass})
+	ctx := testCtx(t)
+	teacher, student := e.pupil(1000), e.pupil(1000)
+	if _, err := e.edu.TeacherHire(ctx, e.as(e.head, "education.hire", "hire"), handlers.TeachRequest{Course: "literacy_class"}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := e.edu.Enroll(ctx, e.as(teacher, "education.enroll", "enroll"), handlers.CourseRequest{Course: "literacy_class", Method: "cash"}); err != nil {
+		t.Fatal(err)
+	}
+	e.clock.Advance(48 * time.Hour)
+	e.completeClass(teacher) // the school's NPC taught him: he holds the certificate
+	if _, err := e.pool.Raw().Exec(ctx, `UPDATE course_teachers SET ended_at = now() WHERE settlement_id = $1::uuid AND kind = 'npc'`, e.cityID); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := e.edu.TeacherStart(ctx, e.as(teacher, "education.teach", "teach"), handlers.TeachRequest{Course: "literacy_class", Mode: "home"}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := e.edu.Enroll(ctx, e.as(student, "education.enroll", "enroll"), handlers.CourseRequest{Course: "literacy_class", Method: "cash"}); err != nil {
+		t.Fatal(err)
+	}
+	e.clock.Advance(48 * time.Hour)
+	e.completeClass(student)
+	xp := e.scalar(`SELECT COALESCE((SELECT xp FROM player_skills WHERE player_id = $1::uuid AND skill_code = 'teaching'), 0)`, teacher.ID)
+	if xp != cfg.Settlement.TeacherXPPerClass {
+		t.Errorf("the home teacher should have %d points of teaching, he has %d", cfg.Settlement.TeacherXPPerClass, xp)
+	}
+	if _, err := e.village.Taught(ctx, e.as(e.head, "settlement.taught", "taught"), handlers.CrimeScheduledRequest{ReferenceID: e.cityID}); err != nil {
+		t.Fatalf("the literacy tick with the teacher rules: %v", err)
+	}
+}

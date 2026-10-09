@@ -1025,6 +1025,12 @@ type Settlement struct {
 	// PersonalGraceDays real days after it, with a notice of what will be needed; 0 days switches the grace off.
 	PersonalRuleAt    string // settlement.personal_rule_at
 	PersonalGraceDays int64  // settlement.personal_grace_days
+	// The teacher's skill in the literacy tick (docs/adr/0057): a class taught by a player with the teaching skill moves
+	// literacy at TeacherBaseBPS plus TeacherPerLevelBPS for each level (never above 10000); a class with no player teacher
+	// at TeacherBaseBPS. A finished class teaches its player teacher TeacherXPPerClass of the teaching skill.
+	TeacherBaseBPS     int64 // settlement.teacher_base_bps
+	TeacherPerLevelBPS int64 // settlement.teacher_per_level_bps
+	TeacherXPPerClass  int64 // settlement.teacher_xp_per_class
 	// Research capacity and speed (ADR 0048, internal/domain/research).
 	ResearchFreeSlots                int64 // settlement.research_free_slots
 	ResearchSpeedFloorBPS            int64 // settlement.research_speed_floor_bps
@@ -1862,6 +1868,9 @@ func Defaults() *Config {
 			ServiceGraceDays:                 7,
 			PersonalRuleAt:                   "2026-10-10T00:00:00Z",
 			PersonalGraceDays:                7,
+			TeacherBaseBPS:                   6000,
+			TeacherPerLevelBPS:               150,
+			TeacherXPPerClass:                20,
 			ResearchFreeSlots:                1,
 			ResearchSpeedFloorBPS:            10000,
 			ResearchScholarFloorBPS:          500,

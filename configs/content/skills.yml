@@ -30,6 +30,15 @@ skills:
   - {code: masonry,     name: Masonry,     category: crafts}
   - {code: smithing,    name: Smithing,    category: crafts}
   - {code: farming,     name: Farming,     category: land}
+  # The trades of the working buildings (ADR 0041 5.1, docs/adr/0057): trained by a shift in the workplace that names them
+  # (`trains`), carried by the staff roles (`skill`). They were planned skills until a shift taught them.
+  - {code: forestry,    name: Forestry,    category: land}
+  - {code: herding,     name: Herding,     category: land}
+  - {code: weaving,     name: Weaving,     category: crafts}
+  - {code: pottery,     name: Pottery,     category: crafts}
+  - {code: milling,     name: Milling,     category: crafts}
+  - {code: baking,      name: Baking,      category: crafts}
+  - {code: teaching,    name: Teaching,    category: professional}
   # Trained by the training activity (training.start), read by the crimes that
   # need force (crimes.yml skill_weights).
   - {code: strength,    name: Strength,    category: physical}
