@@ -280,6 +280,17 @@ knowledge:
     time: 28h
     effects: [{target: smelting_output_bps, op: add, value: 400}]
 
+  # tanning - hides soaked in a pit with bark (docs/adr/0052).
+  - code: tanning
+    field: craft
+    name: "دباغی"
+    requires: [open_range_herding]
+    family: tanning
+    generation: 1
+    cost: 1600
+    time: 12h
+    effects: [{target: tanning_output_bps, op: add, value: 400}]
+
   # papermaking — paper beaten from rags in running water (Samarkand, Fabriano; docs/adr/0050).
   - code: papermaking
     field: craft

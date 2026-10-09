@@ -174,6 +174,8 @@ type Tx interface {
 	Research() ResearchRepository
 	// Trade holds the head's standing orders and the market days (ADR 0049, migration 0136); see ports_trade.go.
 	Trade() TradeRepository
+	// ServiceDays is the daily services of the settlement's posts (migration 0137).
+	ServiceDays() ServiceDayRepository
 	// Charters holds each settlement's offices, seats and audit (ADR 0044
 	// section 6, migration 0121); see ports_charter.go.
 	Charters() CharterRepository

@@ -448,6 +448,7 @@ life:
     bio_chars: "✏️ That has characters that cannot be shown. Keep it simple."
     too_soon: "⏳ You slept not long ago. {wait} until the next night."
     no_spot: "🛏 This city has no such place to sleep."
+    closed: "🛏 The inn of this city is not open today: it lacks staff, bread, water or firewood. The head has to supply it."
     no_avatar: "🎭 That avatar is not on the list. Pick one from it."
     no_player: "🔎 No player has that code or username."
     no_city: "🧭 You sleep in a city, not on the road."

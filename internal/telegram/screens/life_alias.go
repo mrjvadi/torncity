@@ -116,6 +116,7 @@ const (
 	LifeRefusedBioChars      = life.LifeRefusedBioChars
 	LifeRefusedTooSoon       = life.LifeRefusedTooSoon
 	LifeRefusedNoSpot        = life.LifeRefusedNoSpot
+	LifeRefusedClosed        = life.LifeRefusedClosed
 	LifeRefusedNoAvatar      = life.LifeRefusedNoAvatar
 	LifeRefusedNoPlayer      = life.LifeRefusedNoPlayer
 	LifeRefusedNoCity        = life.LifeRefusedNoCity

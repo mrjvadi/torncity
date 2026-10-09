@@ -495,7 +495,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			}).
 			WithLabor(laborRules(cfg.Labor), cfg.Labor.HirePresets, cfg.Labor.WagePresets).
 			WithActivities(activityRules(cfg)).
-			WithShop(shopRules(cfg)).WithStorage(storageRules(cfg)).WithResearch(researchRules(cfg)).WithTrade(tradeRules(cfg)).WithRealItems(realItemRules(cfg)).WithCurrencyRules(currencyRules(cfg, postgres.NewPolicyReader(pool, nil))).
+			WithShop(shopRules(cfg)).WithStorage(storageRules(cfg)).WithResearch(researchRules(cfg)).WithTrade(tradeRules(cfg)).WithRealItems(realItemRules(cfg)).WithService(serviceRules(cfg)).WithCurrencyRules(currencyRules(cfg, postgres.NewPolicyReader(pool, nil))).
 			WithLotRules(lotRules),
 	}
 
@@ -627,7 +627,10 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	h.stageG1.life = handlers.NewLifeHandler(uow, uuidGenerator{}, messages, registry, cities,
 		postgres.NewPlayerSearchRepository(pool), gametime.Scale(cfg.Game.TimeScale), cfg.Game.IdempotencyTTL, nil).
 		WithHungerAlert(cfg.Notifications.HungerAlertCooldown).
-		WithVillageHomeRest(cfg.Settlement.CitizenHomeRestCooldown)
+		WithVillageHomeRest(cfg.Settlement.CitizenHomeRestCooldown).
+		WithHostelGate(func(ctx context.Context, tx application.Tx, settlementID string) (bool, error) {
+			return h.village.ServiceOpen(ctx, tx, settlementID, application.ServiceLodging)
+		})
 	// The notification inbox (docs: /inbox, migrations/0037): what
 	// cmd/notifier stored instead of flooding a player with messages.
 	h.inbox.inbox = handlers.NewInboxHandler(uow, messages,

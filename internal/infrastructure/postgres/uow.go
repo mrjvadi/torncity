@@ -244,6 +244,8 @@ func (t *tx) Research() application.ResearchRepository { return &ResearchReposit
 // Trade returns the market day's orders and days (migration 0136).
 func (t *tx) Trade() application.TradeRepository { return &TradeRepository{q: t.q} }
 
+func (t *tx) ServiceDays() application.ServiceDayRepository { return &ServiceDayRepository{q: t.q} }
+
 // Charters returns the offices, seats and audit of the settlements' charters (migration 0121).
 func (t *tx) Charters() application.CharterRepository { return &CharterRepository{q: t.q} }
 

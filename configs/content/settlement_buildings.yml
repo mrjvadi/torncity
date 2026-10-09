@@ -179,7 +179,7 @@ settlement_buildings:
     cost_money: 300
     build_time: 30m
     upkeep: 20
-    produces: {timber: 4, firewood: 2}
+    produces: {timber: 4, firewood: 2, bark: 1}
     workers: 3
     shift: 1m
     wage: 40

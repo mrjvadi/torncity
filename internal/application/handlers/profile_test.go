@@ -230,6 +230,8 @@ func (t *fakeTx) Bags() application.BagRepository                               
 func (t *fakeTx) VillageShop() application.VillageShopRepository                 { return nil }
 func (t *fakeTx) VillageStorage() application.VillageStorageRepository           { return nil }
 func (t *fakeTx) Trade() application.TradeRepository { return nil }
+
+func (t *fakeTx) ServiceDays() application.ServiceDayRepository { return nil }
 func (t *fakeTx) Research() application.ResearchRepository                       { return nil }
 func (t *fakeTx) Charters() application.CharterRepository                        { return nil }
 

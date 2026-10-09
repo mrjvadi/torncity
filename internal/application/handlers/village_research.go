@@ -213,7 +213,7 @@ func (h *VillageHandler) settleResearchDay(ctx context.Context, tx application.T
 			}
 		}
 		// the seats the last day's scholars held are free to be filled again; the shop and the keepers are not
-		npcFree = max(market.claims.StaffFree()+market.claims.Scholars-shopSeat-market.claims.Keepers-market.claims.Clerks, 0)
+		npcFree = max(market.claims.StaffFree()+market.claims.Scholars-shopSeat-market.claims.Keepers-market.claims.Clerks-market.claims.Services, 0)
 		wagePer = market.line.NPCWage
 	}
 	treasury, err := treasuryBalance(ctx, tx, s.CityID)

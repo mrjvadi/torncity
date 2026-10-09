@@ -424,7 +424,7 @@ func (h *VillageHandler) settleStorageDay(ctx context.Context, tx application.Tx
 				shopSeat = 1
 			}
 		}
-		free := max(market.staffFree-shopSeat-market.claims.Scholars-market.claims.Clerks, 0)
+		free := max(market.staffFree-shopSeat-market.claims.Scholars-market.claims.Clerks-market.claims.Services, 0)
 		for _, st := range stores {
 			wage := market.line.NPCWage * st.Wage / 10_000
 			if free < 1 || treasury-wages < wage {

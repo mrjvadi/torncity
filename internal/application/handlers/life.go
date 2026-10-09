@@ -47,6 +47,15 @@ type LifeHandler struct {
 	// homeRestCooldown is settlement.citizen_home_rest_cooldown, the village
 	// house's rest timer.
 	homeRestCooldown time.Duration
+	// hostelOpen says whether the inn of a founded settlement is open today (the village handler's ServiceOpen); nil
+	// (the older wirings) puts no extra condition on a hostel bed.
+	hostelOpen func(ctx context.Context, tx application.Tx, settlementID string) (bool, error)
+}
+
+// WithHostelGate gives the hostel bed its condition in a founded settlement: the inn must be open that day (ADR 0052).
+func (h *LifeHandler) WithHostelGate(open func(ctx context.Context, tx application.Tx, settlementID string) (bool, error)) *LifeHandler {
+	h.hostelOpen = open
+	return h
 }
 
 // WithVillageHomeRest sets the cool-down between two rests in a village house
@@ -358,6 +367,13 @@ func (h *LifeHandler) Sleep(ctx context.Context, meta envelope.Metadata, req Lif
 			return err
 		} else if !here.content && !here.offered(snap, "sleep_spot", spot.Code) {
 			return refuseLife(plife.LifeRefusedNoSpot)
+		} else if !here.content && spot.Code == "hostel" && h.hostelOpen != nil {
+			// a settlement's hostel bed is the bed of its inn, and the inn is a daily service (village_service.go)
+			if open, err := h.hostelOpen(ctx, tx, w.city.ID); err != nil {
+				return err
+			} else if !open {
+				return refuseLife(plife.LifeRefusedClosed)
+			}
 		}
 		if w.placed() {
 			target, ok := w.cmap.Find(spot.Place)

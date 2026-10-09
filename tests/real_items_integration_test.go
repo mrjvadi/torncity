@@ -247,7 +247,7 @@ func TestRealItemsProducersMakeThem(t *testing.T) {
 		in        map[string]int64
 		out       []string
 	}{
-		{"woodcutter_camp", nil, nil, []string{"timber", "firewood"}},
+		{"woodcutter_camp", nil, nil, []string{"timber", "firewood", "bark"}},
 		{"weaving_shed", []string{"weaving"}, map[string]int64{"wool": 30}, []string{"cloth", "rag"}},
 		{"paper_mill", []string{"papermaking"}, map[string]int64{"rag": 30}, []string{"paper"}},
 		{"pottery_kiln", []string{"pottery"}, map[string]int64{"clay": 30, "firewood": 10}, []string{"pots"}},
@@ -262,6 +262,9 @@ func TestRealItemsProducersMakeThem(t *testing.T) {
 		{"iron_pit", []string{"smithing"}, nil, []string{"iron_ore"}},
 		{"bloomery", []string{"bloomery"}, map[string]int64{"iron_ore": 30, "charcoal": 30}, []string{"bloom"}},
 		{"smithy", []string{"smithing"}, map[string]int64{"bloom": 10, "charcoal": 10}, []string{"tools"}},
+		// A4b: leather from hide, bark and water; bricks from clay and fuel (ADR 0052)
+		{"tannery", []string{"tanning"}, map[string]int64{"hide": 6, "bark": 6, "spring_water": 12}, []string{"leather"}},
+		{"brickworks", []string{"pottery", "masonry"}, map[string]int64{"clay": 20, "firewood": 10}, []string{"brick"}},
 	} {
 		t.Run(c.building, func(t *testing.T) {
 			w := newWorkplaceEnv(t, c.building, c.knowledge...)

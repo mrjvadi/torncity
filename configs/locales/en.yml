@@ -338,6 +338,9 @@ settlement_building:
   charcoal_clamp: Charcoal clamp
   iron_pit: Iron pit
   bloomery: Bloomery
+  tannery: Tannery
+  teahouse_inn: Tea house and inn
+  brickworks: Brickworks
   smithy: Smithy
   watch_hut: Watch hut
   militia_camp: Militia camp
@@ -1519,6 +1522,7 @@ building_function:
   watch_post: "Neighbourhood watch post"
   barter_post: "Market post"
   iron_pit: "Iron pit"
+  brickworks: "Brickworks"
   library: "Library"
   laboratory: "Laboratory"
   academy: "Higher school"

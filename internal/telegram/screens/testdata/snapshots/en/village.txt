@@ -38,6 +38,8 @@
 🛡 Local security: 15%
 📖 Literacy: 2%
 
+🌙 Watch hut: was not open today - the firewood, bread and water it uses were not in store
+
 No buildings stand here yet.
   ───
   [🏡 Become a resident] → settlement:join

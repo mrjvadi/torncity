@@ -101,6 +101,9 @@ type VillageRoleLine struct {
 // 8.1's coverage numbers, ADR 0031 section 4.4's literacy).
 type VillageOverviewView struct {
 	Name string
+	// Watch is the day's state of each watch post: held (guards, wage and a fire) or idle for a reason (no_guard,
+	// no_wage, no_fuel). An idle post counts nothing in SecurityPercent (ADR 0052).
+	Watch []WatchLine
 	// ZoneMinutes is the settlement's own time zone, minutes east of UTC: its daily
 	// rhythms (the shop's morning, the stores' day, the market day) run on local
 	// time there. A client shows its own device time beside it.
@@ -1652,4 +1655,11 @@ type SettlementWhoView struct {
 	// counts everyone else, only counted.
 	Online  []WhoLine
 	Offline int
+}
+
+// WatchLine is one watch post's day: held, or why it stood idle.
+type WatchLine struct {
+	Building presentation.Named
+	Held     bool
+	Idle     string
 }
