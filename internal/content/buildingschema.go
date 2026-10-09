@@ -178,6 +178,10 @@ type ModuleKindDef struct {
 	BuildShifts int `yaml:"build_shifts,omitempty" json:"build_shifts,omitempty"`
 	// DecayBPSPerDay is the daily condition decay (ADR 0041 6.10).
 	DecayBPSPerDay int `yaml:"decay_bps_per_day,omitempty" json:"decay_bps_per_day,omitempty"`
+	// Area is the floor area the module takes in a building (ADR 0045 3.2: "usable module area follows from the
+	// footprint and the storeys"); a cellar, under the floor, takes none. The area a footprint cell gives per
+	// storey is config building.area_per_cell.
+	Area int `yaml:"area,omitempty" json:"area,omitempty"`
 }
 
 // ModuleSlotDef allows up to Max modules of one kind in a function.
@@ -193,7 +197,11 @@ type FunctionLevelDef struct {
 	Adds             []string           `yaml:"adds,omitempty" json:"adds,omitempty"`
 	Requires         *AvailabilityNeeds `yaml:"requires" json:"requires"`
 	PlannedKnowledge []string           `yaml:"planned_knowledge,omitempty" json:"planned_knowledge,omitempty"`
-	CostMoney        int64              `yaml:"cost_money,omitempty" json:"cost_money,omitempty"`
+	// Building is the catalogue building (settlement_buildings.yml, citizen_buildings.yml) the lot stands as at
+	// this level: the old tier is a level, and the legacy code is what the effects and the map still read until
+	// ADR 0044 G7 drops it. It must be one of the function's `replaces`.
+	Building  string `yaml:"building,omitempty" json:"building,omitempty"`
+	CostMoney int64  `yaml:"cost_money,omitempty" json:"cost_money,omitempty"`
 	CostMaterials    map[string]int64   `yaml:"cost_materials,omitempty" json:"cost_materials,omitempty"`
 	BuildHours       int                `yaml:"build_hours,omitempty" json:"build_hours,omitempty"`
 }
