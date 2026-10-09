@@ -485,8 +485,29 @@ func TestVillagePanelsBatchRoadsAndGrowth(t *testing.T) {
 		t.Errorf("a tier-1 education building should offer an upgrade (the next tier of its role)")
 	}
 	up := view(head, circleID, screens.BuildingModeUpgrade)
-	if ups, _ := viewMap(t, up)["upgrades"].([]any); len(ups) == 0 {
+	ups, _ := viewMap(t, up)["upgrades"].([]any)
+	if len(ups) == 0 {
 		t.Errorf("the upgrade panel lists nothing; text %q", up.Text)
+	} else {
+		// every upgrade shows what it uses, what it lacks and how to get it (2026-10-09)
+		u, _ := ups[0].(map[string]any)
+		if _, old := u["needs_tier"]; old {
+			t.Errorf("the retired needs_tier is still sent: %v", u)
+		}
+		if mats, _ := u["materials"].([]any); len(mats) == 0 {
+			t.Errorf("the upgrade lists no materials: %v", u)
+		}
+		kinds := map[string]string{}
+		for _, n := range u["needs"].([]any) {
+			nm := n.(map[string]any)
+			kinds[nm["kind"].(string)] = nm["how"].(string)
+		}
+		if kinds["knowledge"] != "research" {
+			t.Errorf("the school stands on knowledge the village has not researched: needs %v", kinds)
+		}
+		if u["ready"] == true {
+			t.Errorf("an upgrade with missing knowledge is not ready: %v", u)
+		}
 	}
 
 	// Civic hall: village numbers and doors to the village screens.

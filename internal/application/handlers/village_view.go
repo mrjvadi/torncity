@@ -257,10 +257,6 @@ func (h *VillageHandler) upgradeLines(ctx context.Context, tx application.Tx, sn
 	if err != nil {
 		return nil, err
 	}
-	built, err := builtRoleCounts(ctx, tx, snap, s.CityID)
-	if err != nil {
-		return nil, err
-	}
 	waitOf, err := h.buildWaiter(ctx, tx, snap, s)
 	if err != nil {
 		return nil, err

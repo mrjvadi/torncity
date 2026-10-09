@@ -119,6 +119,9 @@ func (h *VillageHandler) KnowledgeList(ctx context.Context, meta envelope.Metada
 				// land can never allow is never revealed (section 5.2)
 				continue
 			}
+			if line.State == village.KnowledgeAvailable || line.State == village.KnowledgeLocked {
+				line.Needs = knowledgePrereqs(snap, line, t, st.LiteracyShareBPS, treasury)
+			}
 			line.Unlocks = knowledgeUnlocks(snap, d)
 			view.Lines = append(view.Lines, line)
 		}

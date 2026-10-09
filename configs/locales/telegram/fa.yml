@@ -1121,11 +1121,30 @@ building:
     research: "🔬 پژوهش در جریان: {knowledge} - {duration} دیگر"
     no_research: "🔬 پژوهشی در جریان نیست."
   upgrade:
+    item: "{item} {qty}"
+    materials: "   🧱 مواد: {items} - {shifts} نوبت کار"
+    post: "{role} {n}"
+    staff: "   👷 کارکنان: {posts}"
+    capacity:
+      research_slots: "   🔬 جای پژوهش: {n}"
+      storage_room: "   📦 جای انبار ({class}): {n}"
+    need:
+      knowledge:
+        research: "   ⛔ باید پژوهش کنید: {item}"
+        buy: "   ⛔ باید خریداری شود: {item}"
+      building:
+        build: "   ⛔ اول یکی از این‌ها را بسازید: {item}"
+      item:
+        buy: "   ⛔ {item}: {have} از {need} دارید - از بازار شهر مرکزی با قیمت هر واحد {price} می‌شود خرید"
+        build: "   ⛔ {item}: {have} از {need} دارید - باید تولیدش کنید"
+      money:
+        donate: "   ⛔ خزانه {have} دارد و {need} لازم است - با کمک اهالی پر می‌شود"
+      literacy:
+        train: "   ⛔ سواد شهر {have}٪ است و {need}٪ لازم است - آموزش بدهید"
     intro: "⬆️ گام بعدیِ «{building}» این‌هاست:"
     line: "✅ {building} - هزینه {cost} - زمان ساخت {time}"
     locked: "🔒 {building} - اول باید {missing} را داشته باشید"
     locked_other: "🔒 {building} - پیش‌نیازهایش هنوز فراهم نیست"
-    needs_tier: "🔒 {building} - وقتی سکونتگاه {tier} شود باز می‌شود"
     none: "گام بعدی ندارد."
 
 # Roads that open land (docs/adr/0044 5.5): the web draws the road, Telegram shows the quote,

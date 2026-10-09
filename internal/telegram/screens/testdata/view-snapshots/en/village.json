@@ -176,21 +176,139 @@
             "code": "school",
             "name": "School"
           },
+          "capacity": [
+            {
+              "code": "",
+              "kind": "research_slots",
+              "value": 1
+            }
+          ],
+          "consumes": null,
           "cost_money": 9000,
+          "effects": null,
           "expected_wait": {
             "crew": 0,
             "seconds": 0,
             "shift_seconds": 0,
             "shifts": 0
           },
+          "materials": [
+            {
+              "item": {
+                "code": "timber",
+                "name": "Timber"
+              },
+              "qty": 10
+            }
+          ],
           "missing": [
             {
               "code": "record_keeping",
               "name": "Record keeping"
             }
           ],
-          "needs_tier": "",
-          "tier": 2
+          "needs": [
+            {
+              "have": 0,
+              "how": "research",
+              "item": {
+                "code": "record_keeping",
+                "name": "Record keeping"
+              },
+              "kind": "knowledge",
+              "makers": null,
+              "need": 1,
+              "options": null,
+              "price": 0,
+              "role": "",
+              "tier": 0,
+              "where": ""
+            },
+            {
+              "have": 4,
+              "how": "buy",
+              "item": {
+                "code": "timber",
+                "name": "Timber"
+              },
+              "kind": "item",
+              "makers": null,
+              "need": 10,
+              "options": null,
+              "price": 18,
+              "role": "",
+              "tier": 0,
+              "where": ""
+            },
+            {
+              "have": 4000,
+              "how": "donate",
+              "item": {
+                "code": "",
+                "name": ""
+              },
+              "kind": "money",
+              "makers": null,
+              "need": 9000,
+              "options": null,
+              "price": 0,
+              "role": "",
+              "tier": 0,
+              "where": ""
+            },
+            {
+              "have": 3000,
+              "how": "train",
+              "item": {
+                "code": "",
+                "name": ""
+              },
+              "kind": "literacy",
+              "makers": null,
+              "need": 5000,
+              "options": null,
+              "price": 0,
+              "role": "",
+              "tier": 0,
+              "where": ""
+            },
+            {
+              "have": 0,
+              "how": "build",
+              "item": {
+                "code": "",
+                "name": ""
+              },
+              "kind": "building",
+              "makers": null,
+              "need": 1,
+              "options": [
+                {
+                  "code": "teaching_circle",
+                  "name": "Teaching circle"
+                }
+              ],
+              "price": 0,
+              "role": "education",
+              "tier": 1,
+              "where": ""
+            }
+          ],
+          "ready": false,
+          "shifts": 12,
+          "staff": [
+            {
+              "role": {
+                "code": "teacher",
+                "name": "Teacher"
+              },
+              "shift_hours": 0,
+              "slots": 2,
+              "wage_bps": 0
+            }
+          ],
+          "tier": 2,
+          "upkeep_money": 0
         }
       ],
       "upkeep": 0,

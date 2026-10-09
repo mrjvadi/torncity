@@ -5,6 +5,7 @@ import (
 
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/settlementbuilding"
+	"github.com/mrjvadi/torncity/internal/domain/settlementknowledge"
 	"github.com/mrjvadi/torncity/internal/presentation/village"
 )
 
@@ -106,4 +107,33 @@ func upgradeDetails(snap *content.Snapshot, o content.SettlementBuildingDef, lin
 			line.Capacity = append(line.Capacity, village.UpgradeCapacityLine{Kind: "storage_room", Code: cl, Value: int64(s.Provides[cl])})
 		}
 	}
+}
+
+// knowledgePrereqs is what a knowledge item lacks, as structured lines: the knowledge it stands on, the land, the
+// literacy and the treasury (the price of starting it now).
+func knowledgePrereqs(snap *content.Snapshot, line village.KnowledgeLine, t settlementknowledge.Tech, literacy int, treasury int64) []village.Prerequisite {
+	var out []village.Prerequisite
+	for _, m := range line.Missing {
+		p := village.Prerequisite{Kind: village.PrereqKnowledge, Item: m, Need: 1, How: village.HowResearch}
+		if d, ok := snap.SettlementKnowledgeDef(m.Code); ok && !d.IsModeEligible() {
+			p.How = village.HowBuy
+		}
+		out = append(out, p)
+	}
+	if !line.TerrainOK {
+		p := village.Prerequisite{Kind: village.PrereqTerrain, Need: 1, How: village.HowBuy}
+		for _, tag := range t.TerrainTags {
+			p.Options = append(p.Options, named(tag, tag))
+		}
+		out = append(out, p)
+	}
+	if n := literacyNeed(literacy, t.MinLiteracyShareBPS); n != nil {
+		out = append(out, *n)
+	}
+	if line.State == village.KnowledgeAvailable {
+		if n := moneyNeed(treasury, line.ResearchCost); n != nil {
+			out = append(out, *n)
+		}
+	}
+	return out
 }
