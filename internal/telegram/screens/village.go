@@ -124,7 +124,7 @@ func renderVillageOverview(c Context, v VillageOverviewView) *presenter.Response
 	}
 
 	kb := keyboards.New()
-	blocks := []string{head, population, treasury, coverage, watchNote(c, v), buildings}
+	blocks := []string{head, population, treasury, coverage, serviceNote(c, v), buildings}
 	if v.Promotion != nil {
 		blocks = append(blocks, promotionBlock(c, *v.Promotion))
 	}
@@ -675,13 +675,21 @@ func buildWait(w village.BuildWaitView, effort time.Duration) time.Duration {
 	return effort
 }
 
-// watchNote says which watch posts stood idle today and why (an idle post secures nothing).
-func watchNote(c Context, v VillageOverviewView) string {
-	var idle []string
-	for _, w := range v.Watch {
-		if !w.Held {
-			idle = append(idle, c.T("village.watch.idle", map[string]any{"building": c.SettlementBuildingName(w.Building), "reason": c.T("village.watch.reason."+w.Idle, nil)}))
+// serviceNote says which service posts stood idle today and why (an idle post covers nothing).
+func serviceNote(c Context, v VillageOverviewView) string {
+	var lines []string
+	for _, w := range v.Services {
+		switch {
+		case w.Grace && !w.GraceUntil.IsZero():
+			var needs []string
+			for _, n := range w.Needs {
+				needs = append(needs, c.T("village.watch.need", map[string]any{"item": c.ComponentName(n.Component), "qty": FormatNumber(c, n.Quantity)}))
+			}
+			lines = append(lines, c.T("village.watch.grace", map[string]any{"building": c.SettlementBuildingName(w.Building),
+				"until": FormatDate(c, w.GraceUntil), "needs": c.list(needs)}))
+		case !w.Held:
+			lines = append(lines, c.T("village.watch.idle", map[string]any{"building": c.SettlementBuildingName(w.Building), "reason": c.T("village.watch.reason."+w.Idle, nil)}))
 		}
 	}
-	return body(idle...)
+	return body(lines...)
 }

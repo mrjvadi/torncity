@@ -26,7 +26,7 @@ func (r *ServiceDayRepository) read(ctx context.Context, row pgx.Row) (*applicat
 		}
 		return nil, fmt.Errorf("postgres: reading a service day: %w", err)
 	}
-	rows, err := r.q.Query(ctx, `SELECT building_id::text, service, held, idle, staff, wage, used FROM service_day_posts
+	rows, err := r.q.Query(ctx, `SELECT building_id::text, service, held, idle, staff, wage, used, grace FROM service_day_posts
 		WHERE settlement_id = $1::uuid AND day = $2 ORDER BY building_id`, d.SettlementID, d.Day)
 	if err != nil {
 		return nil, fmt.Errorf("postgres: reading the service posts: %w", err)
@@ -35,7 +35,7 @@ func (r *ServiceDayRepository) read(ctx context.Context, row pgx.Row) (*applicat
 	for rows.Next() {
 		var p application.ServicePost
 		var used []byte
-		if err := rows.Scan(&p.BuildingID, &p.Service, &p.Held, &p.Idle, &p.Staff, &p.Wage, &used); err != nil {
+		if err := rows.Scan(&p.BuildingID, &p.Service, &p.Held, &p.Idle, &p.Staff, &p.Wage, &used, &p.Grace); err != nil {
 			return nil, fmt.Errorf("postgres: scanning a service post: %w", err)
 		}
 		p.Used = map[string]int64{}
@@ -83,9 +83,9 @@ func (r *ServiceDayRepository) RecordDay(ctx context.Context, d application.Serv
 			return false, err
 		}
 		if _, err := r.q.Exec(ctx,
-			`INSERT INTO service_day_posts (settlement_id, day, building_id, service, held, idle, staff, wage, used)
-			 VALUES ($1::uuid, $2, $3::uuid, $4, $5, $6, $7, $8, $9::jsonb)`,
-			d.SettlementID, d.Day, p.BuildingID, p.Service, p.Held, p.Idle, p.Staff, p.Wage, string(raw)); err != nil {
+			`INSERT INTO service_day_posts (settlement_id, day, building_id, service, held, idle, staff, wage, used, grace)
+			 VALUES ($1::uuid, $2, $3::uuid, $4, $5, $6, $7, $8, $9::jsonb, $10)`,
+			d.SettlementID, d.Day, p.BuildingID, p.Service, p.Held, p.Idle, p.Staff, p.Wage, string(raw), p.Grace); err != nil {
 			return false, fmt.Errorf("postgres: recording a service post: %w", err)
 		}
 	}

@@ -130,6 +130,9 @@ type ResearchRepository interface {
 	Experience(ctx context.Context, settlementID string) (map[string]int64, error)
 	AddExperience(ctx context.Context, settlementID, field string, points int64, at time.Time) error
 	SpendExperience(ctx context.Context, settlementID, field string, points int64, at time.Time) (bool, error)
+	// AddDailyExperience adds points to a field from a day source (watch, health, market, research, teaching), once per
+	// settlement, field, source and local day: the row of experience_days is the fence. It reports whether it added.
+	AddDailyExperience(ctx context.Context, settlementID, field, source string, day, points int64, at time.Time) (bool, error)
 
 	// HolderShares is, for every item some settlement holds, the share of settlements holding it in basis points
 	// (the periodically refreshed aggregate of ADR 0031).

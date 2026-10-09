@@ -1348,6 +1348,9 @@ func (h *VillageHandler) workedSite(ctx context.Context, tx application.Tx, meta
 			return err
 		}
 	}
+	if err := h.accrueSiteExperience(ctx, tx, snap, sh, now); err != nil {
+		return err
+	}
 	s, err := tx.Settlements().ByID(ctx, sh.SettlementID)
 	if err != nil {
 		return err

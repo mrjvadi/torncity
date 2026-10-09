@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"sort"
+	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
@@ -28,6 +29,31 @@ import (
 // ServiceRules are the clock that counts the services' days. Without it there are no daily services (the older wirings).
 type ServiceRules struct {
 	Clock gametime.Clock
+	// From is when the services began to ask for a wage and supplies; a post that stood complete before it is open
+	// for GraceDays real days after it while a person staffs it, however thin the store (settlement.service_*).
+	From      time.Time
+	GraceDays int64
+}
+
+// GraceUntil is when the grace ends; the zero time when there is none.
+func (r ServiceRules) GraceUntil() time.Time {
+	if r.GraceDays <= 0 || r.From.IsZero() {
+		return time.Time{}
+	}
+	return r.From.AddDate(0, 0, int(r.GraceDays))
+}
+
+// graced reports whether the post keeps the grace at now: it stood complete before the rule date and the window is open.
+func (r ServiceRules) graced(b application.SettlementBuildingInstance, now time.Time) bool {
+	until := r.GraceUntil()
+	if until.IsZero() || !now.Before(until) {
+		return false
+	}
+	since := b.QueuedAt
+	if b.CompletedAt != nil {
+		since = *b.CompletedAt
+	}
+	return since.Before(r.From)
 }
 
 func (r ServiceRules) enabled() bool { return r.Clock.Validate() == nil }
@@ -154,9 +180,27 @@ func (h *VillageHandler) SettleServiceDay(ctx context.Context, tx application.Tx
 		wage := slots * (base * bps / 10_000)
 		row := application.ServicePost{BuildingID: p.b.ID, Service: p.service()}
 		up := p.upkeep()
+		graced := h.service.graced(p.b, now)
 		switch {
 		case seats < slots:
 			row.Idle = application.ServiceIdleNoStaff
+		case graced && (treasury < wage || !stockHas(stock, up)):
+			// the grace of the rule date: staffed, so open, with what the store and the treasury can give today
+			row.Held, row.Staff, row.Grace = true, slots, true
+			row.Used = map[string]int64{}
+			seats -= slots
+			row.Wage = min(wage, treasury)
+			treasury -= row.Wage
+			for it, q := range up {
+				take := min(int64(q), stock[it])
+				if take > 0 {
+					stock[it] -= take
+					row.Used[it] = take
+					used[it] += take
+				}
+			}
+			d.Staff += slots
+			d.Wage += row.Wage
 		case treasury < wage:
 			row.Idle = application.ServiceIdleNoWage
 		case !stockHas(stock, up):
@@ -202,6 +246,23 @@ func (h *VillageHandler) SettleServiceDay(ctx context.Context, tx application.Tx
 				Reason: application.ItemServiceUpkeep, ReferenceType: application.ServiceDayReference, ReferenceID: s.CityID, At: now}); err != nil {
 				return nil, err
 			}
+		}
+	}
+	// a day a service was open is practice in its field (a held watch teaches security, a health house health)
+	held := map[string]int64{}
+	for _, p := range posts {
+		if d.HeldPost(p.b.ID) && p.def.Produces.Field != "" {
+			held[p.def.Produces.Field]++
+		}
+	}
+	fields := make([]string, 0, len(held))
+	for f := range held {
+		fields = append(fields, f)
+	}
+	sort.Strings(fields)
+	for _, f := range fields {
+		if err := h.accrueDaily(ctx, tx, s.CityID, f, "service", today, held[f], now); err != nil {
+			return nil, err
 		}
 	}
 	if d.Wage > 0 {

@@ -51,7 +51,7 @@ legacy_stage_only: []
 staff_roles:
   - {code: teacher, building: {role: education, tier: 1}, personal: [{kind: literacy}], support_npc: true, note: "a qualified citizen or the building's staff; ADR 0038 owner decision 6 point 3"}
   - {code: trainer, building: {code: training_ground}, skill: strength, wage_bps: 11000, personal: [{kind: level, min: 2}], support_npc: true, note: "2026-10-03: the trainer of the training ground; upkeep pays the wage, the session fee goes to the treasury"}
-  - {code: health_worker, building: {role: health, tier: 1}, personal: [{kind: certificate, code: first_aid}], support_npc: true, note: "village health worker (Iran: behvarz), ADR 0038 section 2"}
+  - {code: health_worker, wage_bps: 11000, building: {role: health, tier: 1}, personal: [{kind: certificate, code: first_aid}], support_npc: true, note: "village health worker (Iran: behvarz), ADR 0038 section 2"}
   - {code: nurse, building: {role: health, tier: 2}, personal: [{kind: certificate, code: nursing}], support_npc: true}
   - {code: watchman, wage_bps: 10000, building: {role: security, tier: 1}, personal: [{kind: level, min: 2}], support_npc: true, note: "village watch warden, ADR 0036 section 9.4"}
   # Roles of the working buildings (roadmap step 0.5; ADR 0041 5.1, ADR 0042 8.9, ADR 0045 8.3):

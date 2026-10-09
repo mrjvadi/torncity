@@ -2500,6 +2500,7 @@
       "resident": true,
       "security_percent": 15,
       "service_percent": 0,
+      "services": null,
       "settlement_id": "",
       "support": {
         "code": "support",
@@ -2515,7 +2516,6 @@
       },
       "tier": "village",
       "treasury": 10900,
-      "watch": null,
       "zone_minutes": 0
     }
   },

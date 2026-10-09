@@ -1605,6 +1605,7 @@ staff_role:
   loan_officer: "کارشناس وام"
   bank_manager: "مدیر شعبهٔ بانک"
 building_function:
+  health_house: "خانهٔ بهداشت"
   dwelling: "خانه"
   stall: "دکهٔ بازار"
   general_store: "دکان"

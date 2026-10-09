@@ -45,6 +45,8 @@ type ServicePost struct {
 	Staff      int64
 	Wage       int64
 	Used       map[string]int64
+	// Grace says the post was open only because of the grace of the rule date: staffed, with the wage or the supplies short.
+	Grace bool
 }
 
 // ServiceDay is one judged local day of a settlement's services.

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	stderrors "errors"
 	"sort"
 	"time"
 
@@ -310,6 +311,7 @@ func (h *VillageHandler) settleResearchDay(ctx context.Context, tx application.T
 	for _, q := range upkeep {
 		d.UpkeepUnits += q
 	}
+	staffedDay := d.Staffed
 	if d.WagePlayer > 0 {
 		d.LedgerPlayerTx = h.ids.NewID()
 	}
@@ -324,6 +326,10 @@ func (h *VillageHandler) settleResearchDay(ctx context.Context, tx application.T
 	}
 	if !fresh {
 		return repo.Day(ctx, s.CityID, today)
+	}
+	// a day scholars worked is practice in education
+	if err := h.accrueDaily(ctx, tx, s.CityID, "education", "research", today, staffedDay, now); err != nil {
+		return nil, err
 	}
 	if len(upkeep) > 0 {
 		org := application.SettlementOrg(s.CityID)
@@ -497,10 +503,48 @@ func (h *VillageHandler) accrueExperience(ctx context.Context, tx application.Tx
 			continue
 		}
 		d, ok := snap.SettlementBuildingDef(b.TypeCode)
-		if !ok || !content.ResearchFields[d.Role] {
+		if !ok {
 			return nil
 		}
-		return tx.Research().AddExperience(ctx, sh.SettlementID, d.Role, h.research.ExperiencePerShift, now)
+		field := content.FieldOfRole(d.Role)
+		if field == "" {
+			return nil
+		}
+		return tx.Research().AddExperience(ctx, sh.SettlementID, field, h.research.ExperiencePerShift, now)
 	}
 	return nil
+}
+
+// accrueDaily adds practice from a day source (a held watch or health day, a market day that sold, a staffed research
+// day, a teaching day): once per settlement, field, source and local day, however often the day is settled.
+func (h *VillageHandler) accrueDaily(ctx context.Context, tx application.Tx, settlementID, field, source string, day, mult int64, now time.Time) error {
+	if h.research.ExperiencePerShift <= 0 || field == "" || mult <= 0 {
+		return nil
+	}
+	_, err := tx.Research().AddDailyExperience(ctx, settlementID, field, source, day, h.research.ExperiencePerShift*mult, now)
+	return err
+}
+
+// accrueSiteExperience adds a finished construction, repair or fit-out shift to the field of the building it worked on
+// (the crew that lays a road learns infrastructure, the one that digs a canal learns water works).
+func (h *VillageHandler) accrueSiteExperience(ctx context.Context, tx application.Tx, snap *content.Snapshot, sh *application.SettlementShift, now time.Time) error {
+	if h.research.ExperiencePerShift <= 0 {
+		return nil
+	}
+	b, err := tx.SettlementBuildings().Get(ctx, sh.BuildingID)
+	if err != nil {
+		if stderrors.Is(err, application.ErrBuildingNotFound) {
+			return nil
+		}
+		return err
+	}
+	d, ok := snap.SettlementBuildingDef(b.TypeCode)
+	if !ok {
+		return nil
+	}
+	field := content.FieldOfRole(d.Role)
+	if field == "" {
+		return nil
+	}
+	return tx.Research().AddExperience(ctx, sh.SettlementID, field, h.research.ExperiencePerShift, now)
 }

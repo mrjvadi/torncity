@@ -233,6 +233,23 @@ func (r *ResearchRepository) AddExperience(ctx context.Context, settlementID, fi
 	return nil
 }
 
+// AddDailyExperience adds points from a day source once per local day.
+func (r *ResearchRepository) AddDailyExperience(ctx context.Context, settlementID, field, source string, day, points int64, at time.Time) (bool, error) {
+	if points <= 0 {
+		return false, nil
+	}
+	tag, err := r.q.Exec(ctx,
+		`INSERT INTO experience_days (settlement_id, field, source, day, points, at) VALUES ($1::uuid, $2, $3, $4, $5, $6)
+		 ON CONFLICT (settlement_id, field, source, day) DO NOTHING`, settlementID, field, source, day, points, at.UTC())
+	if err != nil {
+		return false, fmt.Errorf("postgres: fencing a day of experience: %w", err)
+	}
+	if tag.RowsAffected() != 1 {
+		return false, nil
+	}
+	return true, r.AddExperience(ctx, settlementID, field, points, at)
+}
+
 // SpendExperience takes points off a field when it has them.
 func (r *ResearchRepository) SpendExperience(ctx context.Context, settlementID, field string, points int64, at time.Time) (bool, error) {
 	if points <= 0 {

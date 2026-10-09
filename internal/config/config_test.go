@@ -655,6 +655,8 @@ settlement:
   real_items_rule_at: "2026-11-02T00:00:00Z"
   real_items_grace_days: 9
   tool_bare_hands_bps: 5500
+  service_rule_at: "2026-11-03T00:00:00Z"
+  service_grace_days: 8
   research_free_slots: 200
   research_speed_floor_bps: 201
   research_scholar_floor_bps: 202
@@ -1222,6 +1224,8 @@ var envOverrides = map[string]string{
 	"TORN_SETTLEMENT_REAL_ITEMS_RULE_AT":                   "2026-12-01T00:00:00Z",
 	"TORN_SETTLEMENT_REAL_ITEMS_GRACE_DAYS":                "10",
 	"TORN_SETTLEMENT_TOOL_BARE_HANDS_BPS":                  "5600",
+	"TORN_SETTLEMENT_SERVICE_RULE_AT":                      "2026-12-02T00:00:00Z",
+	"TORN_SETTLEMENT_SERVICE_GRACE_DAYS":                   "11",
 	"TORN_SETTLEMENT_RESEARCH_FREE_SLOTS":                  "300",
 	"TORN_SETTLEMENT_RESEARCH_SPEED_FLOOR_BPS":             "301",
 	"TORN_SETTLEMENT_RESEARCH_SCHOLAR_FLOOR_BPS":           "302",

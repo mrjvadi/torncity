@@ -91,3 +91,29 @@ func TestEveryWorkshopShiftIsOnTheOwnersScale(t *testing.T) {
 		t.Errorf("only %d workplaces seen", seen)
 	}
 }
+
+// Every research field has a real source of experience (docs/adr/0054): a field nothing feeds could never give its
+// breakthrough discount.
+func TestEveryResearchFieldHasARealSource(t *testing.T) {
+	p := shippedPack(t)
+	snap, err := BuildSnapshot(1, p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	src := snap.FieldSources()
+	for field := range ResearchFields {
+		if len(src[field]) == 0 {
+			t.Errorf("the field %q is fed by nothing: no shift, crew, open day, market day or class gives it experience", field)
+		}
+	}
+	// the fields the audit found dead each have their own kind of source
+	for field, kind := range map[string]string{"health": "service:", "security": "service:", "market": "trade:", "education": "research:", "infrastructure": "build:", "water_infra": "shift:"} {
+		found := false
+		for _, s := range src[field] {
+			found = found || len(s) > len(kind) && s[:len(kind)] == kind
+		}
+		if !found {
+			t.Errorf("%s has no %s source: %v", field, kind, src[field])
+		}
+	}
+}

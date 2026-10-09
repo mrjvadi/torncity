@@ -68,7 +68,8 @@ func realItemRules(cfg *config.Config) handlers.RealItemRules {
 // serviceRules reads the clock the daily services' days are counted on (game.clock_epoch).
 func serviceRules(cfg *config.Config) handlers.ServiceRules {
 	clock, _ := cfg.GameClock()
-	return handlers.ServiceRules{Clock: clock}
+	from, _ := time.Parse(time.RFC3339, cfg.Settlement.ServiceRuleAt) // not an instant: no grace
+	return handlers.ServiceRules{Clock: clock, From: from, GraceDays: cfg.Settlement.ServiceGraceDays}
 }
 
 // tradeRules reads the market day's tuning (settlement.export_*, game.clock_epoch): the rules of the domain, the game

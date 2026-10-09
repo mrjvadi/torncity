@@ -178,6 +178,8 @@ village:
   population: "👥 جمعیت: {population} از {cap}"
   treasury: "🏦 خزانهٔ شهر: {amount}"
   watch:
+    need: "{item} {qty}"
+    grace: "ℹ️ {building}: تا {until} همین‌طور باز می‌ماند؛ از آن روز هر روز کارکن و مزد و این‌ها را می‌خواهد: {needs}."
     idle: "🌙 {building}: امروز باز نبود - {reason}"
     reason:
       no_staff: "کارکن آزاد پیدا نشد"

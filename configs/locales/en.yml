@@ -1500,6 +1500,7 @@ staff_role:
   loan_officer: "Loan officer"
   bank_manager: "Bank manager"
 building_function:
+  health_house: "Health house"
   dwelling: "House"
   stall: "Market stall"
   general_store: "General store"

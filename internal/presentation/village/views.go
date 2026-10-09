@@ -101,9 +101,9 @@ type VillageRoleLine struct {
 // 8.1's coverage numbers, ADR 0031 section 4.4's literacy).
 type VillageOverviewView struct {
 	Name string
-	// Watch is the day's state of each watch post: held (guards, wage and a fire) or idle for a reason (no_guard,
-	// no_wage, no_fuel). An idle post counts nothing in SecurityPercent (ADR 0052).
-	Watch []WatchLine
+	// Services is the day's state of each daily service post (watch post, health house, inn): open, or idle for a reason
+	// (no_staff, no_wage, no_supplies). An idle post counts nothing in the coverage numbers (ADR 0052).
+	Services []ServiceLine
 	// ZoneMinutes is the settlement's own time zone, minutes east of UTC: its daily
 	// rhythms (the shop's morning, the stores' day, the market day) run on local
 	// time there. A client shows its own device time beside it.
@@ -1657,9 +1657,16 @@ type SettlementWhoView struct {
 	Offline int
 }
 
-// WatchLine is one watch post's day: held, or why it stood idle.
-type WatchLine struct {
+// ServiceLine is one daily service post's day: open (held), or why it stood idle.
+type ServiceLine struct {
 	Building presentation.Named
-	Held     bool
-	Idle     string
+	// Service is the service code (local_security, primary_care, lodging_and_tea).
+	Service string
+	Held    bool
+	Idle    string
+	// Grace says the post is open only because of the grace of the rule date: it has its staff but the wage or the
+	// supplies are short. GraceUntil is when it will ask for them (zero otherwise); Needs is what it uses up a day.
+	Grace      bool
+	GraceUntil time.Time
+	Needs      []MaterialLine
 }
