@@ -82,7 +82,7 @@ func TestShippedSchemaOpenItemsOnlyShrink(t *testing.T) {
 		open.PlannedSkills > maxPlannedSkills || open.Deferred > maxDeferred {
 		t.Errorf("the open items grew: %+v", open)
 	}
-	wantKnowledge := []string{"bloomery", "charcoal_burning", "drainage", "prospecting", "roadcraft", "signal_fires", "tanning", "timbering", "ventilation"}
+	wantKnowledge := []string{"drainage", "prospecting", "roadcraft", "signal_fires", "tanning", "timbering", "ventilation"}
 	sort.Strings(wantKnowledge)
 	if strings.Join(open.PlannedKnowledge, ",") != strings.Join(wantKnowledge, ",") {
 		t.Errorf("planned knowledge changed:\n got  %v\n want %v", open.PlannedKnowledge, wantKnowledge)

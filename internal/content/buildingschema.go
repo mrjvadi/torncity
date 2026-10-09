@@ -344,6 +344,9 @@ type BuildingFunctionDef struct {
 	Research *ResearchDef `yaml:"research,omitempty" json:"research,omitempty"`
 	// Trade marks a market post where a travelling trader buys the settlement's surplus on market day (ADR 0049).
 	Trade *TradeDef `yaml:"trade,omitempty" json:"trade,omitempty"`
+	// Workplace makes the runtime run this row as a working building (function_workplace.go): the row is then the one
+	// source of its staff, inputs, fuel, outputs, cost and knowledge.
+	Workplace *WorkplaceDef `yaml:"workplace,omitempty" json:"workplace,omitempty"`
 }
 
 // TradeDef is what a market post does on market day: the clerk of the market (staff role ClerkRole) weighs and records

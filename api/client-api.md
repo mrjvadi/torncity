@@ -1748,3 +1748,9 @@ Views (in `api/views.gen.ts`, regenerated):
 - `TradeDeskView` gains `next_at` (the next market day: the settlement's next local midnight) and `clerk {seat_building, filled, wage, staffed_by}` (`staffed_by` is `npc`: a worker of the settlement's pool).
 
 Config: `settlement.real_items_rule_at`, `real_items_grace_days`, `tool_bare_hands_bps`. Event `shift_started` carries `tool_used` and `bare_handed`.
+
+## Function rows are working buildings: A4a (2026-10-09)
+
+ADR 0051, no migration, no view change. New buildings in the build menu (codes = function codes): `well`, `mill`, `bakery`, `charcoal_clamp`, `iron_pit`, `bloomery`; the existing `smithy` now works (bloom + charcoal gives tools). New knowledge `charcoal_burning` and `bloomery`. New stock items `flour_sack`, `charcoal`, `bloom`, `spring_water` (barrels from the well); `bread` is now made in a village. Every one is an ordinary workplace: `BuildingView.work` / `WorkNode` shows its staff, inputs (with stock and what is missing), outputs and where they go. A workplace that needs tools shows `tool_wear_bps`. Item names come from `component.<code>` in the locales; `bread` is a good and its name comes from the item catalogue.
+
+Content (not API): a function row with a `workplace` block generates its building; see `configs/content/building_functions.yml`.

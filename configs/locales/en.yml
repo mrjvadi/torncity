@@ -332,6 +332,12 @@ settlement_building:
   clay_pit: Clay pit
   tool_workshop: Tool workshop
   paper_mill: Paper mill
+  mill: Mill
+  bakery: Bakery
+  well: Well
+  charcoal_clamp: Charcoal clamp
+  iron_pit: Iron pit
+  bloomery: Bloomery
   smithy: Smithy
   watch_hut: Watch hut
   militia_camp: Militia camp
@@ -1512,6 +1518,7 @@ building_function:
   storehouse: "Storehouse"
   watch_post: "Neighbourhood watch post"
   barter_post: "Market post"
+  iron_pit: "Iron pit"
   library: "Library"
   laboratory: "Laboratory"
   academy: "Higher school"

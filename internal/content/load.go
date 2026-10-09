@@ -361,6 +361,7 @@ func Load(dir string) (*Pack, error) {
 		}
 	}
 
+	pack.expandFunctionWorkplaces()
 	pack.Checksum = hex.EncodeToString(digest.Sum(nil))
 	return pack, nil
 }
