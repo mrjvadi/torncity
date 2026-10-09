@@ -1391,7 +1391,7 @@ settlement:
   research_catch_up_bps: 4000
   # the world frontier is never lower than this depth of the knowledge tree
   research_era_base_depth: 4
-  # share of settlements that must hold an item for its depth to count as reached by the world (Rogers: the early adopters are about 16 percent)
+  # share of settlements that must hold an item for its depth to count as reached by the world (Rogers: the innovators and early adopters together are about 16 percent)
   research_era_share_bps: 1600
   # extra cost and time per depth step an item is beyond the world frontier
   research_ahead_per_step_bps: 3000

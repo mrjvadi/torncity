@@ -244,6 +244,15 @@ func (h *VillageHandler) settleResearchDay(ctx context.Context, tx application.T
 			if len(players) >= site.posts {
 				break
 			}
+			// a scholar who has moved away holds the post no longer
+			if ok, err := h.resident(ctx, tx, p.PlayerID, s.CityID); err != nil {
+				return nil, err
+			} else if !ok {
+				if _, err := repo.LeavePost(ctx, p.PlayerID); err != nil {
+					return nil, err
+				}
+				continue
+			}
 			lv := 0
 			sk, err := tx.Skills().Get(ctx, p.PlayerID, "scholarship")
 			switch {
