@@ -154,6 +154,15 @@ func (r *DiplomacyRepository) CountriesOfPlayers(ctx context.Context, playerIDs 
 
 // CitiesOf lists a country's cities.
 func (r *DiplomacyRepository) CitiesOf(ctx context.Context, countryID string) ([]application.City, error) {
+	return r.citiesOf(ctx, countryID, false)
+}
+
+// LevyCitiesOf lists the cities a country may levy: its content cities, never a founded settlement.
+func (r *DiplomacyRepository) LevyCitiesOf(ctx context.Context, countryID string) ([]application.City, error) {
+	return r.citiesOf(ctx, countryID, true)
+}
+
+func (r *DiplomacyRepository) citiesOf(ctx context.Context, countryID string, levy bool) ([]application.City, error) {
 	if !validUUID(countryID) {
 		return nil, nil
 	}
@@ -164,7 +173,7 @@ func (r *DiplomacyRepository) CitiesOf(ctx context.Context, countryID string) ([
 		    SELECT j.id, down.depth + 1 FROM jurisdictions j JOIN down ON j.parent_id = down.id WHERE down.depth < 16
 		)
 		SELECT c.id::text, c.code, c.name, COALESCE(c.jurisdiction_id::text, ''), c.cost_of_living, c.population
-		  FROM cities c WHERE c.jurisdiction_id IN (SELECT id FROM down) ORDER BY c.code`, countryID)
+		  FROM cities c WHERE c.jurisdiction_id IN (SELECT id FROM down) AND (NOT $2::boolean OR c.origin <> 'founded') ORDER BY c.code`, countryID, levy)
 	if err != nil {
 		return nil, fmt.Errorf("postgres: listing a country's cities: %w", err)
 	}

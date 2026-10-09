@@ -292,7 +292,8 @@ func (noDiplomacy) CountryOfCity(context.Context, string) (string, error) { retu
 func (noDiplomacy) CountriesOfPlayers(context.Context, []string) (map[string]string, error) {
 	return map[string]string{}, nil
 }
-func (noDiplomacy) CitiesOf(context.Context, string) ([]application.City, error) { return nil, nil }
+func (noDiplomacy) CitiesOf(context.Context, string) ([]application.City, error)     { return nil, nil }
+func (noDiplomacy) LevyCitiesOf(context.Context, string) ([]application.City, error) { return nil, nil }
 func (noDiplomacy) ImposeSanction(_ context.Context, s application.Sanction) (application.Sanction, error) {
 	return s, nil
 }

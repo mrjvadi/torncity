@@ -470,8 +470,16 @@ export interface BuildingUpgradeLine {
   build_time_seconds: number
   expected_wait: BuildWaitView
   available: boolean
+  ready: boolean
   missing: Named[] | null
-  needs_tier: string
+  materials: WorkItemLine[] | null
+  shifts: number
+  needs: Prerequisite[] | null
+  staff: UpgradeStaffLine[] | null
+  upkeep_money: number
+  consumes: WorkItemLine[] | null
+  effects: BuildingEffectLine[] | null
+  capacity: UpgradeCapacityLine[] | null
 }
 
 export interface BuildingView {
@@ -2824,6 +2832,7 @@ export interface KnowledgeLine {
   buy_price: number
   missing: Named[] | null
   terrain_ok: boolean
+  needs: Prerequisite[] | null
   speed_bps: number
   ahead_bps: number
   discount_bps: number
@@ -4285,6 +4294,20 @@ export interface PortfolioView {
   notice: string
   notice_args: Record<string, unknown> | null
   unavailable: Unavailable | null
+}
+
+export interface Prerequisite {
+  kind: string
+  item: Named
+  role: string
+  tier: number
+  have: number
+  need: number
+  how: string
+  where: string
+  options: Named[] | null
+  makers: VillageMaker[] | null
+  price: number
 }
 
 export interface PriceOption {
@@ -5910,6 +5933,19 @@ export interface Unavailable {
   here: string
   requires: NeedBuilding[] | null
   nearest: Named | null
+}
+
+export interface UpgradeCapacityLine {
+  kind: string
+  code: string
+  value: number
+}
+
+export interface UpgradeStaffLine {
+  role: Named
+  slots: number
+  wage_bps: number
+  shift_hours: number
 }
 
 export interface VictimView {

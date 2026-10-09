@@ -147,6 +147,12 @@ type VillageInvariants struct {
 	LotOrphans, LotWorkMismatched, LotShiftsWithoutJob int64
 	LotMaterialsMismatched, LotFeeMismatched           int64
 	LotHistoryGuards                                   int64
+	// The refund of the national levy (migration 0135): LevyRefunds is whether the table exists. LevyRefundLedger and
+	// LevyRefundRows are the refunds in the ledger and in the rows; LevyRefundMismatched the refunds that are not exactly
+	// what national_levy took from that settlement, or whose transaction is not exactly that amount.
+	LevyRefunds                      bool
+	LevyRefundLedger, LevyRefundRows int64
+	LevyRefundMismatched             int64
 	// Research capacity (migration 0134, docs/adr/0048): Research is whether the tables exist. ResearchWageLedger and
 	// ResearchWageRows are the scholars' wages in the ledger and in the research days, ResearchWageMismatched the days
 	// whose wage transaction is not exactly what the row says; ResearchDayBroken days whose counts are not their
@@ -191,6 +197,7 @@ func (v VillageInvariants) WorkNodesOK() bool {
 			v.WithdrawalMismatched == 0 && v.RetiredPotMismatched == 0 && v.MacroGuards == 2)) &&
 		(!v.Lots || (v.LotOrphans == 0 && v.LotWorkMismatched == 0 && v.LotShiftsWithoutJob == 0 && v.LotMaterialsMismatched == 0 &&
 			v.LotFeeMismatched == 0 && v.LotHistoryGuards == 2)) &&
+		(!v.LevyRefunds || (v.LevyRefundLedger == v.LevyRefundRows && v.LevyRefundMismatched == 0)) &&
 		(!v.Research || (v.ResearchWageLedger == v.ResearchWageRows && v.ResearchWageMismatched == 0 && v.ResearchDayBroken == 0 &&
 			v.ResearchUpkeepLedger == v.ResearchUpkeepRows && v.ResearchSlotBroken == 0 && v.ResearchPostBroken == 0 && v.ResearchPactBroken == 0))
 }

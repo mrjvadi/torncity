@@ -367,6 +367,11 @@ type DiplomacyRepository interface {
 	CountriesOfPlayers(ctx context.Context, playerIDs []string) (map[string]string, error)
 	// CitiesOf lists a country's cities.
 	CitiesOf(ctx context.Context, countryID string) ([]City, error)
+	// LevyCitiesOf lists the cities a country may levy: the content cities. A founded settlement is taxed only by a
+	// country its players created (ADR 0044 G6, not built), so today none is: the defence period of ADR 0022 must never
+	// reach into a settlement's treasury (fix 2026-10-09; before it, 10 percent of every credit of every settlement
+	// went to default_country).
+	LevyCitiesOf(ctx context.Context, countryID string) ([]City, error)
 
 	// ImposeSanction records a sanction and returns it with its number; a
 	// standing one of the same imposer on the same target is

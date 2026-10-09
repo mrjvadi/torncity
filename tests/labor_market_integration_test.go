@@ -540,8 +540,30 @@ func insertSite(t *testing.T, l *laborEnv, lot int) string {
 // and hires labourers; they work production shifts, the goods enter the stock, their wage
 // leaves the treasury for the sink, a finished shift is replaced by the crew's next one,
 // and a post never works more than its day's shifts.
+// alignToLocalMorning moves the test clock to 06:00 of the settlement's local day, so a test that counts a post's day
+// does not straddle the village's midnight (its zone follows where the world put it, so it is a different hour on every
+// run: the test was flaky for the two hours before local midnight).
+func (l *laborEnv) alignToLocalMorning() {
+	l.t.Helper()
+	var zone time.Duration
+	if err := postgres.NewUnitOfWork(l.pool, testDefaultLanguage).Do(testCtx(l.t), func(ctx context.Context, tx application.Tx) error {
+		s, err := tx.Settlements().ByID(ctx, l.cityID)
+		zone = s.Zone()
+		return err
+	}); err != nil {
+		l.t.Fatal(err)
+	}
+	local := l.clock.Now().Add(zone)
+	morning := time.Date(local.Year(), local.Month(), local.Day(), 6, 0, 0, 0, time.UTC).Add(-zone)
+	if morning.Before(l.clock.Now()) {
+		morning = morning.Add(24 * time.Hour)
+	}
+	l.clock.Advance(morning.Sub(l.clock.Now()))
+}
+
 func TestNPCCrewWorksAProductionJob(t *testing.T) {
 	l := newLaborEnv(t)
+	l.alignToLocalMorning()
 	ctx := testCtx(t)
 	// the goods the shifts make enter the item journal, which is append-only: the shared
 	// test database must not keep movements whose shift rows the env's cleanup removes

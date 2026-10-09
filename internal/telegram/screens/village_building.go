@@ -189,14 +189,10 @@ func renderBuildingUpgrade(c Context, v BuildingView, name string, blocks []stri
 		}
 		if u.Available {
 			lines = append(lines, c.T("building.upgrade.line", args))
+			lines = append(lines, upgradeDetailLines(c, u)...)
 			if b, ok := keyboards.Button(c.T("build.button.place", args), AddrBuildLots, u.Building.Code); ok {
 				kb.Row(b)
 			}
-			continue
-		}
-		if u.NeedsTier != "" {
-			args["tier"] = c.T("village.tier_name."+u.NeedsTier, nil)
-			lines = append(lines, c.T("building.upgrade.needs_tier", args))
 			continue
 		}
 		names := make([]string, 0, len(u.Missing))
@@ -209,6 +205,7 @@ func renderBuildingUpgrade(c Context, v BuildingView, name string, blocks []stri
 		} else {
 			lines = append(lines, c.T("building.upgrade.locked_other", args))
 		}
+		lines = append(lines, upgradeDetailLines(c, u)...)
 	}
 	if len(lines) == 0 {
 		lines = append(lines, c.T("building.upgrade.none", nil))
@@ -324,6 +321,49 @@ func workBlock(c Context, v BuildingView) []string {
 	}
 	if len(reasons) > 0 {
 		out = append(out, body(reasons...))
+	}
+	return out
+}
+
+// upgradeDetailLines are the details under an upgrade: what it uses up, what it seats and gives, and everything
+// still missing with the way to get it.
+func upgradeDetailLines(c Context, u BuildingUpgradeLine) []string {
+	var out []string
+	if len(u.Materials) > 0 {
+		var items []string
+		for _, m := range u.Materials {
+			items = append(items, c.T("building.upgrade.item", map[string]any{"item": c.ComponentName(m.Item), "qty": FormatNumber(c, m.Qty)}))
+		}
+		out = append(out, c.T("building.upgrade.materials", map[string]any{"items": c.list(items), "shifts": FormatNumber(c, u.Shifts)}))
+	}
+	if len(u.Staff) > 0 {
+		var posts []string
+		for _, st := range u.Staff {
+			posts = append(posts, c.T("building.upgrade.post", map[string]any{"role": c.named("staff_role."+st.Role.Code, st.Role.Name), "n": FormatNumber(c, int64(st.Slots))}))
+		}
+		out = append(out, c.T("building.upgrade.staff", map[string]any{"posts": c.list(posts)}))
+	}
+	for _, cp := range u.Capacity {
+		out = append(out, c.T("building.upgrade.capacity."+cp.Kind, map[string]any{"class": cp.Code, "n": FormatNumber(c, cp.Value)}))
+	}
+	for _, n := range u.Needs {
+		args := map[string]any{"item": c.named("component."+n.Item.Code, n.Item.Name), "have": FormatNumber(c, n.Have), "need": FormatNumber(c, n.Need),
+			"price": FormatMoney(c, n.Price)}
+		switch n.Kind {
+		case "knowledge":
+			args["item"] = c.SettlementKnowledgeName(n.Item)
+		case "money":
+			args["have"], args["need"] = FormatMoney(c, n.Have), FormatMoney(c, n.Need)
+		case "literacy":
+			args["have"], args["need"] = PercentFromBPS(c, int(n.Have)), PercentFromBPS(c, int(n.Need))
+		case "building":
+			var names []string
+			for _, o := range n.Options {
+				names = append(names, c.SettlementBuildingName(o))
+			}
+			args["item"] = c.list(names)
+		}
+		out = append(out, c.T("building.upgrade.need."+n.Kind+"."+n.How, args))
 	}
 	return out
 }

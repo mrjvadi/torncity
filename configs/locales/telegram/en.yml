@@ -1121,11 +1121,30 @@ building:
     research: "🔬 Research under way: {knowledge} - {duration} left"
     no_research: "🔬 No research is running."
   upgrade:
+    item: "{item} {qty}"
+    materials: "   🧱 Materials: {items} - {shifts} work shifts"
+    post: "{role} {n}"
+    staff: "   👷 Staff: {posts}"
+    capacity:
+      research_slots: "   🔬 Research slots: {n}"
+      storage_room: "   📦 Storage room ({class}): {n}"
+    need:
+      knowledge:
+        research: "   ⛔ Research it first: {item}"
+        buy: "   ⛔ It has to be bought: {item}"
+      building:
+        build: "   ⛔ Build one of these first: {item}"
+      item:
+        buy: "   ⛔ {item}: you hold {have} of {need} - Support's market sells it at {price} each"
+        build: "   ⛔ {item}: you hold {have} of {need} - it has to be produced"
+      money:
+        donate: "   ⛔ The treasury holds {have} and {need} is needed - residents' gifts fill it"
+      literacy:
+        train: "   ⛔ The town's literacy is {have}% and {need}% is needed - teach"
     intro: "⬆️ The next step after {building}:"
     line: "✅ {building} - cost {cost} - build time {time}"
     locked: "🔒 {building} - you need {missing} first"
     locked_other: "🔒 {building} - its prerequisites are not met yet"
-    needs_tier: "🔒 {building} - opens when the settlement becomes a {tier}"
     none: "There is no next step."
 
 # Roads that open land (docs/adr/0044 5.5): the web draws the road, Telegram shows the quote,

@@ -31,6 +31,12 @@ func settlementUsage() {
   grant --id SETTLEMENT_UUID --amount MINOR --reason "why" [--by NAME]
                           top up one founded village's treasury from the
                           system source; audited
+  refund-national-levy --reason "why" [--by NAME]
+                          give every founded settlement back what the national levy took from its
+                          treasury (ADR 0022 taxed settlements for a country nobody made): paid from the
+                          country's state treasury and defence fund in proportion, the rest from the
+                          system source, reason levy_refund. Prints each refund. Audited; a second
+                          run refunds nothing
   charter-currencies --reason "why" [--by NAME]
                           charter, once, the money of every founded settlement that named one and
                           has none yet: the fee (currency.charter_fee) and a deposit of the smaller
@@ -89,6 +95,8 @@ func settlementCommand(ctx context.Context, args []string) error {
 		return settlementBackfillFunctions(ctx)
 	case "charter-currencies":
 		return settlementCharterCurrencies(ctx, args[1:])
+	case "refund-national-levy":
+		return settlementRefundLevy(ctx, args[1:])
 	}
 	settlementUsage()
 	os.Exit(2)
@@ -222,5 +230,44 @@ func settlementCharterCurrencies(ctx context.Context, args []string) error {
 		return err
 	}
 	fmt.Printf("settlements chartered: %d of %d\nrun by:               %s\nreason:               %s\n", done, len(reports), who, *reason)
+	return nil
+}
+
+func settlementRefundLevy(ctx context.Context, args []string) error {
+	fs := flag.NewFlagSet("settlement refund-national-levy", flag.ExitOnError)
+	fs.Usage = settlementUsage
+	reason := fs.String("reason", "", "why (required)")
+	op := addOperatorFlags(fs)
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	*reason = strings.TrimSpace(*reason)
+	if *reason == "" {
+		return errors.New("settlement refund-national-levy: --reason is required; money moved without a recorded reason cannot be accounted for later")
+	}
+	who, err := op.resolve("settlement refund-national-levy", os.LookupEnv)
+	if err != nil {
+		return err
+	}
+	ops, _, closeFn, err := settlementOps(ctx)
+	if err != nil {
+		return err
+	}
+	defer closeFn()
+	refunds, err := ops.RefundNationalLevy(ctx, operator.Actor{Name: who, Reason: *reason, At: time.Now()})
+	if err != nil {
+		return err
+	}
+	var total, state, fund, source int64
+	for _, r := range refunds {
+		fmt.Printf("refunded %s minor units to %s (%s): %s from the state treasury, %s from the defence fund, %s from the system source\n",
+			money.FromMinor(r.Levy), r.Name, r.SettlementID, money.FromMinor(r.FromStateTreasury), money.FromMinor(r.FromDefenceFund), money.FromMinor(r.FromSource))
+		total += r.Levy
+		state += r.FromStateTreasury
+		fund += r.FromDefenceFund
+		source += r.FromSource
+	}
+	fmt.Printf("settlements refunded: %d\ntotal:                %s (state treasury %s, defence fund %s, system source %s)\nby:                   %s\nreason:               %s\n",
+		len(refunds), money.FromMinor(total), money.FromMinor(state), money.FromMinor(fund), money.FromMinor(source), who, *reason)
 	return nil
 }

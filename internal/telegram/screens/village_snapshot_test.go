@@ -157,7 +157,17 @@ func villageSnapshots(c Context, who people, add func(string, *presenter.Respons
 		ID: bid, Building: teaching, Role: "education", Tier: 1, Kind: BuildingKindSchool, State: BuildingStateComplete,
 		W: 1, H: 1, CanManage: true, HasUpgrade: true, Mode: BuildingModeUpgrade,
 		Upgrades: []BuildingUpgradeLine{
-			{Building: schoolB, Tier: 2, CostMoney: 9000, BuildTime: 4 * time.Hour, Available: false, Missing: []Named{recordKeeping}},
+			{Building: schoolB, Tier: 2, CostMoney: 9000, BuildTime: 4 * time.Hour, Available: false, Missing: []Named{recordKeeping},
+				Materials: []village.WorkItemLine{{Item: sampleNamed(c.Lang, "timber", "چوب", "Timber"), Qty: 10}}, Shifts: 12,
+				Staff:    []village.UpgradeStaffLine{{Role: sampleNamed(c.Lang, "teacher", "معلم", "Teacher"), Slots: 2}},
+				Capacity: []village.UpgradeCapacityLine{{Kind: "research_slots", Value: 1}},
+				Needs: []village.Prerequisite{
+					{Kind: village.PrereqKnowledge, Item: recordKeeping, Need: 1, How: village.HowResearch},
+					{Kind: village.PrereqItem, Item: sampleNamed(c.Lang, "timber", "چوب", "Timber"), Have: 4, Need: 10, How: village.HowBuy, Price: 18},
+					{Kind: village.PrereqMoney, Have: 4_000, Need: 9_000, How: village.HowDonate},
+					{Kind: village.PrereqLiteracy, Have: 3_000, Need: 5_000, How: village.HowTrain},
+					{Kind: village.PrereqBuilding, Role: "education", Tier: 1, Need: 1, How: village.HowBuild, Options: []Named{teaching}},
+				}},
 		},
 	}))
 	add("Building panel · the civic hall", BuildingPanel(g, BuildingView{

@@ -229,6 +229,14 @@ Teaches the residents; while it stands, literacy slowly spreads.
 ⬆️ The next step after City classroom:
 
 🔒 School - you need Record keeping first
+   🧱 Materials: Timber 10 - 12 work shifts
+   👷 Staff: Teacher 2
+   🔬 Research slots: 1
+   ⛔ Research it first: Record keeping
+   ⛔ Timber: you hold 4 of 10 - Support's market sells it at 18 SUP each
+   ⛔ The treasury holds 4,000 SUP and 9,000 SUP is needed - residents' gifts fill it
+   ⛔ The town's literacy is 30% and 50% is needed - teach
+   ⛔ Build one of these first: City classroom
   ───
   [🔙 Back] → settlement:building.view:3c1f2a4e-7b1d-4c39-8a55-0f6d1e2b9c44
 
