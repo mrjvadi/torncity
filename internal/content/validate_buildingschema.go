@@ -408,6 +408,15 @@ func (l *schemaLint) moduleKinds() {
 		if len(m.CostMaterials) > 0 && m.BuildShifts <= 0 {
 			l.bad("%s: a module that costs materials needs build_shifts (the labour it takes)", key)
 		}
+		// docs/adr/0060: a module is either built (a cost and a reader) or it says what it waits for
+		switch {
+		case m.BuildShifts <= 0 && m.WaitsFor == "":
+			l.bad("%s: a module without build_shifts is not offered to build; waits_for must say which plan item gives it a reader", key)
+		case m.BuildShifts > 0 && m.WaitsFor != "":
+			l.bad("%s: a module that is built does not wait for anything: remove waits_for", key)
+		case m.BuildShifts > 0 && len(m.Provides) == 0 && m.Effect != "warmth_shelter":
+			l.bad("%s: a module with a cost needs a reader (provides, or an effect the rules read): a cost without one is decoration", key)
+		}
 		l.needs(key, m.Requires)
 	}
 }

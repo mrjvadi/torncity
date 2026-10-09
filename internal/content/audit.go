@@ -308,6 +308,13 @@ func (p *Pack) Audit(o AuditOptions) []AuditFinding {
 		}
 	}
 
+	// --- reader: a module kind that is not built waits for a reader (docs/adr/0060)
+	for _, m := range p.ModuleKinds {
+		if m.BuildShifts <= 0 {
+			add(AuditReader, "module_kind", m.Code, "is not offered to build (no cost); it waits for: %s", m.WaitsFor)
+		}
+	}
+
 	sort.SliceStable(out, func(i, j int) bool {
 		a, b := out[i], out[j]
 		if a.Check != b.Check {
