@@ -16,9 +16,8 @@ import (
 // own knowledge, literacy, research and buildings under construction.
 
 const (
-	settlementResearchOneRunningIdx = "settlement_research_one_running_idx"
-	settlementResearchOnceIdx       = "settlement_research_once_idx"
-	settlementBuildingsLotUnique    = "settlement_buildings_lot_unique"
+	settlementResearchOnceIdx    = "settlement_research_once_idx"
+	settlementBuildingsLotUnique = "settlement_buildings_lot_unique"
 )
 
 // SettlementKnowledgeRepository is bound to one transaction.
@@ -70,7 +69,8 @@ func scanSettlementResearch(row pgx.Row) (application.SettlementResearch, error)
 		completedAt *time.Time
 	)
 	err := row.Scan(&rs.ID, &rs.SettlementID, &rs.Code, &rs.Status, &rs.Cost, &ledgerTxID, &rs.GameActionID,
-		&rs.StartedBy, &rs.StartedAt, &rs.FinishAt, &completedAt)
+		&rs.StartedBy, &rs.StartedAt, &rs.FinishAt, &completedAt,
+		&rs.SlotRef, &rs.SpeedBPS, &rs.AheadBPS, &rs.DiscountBPS, &rs.ShareBPS, &rs.SpentPoints)
 	if ledgerTxID != nil {
 		rs.LedgerTransactionID = *ledgerTxID
 	}
@@ -79,13 +79,14 @@ func scanSettlementResearch(row pgx.Row) (application.SettlementResearch, error)
 }
 
 const selectSettlementResearchColumns = `id::text, settlement_id::text, code, status, cost, ledger_transaction_id::text,
-	game_action_id::text, started_by::text, started_at, finish_at, completed_at`
+	game_action_id::text, started_by::text, started_at, finish_at, completed_at,
+	slot_ref, speed_bps, ahead_bps, discount_bps, share_bps, spent_points`
 
 // RunningResearch returns the settlement's one running project, or nil.
 func (r *SettlementKnowledgeRepository) RunningResearch(ctx context.Context, settlementID string) (*application.SettlementResearch, error) {
 	rs, err := scanSettlementResearch(r.q.QueryRow(ctx,
 		`SELECT `+selectSettlementResearchColumns+` FROM settlement_research
-		  WHERE settlement_id = $1::uuid AND status = 'running'`, settlementID))
+		  WHERE settlement_id = $1::uuid AND status = 'running' ORDER BY started_at, id LIMIT 1`, settlementID))
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, nil
 	}
@@ -105,14 +106,18 @@ func (r *SettlementKnowledgeRepository) StartResearch(ctx context.Context, in ap
 	if in.LedgerTransactionID != "" {
 		ledgerTxID = in.LedgerTransactionID
 	}
+	slot := in.SlotRef
+	if slot == "" {
+		slot = "free"
+	}
+	speed, ahead := max(in.SpeedBPS, 1), max(in.AheadBPS, 10_000)
 	_, err = r.q.Exec(ctx,
 		`INSERT INTO settlement_research (id, settlement_id, code, status, cost, ledger_transaction_id,
-		        game_action_id, started_by, started_at, finish_at)
-		 VALUES ($1::uuid, $2::uuid, $3, 'running', $4, $5::uuid, $6::uuid, $7::uuid, $8, $9)`,
-		id, in.SettlementID, in.Code, in.Cost, ledgerTxID, in.GameActionID, in.StartedBy, in.StartedAt, in.FinishAt)
+		        game_action_id, started_by, started_at, finish_at, slot_ref, speed_bps, ahead_bps, discount_bps, share_bps, spent_points)
+		 VALUES ($1::uuid, $2::uuid, $3, 'running', $4, $5::uuid, $6::uuid, $7::uuid, $8, $9, $10, $11, $12, $13, $14, $15)`,
+		id, in.SettlementID, in.Code, in.Cost, ledgerTxID, in.GameActionID, in.StartedBy, in.StartedAt, in.FinishAt,
+		slot, speed, ahead, in.DiscountBPS, in.ShareBPS, in.SpentPoints)
 	switch {
-	case violates(err, sqlstateUniqueViolation, settlementResearchOneRunningIdx):
-		return application.ErrSettlementResearchBusy
 	case violates(err, sqlstateUniqueViolation, settlementResearchOnceIdx):
 		return application.ErrSettlementAlreadyResearched
 	case err != nil:

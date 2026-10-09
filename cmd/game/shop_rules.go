@@ -9,6 +9,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/domain/currency"
 	"github.com/mrjvadi/torncity/internal/domain/reserve"
 	"github.com/mrjvadi/torncity/internal/domain/vshop"
+	"github.com/mrjvadi/torncity/internal/settlementcfg"
 )
 
 // shopRules reads the village shop's tuning out of the configuration (merchant.*,
@@ -46,6 +47,14 @@ func storageRules(cfg *config.Config) handlers.StorageRules {
 	return handlers.StorageRules{Clock: clock,
 		SpoilKeptBPS: cfg.Settlement.StorageSpoilKeptBPS, SpoilUnkeptBPS: cfg.Settlement.StorageSpoilUnkeptBPS,
 		GraceFrom: from, GraceDays: cfg.Settlement.StorageKeeperGraceDays}
+}
+
+// researchRules reads the research tuning (settlement.research_*, game.clock_epoch): the rules of the domain, the game
+// clock their days are counted on, and what a work shift and a day on duty teach (ADR 0048).
+func researchRules(cfg *config.Config) handlers.ResearchRules {
+	clock, _ := cfg.GameClock()
+	return handlers.ResearchRules{Rules: settlementcfg.Research(cfg.Settlement), Clock: clock,
+		ExperiencePerShift: cfg.Settlement.ResearchExperiencePerShift, ScholarXP: cfg.Settlement.ResearchScholarXP}
 }
 
 // currencyRules is the money rules of a settlement's charter (config currency.*).

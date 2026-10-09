@@ -62,10 +62,10 @@ type SettlementKnowledgeDef struct {
 	// Family and Generation make this item one level of a leveled series —
 	// carpentry, carpentry_ii, ... — the same shape production.yml's own
 	// technologies use.
-	Family     string `yaml:"family,omitempty" json:"family,omitempty"`
+	Family string `yaml:"family,omitempty" json:"family,omitempty"`
 	// Field is the field of work whose real practice feeds this item's breakthrough progress (ADR 0048): craft,
 	// food, health, water_infra, security, education, market, infrastructure. Empty means no breakthrough.
-	Field string `yaml:"field,omitempty" json:"field,omitempty"`
+	Field      string `yaml:"field,omitempty" json:"field,omitempty"`
 	Generation int    `yaml:"generation,omitempty" json:"generation,omitempty"`
 	// MinLiteracyShareBPS gates this item on the settlement's own literacy
 	// share (ADR 0031 section 4.4), 0-10000; zero means no gate.

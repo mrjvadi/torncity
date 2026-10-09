@@ -41,9 +41,9 @@ type Rules struct {
 	// Era: the world's frontier depth is the deepest depth held by at least EraShareBPS of the settlements, never less
 	// than EraBaseDepth; an item deeper than the frontier plus EraGrace is ahead by the steps beyond it and costs
 	// AheadPerStepBPS more (cost and time) per step, at most AheadCapBPS more.
-	EraBaseDepth, EraGrace          int
-	EraShareBPS                     int64
-	AheadPerStepBPS, AheadCapBPS    int64
+	EraBaseDepth, EraGrace       int
+	EraShareBPS                  int64
+	AheadPerStepBPS, AheadCapBPS int64
 	// Sharing: each partner of a research-sharing treaty that holds the item adds SharePerPartnerBPS to the speed, at
 	// most ShareCapBPS in all (the owner's +50 percent).
 	SharePerPartnerBPS, ShareCapBPS int64

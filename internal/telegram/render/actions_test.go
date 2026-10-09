@@ -28,6 +28,11 @@ func fixtures() []fixture {
 		Support: &village.VillageSupport{Code: "support", Name: "Support", Services: []string{"bank", "market"}}}
 	know := village.KnowledgeListView{Name: "v", Lines: []village.KnowledgeLine{
 		{Knowledge: named("carpentry"), State: village.KnowledgeAvailable, BuyPrice: 50}, {Knowledge: named("x"), State: village.KnowledgeLocked}}}
+	desk := village.ResearchBoardView{Name: "v", Capacity: 2, Running: 1, MayShare: true,
+		Slots:      []village.ResearchSlotLine{{Ref: "free", Capacity: 1, Used: 1}},
+		Buildings:  []village.ResearchBuildingLine{{ID: "b1", Building: named("library"), CanTake: true}, {ID: "b2", Building: named("laboratory"), Mine: true}},
+		Pacts:      []village.ResearchPactLine{{ID: "p1", Partner: named("hill"), State: village.ResearchPactIncoming}, {ID: "p2", Partner: named("sea"), State: village.ResearchPactActive}},
+		Neighbours: []presentation.Named{named("coast")}}
 	menu := village.BuildMenuView{Name: "v", Lines: []village.BuildLine{{Building: named("house"), State: village.BuildAvailable}, {Building: named("school"), State: village.BuildLocked}}}
 	progress := village.ConstructionProgressView{Name: "v",
 		Lines:    []village.ConstructionLine{{ID: "b1", Building: named("house"), State: village.ConstructionBuilding, FinishAt: time.Unix(1_700_000_000, 0).UTC(), Left: time.Minute}, {ID: "b2", Building: named("barn"), ByWork: true, ProgressBPS: 500, DoneMinutes: 30, RequiredMinutes: 600, LeftMinutes: 570}},
@@ -47,6 +52,7 @@ func fixtures() []fixture {
 	village := []fixture{
 		{"overview", village.VillageOverview(c, ov), func(x screens.Context) *presenter.Response { return screens.VillageOverview(x, ov) }},
 		{"knowledge", village.KnowledgeList(c, know), func(x screens.Context) *presenter.Response { return screens.KnowledgeList(x, know) }},
+		{"research desk", village.ResearchBoard(c, desk), func(x screens.Context) *presenter.Response { return screens.ResearchBoard(x, desk) }},
 		{"build menu", village.BuildMenu(c, menu), func(x screens.Context) *presenter.Response { return screens.BuildMenu(x, menu) }},
 		{"progress", village.ConstructionProgress(c, progress), func(x screens.Context) *presenter.Response { return screens.ConstructionProgress(x, progress) }},
 		{"labor board", village.LaborBoard(c, board), func(x screens.Context) *presenter.Response { return screens.LaborBoard(x, board) }},

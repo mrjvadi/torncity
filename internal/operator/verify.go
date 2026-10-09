@@ -196,6 +196,14 @@ func VerifyChecks(v postgres.LedgerVerification, cfg *config.Config) []Check {
 		out.add(t.LotHistoryGuards == 2, fmt.Sprintf("the conversion history is append-only (%d of 2 guards)", t.LotHistoryGuards))
 	}
 
+	if v.Village && v.Research {
+		t := v.VillageInvariants
+		out.add(t.ResearchWageLedger == t.ResearchWageRows && t.ResearchWageMismatched == 0, fmt.Sprintf("scholar wages in the ledger match the research days (%d = %d), each one the transaction its day names (%d mismatched)", t.ResearchWageLedger, t.ResearchWageRows, t.ResearchWageMismatched))
+		out.add(t.ResearchDayBroken == 0, fmt.Sprintf("every research day is its building rows: the buildings, the ones that worked and the scholars add up (%d days off)", t.ResearchDayBroken))
+		out.add(t.ResearchUpkeepLedger == t.ResearchUpkeepRows, fmt.Sprintf("the upkeep the item journal says left the stores is what the research days drew (%d = %d)", t.ResearchUpkeepLedger, t.ResearchUpkeepRows))
+		out.add(t.ResearchSlotBroken == 0 && t.ResearchPostBroken == 0 && t.ResearchPactBroken == 0, fmt.Sprintf("every project's slot is the free one or a research building of its own settlement (%d off), every scholar's post is in a building of the settlement it names (%d off) and every pact's dates fit its status (%d off)", t.ResearchSlotBroken, t.ResearchPostBroken, t.ResearchPactBroken))
+	}
+
 	if v.Village && v.Reserve {
 		t := v.VillageInvariants
 		out.add(t.ReserveFlowMismatched == 0, fmt.Sprintf("what the head's interventions took from the pot and what came back match the ledger's pot legs, and the pot is deposits minus releases minus what is out plus what came back (%d off)", t.ReserveFlowMismatched))

@@ -1010,6 +1010,11 @@ func (h *VillageHandler) Worked(ctx context.Context, meta envelope.Metadata, req
 				return err
 			}
 		}
+		// And the settlement learns by the work it does: the shift adds to the experience of its field, the
+		// breakthrough progress of the next project there (ADR 0048).
+		if err := h.accrueExperience(ctx, tx, snap, buildings, sh, now); err != nil {
+			return err
+		}
 		s, err := tx.Settlements().ByID(ctx, sh.SettlementID)
 		if err != nil {
 			return err

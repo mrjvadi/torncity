@@ -95,6 +95,8 @@ type VillageHandler struct {
 	autoRoadCost      int64
 	materialMarkupBPS int64
 	stockBaseCapacity int64
+	// research is the research capacity and speed rules (village_research.go).
+	research ResearchRules
 	// storage is the stores' keepers and spoilage (village_storage.go).
 	storage            StorageRules
 	materialBuyMax     int64

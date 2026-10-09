@@ -315,7 +315,7 @@ func (r *CurrencyRepository) Output(ctx context.Context, settlementID string, fr
 	if err := r.q.QueryRow(ctx, `SELECT
 		COALESCE((SELECT SUM(e.amount) FROM ledger_entries e
 		           WHERE e.amount > 0 AND e.created_at >= $2 AND e.created_at < $3
-		             AND e.reason IN ('settlement_wage', 'labor_wage', 'labor_wage_npc', 'teacher_wage', 'teacher_wage_npc', 'shopkeeper_wage', 'storekeeper_wage')
+		             AND e.reason IN ('settlement_wage', 'labor_wage', 'labor_wage_npc', 'teacher_wage', 'teacher_wage_npc', 'shopkeeper_wage', 'storekeeper_wage', 'scholar_wage', 'scholar_wage_npc')
 		             AND EXISTS (SELECT 1 FROM ledger_entries d JOIN accounts a ON a.id = d.account_id
 		                          WHERE d.transaction_id = e.transaction_id AND d.amount < 0 AND a.kind = 'city_treasury' AND a.owner_id = $1::uuid)), 0)::bigint
 		+ COALESCE((SELECT SUM(sup_amount) FROM local_payments WHERE settlement_id = $1::uuid AND direction = 'pay'

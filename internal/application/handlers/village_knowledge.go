@@ -23,9 +23,11 @@ import (
 // ReasonSupplierPurchase, the identical shape a company buying from an NPC
 // supplier already uses (ports_ledger.go's own doc comment on that reason).
 
-// VillageKnowledgeRequest names one settlement_knowledge code.
+// VillageKnowledgeRequest names one settlement_knowledge code, and for research the slot to run it in ("" lets the
+// settlement take the one that finishes soonest).
 type VillageKnowledgeRequest struct {
 	Code string `json:"code"`
+	Slot string `json:"slot,omitempty"`
 }
 
 // knowledgeRefusal maps a settlementknowledge.CanAcquire failure to a
@@ -52,9 +54,11 @@ func knowledgeRefusal(err error) *villageRefusal {
 }
 
 // Research handles settlement.knowledge.research: starting to research a
-// knowledge item. Its cost leaves the settlement's own treasury (a drain,
-// ReasonResearch — the identical shape a company's own research already
-// uses); the item is the settlement's once its scheduled action runs.
+// knowledge item in a free slot (ADR 0048). Its cost leaves the settlement's
+// own treasury (a drain, ReasonResearch — the identical shape a company's own
+// research already uses); the item is the settlement's once its scheduled
+// action runs. The price, the pace and the slot are the quote at this moment
+// and are written on the project.
 func (h *VillageHandler) Research(ctx context.Context, meta envelope.Metadata, req VillageKnowledgeRequest) (*presentation.Response, error) {
 	snap := h.content.Current()
 	lang := meta.Language
@@ -85,11 +89,12 @@ func (h *VillageHandler) Research(ctx context.Context, meta envelope.Metadata, r
 			return err
 		}
 		terrain := terrainTagsFor(w, s)
-		running, err := tx.SettlementKnowledge().RunningResearch(ctx, s.CityID)
-		if err != nil {
+		// One writer of the settlement's research at a time: the capacity is checked under this lock, so two
+		// replicas cannot both take the last slot.
+		if err := tx.Research().LockSettlement(ctx, s.CityID); err != nil {
 			return err
 		}
-		st, _, err := h.knowledgeStanding(ctx, tx, snap, s, terrain, running != nil)
+		st, _, err := h.knowledgeStanding(ctx, tx, snap, s, terrain, false)
 		if err != nil {
 			return err
 		}
@@ -98,24 +103,59 @@ func (h *VillageHandler) Research(ctx context.Context, meta envelope.Metadata, r
 		if cerr := settlementknowledge.CanAcquire(t, tree, st, true); cerr != nil {
 			return h.knowledgeAttempt(snap, st, tree, t, d, cerr, village.AddrKnowledgeList)
 		}
+		buildings, err := tx.SettlementBuildings().List(ctx, s.CityID)
+		if err != nil {
+			return err
+		}
+		rc, err := h.researchContext(ctx, tx, snap, s, buildings, int64(st.LiteracyShareBPS))
+		if err != nil {
+			return err
+		}
+		for _, r := range rc.state.Running {
+			if r.Code == code {
+				return refuseVillage(village.VillageBusy)
+			}
+		}
+		partners, err := tx.Research().PartnersHolding(ctx, s.CityID, code)
+		if err != nil {
+			return err
+		}
+		var q researchQuote
+		if ref := strings.TrimSpace(req.Slot); ref != "" {
+			slot, ok := rc.state.slot(ref)
+			if !ok || !rc.state.free(slot) {
+				return refuseVillage(village.ResearchNoSlot, village.AddrKnowledgeList)
+			}
+			q = rc.quote(d, t, slot, partners)
+		} else if q, ok = rc.best(d, t, partners); !ok {
+			return refuseVillage(village.VillageBusy)
+		}
 
 		now := h.now()
 		id := h.ids.NewID()
 		var txID string
-		if d.Cost > 0 {
-			txID, err = spendVillage(ctx, tx, s.CityID, application.ReasonResearch, d.Cost, now)
+		if q.Cost > 0 {
+			txID, err = spendVillage(ctx, tx, s.CityID, application.ReasonResearch, q.Cost, now)
 			if err != nil {
 				return err
 			}
 		}
-		finish := now.Add(h.scale.RealWait(t.Time))
+		if q.Spent > 0 {
+			if ok, err := tx.Research().SpendExperience(ctx, s.CityID, d.Field, q.Spent, now); err != nil {
+				return err
+			} else if !ok {
+				return refuseVillage(village.VillageBusy)
+			}
+		}
+		finish := h.researchFinish(now, q)
 		actionID, err := h.schedule(ctx, tx, application.SettlementResearchActionType, "settlement_research", id, s.CityID, now, finish)
 		if err != nil {
 			return err
 		}
 		if err := tx.SettlementKnowledge().StartResearch(ctx, application.SettlementResearch{
-			ID: id, SettlementID: s.CityID, Code: code, Cost: d.Cost, LedgerTransactionID: txID,
+			ID: id, SettlementID: s.CityID, Code: code, Cost: q.Cost, LedgerTransactionID: txID,
 			GameActionID: actionID, StartedBy: p.ID, StartedAt: now, FinishAt: finish,
+			SlotRef: q.Slot.Ref, SpeedBPS: q.SpeedBPS, AheadBPS: q.AheadBPS, DiscountBPS: q.DiscountBPS, ShareBPS: q.ShareBPS, SpentPoints: q.Spent,
 		}); err != nil {
 			switch {
 			case stderrors.Is(err, application.ErrSettlementResearchBusy):
@@ -127,7 +167,7 @@ func (h *VillageHandler) Research(ctx context.Context, meta envelope.Metadata, r
 		}
 		return appendVillageEvent(ctx, tx, meta, "research_started", s.CityID, map[string]any{
 			"settlement_id": s.CityID, "research_id": id, "code": code, "name": d.Name, "started_by": p.ID,
-			"finish_at": finish.UTC().Format(time.RFC3339),
+			"finish_at": finish.UTC().Format(time.RFC3339), "slot": q.Slot.Ref, "speed_bps": q.SpeedBPS,
 		})
 	})
 	if resp, err := h.villageFinish(meta, lang, err); resp != nil || err != nil {

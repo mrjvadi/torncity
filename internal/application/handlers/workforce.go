@@ -20,10 +20,12 @@ type seatClaims struct {
 	// Shop is the shopkeeper's seat (1 when the founding stall stands), Keepers the
 	// seats of the stores the last settled day kept.
 	Shop, Keepers int64
+	// Scholars counts the NPC scholars the last settled research day seated in the research buildings (ADR 0048).
+	Scholars int64
 }
 
 // Reserved is the seats the standing posts hold apart from the teachers.
-func (c seatClaims) Reserved() int64 { return c.Shop + c.Keepers }
+func (c seatClaims) Reserved() int64 { return c.Shop + c.Keepers + c.Scholars }
 
 // StaffFree is the pool less the teachers: the people the standing posts are filled from.
 func (c seatClaims) StaffFree() int64 { return max(c.Pool-c.Teachers, 0) }

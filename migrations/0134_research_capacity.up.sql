@@ -70,7 +70,10 @@ CREATE TABLE research_day_buildings (
     -- no wage money or no upkeep in stock) and gave no slots.
     skills        integer[] NOT NULL DEFAULT '{}',
     staffed       boolean   NOT NULL,
+    -- idle says why a building did not work: no_scholars, no_wage or no_upkeep; empty when it worked.
+    idle          text      NOT NULL DEFAULT '',
 
+    CONSTRAINT research_day_buildings_idle_check CHECK (idle IN ('', 'no_scholars', 'no_wage', 'no_upkeep') AND (staffed = (idle = ''))),
     CONSTRAINT research_day_buildings_pk PRIMARY KEY (settlement_id, day, building_id),
     CONSTRAINT research_day_buildings_day_fk FOREIGN KEY (settlement_id, day) REFERENCES research_days (settlement_id, day) ON DELETE CASCADE
 );

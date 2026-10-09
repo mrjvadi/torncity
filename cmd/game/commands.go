@@ -438,6 +438,13 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 			}
 			return h.village.Research(ctx, env.Metadata, req)
 		},
+		"settlement.research": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageResearchRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.ResearchDesk(ctx, env.Metadata, req)
+		},
 		"settlement.knowledge.buy": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			var req handlers.VillageKnowledgeRequest
 			if err := decode(env, &req); err != nil {
