@@ -13,6 +13,15 @@ import (
 // WorkplaceDef is what a function row adds so that the runtime can run it as a workplace: where the build menu puts it,
 // what the treasury pays and keeps up. Everything else is read from the row itself.
 type WorkplaceDef struct {
+	// Building is the code of the settlement building the row generates: the row's own code unless the row takes over a
+	// building that already has a code (woodcutter_yard stands as woodcutter_camp, kiln as pottery_kiln). The code must
+	// be one of the row's `replaces`.
+	Building string `yaml:"building,omitempty" json:"building,omitempty"`
+	// Shift is how long one shift lasts in REAL time (a settlement's game clock is the real clock): 15 minutes for a
+	// short job, 30 for a long one, an hour at most (owner, 2026-10-09). BuildTime overrides the level's whole hours
+	// ("30m"). Required: the staff's shift_hours of the row are the ADR's and no longer drive the runtime.
+	Shift     string `yaml:"shift,omitempty" json:"shift,omitempty"`
+	BuildTime string `yaml:"build_time,omitempty" json:"build_time,omitempty"`
 	// Role and Tier place the building in the build menu and in the promotion ladders (settlement_buildings.yml roles).
 	Role string `yaml:"role" json:"role"`
 	Tier int    `yaml:"tier,omitempty" json:"tier,omitempty"`
@@ -39,7 +48,7 @@ func (p *Pack) expandFunctionWorkplaces() {
 	}
 	var gen []SettlementBuildingDef
 	for _, f := range p.BuildingFunctions {
-		if f.Workplace == nil || have[f.Code] {
+		if f.Workplace == nil || have[f.Workplace.buildingCode(f.Code)] {
 			continue // a code in both files is refused by the building schema lint
 		}
 		gen = append(gen, f.generatedWorkplace())
@@ -48,11 +57,18 @@ func (p *Pack) expandFunctionWorkplaces() {
 	p.SettlementBuildings = append(kept, gen...)
 }
 
+func (w *WorkplaceDef) buildingCode(row string) string {
+	if w != nil && w.Building != "" {
+		return w.Building
+	}
+	return row
+}
+
 // generatedWorkplace is the settlement building a function row stands as.
 func (f BuildingFunctionDef) generatedWorkplace() SettlementBuildingDef {
 	w := f.Workplace
 	d := SettlementBuildingDef{
-		Code: f.Code, Name: f.Name, Role: w.Role, Tier: max(w.Tier, 1), Generated: true,
+		Code: w.buildingCode(f.Code), Name: f.Name, Role: w.Role, Tier: max(w.Tier, 1), Generated: true,
 		Footprint:   [2]int{max(f.Footprint[0], 1), max(f.Footprint[1], 1)},
 		TerrainTags: append([]string(nil), f.TerrainTags...), TerrainMode: f.TerrainMode,
 		Upkeep: w.Upkeep, Wage: w.Wage, Effects: append([]EffectDef(nil), w.Effects...), Trains: w.Trains,
@@ -69,6 +85,9 @@ func (f BuildingFunctionDef) generatedWorkplace() SettlementBuildingDef {
 		for _, k := range f.Requires.Knowledge {
 			d.RequiresKnowledge = appendOnce(d.RequiresKnowledge, k)
 		}
+	}
+	if w.BuildTime != "" {
+		d.BuildTime = w.BuildTime
 	}
 	if d.BuildTime == "" {
 		d.BuildTime = "1h0m0s"
@@ -105,6 +124,9 @@ func (f BuildingFunctionDef) generatedWorkplace() SettlementBuildingDef {
 		hours = 1
 	}
 	d.Shift = (time.Duration(hours) * time.Hour).String()
+	if w.Shift != "" {
+		d.Shift = w.Shift
+	}
 	return d
 }
 
@@ -144,13 +166,20 @@ func (l *schemaLint) workplaces() {
 		if f.Consumes != nil && f.Consumes.Water {
 			l.bad("%s: water is an input of the shift (spring_water drawn at a well), not a flag", key)
 		}
+		code := w.buildingCode(f.Code)
 		for _, b := range l.p.SettlementBuildings {
-			if b.Code == f.Code && !b.Generated {
-				l.bad("%s: the code is also in settlement_buildings.yml: write the workplace once, in the function row", key)
+			if b.Code == code && !b.Generated {
+				l.bad("%s: the building %q is also in settlement_buildings.yml: write the workplace once, in the function row", key, code)
 			}
 		}
-		if len(f.Replaces) != 1 || f.Replaces[0] != f.Code {
-			l.bad("%s: a workplace replaces itself (replaces: [%s]) so the condition and the repairs find the row", key, f.Code)
+		if len(f.Replaces) != 1 || f.Replaces[0] != code {
+			l.bad("%s: a workplace replaces its own building (replaces: [%s]) so the condition and the repairs find the row", key, code)
+		}
+		if daily := f.Produces != nil && f.Produces.Daily; !daily {
+			shift, err := optionalDuration(w.Shift)
+			if err != nil || shift < 15*time.Minute || shift > time.Hour {
+				l.bad("%s: workplace.shift %q must be between 15 minutes and an hour (the owner's scale: 15 short, 30 long)", key, w.Shift)
+			}
 		}
 	}
 }

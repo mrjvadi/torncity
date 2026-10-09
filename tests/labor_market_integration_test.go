@@ -659,12 +659,12 @@ func TestNPCCrewWorksAProductionJob(t *testing.T) {
 	if err := l.pool.Raw().QueryRow(ctx, `SELECT COALESCE(SUM(quantity), 0)::bigint FROM org_stacks WHERE org_kind = 'settlement' AND org_id = $1::uuid AND item_code = 'timber'`, l.cityID).Scan(&timber); err != nil {
 		t.Fatal(err)
 	}
-	// an NPC works at 85 percent: two shifts of 4 timber deliver 3 + 3 and carry 0.8
-	if timber != 6 {
-		t.Errorf("two NPC shifts of 4 timber at 85 percent should deliver 6, %d are in the stock", timber)
+	// an NPC works at 85 percent: two shifts of 6 timber deliver 5 + 5 and carry 0.2
+	if timber != 10 {
+		t.Errorf("two NPC shifts of 6 timber at 85 percent should deliver 10, %d are in the stock", timber)
 	}
-	if carry := l.scalar(`SELECT COALESCE((carry->>'timber')::bigint, 0) FROM settlement_buildings WHERE id = $1::uuid`, camp); carry != 8000 {
-		t.Errorf("the camp should carry 8000 ten-thousandths of a timber, it carries %d", carry)
+	if carry := l.scalar(`SELECT COALESCE((carry->>'timber')::bigint, 0) FROM settlement_buildings WHERE id = $1::uuid`, camp); carry != 2000 {
+		t.Errorf("the camp should carry 2000 ten-thousandths of a timber, it carries %d", carry)
 	}
 	var wheat int64
 	if err := l.pool.Raw().QueryRow(ctx, `SELECT COALESCE(SUM(quantity), 0)::bigint FROM org_stacks WHERE org_kind = 'settlement' AND org_id = $1::uuid AND item_code = 'wheat'`, l.cityID).Scan(&wheat); err != nil {
@@ -680,7 +680,25 @@ func TestNPCCrewWorksAProductionJob(t *testing.T) {
 	if got := running(); got != 2 {
 		t.Errorf("a finished shift is replaced by the crew's next: %d running", got)
 	}
-	// a post works only so many shifts a day: with the day used up the crew stops, with the reason
+	// a post works only so many shifts a day: with the day used up the crew stops, with the reason. The yard is emptied
+	// first, so that a full yard does not stop the crew before its day is used up.
+	if err := postgres.NewUnitOfWork(l.pool, testDefaultLanguage).Do(ctx, func(ctx context.Context, tx application.Tx) error {
+		for _, it := range []string{"timber", "firewood", "bark"} {
+			var n int64
+			if err := l.pool.Raw().QueryRow(ctx, `SELECT COALESCE(SUM(quantity), 0)::bigint FROM org_stacks WHERE org_kind = 'settlement' AND org_id = $1::uuid AND item_code = $2`, l.cityID, it).Scan(&n); err != nil {
+				return err
+			}
+			if n > 0 {
+				if err := tx.Items().Move(ctx, application.ItemMove{ID: newUUID(t), Item: it, Qty: n, FromOrg: application.SettlementOrg(l.cityID), FromHolding: application.HoldWarehouse,
+					Reason: application.ItemResearchUpkeep, ReferenceType: application.ResearchDayReference, ReferenceID: l.cityID, At: time.Now().UTC()}); err != nil {
+					return err
+				}
+			}
+		}
+		return nil
+	}); err != nil {
+		t.Fatal(err)
+	}
 	l.clock.Advance(time.Hour)
 	for _, s := range l.workingShifts(camp) {
 		l.end(s)
@@ -778,8 +796,8 @@ func TestAHungryPlayerWorksHalfAndAFedOneFull(t *testing.T) {
 		t.Errorf("a hungry apprentice: fed=%v meal=%d bps=%d, want false 0 3500", fed, meal, bps)
 	}
 	finish()
-	if got := timber(); got != 1 {
-		t.Errorf("4 timber at 35 percent deliver 1, %d did", got)
+	if got := timber(); got != 2 {
+		t.Errorf("6 timber at 35 percent deliver 2, %d did", got)
 	}
 	// 2. food in the village: fed, the full rung (7000), one point of meal
 	if err := postgres.NewUnitOfWork(l.pool, testDefaultLanguage).Do(ctx, func(ctx context.Context, tx application.Tx) error {
@@ -948,8 +966,8 @@ func TestAWornWorkplaceWorksLessClosesAndIsRepaired(t *testing.T) {
 		t.Fatal(err)
 	}
 	w := panel()
-	if w.Condition == nil || w.Condition.RepairJob == nil || w.Condition.RepairJob.ShiftsLeft != 9 {
-		t.Fatalf("the repair job should be open with 9 shifts: %+v", w.Condition)
+	if w.Condition == nil || w.Condition.RepairJob == nil || w.Condition.RepairJob.ShiftsLeft != 10 {
+		t.Fatalf("the repair job should be open with 10 shifts: %+v", w.Condition)
 	}
 	if _, err := rrc(l.village.LaborHire(ctx, l.as(l.head, "settlement.labor.hire", "labor.hire"), handlers.VillageLaborRequest{ID: w.Condition.RepairJob.ID, N: "2"})); err != nil {
 		t.Fatal(err)

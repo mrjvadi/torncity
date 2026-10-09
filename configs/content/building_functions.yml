@@ -59,7 +59,7 @@ item_storage:
   - {code: brick,    source: "ADR 0045 4.3", evidence: adr, requires: {}, class: bulk, bulk: 2, needs_research: [class, bulk], note: "ADR 0041 6.4 does not list bricks; stone's bulk is used as a stand-in until the owner sets it"}
   # planned: new village goods
   - {code: firewood,     source: "ADR 0041 6.4, 6.6", evidence: adr, requires: {}, class: bulk, bulk: 1}
-  - {code: cut_stone,   planned: true, source: "ADR 0041 6.4, 8.11", evidence: adr, requires: {}, class: bulk, bulk: 2}
+  - {code: cut_stone,   planned: true, raw: true, source: "ADR 0041 6.4, 8.11", evidence: adr, requires: {}, class: bulk, bulk: 2, note: "no producer until phase W5 (the masonry shop makes bricks from stone today); marked raw so the lint passes while it is planned"}
   - {code: clay,         source: "ADR 0041 6.4", evidence: adr, requires: {}, class: bulk, bulk: 1}
   - {code: cheese,      planned: true, raw: true, source: "ADR 0041 6.4, 6.5", evidence: adr, requires: {}, class: food, bulk: 1, food_points: 4}
   - {code: fish,        planned: true, raw: true, source: "ADR 0041 6.4, 6.5", evidence: adr, requires: {}, class: food, bulk: 1, food_points: 4}
@@ -226,7 +226,7 @@ building_functions:
 
   # ---- wood, stone, charcoal, iron (ADR 0041 8.4, 8.10, 8.11, 8.12, 0045 4.3) ----
   - code: woodcutter_yard
-    source: "ADR 0041 8.4, 7.2"
+    source: "ADR 0041 8.4, 7.2; the legacy woodcutter_camp row of ADR 0033 4.1 (docs/adr/0053 section 3)"
     evidence: adr
     name: "کارگاه هیزم‌شکنی"
     requires: {}
@@ -240,14 +240,15 @@ building_functions:
       - {level: 1, requires: {}, cost_money: 300, build_hours: 1}
     staff: [{role: woodcutter, slots: 3, shift_hours: 2}]
     if_unstaffed: idle
-    consumes: {inputs: {}, food_points: 2, tool_wear_bps: 100}
-    produces: {outputs: {timber: 8, firewood: 4}, store: bulk}
+    consumes: {inputs: {}, food_points: 2, tool_wear_bps: 150}
+    produces: {outputs: {timber: 6, firewood: 3, bark: 1}, store: bulk}
     storage: {needs: {bulk: 20}}
+    maintenance: {decay_bps_per_day: 60, repair_materials: {timber: 1}, repair_labour: 1}
     ledger_reasons: [stumpage_fee, wages]
-    links: {to: [carpentry_workshop, charcoal_clamp, bakery, smithy, kiln, storehouse]}
+    links: {to: [carpentry_workshop, charcoal_clamp, bakery, smithy, kiln, tannery, storehouse]}
     replaces: [woodcutter_camp]
-    needs_research: [decay_bps_per_day]
-    note: "fells a tree within radius 4 per cycle: timber 8 and firewood 4 into the owner's bulk store, a camp with no worker cuts nothing; trees in reach are the land model of ADR 0041 7. The legacy row makes timber 4 per 1 h shift; this is the revised ADR spec."
+    workplace: {building: woodcutter_camp, role: forestry, tier: 1, shift: 30m, build_time: 30m, wage: 50, upkeep: 20}
+    note: "a half-hour of felling: timber 6, the tops as firewood 3 and a bark; a camp with no worker cuts nothing; trees in reach are the land model of ADR 0041 7"
   - code: charcoal_clamp
     source: "ADR 0045 4.3 recipe 2, S70, S72; Wikipedia Charcoal, Charcoal burner"
     evidence: adr
@@ -269,7 +270,7 @@ building_functions:
     maintenance: {decay_bps_per_day: 60, repair_materials: {timber: 1}, repair_labour: 1}
     links: {from: [woodcutter_yard], to: [bloomery, smithy]}
     replaces: [charcoal_clamp]
-    workplace: {role: craft, tier: 1, wage: 60, upkeep: 30, effects: [{target: job_coverage_bps, op: add, value: 100}]}
+    workplace: {role: craft, tier: 1, shift: 1h, wage: 90, upkeep: 30, effects: [{target: job_coverage_bps, op: add, value: 100}]}
     note: "an 8 game hour burn of 6 firewood into 2 charcoal (a coppice clamp, watched through the night); the ADR names no role for the collier, labourer stands for him"
   - code: carpentry_workshop
     source: "ADR 0041 8.10, 0045 4.3 recipes 3, 24"
@@ -284,16 +285,17 @@ building_functions:
     owners: [treasury, player]
     slots: [{module: workbench, max: 2}]
     levels:
-      - {level: 1, adds: [workbench], requires: {knowledge: [carpentry]}}
+      - {level: 1, adds: [workbench], requires: {knowledge: [carpentry]}, cost_money: 1200, cost_materials: {timber: 5}, build_hours: 3}
     staff: [{role: carpenter, slots: 2, shift_hours: 2}]
     if_unstaffed: idle
     consumes: {inputs: {timber: 3}, food_points: 2, tool_wear_bps: 80}
     produces: {outputs: {plank: 2}, store: goods}
     storage: {needs: {goods: 4}}
+    maintenance: {decay_bps_per_day: 60, repair_materials: {timber: 1}, repair_labour: 1}
     links: {from: [woodcutter_yard], to: [storehouse]}
     replaces: [carpentry_workshop]
-    needs_research: [cost_money, build_hours, decay_bps_per_day]
-    note: "ADR 0041 8.10 gives timber 3 to plank 2 per 1 h 30 shift; ADR 0045 4.3 (first draft) says 1 log to 3 planks. The building spec is kept here and the recipe row carries the 0045 figure: to be settled by the owner"
+    workplace: {role: craft, tier: 1, shift: 30m, wage: 50, upkeep: 60, effects: [{target: job_coverage_bps, op: add, value: 150}], trains: {skill: carpentry, xp: 20}}
+    note: "ADR 0041 8.10: timber 3 to plank 2 per shift, now a half-hour shift; ADR 0045 4.3 (first draft) says 1 log to 3 planks and stays a recipe of the personal crafts"
   - code: masonry_workshop
     source: "ADR 0041 8.11"
     evidence: adr
@@ -306,16 +308,17 @@ building_functions:
     footprint: [2, 2, 2, 2]
     owners: [treasury, player]
     levels:
-      - {level: 1, requires: {knowledge: [masonry]}}
+      - {level: 1, requires: {knowledge: [masonry]}, cost_money: 1400, cost_materials: {stone: 4}, build_hours: 3}
     staff: [{role: mason, slots: 2, shift_hours: 2}]
     if_unstaffed: idle
     consumes: {inputs: {stone: 3}, food_points: 2, tool_wear_bps: 120}
-    produces: {outputs: {cut_stone: 2}, store: bulk}
+    produces: {outputs: {brick: 2}, store: bulk}
     storage: {needs: {bulk: 4}}
+    maintenance: {decay_bps_per_day: 60, repair_materials: {stone: 1}, repair_labour: 1}
     links: {to: [storehouse]}
     replaces: [masonry_workshop]
-    needs_research: [cost_money, build_hours, decay_bps_per_day]
-    note: "the target is cut stone 2 per 1 h 30 shift; today the legacy row makes brick 2, the change waits for phase W5 (ADR 0041 8.11)"
+    workplace: {role: craft, tier: 1, shift: 30m, wage: 45, upkeep: 65, effects: [{target: job_coverage_bps, op: add, value: 150}], trains: {skill: masonry, xp: 20}}
+    note: "stone 3 to brick 2 per half-hour shift (the shop's bricks are a stand-in for clay bricks, which the brickworks makes); the ADR 0041 target of cut stone waits for phase W5"
   - code: kiln
     source: "ADR 0041 8.14, 0045 4.3 recipes 4, 5"
     evidence: adr
@@ -329,16 +332,17 @@ building_functions:
     owners: [treasury, player]
     slots: [{module: kiln, max: 1}]
     levels:
-      - {level: 1, adds: [kiln], requires: {knowledge: [pottery]}}
+      - {level: 1, adds: [kiln], requires: {knowledge: [pottery]}, cost_money: 900, build_hours: 3}
     staff: [{role: potter, slots: 2, shift_hours: 3}]
     if_unstaffed: idle
-    consumes: {fuel: {firewood: 2}, food_points: 3}
-    produces: {outputs: {pots: 4}, store: goods}
+    consumes: {inputs: {clay: 3}, fuel: {firewood: 1}, food_points: 3, tool_wear_bps: 100}
+    produces: {outputs: {pots: 2}, store: goods}
     storage: {needs: {goods: 4}}
-    links: {from: [woodcutter_yard], to: [granary]}
+    maintenance: {decay_bps_per_day: 60, repair_materials: {stone: 1}, repair_labour: 1}
+    links: {from: [woodcutter_yard, clay_pit], to: [granary]}
     replaces: [pottery_kiln]
-    needs_research: [cost_money, build_hours, decay_bps_per_day, river_lot_clay_pit]
-    note: "pots 4 per 3 h shift from clay dug in the shift; needs a river or riverbank lot within radius 4 (the clay pit), a terrain rule the schema does not carry yet. Bricks are an alternative recipe (recipes.yml)."
+    workplace: {building: pottery_kiln, role: craft, tier: 1, shift: 30m, wage: 45, upkeep: 50, effects: [{target: job_coverage_bps, op: add, value: 140}]}
+    note: "clay 3 and a firewood fired into two pots in a half-hour shift; the clay comes from the clay pit on a river lot. Bricks are the brickworks' (its own row)"
   - code: smithy
     source: "ADR 0041 8.12, 0045 4.3 recipe 16"
     evidence: adr
@@ -363,7 +367,7 @@ building_functions:
     maintenance: {decay_bps_per_day: 60, repair_materials: {stone: 1}, repair_labour: 1}
     links: {from: [bloomery, charcoal_clamp], to: [carpentry_workshop, minehead]}
     replaces: [smithy]
-    workplace: {role: craft, tier: 1, wage: 70, upkeep: 70, effects: [{target: job_coverage_bps, op: add, value: 160}]}
+    workplace: {role: craft, tier: 1, shift: 30m, wage: 70, upkeep: 70, effects: [{target: job_coverage_bps, op: add, value: 160}]}
     note: "a bloom is forged with charcoal heat into three tools; the tool workshop (hafted stone) makes one from timber and stone, the smithy three from iron. Tools are also bought from the central city, so a village without ore is not stuck (ADR 0041 8.12)"
   - code: iron_pit
     source: "RESEARCH 2026-10-09 A4 (Wikipedia Bog iron, Iron mining; docs/adr/0051)"
@@ -387,7 +391,7 @@ building_functions:
     maintenance: {decay_bps_per_day: 80, repair_materials: {timber: 1}, repair_labour: 1}
     links: {to: [bloomery, smithy]}
     replaces: [iron_pit]
-    workplace: {role: extraction, tier: 1, wage: 45, upkeep: 30, effects: [{target: job_coverage_bps, op: add, value: 100}]}
+    workplace: {role: extraction, tier: 1, shift: 30m, wage: 50, upkeep: 30, effects: [{target: job_coverage_bps, op: add, value: 100}]}
     note: "the first iron of a village is dug from the surface or a bog where the ore lies (bog iron, surface seams): spades and baskets, no shaft. Needs an ore deposit under the lot and the smithing tradition. The minehead is the deep tier (props, drainage, ore bin)"
   - code: bloomery
     source: "ADR 0045 4.3 recipe 15, S68; Wikipedia Bloomery"
@@ -410,7 +414,7 @@ building_functions:
     maintenance: {decay_bps_per_day: 60, repair_materials: {stone: 1}, repair_labour: 1}
     links: {from: [iron_pit, minehead, charcoal_clamp], to: [smithy]}
     replaces: [bloomery]
-    workplace: {role: craft, tier: 1, wage: 80, upkeep: 60, effects: [{target: job_coverage_bps, op: add, value: 100}]}
+    workplace: {role: craft, tier: 1, shift: 30m, wage: 60, upkeep: 60, effects: [{target: job_coverage_bps, op: add, value: 100}]}
     note: "3 iron ore and 4 charcoal make a bloom in a 4 game hour smelt; the ADR gives the recipe but no staffing, a smith stands for the bloomer"
   - code: weaving_shed
     source: "ADR 0041 8.13, 0045 4.3 recipes 8 to 10, 12, 5.3"
@@ -425,17 +429,18 @@ building_functions:
     owners: [treasury, player]
     slots: [{module: loom, max: 2}]
     levels:
-      - {level: 1, adds: [loom], requires: {knowledge: [weaving]}}
+      - {level: 1, adds: [loom], requires: {knowledge: [weaving]}, cost_money: 1000, build_hours: 3}
       - {level: 2, requires: {knowledge: [weaving_ii]}}
     staff: [{role: weaver, slots: 2, shift_hours: 2}]
     if_unstaffed: idle
     consumes: {inputs: {wool: 3}, food_points: 2, tool_wear_bps: 50}
-    produces: {outputs: {cloth: 2}, store: goods}
+    produces: {outputs: {cloth: 2, rag: 1}, store: goods}
     storage: {needs: {goods: 2}}
-    links: {to: [fulling_place, storehouse]}
+    maintenance: {decay_bps_per_day: 60, repair_materials: {timber: 1}, repair_labour: 1}
+    links: {to: [fulling_place, paper_mill, storehouse]}
     replaces: [weaving_shed]
-    needs_research: [cost_money, build_hours, decay_bps_per_day]
-    note: "ADR 0041 8.13 cloth 2 from wool 3 (spinning included) per 1 h 30 shift; ADR 0045 splits it into roving, yarn and cloth recipes (recipes.yml). Settle which the shed runs."
+    workplace: {role: craft, tier: 1, shift: 30m, wage: 50, upkeep: 55, effects: [{target: job_coverage_bps, op: add, value: 140}]}
+    note: "wool 3 spun and woven into cloth 2 and a rag of offcuts (the paper mill's fibre) per half-hour shift; ADR 0045 splits it into roving, yarn and cloth recipes (recipes.yml)"
   - code: fulling_place
     source: "ADR 0045 4.3 recipe 11, 5.3"
     evidence: adr
@@ -477,7 +482,7 @@ building_functions:
     maintenance: {decay_bps_per_day: 60, repair_materials: {timber: 1}, repair_labour: 1}
     links: {from: [pasture_range, woodcutter_yard, well], to: [storehouse]}
     replaces: [tannery]
-    workplace: {role: craft, tier: 1, wage: 45, upkeep: 40, effects: [{target: job_coverage_bps, op: add, value: 100}]}
+    workplace: {role: craft, tier: 1, shift: 30m, wage: 50, upkeep: 40, effects: [{target: job_coverage_bps, op: add, value: 100}]}
     note: "a hide, a bark of oak or other tannin wood and water soak in a pit until it is leather. Bark is stripped at the woodcutter's camp, hides come off the pasture, water from the well; leather is sold at the market day (garments come with phase B4)"
   # ---- food and water (ADR 0041 8.15, 8.16, 8.21, 8.22, 8.23) ----
   - code: brickworks
@@ -500,7 +505,7 @@ building_functions:
     maintenance: {decay_bps_per_day: 60, repair_materials: {stone: 1}, repair_labour: 1}
     links: {from: [clay_pit, woodcutter_yard], to: [bakery, bloomery, land_registry]}
     replaces: [brickworks]
-    workplace: {role: craft, tier: 1, wage: 45, upkeep: 40, effects: [{target: job_coverage_bps, op: add, value: 100}]}
+    workplace: {role: craft, tier: 1, shift: 30m, wage: 50, upkeep: 40, effects: [{target: job_coverage_bps, op: add, value: 100}]}
     note: "clay is moulded and fired with wood in a clamp or a kiln: clay 4 and firewood 2 give four bricks in a 3 game hour firing. The masonry shop still makes bricks from stone (a stand-in); ovens, the bloomery and the land registry are built of brick"
   - code: mill
     source: "ADR 0041 8.15, 0045 4.3 recipe 6"
@@ -523,7 +528,7 @@ building_functions:
     maintenance: {decay_bps_per_day: 50, repair_materials: {timber: 1}, repair_labour: 1}
     links: {from: [farm_canal, farm_shaft, farm_terrace], to: [bakery]}
     replaces: [mill]
-    workplace: {role: food, tier: 1, wage: 45, upkeep: 35, effects: [{target: food_coverage_bps, op: add, value: 200}]}
+    workplace: {role: food, tier: 1, shift: 15m, wage: 30, upkeep: 35, effects: [{target: food_coverage_bps, op: add, value: 200}]}
     note: "a hand mill: wheat 8 to flour 8 in a game hour. The water mill (level 2: river lot, wheat 24 a shift) and the miller's toll in kind (a policy between 1/24 and 1/10) wait for the upgrade runtime"
   - code: bakery
     source: "ADR 0041 8.16, 0045 4.3 recipe 7"
@@ -546,7 +551,7 @@ building_functions:
     maintenance: {decay_bps_per_day: 50, repair_materials: {stone: 1}, repair_labour: 1}
     links: {from: [mill, well, woodcutter_yard], to: [granary]}
     replaces: [bakery]
-    workplace: {role: food, tier: 1, wage: 45, upkeep: 40, effects: [{target: food_coverage_bps, op: add, value: 250}]}
+    workplace: {role: food, tier: 1, shift: 30m, wage: 50, upkeep: 40, effects: [{target: food_coverage_bps, op: add, value: 250}]}
     note: "flour 8, water 2 and a firewood bake bread 8 (4 food points each, a crew's best meal). Water comes from the well as an input: a bakery with no well stands idle and says so. ADR 0045 4.3 names the research `baking`, ADR 0041 8.16 says `milling`: the building spec is kept"
   - code: well
     source: "ADR 0041 8.21, 0045 5.1; Wikipedia Well, Water carrier"
@@ -563,11 +568,11 @@ building_functions:
     staff: [{role: labourer, slots: 2, shift_hours: 1}]
     if_unstaffed: idle
     consumes: {food_points: 1}
-    produces: {outputs: {spring_water: 12}, store: bulk}
+    produces: {outputs: {spring_water: 8}, store: bulk}
     maintenance: {decay_bps_per_day: 50, repair_materials: {timber: 1}, repair_labour: 2}
     links: {to: [bakery, fulling_place, tannery, health_house, dwelling]}
     replaces: [well]
-    workplace: {role: water_infra, tier: 1, wage: 25, upkeep: 15}
+    workplace: {role: water_infra, tier: 1, shift: 15m, wage: 25, upkeep: 15}
     note: "water is drawn and carried: a labourer's shift fills 12 barrels into the yard; the bakery, fulling place and tannery take it as an input. Drinking water for residents (survival, phase B3) will draw on the same barrels"
   - code: granary
     source: "ADR 0041 8.22"
