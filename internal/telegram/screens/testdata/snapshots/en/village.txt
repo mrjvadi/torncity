@@ -38,6 +38,8 @@
 🛡 Local security: 15%
 📖 Literacy: 2%
 
+🌙 Watch hut: kept no watch tonight - no firewood in the store for the watch fire
+
 No buildings stand here yet.
   ───
   [🏡 Become a resident] → settlement:join

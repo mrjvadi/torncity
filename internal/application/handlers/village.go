@@ -99,6 +99,8 @@ type VillageHandler struct {
 	research ResearchRules
 	// trade is the market day's rules (village_trade.go).
 	trade TradeRules
+	// watch is the night watch's clock (village_watch.go).
+	watch WatchRules
 	// realItems is the grace of the real goods and the bare-handed share without tools (village_realitems.go).
 	realItems RealItemRules
 	// storage is the stores' keepers and spoilage (village_storage.go).
@@ -508,6 +510,18 @@ func (h *VillageHandler) overview(ctx context.Context, meta envelope.Metadata, h
 		var cap int64
 		coverage := map[string]int64{}
 		byRole := map[string]village.VillageRoleLine{}
+		// The night watch (ADR 0052): a watch post counts its security on a day it was held (guards, wage and fire).
+		watchDay, err := h.SettleWatchDay(ctx, tx, snap, s, buildings)
+		if err != nil {
+			return err
+		}
+		posts := map[string]watchPost{}
+		if h.watch.enabled() {
+			for _, p := range watchPosts(snap, buildings) {
+				posts[p.b.ID] = p
+			}
+		}
+		var watchLines []village.WatchLine
 		for _, b := range buildings {
 			if !b.Complete() || b.Status == "demolished" {
 				continue
@@ -516,9 +530,25 @@ func (h *VillageHandler) overview(ctx context.Context, meta envelope.Metadata, h
 			if !ok {
 				continue
 			}
+			_, isPost := posts[b.ID]
+			held := isPost && watchDay != nil && watchDay.HeldPost(b.ID)
+			if isPost {
+				line := village.WatchLine{Building: presentation.Named{Code: def.Code, Name: def.Name}, Held: held}
+				if watchDay != nil {
+					for _, wp := range watchDay.Posts {
+						if wp.BuildingID == b.ID {
+							line.Idle = wp.Idle
+						}
+					}
+				}
+				watchLines = append(watchLines, line)
+			}
 			for _, e := range def.BuildingEffects() {
 				if e.Target == "housing_capacity" {
 					continue
+				}
+				if isPost && !held && e.Target == "local_security_bps" {
+					continue // an idle post secures nothing today
 				}
 				coverage[e.Target] += e.Value
 			}
@@ -553,6 +583,7 @@ func (h *VillageHandler) overview(ctx context.Context, meta envelope.Metadata, h
 			ServicePercent:   int(coverage["service_coverage_bps"] / 100),
 			HappinessPercent: int(coverage["happiness_bps"] / 100),
 			SecurityPercent:  int(coverage["local_security_bps"] / 100),
+			Watch:            watchLines,
 			LiteracyPercent:  literacyBPS / 100,
 			Buildings:        roleLines,
 		}

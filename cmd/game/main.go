@@ -495,7 +495,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			}).
 			WithLabor(laborRules(cfg.Labor), cfg.Labor.HirePresets, cfg.Labor.WagePresets).
 			WithActivities(activityRules(cfg)).
-			WithShop(shopRules(cfg)).WithStorage(storageRules(cfg)).WithResearch(researchRules(cfg)).WithTrade(tradeRules(cfg)).WithRealItems(realItemRules(cfg)).WithCurrencyRules(currencyRules(cfg, postgres.NewPolicyReader(pool, nil))).
+			WithShop(shopRules(cfg)).WithStorage(storageRules(cfg)).WithResearch(researchRules(cfg)).WithTrade(tradeRules(cfg)).WithRealItems(realItemRules(cfg)).WithWatch(watchRules(cfg)).WithCurrencyRules(currencyRules(cfg, postgres.NewPolicyReader(pool, nil))).
 			WithLotRules(lotRules),
 	}
 

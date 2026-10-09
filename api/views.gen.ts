@@ -6081,6 +6081,7 @@ export interface VillageNewsView {
 
 export interface VillageOverviewView {
   name: string
+  watch: WatchLine[] | null
   zone_minutes: number
   tier: string
   population: number
@@ -6338,6 +6339,12 @@ export interface WarehouseView {
   listings: number
   can_research: boolean
   next: NextStep | null
+}
+
+export interface WatchLine {
+  building: Named
+  held: boolean
+  idle: string
 }
 
 export interface Way {

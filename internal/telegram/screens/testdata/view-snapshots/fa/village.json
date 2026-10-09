@@ -2515,6 +2515,7 @@
       },
       "tier": "village",
       "treasury": 10900,
+      "watch": null,
       "zone_minutes": 0
     }
   },

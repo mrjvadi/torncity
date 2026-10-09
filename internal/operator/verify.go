@@ -202,6 +202,13 @@ func VerifyChecks(v postgres.LedgerVerification, cfg *config.Config) []Check {
 		out.add(t.ToolWearBroken == 0, fmt.Sprintf("no workplace carries more tool wear than one tool (%d off)", t.ToolWearBroken))
 	}
 
+	if v.Village && v.Watch {
+		t := v.VillageInvariants
+		out.add(t.WatchLedger == t.WatchRows, fmt.Sprintf("the watchmen's wages in the ledger are what the watch days paid (%d = %d)", t.WatchLedger, t.WatchRows))
+		out.add(t.WatchItems == t.WatchFuelRows, fmt.Sprintf("the firewood the watch fires burnt in the item journal is what the days say (%d = %d)", t.WatchItems, t.WatchFuelRows))
+		out.add(t.WatchDayBroken == 0, fmt.Sprintf("each watch day is the sum of its posts and has one ledger transaction for exactly the wage (%d off)", t.WatchDayBroken))
+	}
+
 	if v.Village && v.Trade {
 		t := v.VillageInvariants
 		out.add(t.TradeLedger == t.TradeRows && t.TradeDayBroken == 0, fmt.Sprintf("the trader's money in the ledger is what the market days say (%d = %d), each day is its lines, never above its cap, one transaction of source to treasury for the gross and one of treasury to sink for the clerk's wage (%d off)", t.TradeLedger, t.TradeRows, t.TradeDayBroken))

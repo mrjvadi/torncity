@@ -65,6 +65,12 @@ func realItemRules(cfg *config.Config) handlers.RealItemRules {
 	return handlers.RealItemRules{From: from, GraceDays: cfg.Settlement.RealItemsGraceDays, BareHandsBPS: cfg.Settlement.ToolBareHandsBPS}
 }
 
+// watchRules reads the clock the night watch's days are counted on (game.clock_epoch).
+func watchRules(cfg *config.Config) handlers.WatchRules {
+	clock, _ := cfg.GameClock()
+	return handlers.WatchRules{Clock: clock}
+}
+
 // tradeRules reads the market day's tuning (settlement.export_*, game.clock_epoch): the rules of the domain, the game
 // clock their days are counted on and the amounts the trade desk offers to keep back (ADR 0049).
 func tradeRules(cfg *config.Config) handlers.TradeRules {

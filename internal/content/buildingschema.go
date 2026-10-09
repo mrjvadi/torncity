@@ -233,6 +233,14 @@ type ConsumesDef struct {
 	ToolWearBPS int `yaml:"tool_wear_bps,omitempty" json:"tool_wear_bps,omitempty"`
 }
 
+// FuelOf is the fuel a cycle burns (nil-safe).
+func (c *ConsumesDef) FuelOf() map[string]int {
+	if c == nil {
+		return nil
+	}
+	return c.Fuel
+}
+
 // ProducesDef is what a cycle gives and where it goes (ADR 0041 N3, N4).
 type ProducesDef struct {
 	// Outputs per cycle (item -> quantity).
