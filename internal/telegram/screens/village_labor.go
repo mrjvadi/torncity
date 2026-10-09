@@ -110,7 +110,11 @@ func renderLaborBoard(c Context, v LaborBoardView) *presenter.Response {
 	if len(v.Sites) > 0 {
 		var names []string
 		for _, s := range v.Sites {
-			names = append(names, c.T("village.labor.board.site_item", map[string]any{"building": c.SettlementBuildingName(s.Building), "percent": s.ProgressBPS / 100}))
+			if s.Standing {
+				names = append(names, c.T("village.labor.board.site_standing", map[string]any{"building": c.SettlementBuildingName(s.Building)}))
+			} else {
+				names = append(names, c.T("village.labor.board.site_item", map[string]any{"building": c.SettlementBuildingName(s.Building), "percent": s.ProgressBPS / 100}))
+			}
 			if b, ok := keyboards.Button(c.T("village.labor.button.post", map[string]any{"building": c.SettlementBuildingName(s.Building)}),
 				AddrLaborPost, s.ID); ok {
 				kb.Row(b)

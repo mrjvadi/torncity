@@ -2953,6 +2953,7 @@ export interface LaborSiteRef {
   id: string
   building: Named
   progress_bps: number
+  standing: boolean
 }
 
 export interface LaborSiteView {

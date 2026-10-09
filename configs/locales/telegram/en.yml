@@ -872,6 +872,7 @@ village:
       working: "⏳ You are working at {building} - the shift ends at {time} ({duration} left) - pay {wage}"
       sites: "🏗 Sites with no job posted: {names}"
       site_item: "{building} ({percent}%)"
+      site_standing: "{building} (standing, nobody works there)"
       hint: "Tap a job to open its site and press Work. Buildings are built only by the work of workers; no timer finishes them by itself."
     site:
       title: "🏗 {building} - construction in {village}"

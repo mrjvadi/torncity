@@ -1253,6 +1253,8 @@ type LaborSiteRef struct {
 	ID          string
 	Building    presentation.Named
 	ProgressBPS int64
+	// Standing is a finished workplace with no posting (its production job), not a building site.
+	Standing bool `json:"standing,omitempty"`
 }
 
 // LaborShiftLine is a shift in progress.
