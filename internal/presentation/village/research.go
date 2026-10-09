@@ -155,6 +155,10 @@ type ResearchBoardView struct {
 	// StandInUntil is when the grace of the real goods ends: until then an upkeep line may be met by its StandIn
 	// (zero: no grace).
 	StandInUntil time.Time
+	// Personal is what the viewer lacks to take a scholar's post (literacy); the post is refused for it from PersonalUntil
+	// on, until then it only warns.
+	Personal      []PersonalNeed `json:"personal,omitempty"`
+	PersonalUntil time.Time      `json:"personal_until,omitempty"`
 	// MayShare says the viewer holds research.share.
 	MayShare bool
 	// ShareCapBPS is the most sharing pacts add to a project.

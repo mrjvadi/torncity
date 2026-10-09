@@ -41,6 +41,9 @@ const (
 	ReqLevel            = "level"
 	ReqSkill            = "skill"
 	ReqCertificate      = "certificate"
+	// ReqLiteracy: a village class asks the student to read; Until is when it begins to be asked (the grace), CourseCode the
+	// literacy class and City the nearest place that teaches it.
+	ReqLiteracy = "literacy"
 	ReqResidence        = "residence"
 	ReqPerformance      = "performance"
 	ReqTime             = "time"
@@ -82,6 +85,8 @@ type Requirement struct {
 	Wait time.Duration
 	// Trip is the way to the city named above (its fare and wait); nil when unknown.
 	Trip *TripHint
+	// Until is, for a requirement that is only warned of during a grace, when it begins to be asked (zero otherwise).
+	Until time.Time
 }
 
 // What a settlement lacks before it can teach a course, by kind.

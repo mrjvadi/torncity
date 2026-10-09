@@ -68,6 +68,14 @@ func (c Context) requirementLine(r Requirement) string {
 		}
 	case ReqCertificate:
 		text = c.T("requirement.certificate", map[string]any{"course": c.CourseName(r.CourseCode, r.CourseName)})
+	case ReqLiteracy:
+		args := map[string]any{"course": c.CourseName(r.CourseCode, r.CourseName), "city": c.CityName(r.CityCode, r.City)}
+		key := "requirement.literacy"
+		if !r.Until.IsZero() {
+			key = "requirement.literacy_soon"
+			args["until"] = FormatDate(c, r.Until)
+		}
+		text = c.T(key, args) + c.tripText(r.Trip)
 	case ReqResidence:
 		key := "requirement.residence"
 		if !r.Met {

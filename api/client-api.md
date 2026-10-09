@@ -1771,3 +1771,14 @@ ADR 0053, no migration, no view change. Every workplace shift is now 15 to 60 re
 ## Breakthrough fields are fed by real work (2026-10-09)
 
 ADR 0054, migration 0138. No new command. `VillageOverviewView.watch[]` (A4b) is renamed `services[]`: `{building, service, held, idle}` for every daily service post (watch post: `local_security`, health house: `primary_care`, inn: `lodging_and_tea`); `idle` is `no_staff`, `no_wage` or `no_supplies`. A post that was not open today adds nothing to the coverage numbers. The health house now needs a health worker (a seat of the labour pool), cloth 1 and water 2 a day. `ServiceLine` also carries `grace` (open only because of the grace of the rule date), `grace_until` and `needs[]` (what the post uses a day): show a calm note «تا ... همین‌طور باز می‌ماند، از آن روز ... می‌خواهد». Config `settlement.service_rule_at`, `service_grace_days`. Experience (the research desk's `experience[]`) now grows in all eight fields.
+
+## Personal requirements of posts (2026-10-10)
+
+ADR 0055, no migration. New type `PersonalNeed {kind, item, have, need, how}` (`kind`: `level`, `skill`, `certificate`, `literacy`, `rank`; `item` names the skill or the course). Where it appears: `WorkplaceLine.personal` and `WorkView.personal_until` (what the viewer lacks for a shift there and until when he may go on); `ResearchBoardView.personal` and `personal_until` (the scholar's post); `VillageRefusalView.personal` with the new refusal kind `personal` (a shift or a scholar's post refused after the grace). Config `settlement.personal_rule_at`, `personal_grace_days`. A finished class a certified teacher gave now counts for education experience.
+
+## Owner decisions of 2026-10-10 (personal requirements, pay, NPC hours)
+
+- `Requirement` (course and job views) gains `until` and the kind `literacy`: a village class warns of the student's literacy during the grace (the requirement carries `until`, the literacy class in `course_code`, the nearest place and the trip) and refuses after it.
+- Carpentry and masonry no longer ask a level (`PersonalNeed` only appears for the smith's level 3 and the scholar's literacy).
+- Wages per shift follow the wage classes: raw trades 50 per half hour, skilled ones 65 to 75 (`WorkplaceLine.wage`).
+- Config: `labor.npc_hours_per_slot_day` (8) replaces `labor.npc_shifts_per_slot_day`.

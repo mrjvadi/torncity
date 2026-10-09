@@ -253,7 +253,7 @@ settlement_buildings:
     produces: {clay: 14}
     workers: 2
     shift: 30m
-    wage: 40
+    wage: 50
     tool_wear_bps: 250
 
   # tool_workshop: the first tools of a village are a wooden haft and a stone head (hoe, adze, axe, sickle).
@@ -273,7 +273,7 @@ settlement_buildings:
     produces: {tools: 1}
     workers: 2
     shift: 30m
-    wage: 50
+    wage: 65
     trains: {skill: carpentry, xp: 15}
 
   # paper_mill: paper is beaten from rags in running water.
@@ -294,7 +294,7 @@ settlement_buildings:
     produces: {paper: 2}
     workers: 2
     shift: 30m
-    wage: 55
+    wage: 65
     tool_wear_bps: 150
 
   - code: manufactory
@@ -336,7 +336,7 @@ settlement_buildings:
     produces: {stone: 8}
     workers: 2
     shift: 30m
-    wage: 40
+    wage: 50
     tool_wear_bps: 250
 
   - code: mine

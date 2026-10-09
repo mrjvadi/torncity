@@ -112,7 +112,7 @@ type laborSettings struct {
 	NPCProductivityBPS     *int64  `yaml:"npc_productivity_bps"`
 	FeeBPS                 *int64  `yaml:"fee_bps"`
 	BudgetSlackBPS         *int64  `yaml:"budget_slack_bps"`
-	NPCShiftsPerSlotDay    *int64  `yaml:"npc_shifts_per_slot_day"`
+	NPCHoursPerSlotDay     *int64  `yaml:"npc_hours_per_slot_day"`
 	HungryOutputBPS        *int64  `yaml:"hungry_output_bps"`
 	HungryShiftHunger      *int64  `yaml:"hungry_shift_hunger"`
 	RepairMaterialShareBPS *int64  `yaml:"repair_material_share_bps"`
@@ -463,6 +463,8 @@ type settlementSettings struct {
 	ToolBareHandsBPS                 *int64  `yaml:"tool_bare_hands_bps"`
 	ServiceRuleAt                    *string `yaml:"service_rule_at"`
 	ServiceGraceDays                 *int64  `yaml:"service_grace_days"`
+	PersonalRuleAt                   *string `yaml:"personal_rule_at"`
+	PersonalGraceDays                *int64  `yaml:"personal_grace_days"`
 	ResearchFreeSlots                *int64  `yaml:"research_free_slots"`
 	ResearchSpeedFloorBPS            *int64  `yaml:"research_speed_floor_bps"`
 	ResearchScholarFloorBPS          *int64  `yaml:"research_scholar_floor_bps"`
@@ -1579,6 +1581,12 @@ var coreSettings = []setting{
 	stringSetting("settlement", "service_rule_at",
 		func(c *Config) *string { return &c.Settlement.ServiceRuleAt },
 		func(f *fileConfig) *string { return f.Settlement.ServiceRuleAt }),
+	stringSetting("settlement", "personal_rule_at",
+		func(c *Config) *string { return &c.Settlement.PersonalRuleAt },
+		func(f *fileConfig) *string { return f.Settlement.PersonalRuleAt }),
+	moneySetting("settlement", "personal_grace_days",
+		func(c *Config) *int64 { return &c.Settlement.PersonalGraceDays },
+		func(f *fileConfig) *int64 { return f.Settlement.PersonalGraceDays }),
 	moneySetting("settlement", "service_grace_days",
 		func(c *Config) *int64 { return &c.Settlement.ServiceGraceDays },
 		func(f *fileConfig) *int64 { return f.Settlement.ServiceGraceDays }),
@@ -1908,9 +1916,9 @@ var coreSettings = []setting{
 	moneySetting("currency", "auto_charter_floor",
 		func(c *Config) *int64 { return &c.Currency.AutoCharterFloor },
 		func(f *fileConfig) *int64 { return f.Currency.AutoCharterFloor }),
-	moneySetting("labor", "npc_shifts_per_slot_day",
-		func(c *Config) *int64 { return &c.Labor.NPCShiftsPerSlotDay },
-		func(f *fileConfig) *int64 { return f.Labor.NPCShiftsPerSlotDay }),
+	moneySetting("labor", "npc_hours_per_slot_day",
+		func(c *Config) *int64 { return &c.Labor.NPCHoursPerSlotDay },
+		func(f *fileConfig) *int64 { return f.Labor.NPCHoursPerSlotDay }),
 	moneySetting("labor", "journeyman_shifts",
 		func(c *Config) *int64 { return &c.Labor.JourneymanShifts },
 		func(f *fileConfig) *int64 { return f.Labor.JourneymanShifts }),

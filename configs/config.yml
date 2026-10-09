@@ -1383,6 +1383,11 @@ settlement:
   # while a person of the pool staffs it, even with the store thin, so no live settlement loses its coverage overnight.
   service_rule_at: "2026-10-10T12:00:00Z"
   service_grace_days: 7
+  # Personal prerequisites of a post (docs/adr/0055): a workplace's staff role may ask a level, a skill, a certificate or
+  # literacy of the player who works there, a scholar's post literacy. From this date a player who lacks them is
+  # refused, naming what is missing; for this many real days after it he may still work, with a notice.
+  personal_rule_at: "2026-10-12T00:00:00Z"
+  personal_grace_days: 7
   # Research capacity and speed (docs/adr/0048): slots from staffed research buildings, speed from
   # the scholars, a dearer price for what is ahead of the world, a discount for real work in the field.
   # research projects every settlement can run with no research building (ADR 0048)
@@ -1516,10 +1521,10 @@ labor:
   npc_productivity_bps: 8500   # an NPC labourer works at 85 %
   fee_bps: 500                 # the village's levy on a citizen employer's wage
   budget_slack_bps: 5000       # an automatic job pays 50 % more shifts than the work needs
-  # How many shifts an NPC may work at one post per local day of the settlement (ADR 0041
-  # N6 on the real clock): a post's daily output is slots x this x the shift's output, so
-  # tune it with the balance sheet, not with hours.
-  npc_shifts_per_slot_day: 10
+  # How many hours of work an NPC crew may do at one post per local day of the settlement
+  # (owner, 2026-10-10: 8): a post's daily output is slots x this x the output of an hour, so a
+  # shorter shift means more shifts. Tune it with the balance sheet.
+  npc_hours_per_slot_day: 8
   # A player may start a workplace shift with the village out of food (ADR 0041 owner
   # decision 3): they work hungry at this share of the output, and their own hunger need
   # rises by this many points. An NPC refuses a shift with no food.

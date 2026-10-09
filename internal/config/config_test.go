@@ -657,6 +657,8 @@ settlement:
   tool_bare_hands_bps: 5500
   service_rule_at: "2026-11-03T00:00:00Z"
   service_grace_days: 8
+  personal_rule_at: "2026-11-04T00:00:00Z"
+  personal_grace_days: 9
   research_free_slots: 200
   research_speed_floor_bps: 201
   research_scholar_floor_bps: 202
@@ -759,7 +761,7 @@ labor:
   npc_productivity_bps: 8501
   fee_bps: 501
   budget_slack_bps: 5001
-  npc_shifts_per_slot_day: 11
+  npc_hours_per_slot_day: 11
   hungry_output_bps: 5001
   hungry_shift_hunger: 6
   repair_material_share_bps: 2001
@@ -1226,6 +1228,8 @@ var envOverrides = map[string]string{
 	"TORN_SETTLEMENT_TOOL_BARE_HANDS_BPS":                  "5600",
 	"TORN_SETTLEMENT_SERVICE_RULE_AT":                      "2026-12-02T00:00:00Z",
 	"TORN_SETTLEMENT_SERVICE_GRACE_DAYS":                   "11",
+	"TORN_SETTLEMENT_PERSONAL_RULE_AT":                     "2026-12-03T00:00:00Z",
+	"TORN_SETTLEMENT_PERSONAL_GRACE_DAYS":                  "12",
 	"TORN_SETTLEMENT_RESEARCH_FREE_SLOTS":                  "300",
 	"TORN_SETTLEMENT_RESEARCH_SPEED_FLOOR_BPS":             "301",
 	"TORN_SETTLEMENT_RESEARCH_SCHOLAR_FLOOR_BPS":           "302",
@@ -1323,7 +1327,7 @@ var envOverrides = map[string]string{
 	"TORN_CURRENCY_MACRO_PI_MAX_BPS":                       "302",
 	"TORN_CURRENCY_MACRO_W_TRADABLE_BPS":                   "6002",
 	"TORN_CURRENCY_INTERVENTION_DELAY":                     "26h",
-	"TORN_LABOR_NPC_SHIFTS_PER_SLOT_DAY":                   "12",
+	"TORN_LABOR_NPC_HOURS_PER_SLOT_DAY":                   "12",
 	"TORN_LABOR_HUNGRY_OUTPUT_BPS":                         "5002",
 	"TORN_LABOR_HUNGRY_SHIFT_HUNGER":                       "7",
 	"TORN_LABOR_REPAIR_MATERIAL_SHARE_BPS":                 "2002",

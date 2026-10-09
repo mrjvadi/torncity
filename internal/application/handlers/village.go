@@ -101,6 +101,8 @@ type VillageHandler struct {
 	trade TradeRules
 	// service is the clock of the daily services (village_service.go).
 	service ServiceRules
+	// personal are the rules of the personal prerequisites of a post (village_personal.go).
+	personal PersonalRules
 	// realItems is the grace of the real goods and the bare-handed share without tools (village_realitems.go).
 	realItems RealItemRules
 	// storage is the stores' keepers and spoilage (village_storage.go).
@@ -276,6 +278,8 @@ type villageRefusal struct {
 	action  string
 	subject presentation.Named
 	needs   []village.VillageNeed
+	// personal is what the player lacks for a post (kind personal).
+	personal []village.PersonalNeed
 	// access is the lot's road access and the ways to put it right, shown
 	// instead of a bare refusal when a private building has no road.
 	access *village.LotAccessView
@@ -304,7 +308,7 @@ func (h *VillageHandler) villageFinish(meta envelope.Metadata, lang string, err 
 			return village.LotAccessScreen(c, *r.access), nil
 		}
 		return village.VillageRefusal(c, village.VillageRefusalView{Kind: r.kind, Back: presentation.RefOfAddress(r.back), Remaining: r.remaining, Min: r.min, Max: r.max, Lots: r.lots, Missing: r.missing,
-			Action: r.action, Subject: r.subject, Needs: r.needs}), nil
+			Action: r.action, Subject: r.subject, Needs: r.needs, Personal: r.personal}), nil
 	}
 	if stderrors.Is(err, application.ErrCityNotFound) {
 		return village.VillageRefusal(c, village.VillageRefusalView{Kind: village.VillageNoSettlement}), nil

@@ -615,6 +615,8 @@ job:
 
 # یک سطر از فهرست شرایط؛ {text} یکی از سطرهای زیر است.
 requirement:
+  literacy: "خواندن و نوشتن (کلاس «{course}»)"
+  literacy_soon: "از {until} این کلاس از شما خواندن و نوشتن می‌خواهد (کلاس «{course}»)"
   met: "✅ {text}"
   unmet: "❌ {text}"
   level: سطح {level}

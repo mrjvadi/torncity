@@ -65,6 +65,13 @@ func realItemRules(cfg *config.Config) handlers.RealItemRules {
 	return handlers.RealItemRules{From: from, GraceDays: cfg.Settlement.RealItemsGraceDays, BareHandsBPS: cfg.Settlement.ToolBareHandsBPS}
 }
 
+// personalRules reads the date the personal prerequisites of a post began to be asked and the grace after it
+// (settlement.personal_rule_at, personal_grace_days; docs/adr/0055).
+func personalRules(cfg *config.Config) handlers.PersonalRules {
+	from, _ := time.Parse(time.RFC3339, cfg.Settlement.PersonalRuleAt) // not an instant: nothing is asked
+	return handlers.PersonalRules{From: from, GraceDays: cfg.Settlement.PersonalGraceDays}
+}
+
 // serviceRules reads the clock the daily services' days are counted on (game.clock_epoch).
 func serviceRules(cfg *config.Config) handlers.ServiceRules {
 	clock, _ := cfg.GameClock()

@@ -550,6 +550,14 @@ func (h *VillageHandler) workView(ctx context.Context, tx application.Tx, p *app
 		busy[sh.BuildingID]++
 	}
 	view := village.WorkView{Village: s.Name, Resident: resident, Used: stock.Used, Capacity: stock.Capacity}
+	var standing personalStanding
+	haveStanding := false
+	if h.personal.enabled() {
+		if standing, err = h.standingOf(ctx, tx, p.ID); err != nil {
+			return village.WorkView{}, err
+		}
+		haveStanding = true
+	}
 	for _, b := range buildings {
 		if b.Status != "complete" {
 			continue
@@ -564,11 +572,17 @@ func (h *VillageHandler) workView(ctx context.Context, tx application.Tx, p *app
 				ready = false
 			}
 		}
-		view.Places = append(view.Places, village.WorkplaceLine{
+		line := village.WorkplaceLine{
 			ID: b.ID, Building: named(d.Code, d.Name),
 			Produces: materialLinesOf(snap, d.Produces), Consumes: materialLinesOf(snap, d.Consumes),
 			Wage: d.Wage, Shift: h.scale.RealWait(d.Def().Work.Shift), Workers: d.Workers, Busy: busy[b.ID], Ready: ready,
-		})
+		}
+		if haveStanding {
+			if line.Personal = h.workMissing(snap, standing, d.Code); len(line.Personal) > 0 {
+				view.PersonalUntil = h.personal.GraceUntil()
+			}
+		}
+		view.Places = append(view.Places, line)
 	}
 	if mine, err := tx.SettlementTreasury().PlayerShift(ctx, p.ID); err != nil {
 		return village.WorkView{}, err
@@ -675,6 +689,17 @@ func (h *VillageHandler) startShiftAt(ctx context.Context, tx application.Tx, me
 	d, ok := snap.SettlementBuildingDef(b.TypeCode)
 	if !ok || b.Status != "complete" || len(d.Produces) == 0 {
 		return refuseVillage(village.VillageNotWorkplace, village.AddrWork)
+	}
+	// The personal prerequisites of the post (ADR 0055): refused once the grace is over, with what is missing; during it
+	// the work screen warns.
+	if h.personal.enabled() && !h.personal.InGrace(h.now()) {
+		st, err := h.standingOf(ctx, tx, p.ID)
+		if err != nil {
+			return err
+		}
+		if miss := h.workMissing(snap, st, d.Code); len(miss) > 0 {
+			return personalRefusal(miss, village.AddrWork)
+		}
 	}
 	fresh, err := h.reserve(ctx, tx, p.ID, meta)
 	if err != nil || !fresh {

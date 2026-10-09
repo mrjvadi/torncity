@@ -430,8 +430,11 @@ func (h *EducationHandler) payTeacher(ctx context.Context, tx application.Tx, en
 		return err
 	}
 	if seat.Wage <= 0 {
-		_, err := tx.Education().PaySeat(ctx, enrollmentID, now, 0)
-		return err
+		fresh, err := tx.Education().PaySeat(ctx, enrollmentID, now, 0)
+		if err != nil || !fresh {
+			return err
+		}
+		return h.accrueTeaching(ctx, tx, seat.SettlementID, now)
 	}
 	t, err := tx.Education().TeacherAny(ctx, seat.TeacherID)
 	if err != nil {
@@ -459,8 +462,14 @@ func (h *EducationHandler) payTeacher(ctx context.Context, tx application.Tx, en
 		}
 	}
 	fresh, err := tx.Education().PaySeat(ctx, enrollmentID, now, pay)
-	if err != nil || !fresh || pay <= 0 {
+	if err != nil || !fresh {
 		return err
+	}
+	if err := h.accrueTeaching(ctx, tx, seat.SettlementID, now); err != nil {
+		return err
+	}
+	if pay <= 0 {
+		return nil
 	}
 	if local {
 		r, err := application.PayLocal(ctx, tx, h.ids.NewID, localPay)
@@ -487,5 +496,28 @@ func (h *EducationHandler) payTeacher(ctx context.Context, tx application.Tx, en
 			{AccountID: payee.ID, Amount: money.FromMinor(pay)},
 		},
 	})
+	return err
+}
+
+// WithExperience gives the education handler the experience a finished class in a founded settlement adds to the field
+// education (settlement.research_experience_per_shift; ADR 0054): a class a certified teacher gave is practice in teaching.
+func (h *EducationHandler) WithExperience(perClass int64) *EducationHandler {
+	h.experiencePerClass = perClass
+	return h
+}
+
+// accrueTeaching adds a finished class to the settlement's education experience, once a UTC day (the daily fence), when
+// the class was given in a founded settlement.
+func (h *EducationHandler) accrueTeaching(ctx context.Context, tx application.Tx, settlementID string, now time.Time) error {
+	if h.experiencePerClass <= 0 {
+		return nil
+	}
+	if _, err := tx.Settlements().ByID(ctx, settlementID); err != nil {
+		if isSentinel(err, application.ErrCityNotFound) {
+			return nil // a class of the neutral city: no settlement to learn
+		}
+		return err
+	}
+	_, err := tx.Research().AddDailyExperience(ctx, settlementID, "education", "course", now.UTC().Unix()/86400, h.experiencePerClass, now)
 	return err
 }

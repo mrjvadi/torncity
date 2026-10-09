@@ -65,6 +65,10 @@ type CompleteCourseRequest struct {
 // education. A course run by a player company will pay that company's
 // treasury instead (education.InstitutionCompany), in chargeFee.
 type EducationHandler struct {
+	// personal are the rules of the personal prerequisites (a village class asks the student to read; WithPersonal).
+	personal PersonalRules
+	// experiencePerClass is the education experience a finished class in a founded settlement adds (WithExperience).
+	experiencePerClass int64
 	uow     application.UnitOfWork
 	ids     IDGenerator
 	msgs    Translator
@@ -574,6 +578,14 @@ func (h *EducationHandler) View(ctx context.Context, meta envelope.Metadata, req
 			view.Requirements = append(view.Requirements, plife.Requirement{Kind: screens.ReqCourseFull})
 		}
 		view.CanEnrol = notHere == nil && visible(def, s, here) && education.CanEnroll(course, s.applicant(here, current), seats) == nil
+		if lack, blocking, lerr := h.literacyGate(ctx, tx, snap, p, def.Code, s.here(), h.now()); lerr != nil {
+			return lerr
+		} else if lack != nil {
+			view.Requirements = append(view.Requirements, *lack)
+			if blocking {
+				view.CanEnrol = false
+			}
+		}
 		if view.CanEnrol && course.Cost.Minor() > 0 {
 			w, err := application.OpenWallet(ctx, tx.Ledger(), p.ID)
 			if err != nil {
@@ -632,6 +644,11 @@ func (h *EducationHandler) enrollPlan(ctx context.Context, tx application.Tx, sn
 	}
 	if req != nil {
 		return plan, refuse(plife.RefusalCourseRequirements, []plife.Requirement{*req})
+	}
+	if lack, blocking, err := h.literacyGate(ctx, tx, snap, p, code, s.here(), now); err != nil {
+		return plan, err
+	} else if lack != nil && blocking {
+		return plan, refuse(plife.RefusalCourseRequirements, []plife.Requirement{*lack})
 	}
 	plan.listFee = course.Cost
 	// A home teacher is paid the listed fee; the school's subsidy is the

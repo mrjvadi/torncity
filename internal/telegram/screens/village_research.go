@@ -67,6 +67,9 @@ func renderResearchBoard(c Context, v village.ResearchBoardView) *presenter.Resp
 	}
 
 	var houses []string
+	if len(v.Personal) > 0 {
+		houses = append(houses, c.T("village.work.personal_warn", map[string]any{"needs": personalList(c, v.Personal), "until": FormatDate(c, v.PersonalUntil)}))
+	}
 	for _, b := range v.Buildings {
 		name := c.SettlementBuildingName(b.Building)
 		args := map[string]any{"building": name, "players": FormatNumber(c, int64(b.Players)), "npcs": FormatNumber(c, int64(b.NPCs)),

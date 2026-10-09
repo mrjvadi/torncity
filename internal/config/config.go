@@ -1020,6 +1020,11 @@ type Settlement struct {
 	// overnight; 0 days switches the grace off.
 	ServiceRuleAt    string // settlement.service_rule_at
 	ServiceGraceDays int64  // settlement.service_grace_days
+	// PersonalRuleAt (RFC 3339) is when a post asks its holder for the personal prerequisites of its staff role (a
+	// level, a skill, a certificate, literacy): a player who lacks them may still work or take the post for
+	// PersonalGraceDays real days after it, with a notice of what will be needed; 0 days switches the grace off.
+	PersonalRuleAt    string // settlement.personal_rule_at
+	PersonalGraceDays int64  // settlement.personal_grace_days
 	// Research capacity and speed (ADR 0048, internal/domain/research).
 	ResearchFreeSlots                int64 // settlement.research_free_slots
 	ResearchSpeedFloorBPS            int64 // settlement.research_speed_floor_bps
@@ -1392,8 +1397,8 @@ type Labor struct {
 	NPCProductivityBPS int64 // labor.npc_productivity_bps
 	FeeBPS             int64 // labor.fee_bps
 	BudgetSlackBPS     int64 // labor.budget_slack_bps
-	// NPCShiftsPerSlotDay is how many shifts an NPC may work at one post per local day.
-	NPCShiftsPerSlotDay int64 // labor.npc_shifts_per_slot_day
+	// NPCHoursPerSlotDay is how many hours of work an NPC crew may do at one post per local day.
+	NPCHoursPerSlotDay int64 // labor.npc_hours_per_slot_day
 	// HungryOutputBPS is a hungry player's output at a workplace (they ate nothing);
 	// HungryShiftHunger the hunger points such a shift adds to their own need.
 	HungryOutputBPS        int64   // labor.hungry_output_bps
@@ -1855,6 +1860,8 @@ func Defaults() *Config {
 			ToolBareHandsBPS:                 6000,
 			ServiceRuleAt:                    "2026-10-10T12:00:00Z",
 			ServiceGraceDays:                 7,
+			PersonalRuleAt:                   "2026-10-12T00:00:00Z",
+			PersonalGraceDays:                7,
 			ResearchFreeSlots:                1,
 			ResearchSpeedFloorBPS:            10000,
 			ResearchScholarFloorBPS:          500,
@@ -1947,7 +1954,7 @@ func Defaults() *Config {
 			NPCProductivityBPS:     8500,
 			FeeBPS:                 500,
 			BudgetSlackBPS:         5000,
-			NPCShiftsPerSlotDay:    10,
+			NPCHoursPerSlotDay:     8,
 			HungryOutputBPS:        5000,
 			HungryShiftHunger:      5,
 			RepairMaterialShareBPS: 2000,

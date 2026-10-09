@@ -177,6 +177,12 @@ village:
     city: "🏘 شهر {name}"
   population: "👥 جمعیت: {population} از {cap}"
   treasury: "🏦 خزانهٔ شهر: {amount}"
+  personal:
+    level: "سطح {need} (شما سطح {have}ید)"
+    skill: "مهارت «{item}» تا سطح {need} (شما {have})"
+    certificate: "گواهی «{item}»"
+    literacy: "سواد خواندن و نوشتن (گواهی «{item}»)"
+    rank: "رتبه"
   watch:
     need: "{item} {qty}"
     grace: "ℹ️ {building}: تا {until} همین‌طور باز می‌ماند؛ از آن روز هر روز کارکن و مزد و این‌ها را می‌خواهد: {needs}."
@@ -409,6 +415,7 @@ village:
     next_research: "• می‌شود «{name}» را پژوهش کرد"
     next_build: "• می‌شود «{name}» را ساخت"
   refusal:
+    personal: "🔒 این کار شرط شخصی دارد که هنوز ندارید: {needs}. از کلاس و کار آموزشی به دست بیاورید و برگردید."
     charter_title: "🔒 این نام برای منصب جور نیست؛ باید بین چند حرف باشد و نام‌های رزرو‌شده را نمی‌شود گذاشت."
     charter_title_taken: "🔒 منصبی با این نام هست."
     charter_caps: "🔒 از سقف تعداد منصب‌ها، جاها یا اجازه‌های منصب بیشتر شد."
@@ -825,6 +832,7 @@ village:
     no_market: "بازار پول شهر، ذخیره و پوشش پول هنوز ساخته نشده و نمی‌شود نرخ ساختگی گفت؛ وقتی پول شهر منتشر شد، همین‌جا با نرخ بازار می‌آید."
     hint: "هرچه سبد ارزان‌تر باشد، پول شهر قدرت خرید بیشتری دارد."
   work:
+    personal_warn: "ℹ️ از {until} این کار از شما می‌خواهد: {needs}. تا آن روز می‌توانید همین‌طور کار کنید."
     title: "⚒ کار در شهر «{village}»"
     material: "{qty} {name}"
     place: "• {building}: هر شیفت ({shift}) {produces} - دستمزد {wage} - جایگاه پر: {busy} از {workers}"

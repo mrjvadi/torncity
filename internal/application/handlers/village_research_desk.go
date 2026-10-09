@@ -106,6 +106,15 @@ func (h *VillageHandler) researchAct(ctx context.Context, tx application.Tx, met
 		if held >= site.posts {
 			return refuseVillage(village.ResearchNoPost, back)
 		}
+		if h.personal.enabled() && !h.personal.InGrace(now) {
+			st, err := h.standingOf(ctx, tx, p.ID)
+			if err != nil {
+				return err
+			}
+			if miss := st.postMissing(snap, site.def, "scholar"); len(miss) > 0 {
+				return personalRefusal(miss, back)
+			}
+		}
 		if err := tx.Research().TakePost(ctx, application.ResearchPost{BuildingID: site.b.ID, PlayerID: p.ID, SettlementID: s.CityID, Since: now}); err != nil {
 			if isSentinel(err, application.ErrResearchPostHeld) {
 				return refuseVillage(village.ResearchPostHeld, back)
@@ -223,6 +232,17 @@ func (h *VillageHandler) researchBoard(ctx context.Context, tx application.Tx, s
 	view := village.ResearchBoardView{Name: s.Name, Capacity: st.Capacity, Running: len(st.Running), Frontier: rc.frontier,
 		LiteracyPercent: literacy / 100, ShareCapBPS: rules.ShareCapBPS}
 	view.MayShare = hasPermission(ctx, tx, s, p.ID, charter.ResearchShare)
+	if h.personal.enabled() {
+		if role, ok := snap.StaffRole("scholar"); ok && len(role.Personal) > 0 {
+			standing, err := h.standingOf(ctx, tx, p.ID)
+			if err != nil {
+				return village.ResearchBoardView{}, err
+			}
+			if view.Personal = standing.missing(snap, role.Personal); len(view.Personal) > 0 {
+				view.PersonalUntil = h.personal.GraceUntil()
+			}
+		}
+	}
 
 	byID := map[string]researchSite{}
 	for _, site := range st.Sites {
