@@ -9,6 +9,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/application/handlers"
 	"github.com/mrjvadi/torncity/internal/config"
+	"github.com/mrjvadi/torncity/internal/infrastructure/postgres"
 	"github.com/mrjvadi/torncity/internal/presentation"
 	"github.com/mrjvadi/torncity/internal/presentation/village"
 )
@@ -208,6 +209,13 @@ func TestRealItemsToolsWearOnTheWorkplace(t *testing.T) {
 	}
 	if n := w.scalar(`SELECT COALESCE(SUM(quantity), 0)::bigint FROM item_movements WHERE item_code = 'tools' AND reason = 'production_input' AND from_org = $1::uuid`, w.cityID); n != 1 {
 		t.Errorf("the tool is in the item journal as a shift input: %d", n)
+	}
+	lv, err := postgres.NewEconomyAdmin(w.pool).VerifyLedger(testCtx(t), 10)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s := lv.VillageInvariants; s.ToolInputs < 1 || s.ToolInputs != s.ToolShiftUnits || s.ToolWearBroken != 0 {
+		t.Errorf("the tool wear invariants: %+v", s)
 	}
 	w.verify()
 

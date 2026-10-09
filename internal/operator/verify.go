@@ -196,6 +196,12 @@ func VerifyChecks(v postgres.LedgerVerification, cfg *config.Config) []Check {
 		out.add(t.LotHistoryGuards == 2, fmt.Sprintf("the conversion history is append-only (%d of 2 guards)", t.LotHistoryGuards))
 	}
 
+	if v.Village {
+		t := v.VillageInvariants
+		out.add(t.ToolInputs == t.ToolShiftUnits, fmt.Sprintf("the tools that left the stores as shift inputs are the tools the shifts consumed (%d = %d)", t.ToolInputs, t.ToolShiftUnits))
+		out.add(t.ToolWearBroken == 0, fmt.Sprintf("no workplace carries more tool wear than one tool (%d off)", t.ToolWearBroken))
+	}
+
 	if v.Village && v.Trade {
 		t := v.VillageInvariants
 		out.add(t.TradeLedger == t.TradeRows && t.TradeDayBroken == 0, fmt.Sprintf("the trader's money in the ledger is what the market days say (%d = %d), each day is its lines, never above its cap, one transaction of source to treasury for the gross and one of treasury to sink for the clerk's wage (%d off)", t.TradeLedger, t.TradeRows, t.TradeDayBroken))
