@@ -152,7 +152,10 @@ func (h *VillageHandler) laborMarket(ctx context.Context, tx application.Tx, sna
 		}
 		vacancies += left
 	}
-	housing := housingOf(snap, buildings)
+	housing, err := h.housingNow(ctx, tx, snap, s.CityID, buildings)
+	if err != nil {
+		return laborMarket{}, err
+	}
 	pool := h.labor.PoolSize(housing, residents)
 	force := pool + residents
 	tight := h.labor.Tightness(all+vacancies, force)
@@ -329,6 +332,30 @@ func (h *VillageHandler) startLaborShift(ctx context.Context, tx application.Tx,
 			return refuseVillage(village.LaborFullyStaffed, back)
 		}
 		sh.Kind = application.LaborKindConstruction
+		sh.WorkPoints = h.labor.Points(w.bps)
+	case application.LaborKindFitout:
+		// an order of the lot's owner (ADR 0045 B1): shifts add work to the open order, never past what it needs
+		wk, err := tx.SettlementBuildings().OpenWork(ctx, b.ID)
+		if err != nil {
+			return err
+		}
+		if wk == nil || b.Status != "complete" {
+			return refuseVillage(village.LaborNoSite, village.AddrLaborBoard)
+		}
+		all, err := repo.WorkingShifts(ctx, s.CityID)
+		if err != nil {
+			return err
+		}
+		var pending int64
+		for _, x := range all {
+			if x.BuildingID == b.ID && x.Kind == application.LaborKindFitout {
+				pending += x.WorkPoints
+			}
+		}
+		if wk.WorkRequired-wk.WorkDone-pending <= 0 {
+			return refuseVillage(village.LaborFullyStaffed, back)
+		}
+		sh.Kind = application.LaborKindFitout
 		sh.WorkPoints = h.labor.Points(w.bps)
 	case application.LaborKindRepair:
 		if job.EmployerKind != application.LaborEmployerSettlement {
@@ -616,6 +643,18 @@ func (h *VillageHandler) jobLine(ctx context.Context, tx application.Tx, snap *c
 	}
 	if j.Kind == application.LaborKindProduction {
 		line.CanTake = here && j.Left() > 0 && b.Status == "complete"
+		return line, nil
+	}
+	if j.Kind == application.LaborKindFitout {
+		// the progress is the owner's order's, not the building's
+		wk, err := tx.SettlementBuildings().OpenWork(ctx, b.ID)
+		if err != nil {
+			return line, err
+		}
+		if wk != nil {
+			line.ProgressBPS, line.LeftMinutes = labor.ProgressBPS(wk.WorkDone, wk.WorkRequired), wk.WorkRequired-wk.WorkDone
+			line.CanTake = here && j.Left() > 0 && b.Status == "complete" && wk.WorkRequired-wk.WorkDone-pending > 0
+		}
 		return line, nil
 	}
 	line.CanTake = here && j.Left() > 0 && b.Status == "building" && b.WorkRequired-b.WorkDone-pending > 0
@@ -1049,6 +1088,23 @@ func (h *VillageHandler) postable(ctx context.Context, tx application.Tx, s appl
 		if d, found := snap.SettlementBuildingDef(b.TypeCode); found && len(d.Produces) > 0 {
 			jobKind = application.LaborKindProduction
 		}
+		// an order of the lot's owner waiting for builders (ADR 0045 B1): its employer is the one who ordered
+		if wk, werr := tx.SettlementBuildings().OpenWork(ctx, b.ID); werr != nil {
+			return "", "", "", false, werr
+		} else if wk != nil {
+			jobKind = application.LaborKindFitout
+			kind, employer = application.LaborEmployerSettlement, s.CityID
+			if b.EmployerPlayerID != "" || wk.OrderedBy != "" {
+				if pb, perr := tx.Citizens().PrivateBuilding(ctx, b.ID); perr == nil && pb != nil {
+					kind, employer = application.LaborEmployerPlayer, pb.OwnerID
+				}
+			}
+			if kind == application.LaborEmployerPlayer {
+				return kind, employer, jobKind, employer == p.ID, nil
+			}
+			okp, aerr := h.mayVillage(ctx, tx, s, p.ID, charter.PublicBuild)
+			return kind, employer, jobKind, okp, aerr
+		}
 	}
 	if jobKind == "" {
 		return "", "", "", false, nil
@@ -1099,6 +1155,12 @@ func (h *VillageHandler) LaborPost(ctx context.Context, meta envelope.Metadata, 
 			return "", "", err
 		}
 		if !fresh {
+			return b.ID, "posted", nil
+		}
+		if jobKind == application.LaborKindFitout {
+			if err := h.postFitout(ctx, tx, s, *b, kind, employer, p.ID); err != nil {
+				return "", "", err
+			}
 			return b.ID, "posted", nil
 		}
 		if strings.TrimSpace(req.N) == "repair" && jobKind == application.LaborKindProduction {
@@ -1278,6 +1340,9 @@ func (h *VillageHandler) workedSite(ctx context.Context, tx application.Tx, meta
 	if sh.Kind == application.LaborKindRepair {
 		return h.repairDone(ctx, tx, meta, snap, s, sh, pay, now)
 	}
+	if sh.Kind == application.LaborKindFitout {
+		return h.fitoutDone(ctx, tx, meta, snap, s, sh, pay, now)
+	}
 	done, required, ok, err := repo.AddWork(ctx, sh.BuildingID, sh.WorkPoints)
 	if err != nil {
 		return err
@@ -1289,6 +1354,18 @@ func (h *VillageHandler) workedSite(ctx context.Context, tx application.Tx, meta
 		}
 		if err := repo.CloseJobOfBuilding(ctx, sh.BuildingID, now); err != nil {
 			return err
+		}
+		// a finished building gets its function and its look (docs/adr/0045 B1); idempotent
+		if h.lot.Enabled() {
+			if fb, ferr := tx.SettlementBuildings().Get(ctx, sh.BuildingID); ferr == nil {
+				if f, ferr := h.ensureFunction(ctx, tx, kitOf(snap), s, *fb); ferr != nil {
+					return ferr
+				} else if f != nil {
+					if _, ferr := h.lookOf(ctx, tx, s, f, false, now); ferr != nil {
+						return ferr
+					}
+				}
+			}
 		}
 	}
 	if err := appendVillageEvent(ctx, tx, meta, "shift_done", s.CityID, map[string]any{

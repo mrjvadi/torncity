@@ -850,6 +850,7 @@
 📊 مالیات دارایی: ⁨2⁩٪ از ارزش ⁨⁨1,245⁩ ساپ⁩ در هر دوره؛ یعنی ⁨⁨24⁩ ساپ⁩
   ───
   [🏡 زمین بخر] → settlement:land   │   [🏠 خانه بساز] → settlement:private
+  [🏠 مدیریت قطعهٔ من] → settlement:lot.manage
   [🛋 استراحت در خانه] → settlement:home.rest
   [🔙 بازگشت] → settlement:overview   │   [🔄 به‌روزرسانی] → settlement:mine
 
@@ -868,6 +869,7 @@
 ⚠️ بدهی مالیاتی: ⁨⁨48⁩ ساپ⁩ (⁨2⁩ دوره)
   ───
   [🏡 زمین بخر] → settlement:land   │   [🏠 خانه بساز] → settlement:private
+  [🏠 مدیریت قطعهٔ من] → settlement:lot.manage
   [💳 پرداخت مالیات (⁨⁨48⁩ ساپ⁩)] → settlement:tax.pay
   [🔙 بازگشت] → settlement:overview   │   [🔄 به‌روزرسانی] → settlement:mine
 

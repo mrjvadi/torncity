@@ -106,14 +106,14 @@ module_kinds:
   # ADR 0045 3.2: what the owner puts inside a lot. Each has a material list, a
   # work amount in builder shifts and an upkeep decay, and an effect that is a
   # real mechanic. The ADR fixes none of those numbers: flagged, not invented.
-  - {code: bedroom,   source: "ADR 0045 3.2", evidence: adr, requires: {}, effect: housing_capacity, provides: {housing_capacity: 2}, needs_research: [cost_materials, build_shifts, decay_bps_per_day], note: "the legacy private_cottage gives capacity 2, private_house 4 (citizen_buildings.yml)"}
-  - {code: hearth,    source: "ADR 0045 3.2, 0041 8.3", evidence: adr, requires: {}, effect: warmth_shelter, consumes: {firewood: 1}, needs_research: [cost_materials, build_shifts, decay_bps_per_day], note: "firewood 1 per house per game day (0041 8.3)"}
+  - {code: bedroom,   source: "ADR 0045 3.2", evidence: D, requires: {}, effect: housing_capacity, provides: {housing_capacity: 2}, cost_materials: {timber: 3}, build_shifts: 3, area: 2, needs_research: [decay_bps_per_day], note: "the legacy private_cottage gives capacity 2, private_house 4 (citizen_buildings.yml); materials, shifts and area are B1 draft numbers (the ADR names the fields, not the figures), proportioned to the cottage (3 timber, 2 hours)"}
+  - {code: hearth,    source: "ADR 0045 3.2, 0041 8.3, 8.33", evidence: D, requires: {}, effect: warmth_shelter, consumes: {timber: 1}, cost_materials: {stone: 2}, build_shifts: 2, area: 1, needs_research: [decay_bps_per_day], note: "fuel: one unit of timber per warm rest from the owner's home store (0041 8.33: rest +25 percent when warm; resting works without it). The ADR burns firewood, which is not an item yet (planned in item_storage); timber stands in until it is; B1 draft numbers"}
   - {code: kitchen,   source: "ADR 0045 3.2", evidence: adr, requires: {}, effect: cooking, needs_research: [cost_materials, build_shifts, decay_bps_per_day]}
-  - {code: storeroom, source: "ADR 0045 3.2, 0040 6", evidence: adr, requires: {}, effect: personal_storage, needs_research: [provides, cost_materials, build_shifts, decay_bps_per_day], note: "personal storage +40 / +100 / +60 by building in ADR 0040 6.2"}
+  - {code: storeroom, source: "ADR 0045 3.2, 0040 6", evidence: D, requires: {}, effect: personal_storage, provides: {personal_storage: 40}, cost_materials: {timber: 2}, build_shifts: 2, area: 1, needs_research: [decay_bps_per_day], note: "personal storage +40 / +100 / +60 by building in ADR 0040 6.2: the cottage's room is one storeroom; B1 draft numbers for the cost"}
   - {code: water_barrel, source: "ADR 0045 3.2", evidence: adr, requires: {}, effect: water_supply, needs_research: [cost_materials, build_shifts, decay_bps_per_day]}
-  - {code: cellar,    source: "ADR 0045 3.2", evidence: adr, requires: {}, effect: storeroom, needs_research: [provides, cost_materials, build_shifts, decay_bps_per_day]}
-  - {code: workbench, source: "ADR 0045 3.2, 4.1", evidence: adr, requires: {}, effect: workbench, needs_research: [cost_materials, build_shifts, decay_bps_per_day]}
-  - {code: shelves,   source: "ADR 0045 3.2", evidence: adr, requires: {}, effect: shelves, needs_research: [provides, cost_materials, build_shifts, decay_bps_per_day]}
+  - {code: cellar,    source: "ADR 0045 3.2, 0040 6.2", evidence: D, requires: {knowledge: [masonry]}, effect: storeroom, provides: {personal_storage: 60}, cost_materials: {stone: 3, timber: 1}, build_shifts: 3, area: 0, needs_research: [decay_bps_per_day], note: "under the floor, so it takes no floor area; 60 spaces is what the house has over the cottage (100 less 40, ADR 0040 6.2); B1 draft numbers for the cost"}
+  - {code: workbench, source: "ADR 0045 3.2, 4.1", evidence: adr, requires: {}, effect: workbench, area: 2, needs_research: [cost_materials, build_shifts, decay_bps_per_day, crafting_effect], note: "the workshop's bench comes with the function; what it makes is personal crafting (ADR 0045 phase B2), so B1 lets nobody add another"}
+  - {code: shelves,   source: "ADR 0045 3.2", evidence: D, requires: {}, effect: shelves, provides: {stall_slots: 1, personal_storage: 60}, cost_materials: {timber: 2}, build_shifts: 2, area: 2, needs_research: [decay_bps_per_day], note: "in a stall each shelf is one counter of its own on the village book (no listing fee, no common stall used); in any building it is room to keep stock (0040 6.2: a workshop +60); B1 draft numbers"}
   - {code: staff_post, source: "ADR 0045 3.2", evidence: adr, requires: {}, effect: staff_post, needs_research: [cost_materials, build_shifts]}
   - {code: forge,     source: "ADR 0045 3.2, 4.2", evidence: adr, requires: {knowledge: [smithing]}, effect: forge, needs_research: [cost_materials, build_shifts, decay_bps_per_day]}
   - {code: loom,      source: "ADR 0045 3.2, 5.3", evidence: adr, requires: {knowledge: [weaving]}, effect: loom, needs_research: [cost_materials, build_shifts, decay_bps_per_day]}
@@ -145,16 +145,16 @@ building_functions:
     zones: [core, residential]
     footprint: [1, 1, 1, 1]
     owners: [treasury, player, npc_household]
-    slots: [{module: bedroom, max: 2}, {module: hearth, max: 1}, {module: kitchen, max: 1}, {module: storeroom, max: 1}, {module: water_barrel, max: 1}, {module: workbench, max: 1}, {module: cellar, max: 1}]
+    slots: [{module: bedroom, max: 3}, {module: hearth, max: 1}, {module: kitchen, max: 1}, {module: storeroom, max: 2}, {module: water_barrel, max: 1}, {module: workbench, max: 1}, {module: cellar, max: 1}]
     levels:
-      - {level: 1, adds: [bedroom, hearth, storeroom], requires: {}, cost_money: 800, cost_materials: {timber: 3}, build_hours: 2}
-      - {level: 2, adds: [bedroom, kitchen, workbench], requires: {knowledge: [carpentry]}, cost_money: 1800, cost_materials: {timber: 8}, build_hours: 4}
+      - {level: 1, building: private_cottage, adds: [bedroom, hearth, storeroom], requires: {}, cost_money: 800, cost_materials: {timber: 3}, build_hours: 2}
+      - {level: 2, building: private_house, adds: [bedroom], requires: {knowledge: [carpentry]}, cost_money: 1800, cost_materials: {timber: 8}, build_hours: 4}
     produces: {service: housing, outputs: {}}
     ledger_reasons: [household_fuel, property_tax, permit_fee]
     links: {to: [woodcutter_yard]}
     replaces: [cottage, private_cottage, private_house]
-    needs_research: [footprint_max, slot_limits, decay_bps_per_day, fitout]
-    note: "level 1 is the legacy private_cottage (capacity 2), level 2 the private_house (capacity 4, carpentry); the treasury cottage is capacity 4 (0041 8.3). Supplies workers, burns firewood at the day tick; no staff."
+    needs_research: [footprint_max, decay_bps_per_day, fitout]
+    note: "level 1 is the legacy private_cottage (capacity 2), level 2 the private_house (capacity 4, carpentry); the treasury cottage is capacity 4 (0041 8.3). B1: a level includes the modules it adds (their cost is the level's); every module beyond that is built on its own (its cost and shifts) while the floor area lasts. The kitchen, the water barrel and the workbench of the ADR have no rule that reads them yet (food at home is B3, crafting B2): they are listed in the slots but cannot be built, and level 2 no longer adds the kitchen and the workbench. Housing and personal storage come from the bedrooms and storerooms; a hearth makes a rest warm. No staff."
   - code: stall
     source: "ADR 0040 15, 16, 0041 8.33"
     evidence: adr
@@ -166,16 +166,16 @@ building_functions:
     zones: [core]
     footprint: [1, 1, 1, 1]
     owners: [player]
-    slots: [{module: shelves, max: 1}]
+    slots: [{module: shelves, max: 3}]
     levels:
-      - {level: 1, adds: [shelves], requires: {buildings: [{code: barter_post}]}, cost_money: 500, cost_materials: {timber: 2}, build_hours: 1}
+      - {level: 1, building: market_stall, adds: [shelves], requires: {buildings: [{code: barter_post}]}, cost_money: 500, cost_materials: {timber: 2}, build_hours: 1}
     staff: [{role: stall_keeper, slots: 1, shift_hours: 4}]
     if_unstaffed: idle
     produces: {service: stall_sales}
     ledger_reasons: [stall_rent, stall_rent_levy, npc_customer_sale]
     replaces: [market_stall]
-    needs_research: [wage_bps, food_points, slot_limits, decay_bps_per_day]
-    note: "the owner tends it himself or hires a stall_keeper (ADR 0040 16.4); open only while a village market stands (market_access capability, legacy requires_knowledge_capability). A leased stall is a lease on this function (commercial_leases), not another function."
+    needs_research: [wage_bps, food_points, decay_bps_per_day]
+    note: "the owner tends it himself or hires a stall_keeper (ADR 0040 16.4); open only while a village market stands (market_access capability, legacy requires_knowledge_capability). B1: each shelf is one stall of the owner's own on the village book (no listing fee, no common stall used); the owner tends it by being in the settlement (a hired keeper is not built). A leased stall is a lease on this function (commercial_leases), not another function."
   - code: general_store
     source: "ADR 0046 5.1"
     evidence: adr
@@ -209,9 +209,9 @@ building_functions:
     zones: [core, residential, industry]
     footprint: [2, 1, 2, 1]
     owners: [player]
-    slots: [{module: workbench, max: 2}, {module: shelves, max: 1}]
+    slots: [{module: workbench, max: 1}, {module: shelves, max: 2}]
     levels:
-      - {level: 1, adds: [workbench, shelves], requires: {knowledge: [carpentry]}, cost_money: 1500, cost_materials: {timber: 6}, build_hours: 3}
+      - {level: 1, building: home_workshop, adds: [workbench], requires: {knowledge: [carpentry]}, cost_money: 1500, cost_materials: {timber: 6}, build_hours: 3}
     staff: [{role: labourer, slots: 1, shift_hours: 2}]
     if_unstaffed: idle
     consumes: {food_points: 2}
@@ -220,7 +220,7 @@ building_functions:
     ledger_reasons: [home_production_input, home_production_output]
     replaces: [home_workshop]
     needs_research: [wage_bps, tool_wear_bps, yield_note]
-    note: "the small private form: runs the home recipes at 90 percent yield (ADR 0040 17); the owner or a hired worker works it. Recipes list only when their research is known."
+    note: "the small private form: runs the home recipes at 90 percent yield (ADR 0040 17); the owner or a hired worker works it. Recipes list only when their research is known. B1: the bench comes with the function and the owner adds shelves (stock room, +60 spaces each); what the bench makes is personal crafting, ADR 0045 phase B2."
 
   # ---- wood, stone, charcoal, iron (ADR 0041 8.4, 8.10, 8.11, 8.12, 0045 4.3) ----
   - code: woodcutter_yard

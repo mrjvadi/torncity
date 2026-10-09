@@ -213,7 +213,7 @@ func (r *SettlementTreasuryRepository) FinishLaborShift(ctx context.Context, id 
 // SiteShifts lists a building's construction shifts in progress.
 func (r *SettlementTreasuryRepository) SiteShifts(ctx context.Context, buildingID string) ([]application.SettlementShift, error) {
 	rows, err := r.q.Query(ctx, `SELECT `+shiftColumns+`
-		FROM settlement_shifts WHERE building_id = $1::uuid AND status = 'working' AND kind = 'construction'
+		FROM settlement_shifts WHERE building_id = $1::uuid AND status = 'working' AND kind IN ('construction', 'fitout')
 		ORDER BY started_at, id`, buildingID)
 	if err != nil {
 		return nil, fmt.Errorf("postgres: listing site shifts: %w", err)

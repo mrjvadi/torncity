@@ -1205,6 +1205,23 @@ settlement:
   spawn_circle_fill_band_km: 120
   # How many full or empty (sea) circles one founding may skip before it falls back to the old lattice.
   spawn_circle_max_advance: 200
+  # The lot a resident builds (ADR 0045 phase B1): the owner chooses the function and what is inside, the game builds
+  # it. Floor area: a footprint cell gives this much per storey; a bedroom takes 2, a hearth or a storeroom 1, a
+  # cellar none (configs/content/building_functions.yml, module_kinds). A storey costs per footprint cell: timber,
+  # and stone from the third storey up; the support table says how many storeys the settlement's knowledge allows
+  # ("knowledge=storeys", one storey with none). Taking a module out gives back building_salvage_bps of its
+  # materials. A change of use costs use_change_fee_bps of the building's assessed value (ADR 0044 5.5; at most
+  # 1000). A look differs from its neighbours' by up to building_look_rerolls re-rolls of its seed.
+  building_area_per_cell: 6
+  building_storey_timber_per_cell: 4
+  building_storey_stone_per_cell: 6
+  building_storey_stone_from: 3
+  building_storey_shifts_per_cell: 4
+  building_storey_knowledge: ["carpentry_ii=2", "masonry=2", "masonry_ii=3", "masonry_iii=5"]
+  building_salvage_bps: 3000
+  use_change_fee_bps: 200
+  building_look_rerolls: 8
+  building_templates_max: 20
   # Biome codes (configs/content/world.yml) a village may never be placed
   # on: only truly uninhabitable land. Harsh but livable biomes are not
   # banned; they cost score through biome_penalties below.

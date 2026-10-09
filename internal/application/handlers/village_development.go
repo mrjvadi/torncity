@@ -57,10 +57,14 @@ func (h *VillageHandler) developmentOf(ctx context.Context, tx application.Tx, s
 			levels[d.Role] = d.Tier
 		}
 	}
+	housing, herr := h.housingNow(ctx, tx, snap, s.CityID, buildings)
+	if herr != nil {
+		return nil, herr
+	}
 	v := &village.DevelopmentView{
 		Village: s.Name, SettlementID: s.CityID,
 		Dimensions: []village.DevelopmentDimension{
-			{Code: village.DevelopmentPeople, Load: residents, Capacity: housingOf(snap, buildings)},
+			{Code: village.DevelopmentPeople, Load: residents, Capacity: housing},
 			{Code: village.DevelopmentBuildings, Load: standing},
 			{Code: village.DevelopmentKnowledge, Load: int64(len(owned))},
 		},

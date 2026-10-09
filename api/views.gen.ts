@@ -3231,6 +3231,17 @@ export interface LotAccessView {
   building: Named
 }
 
+export interface LotAdditionLine {
+  module: Named
+  left: number
+  materials: WorkItemLine[] | null
+  shifts: number
+  area_each: number
+  can: boolean
+  reason: string
+  needs: VillageNeed[] | null
+}
+
 export interface LotBatchConfirmView {
   settlement_name: string
   building: Named
@@ -3244,6 +3255,19 @@ export interface LotBatchConfirmView {
 export interface LotBatchLot {
   x: number
   y: number
+}
+
+export interface LotBuildingLine {
+  id: string
+  building: Named
+  x: number
+  y: number
+  function: string
+  function_name: string
+  level: number
+  storeys: number
+  built: boolean
+  has_order: boolean
 }
 
 export interface LotBuyView {
@@ -3282,6 +3306,30 @@ export interface LotConfirmView {
   auto_roads: number
 }
 
+export interface LotFunctionChoice {
+  function: Named
+  family: string
+  current: boolean
+  available: boolean
+  needs: VillageNeed[] | null
+  cost_money: number
+  materials: WorkItemLine[] | null
+  shifts: number
+  fee_sup: number
+  permit_fee: number
+  effects: string[] | null
+}
+
+export interface LotFunctionLine {
+  code: string
+  name: string
+  family: string
+  level: number
+  max_level: number
+  status: string
+  permit: string
+}
+
 export interface LotGridView {
   outer: LotCell[] | null
   settlement_name: string
@@ -3297,11 +3345,114 @@ export interface LotGridView {
   win_y: number
 }
 
+export interface LotLook {
+  version: number
+  function: string
+  level: number
+  w: number
+  d: number
+  storeys: number
+  material: string
+  roof: string
+  modules: Record<string, number> | null
+  condition: number
+  seed: number
+  palette: string
+  wobble: number
+  windows: number
+  door: string
+  hue: number
+  prop: string
+  chimney: boolean
+  awning: boolean
+}
+
+export interface LotManageView {
+  village: string
+  stage: string
+  action: string
+  buildings: LotBuildingLine[] | null
+  id: string
+  building: Named
+  x: number
+  y: number
+  w: number
+  d: number
+  mine: boolean
+  public: boolean
+  can_manage: boolean
+  built: boolean
+  function: LotFunctionLine
+  storeys: number
+  max_storeys: number
+  stability_bps: number
+  area_used: number
+  area_capacity: number
+  modules: LotModuleLine[] | null
+  additions: LotAdditionLine[] | null
+  upgrade: LotUpgradeLine | null
+  storey_up: LotStoreyLine | null
+  functions: LotFunctionChoice[] | null
+  work: LotWorkLine | null
+  staff: LotStaffLine[] | null
+  housing_capacity: number
+  personal_storage: number
+  stall_slots: number
+  if_unstaffed: string
+  condition_bps: number
+  look: LotLook | null
+  templates: LotTemplateLine[] | null
+  cash: number
+  quote: LotQuote | null
+  reason: string
+  needs: VillageNeed[] | null
+  code: string
+  n: number
+  name: string
+  share_code: string
+}
+
+export interface LotMaterialLine {
+  item: Named
+  need: number
+  have: number
+}
+
+export interface LotModuleLine {
+  module: Named
+  count: number
+  included: number
+  max: number
+  effect: string
+  area_each: number
+  housing_capacity: number
+  personal_storage: number
+  stall_slots: number
+  removable: boolean
+}
+
 export interface LotNearby {
   x: number
   y: number
   distance: number
   access: LotAccess
+}
+
+export interface LotQuote {
+  materials: LotMaterialLine[] | null
+  money: number
+  fee_sup: number
+  permit_fee: number
+  wages: number
+  shifts: number
+  cash: number
+  total: number
+  adds: LotWorkAdd[] | null
+  level_to: number
+  storeys_to: number
+  convert_to: Named
+  salvage: WorkItemLine[] | null
+  skipped: Named[] | null
 }
 
 export interface LotRef {
@@ -3321,6 +3472,64 @@ export interface LotRepairView {
   roads: number
   crossings: number
   carved: number
+}
+
+export interface LotStaffLine {
+  role: string
+  slots: number
+}
+
+export interface LotStoreyLine {
+  to: number
+  materials: WorkItemLine[] | null
+  shifts: number
+  can: boolean
+  reason: string
+}
+
+export interface LotTemplateLine {
+  id: string
+  name: string
+  code: string
+  function: Named
+  level: number
+  storeys: number
+  modules: LotWorkAdd[] | null
+  mine: boolean
+  applicable: boolean
+  reason: string
+}
+
+export interface LotUpgradeLine {
+  to: number
+  building: Named
+  cost_money: number
+  materials: WorkItemLine[] | null
+  shifts: number
+  adds: Named[] | null
+  can: boolean
+  reason: string
+  needs: VillageNeed[] | null
+}
+
+export interface LotWorkAdd {
+  module: Named
+  count: number
+}
+
+export interface LotWorkLine {
+  id: string
+  adds: LotWorkAdd[] | null
+  level_to: number
+  storeys_to: number
+  convert_to: Named
+  shifts_total: number
+  work_done: number
+  work_needed: number
+  progress_bps: number
+  job_open: boolean
+  paused: string
+  status: string
 }
 
 export interface MapCity {
@@ -6282,6 +6491,7 @@ export interface ScreenViews {
   loan_confirm: LoanConfirmView
   loan_detail: LoanDetailView
   loan_offer: LoanOfferView
+  lot_manage: LotManageView
   market: MarketView
   market_checkout: MarketCheckoutView
   market_filled_notice: MarketFilledView

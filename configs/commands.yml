@@ -465,6 +465,7 @@ commands:
   settlement.currency.desk: {channel: group, client: true}
   settlement.currency.fee: {channel: group, client: true}
   settlement.currency.reserve: {channel: both, client: true}
+  settlement.lot.manage: {channel: both, client: true}
   settlement.charter.election.open: {channel: group, client: true}
   settlement.charter.stand: {channel: group, client: true}
   settlement.charter.vote: {channel: group, client: true}

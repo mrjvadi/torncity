@@ -78,6 +78,32 @@ func (s *Snapshot) BuildingFunction(code string) (BuildingFunctionDef, bool) {
 	return f, ok
 }
 
+// BuildingFunctionCodes lists the function codes, sorted (ADR 0045 B1 reads them to offer the lot's functions).
+func (s *Snapshot) BuildingFunctionCodes() []string {
+	if s.schema == nil {
+		return nil
+	}
+	out := make([]string, 0, len(s.schema.functions))
+	for c := range s.schema.functions {
+		out = append(out, c)
+	}
+	sort.Strings(out)
+	return out
+}
+
+// ModuleKindCodes lists the module kind codes, sorted.
+func (s *Snapshot) ModuleKindCodes() []string {
+	if s.schema == nil {
+		return nil
+	}
+	out := make([]string, 0, len(s.schema.modules))
+	for c := range s.schema.modules {
+		out = append(out, c)
+	}
+	sort.Strings(out)
+	return out
+}
+
 // MealFood is a food a kitchen may open for a meal and the points one unit gives.
 type MealFood struct {
 	Item   string

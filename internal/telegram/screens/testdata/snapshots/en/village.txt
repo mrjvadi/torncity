@@ -850,6 +850,7 @@ Cash total: 954 SUP
 📊 Property tax: 2% of the value 1,245 SUP each period, that is 24 SUP
   ───
   [🏡 Buy land] → settlement:land   │   [🏠 Build a house] → settlement:private
+  [🏠 Manage my lot] → settlement:lot.manage
   [🛋 Rest at home] → settlement:home.rest
   [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:mine
 
@@ -868,6 +869,7 @@ Cash total: 954 SUP
 ⚠️ Tax debt: 48 SUP (2 periods)
   ───
   [🏡 Buy land] → settlement:land   │   [🏠 Build a house] → settlement:private
+  [🏠 Manage my lot] → settlement:lot.manage
   [💳 Pay tax (48 SUP)] → settlement:tax.pay
   [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:mine
 

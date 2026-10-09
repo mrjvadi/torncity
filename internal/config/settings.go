@@ -373,37 +373,47 @@ type growthSettings struct {
 }
 
 type settlementSettings struct {
-	ProtectionWindow        *string  `yaml:"protection_window"`
-	ResidenceCooldown       *string  `yaml:"residence_cooldown"`
-	TimezoneCooldown        *string  `yaml:"timezone_cooldown"`
-	HomeCityCode            *string  `yaml:"home_city_code"`
-	PropertyHubMinStage     *string  `yaml:"property_hub_min_stage"`
-	MinSpawnDistanceKm      *float64 `yaml:"min_spawn_distance_km"`
-	ThreatRadiusKm          *float64 `yaml:"threat_radius_km"`
-	SearchMaxCells          *int     `yaml:"search_max_cells"`
-	SearchMaxAttempts       *int     `yaml:"search_max_attempts"`
-	SpawnCircleRadiusKm     *float64 `yaml:"spawn_circle_radius_km"`
-	SpawnCircleCapacity     *int     `yaml:"spawn_circle_capacity"`
-	SpawnCircleFillBandKm   *float64 `yaml:"spawn_circle_fill_band_km"`
-	SpawnCircleMaxAdvance   *int     `yaml:"spawn_circle_max_advance"`
-	ExcludedBiomes          []string `yaml:"excluded_biomes"`
-	MaxAbsLatitudeDeg       *float64 `yaml:"max_abs_latitude_deg"`
-	BiomePenalties          []string `yaml:"biome_penalties"`
-	VillageGridLots         *int     `yaml:"village_grid_lots"`
-	MinBuildableLotShareBps *int     `yaml:"min_buildable_lot_share_bps"`
-	GridShiftMaxLots        *int     `yaml:"grid_shift_max_lots"`
-	AutoRoadCost            *int64   `yaml:"auto_road_cost"`
-	LotAccessCrossingCost   *int64   `yaml:"lot_access_crossing_cost"`
-	LotAccessMaxCrossing    *int     `yaml:"lot_access_max_crossing"`
-	StreetPitch             *int     `yaml:"street_pitch"`
-	StreetPlanMinGrid       *int     `yaml:"street_plan_min_grid"`
-	RoadFrontageDepthLots   *int     `yaml:"road_frontage_depth_lots"`
-	RoadPlanMaxLots         *int     `yaml:"road_plan_max_lots"`
-	RoadOpenLotsMax         *int     `yaml:"road_open_lots_max"`
-	RoadForeignBufferTiles  *int     `yaml:"road_foreign_buffer_tiles"`
-	RoadSteepSlopeM         *int     `yaml:"road_steep_slope_m"`
-	RoadCorridorRingTiles   *int     `yaml:"road_corridor_ring_tiles"`
-	RoadTrackCostBPS        *int     `yaml:"road_track_cost_bps"`
+	ProtectionWindow            *string  `yaml:"protection_window"`
+	ResidenceCooldown           *string  `yaml:"residence_cooldown"`
+	TimezoneCooldown            *string  `yaml:"timezone_cooldown"`
+	HomeCityCode                *string  `yaml:"home_city_code"`
+	PropertyHubMinStage         *string  `yaml:"property_hub_min_stage"`
+	MinSpawnDistanceKm          *float64 `yaml:"min_spawn_distance_km"`
+	ThreatRadiusKm              *float64 `yaml:"threat_radius_km"`
+	SearchMaxCells              *int     `yaml:"search_max_cells"`
+	SearchMaxAttempts           *int     `yaml:"search_max_attempts"`
+	SpawnCircleRadiusKm         *float64 `yaml:"spawn_circle_radius_km"`
+	SpawnCircleCapacity         *int     `yaml:"spawn_circle_capacity"`
+	SpawnCircleFillBandKm       *float64 `yaml:"spawn_circle_fill_band_km"`
+	SpawnCircleMaxAdvance       *int     `yaml:"spawn_circle_max_advance"`
+	BuildingAreaPerCell         *int     `yaml:"building_area_per_cell"`
+	BuildingStoreyTimberPerCell *int     `yaml:"building_storey_timber_per_cell"`
+	BuildingStoreyStonePerCell  *int     `yaml:"building_storey_stone_per_cell"`
+	BuildingStoreyStoneFrom     *int     `yaml:"building_storey_stone_from"`
+	BuildingStoreyShiftsPerCell *int     `yaml:"building_storey_shifts_per_cell"`
+	BuildingStoreyKnowledge     []string `yaml:"building_storey_knowledge"`
+	BuildingSalvageBPS          *int     `yaml:"building_salvage_bps"`
+	UseChangeFeeBPS             *int     `yaml:"use_change_fee_bps"`
+	BuildingLookRerolls         *int     `yaml:"building_look_rerolls"`
+	BuildingTemplatesMax        *int     `yaml:"building_templates_max"`
+	ExcludedBiomes              []string `yaml:"excluded_biomes"`
+	MaxAbsLatitudeDeg           *float64 `yaml:"max_abs_latitude_deg"`
+	BiomePenalties              []string `yaml:"biome_penalties"`
+	VillageGridLots             *int     `yaml:"village_grid_lots"`
+	MinBuildableLotShareBps     *int     `yaml:"min_buildable_lot_share_bps"`
+	GridShiftMaxLots            *int     `yaml:"grid_shift_max_lots"`
+	AutoRoadCost                *int64   `yaml:"auto_road_cost"`
+	LotAccessCrossingCost       *int64   `yaml:"lot_access_crossing_cost"`
+	LotAccessMaxCrossing        *int     `yaml:"lot_access_max_crossing"`
+	StreetPitch                 *int     `yaml:"street_pitch"`
+	StreetPlanMinGrid           *int     `yaml:"street_plan_min_grid"`
+	RoadFrontageDepthLots       *int     `yaml:"road_frontage_depth_lots"`
+	RoadPlanMaxLots             *int     `yaml:"road_plan_max_lots"`
+	RoadOpenLotsMax             *int     `yaml:"road_open_lots_max"`
+	RoadForeignBufferTiles      *int     `yaml:"road_foreign_buffer_tiles"`
+	RoadSteepSlopeM             *int     `yaml:"road_steep_slope_m"`
+	RoadCorridorRingTiles       *int     `yaml:"road_corridor_ring_tiles"`
+	RoadTrackCostBPS            *int     `yaml:"road_track_cost_bps"`
 
 	FoundingDraftTTL          *string `yaml:"founding_draft_ttl"`
 	FoundingNameMin           *int    `yaml:"founding_name_min"`
@@ -1323,6 +1333,36 @@ var coreSettings = []setting{
 	limitSetting("settlement", "spawn_circle_max_advance",
 		func(c *Config) *int { return &c.Settlement.SpawnCircleMaxAdvance },
 		func(f *fileConfig) *int { return f.Settlement.SpawnCircleMaxAdvance }),
+	limitSetting("settlement", "building_area_per_cell",
+		func(c *Config) *int { return &c.Settlement.BuildingAreaPerCell },
+		func(f *fileConfig) *int { return f.Settlement.BuildingAreaPerCell }),
+	limitSetting("settlement", "building_storey_timber_per_cell",
+		func(c *Config) *int { return &c.Settlement.BuildingStoreyTimberPerCell },
+		func(f *fileConfig) *int { return f.Settlement.BuildingStoreyTimberPerCell }),
+	limitSetting("settlement", "building_storey_stone_per_cell",
+		func(c *Config) *int { return &c.Settlement.BuildingStoreyStonePerCell },
+		func(f *fileConfig) *int { return f.Settlement.BuildingStoreyStonePerCell }),
+	limitSetting("settlement", "building_storey_stone_from",
+		func(c *Config) *int { return &c.Settlement.BuildingStoreyStoneFrom },
+		func(f *fileConfig) *int { return f.Settlement.BuildingStoreyStoneFrom }),
+	limitSetting("settlement", "building_storey_shifts_per_cell",
+		func(c *Config) *int { return &c.Settlement.BuildingStoreyShiftsPerCell },
+		func(f *fileConfig) *int { return f.Settlement.BuildingStoreyShiftsPerCell }),
+	limitSetting("settlement", "building_salvage_bps",
+		func(c *Config) *int { return &c.Settlement.BuildingSalvageBPS },
+		func(f *fileConfig) *int { return f.Settlement.BuildingSalvageBPS }),
+	limitSetting("settlement", "use_change_fee_bps",
+		func(c *Config) *int { return &c.Settlement.UseChangeFeeBPS },
+		func(f *fileConfig) *int { return f.Settlement.UseChangeFeeBPS }),
+	limitSetting("settlement", "building_look_rerolls",
+		func(c *Config) *int { return &c.Settlement.BuildingLookRerolls },
+		func(f *fileConfig) *int { return f.Settlement.BuildingLookRerolls }),
+	limitSetting("settlement", "building_templates_max",
+		func(c *Config) *int { return &c.Settlement.BuildingTemplatesMax },
+		func(f *fileConfig) *int { return f.Settlement.BuildingTemplatesMax }),
+	stringListSetting("settlement", "building_storey_knowledge",
+		func(c *Config) *[]string { return &c.Settlement.BuildingStoreyKnowledge },
+		func(f *fileConfig) []string { return f.Settlement.BuildingStoreyKnowledge }),
 	stringListSetting("settlement", "excluded_biomes",
 		func(c *Config) *[]string { return &c.Settlement.ExcludedBiomes },
 		func(f *fileConfig) []string { return f.Settlement.ExcludedBiomes }),

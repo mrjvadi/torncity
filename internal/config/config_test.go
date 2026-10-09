@@ -582,6 +582,16 @@ settlement:
   spawn_circle_capacity: 13
   spawn_circle_fill_band_km: 121
   spawn_circle_max_advance: 201
+  building_area_per_cell: 7
+  building_storey_timber_per_cell: 5
+  building_storey_stone_per_cell: 7
+  building_storey_stone_from: 4
+  building_storey_shifts_per_cell: 5
+  building_storey_knowledge: ["masonry=2"]
+  building_salvage_bps: 3100
+  use_change_fee_bps: 201
+  building_look_rerolls: 9
+  building_templates_max: 21
   excluded_biomes: [polar_ice, glacier]
   max_abs_latitude_deg: 66.5
   biome_penalties: ["desert=5", "tundra=7"]
@@ -1106,6 +1116,16 @@ var envOverrides = map[string]string{
 	"TORN_SETTLEMENT_SPAWN_CIRCLE_CAPACITY":            "14",
 	"TORN_SETTLEMENT_SPAWN_CIRCLE_FILL_BAND_KM":        "122",
 	"TORN_SETTLEMENT_SPAWN_CIRCLE_MAX_ADVANCE":         "202",
+	"TORN_SETTLEMENT_BUILDING_AREA_PER_CELL":           "8",
+	"TORN_SETTLEMENT_BUILDING_STOREY_TIMBER_PER_CELL":  "6",
+	"TORN_SETTLEMENT_BUILDING_STOREY_STONE_PER_CELL":   "8",
+	"TORN_SETTLEMENT_BUILDING_STOREY_STONE_FROM":       "5",
+	"TORN_SETTLEMENT_BUILDING_STOREY_SHIFTS_PER_CELL":  "6",
+	"TORN_SETTLEMENT_BUILDING_STOREY_KNOWLEDGE":        "masonry=3",
+	"TORN_SETTLEMENT_BUILDING_SALVAGE_BPS":             "3200",
+	"TORN_SETTLEMENT_USE_CHANGE_FEE_BPS":               "202",
+	"TORN_SETTLEMENT_BUILDING_LOOK_REROLLS":            "10",
+	"TORN_SETTLEMENT_BUILDING_TEMPLATES_MAX":           "22",
 	"TORN_SETTLEMENT_EXCLUDED_BIOMES":                  "polar_ice, ice_sheet",
 	"TORN_SETTLEMENT_MAX_ABS_LATITUDE_DEG":             "64.5",
 	"TORN_SETTLEMENT_BIOME_PENALTIES":                  "desert=6, tundra=8",

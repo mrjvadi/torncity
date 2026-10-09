@@ -1639,3 +1639,7 @@ road_class:
 # The default title of the founder's office in a settlement's charter; the players rename it.
 charter:
   default_title: "شهردار"
+
+# The default name of a saved layout (docs/adr/0045 B1): a button cannot carry a name.
+lot:
+  template_default: "قالب {n}"

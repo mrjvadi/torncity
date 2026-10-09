@@ -401,8 +401,11 @@ func (l *schemaLint) moduleKinds() {
 				l.bad("%s: cost uses unknown item %q", key, it)
 			}
 		}
-		if m.BuildShifts < 0 || m.DecayBPSPerDay < 0 || m.DecayBPSPerDay > 10000 {
-			l.bad("%s: build_shifts or decay out of range", key)
+		if m.BuildShifts < 0 || m.DecayBPSPerDay < 0 || m.DecayBPSPerDay > 10000 || m.Area < 0 {
+			l.bad("%s: build_shifts, area or decay out of range", key)
+		}
+		if len(m.CostMaterials) > 0 && m.BuildShifts <= 0 {
+			l.bad("%s: a module that costs materials needs build_shifts (the labour it takes)", key)
 		}
 		l.needs(key, m.Requires)
 	}
@@ -493,6 +496,15 @@ func (l *schemaLint) functions() {
 			}
 			if lv.CostMoney < 0 || lv.BuildHours < 0 {
 				l.bad("%s: negative cost or build time", w)
+			}
+			if lv.Building != "" {
+				found := false
+				for _, r := range f.Replaces {
+					found = found || r == lv.Building
+				}
+				if !found {
+					l.bad("%s: building %q is not one of the function's replaces", w, lv.Building)
+				}
 			}
 		}
 		l.needs(key, f.Requires)

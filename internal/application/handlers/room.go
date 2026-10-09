@@ -10,6 +10,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/domain/carry"
 	"github.com/mrjvadi/torncity/internal/domain/gametime"
 	"github.com/mrjvadi/torncity/internal/domain/item"
+	"github.com/mrjvadi/torncity/internal/domain/lotbuild"
 	"github.com/mrjvadi/torncity/internal/presentation"
 	"github.com/mrjvadi/torncity/internal/presentation/economy"
 )
@@ -154,7 +155,27 @@ func homeCapacity(ctx context.Context, tx application.Tx, snap *content.Snapshot
 		return 0, nil, err
 	}
 	settlements = map[string]bool{}
+	kit := kitOf(snap)
 	for _, s := range held {
+		// the shelves and storerooms the owner built beyond what the old catalogue counted (docs/adr/0045 B1)
+		var ids []string
+		for _, b := range s.Buildings {
+			if b.Status == "complete" {
+				ids = append(ids, b.BuildingID)
+			}
+		}
+		fns, ferr := tx.SettlementBuildings().FunctionsOfBuildings(ctx, application.BuildingRefSettlement, ids)
+		if ferr != nil {
+			return 0, nil, ferr
+		}
+		for i := range fns {
+			if spec, ok := kit.specs[fns[i].Function]; ok {
+				if extra := lotbuild.Provided(spec, kit.mods, compositionOf(&fns[i]), "personal_storage", false); extra > 0 {
+					capacity += extra
+					settlements[s.SettlementID] = true
+				}
+			}
+		}
 		for _, b := range s.Buildings {
 			if b.Status != "complete" {
 				continue

@@ -822,6 +822,23 @@ type Settlement struct {
 	SpawnCircleFillBandKm float64 // settlement.spawn_circle_fill_band_km
 	SpawnCircleMaxAdvance int     // settlement.spawn_circle_max_advance
 
+	// The lot a resident builds (ADR 0045 phase B1, section 3): BuildingAreaPerCell is the floor area a footprint
+	// cell gives per storey; the storey_* fields the materials and the work of a storey per footprint cell (timber,
+	// stone from BuildingStoreyStoneFrom up) and the support table "knowledge=storeys"; BuildingSalvageBPS the
+	// share of a removed module's materials that comes back; UseChangeFeeBPS the fee of a change of use (basis
+	// points of the building's assessed value, at most 1000); BuildingLookRerolls how often the generated look is
+	// re-rolled to differ from a neighbour; BuildingTemplatesMax how many saved layouts a player keeps.
+	BuildingAreaPerCell         int      // settlement.building_area_per_cell
+	BuildingStoreyTimberPerCell int      // settlement.building_storey_timber_per_cell
+	BuildingStoreyStonePerCell  int      // settlement.building_storey_stone_per_cell
+	BuildingStoreyStoneFrom     int      // settlement.building_storey_stone_from
+	BuildingStoreyShiftsPerCell int      // settlement.building_storey_shifts_per_cell
+	BuildingStoreyKnowledge     []string // settlement.building_storey_knowledge
+	BuildingSalvageBPS          int      // settlement.building_salvage_bps
+	UseChangeFeeBPS             int      // settlement.use_change_fee_bps
+	BuildingLookRerolls         int      // settlement.building_look_rerolls
+	BuildingTemplatesMax        int      // settlement.building_templates_max
+
 	// ExcludedBiomes are biome codes a village may never be placed on: only
 	// truly uninhabitable land (polar_ice). Harsh but livable biomes are
 	// penalised through BiomePenalties instead (section 3.2 step 3).
@@ -1709,23 +1726,33 @@ func Defaults() *Config {
 			FlushInterval: 30 * time.Second,
 		},
 		Settlement: Settlement{
-			ProtectionWindow:      168 * time.Hour,
-			ResidenceCooldown:     72 * time.Hour,
-			TimezoneCooldown:      168 * time.Hour,
-			HomeCityCode:          "support",
-			PropertyHubMinStage:   "town",
-			MinSpawnDistanceKm:    30,
-			ThreatRadiusKm:        150,
-			SearchMaxCells:        2000,
-			SearchMaxAttempts:     200,
-			SpawnCircleRadiusKm:   300,
-			SpawnCircleCapacity:   12,
-			SpawnCircleFillBandKm: 120,
-			SpawnCircleMaxAdvance: 200,
-			ExcludedBiomes:        []string{"polar_ice"},
-			MaxAbsLatitudeDeg:     70,
-			BiomePenalties:        []string{"desert=4", "tundra=6", "boreal_forest=1"},
-			VillageGridLots:       5,
+			ProtectionWindow:            168 * time.Hour,
+			ResidenceCooldown:           72 * time.Hour,
+			TimezoneCooldown:            168 * time.Hour,
+			HomeCityCode:                "support",
+			PropertyHubMinStage:         "town",
+			MinSpawnDistanceKm:          30,
+			ThreatRadiusKm:              150,
+			SearchMaxCells:              2000,
+			SearchMaxAttempts:           200,
+			SpawnCircleRadiusKm:         300,
+			SpawnCircleCapacity:         12,
+			SpawnCircleFillBandKm:       120,
+			SpawnCircleMaxAdvance:       200,
+			BuildingAreaPerCell:         6,
+			BuildingStoreyTimberPerCell: 4,
+			BuildingStoreyStonePerCell:  6,
+			BuildingStoreyStoneFrom:     3,
+			BuildingStoreyShiftsPerCell: 4,
+			BuildingStoreyKnowledge:     []string{"carpentry_ii=2", "masonry=2", "masonry_ii=3", "masonry_iii=5"},
+			BuildingSalvageBPS:          3000,
+			UseChangeFeeBPS:             200,
+			BuildingLookRerolls:         8,
+			BuildingTemplatesMax:        20,
+			ExcludedBiomes:              []string{"polar_ice"},
+			MaxAbsLatitudeDeg:           70,
+			BiomePenalties:              []string{"desert=4", "tundra=6", "boreal_forest=1"},
+			VillageGridLots:             5,
 
 			MinBuildableLotShareBps: 7000,
 			GridShiftMaxLots:        3,
