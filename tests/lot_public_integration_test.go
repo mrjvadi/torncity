@@ -56,6 +56,8 @@ func TestThePublicBuildHolderOrdersOnTheSettlementsOwnBuilding(t *testing.T) {
 	if e.supportTreasuryOf() >= t0 && e.scalar(`SELECT count(*) FROM local_payments WHERE settlement_id = $1::uuid AND direction = 'pay'`, e.cityID) == 0 {
 		t.Error("the treasury paid no wage")
 	}
-	t.Cleanup(func() { _, _ = e.pool.Raw().Exec(context.Background(), `DELETE FROM org_stacks WHERE org_kind = 'settlement' AND org_id = $1::uuid`, e.cityID) })
+	t.Cleanup(func() {
+		_, _ = e.pool.Raw().Exec(context.Background(), `DELETE FROM org_stacks WHERE org_kind = 'settlement' AND org_id = $1::uuid`, e.cityID)
+	})
 	e.verifyLots()
 }

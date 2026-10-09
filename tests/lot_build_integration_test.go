@@ -288,7 +288,9 @@ func TestTheLotRefusesWhatTheTownCannotDo(t *testing.T) {
 	if _, err := e.pool.Raw().Exec(testCtx(t), `INSERT INTO settlement_knowledge_owned (id, settlement_id, code, acquired_via, acquired_at) VALUES (gen_random_uuid(), $1::uuid, 'carpentry', 'researched', now())`, e.cityID); err != nil {
 		t.Skipf("cannot give the knowledge in this schema: %v", err)
 	}
-	t.Cleanup(func() { _, _ = e.pool.Raw().Exec(context.Background(), `DELETE FROM settlement_knowledge_owned WHERE settlement_id = $1::uuid AND code = 'carpentry'`, e.cityID) })
+	t.Cleanup(func() {
+		_, _ = e.pool.Raw().Exec(context.Background(), `DELETE FROM settlement_knowledge_owned WHERE settlement_id = $1::uuid AND code = 'carpentry'`, e.cityID)
+	})
 	if v := ask(village.LotActionLevel, ""); v.Reason != village.LotReasonMaterials && v.Reason != "" {
 		t.Errorf("the house level with carpentry: %q", v.Reason)
 	}
