@@ -58,14 +58,15 @@ staff_roles:
   # `skill` is the trade the shifts train (a planned skill until the skill set in code
   # has it, audit M-04), `wage_bps` the wage class as basis points of the market wage.
   - {code: labourer, skill: "", wage_bps: 10000, support_npc: true, note: "ADR 0041 5.1"}
+  - {code: tanner, skill: "", wage_bps: 13000, support_npc: true, note: "owner 2026-10-10: a skilled trade, 130 SUP an hour; docs/adr/0057"}
   - {code: woodcutter, skill: forestry, wage_bps: 10000, support_npc: true, note: "ADR 0041 5.1"}
-  - {code: carpenter, crew: true, skill: carpentry, wage_bps: 12500, personal: [{kind: level, min: 2}], support_npc: true, note: "ADR 0041 5.1"}
-  - {code: mason, crew: true, skill: masonry, wage_bps: 12500, personal: [{kind: level, min: 2}], support_npc: true, note: "ADR 0041 5.1"}
-  - {code: smith, skill: smithing, wage_bps: 14000, personal: [{kind: level, min: 3}], support_npc: true, note: "ADR 0041 5.1"}
-  - {code: weaver, skill: weaving, wage_bps: 11000, support_npc: true, note: "ADR 0041 5.1"}
-  - {code: potter, skill: pottery, wage_bps: 11000, support_npc: true, note: "ADR 0041 5.1"}
-  - {code: miller, skill: milling, wage_bps: 11000, support_npc: true, note: "ADR 0041 5.1"}
-  - {code: baker, skill: baking, wage_bps: 11000, support_npc: true, note: "ADR 0041 5.1"}
+  - {code: carpenter, crew: true, skill: carpentry, wage_bps: 14000, support_npc: true, note: "ADR 0041 5.1; owner 2026-10-10: no level is asked, anyone may work the trade to learn it"}
+  - {code: mason, crew: true, skill: masonry, wage_bps: 14000, support_npc: true, note: "ADR 0041 5.1; owner 2026-10-10: no level is asked, anyone may work the trade to learn it"}
+  - {code: smith, skill: smithing, wage_bps: 15000, personal: [{kind: level, min: 3}], support_npc: true, note: "ADR 0041 5.1"}
+  - {code: weaver, skill: weaving, wage_bps: 13000, support_npc: true, note: "ADR 0041 5.1"}
+  - {code: potter, skill: pottery, wage_bps: 13000, support_npc: true, note: "ADR 0041 5.1"}
+  - {code: miller, skill: milling, wage_bps: 13000, support_npc: true, note: "ADR 0041 5.1"}
+  - {code: baker, skill: baking, wage_bps: 13000, support_npc: true, note: "ADR 0041 5.1"}
   - {code: storekeeper, skill: trade, wage_bps: 11000, personal: [{kind: literacy}], support_npc: true, note: "ADR 0041 5.1"}
   - {code: beacon_keeper, skill: vigilance, wage_bps: 10000, personal: [{kind: level, min: 1}], support_npc: true, note: "ADR 0042 8.9"}
   - {code: shopkeeper, building: {code: general_store}, skill: trade, wage_bps: 11000, personal: [{kind: literacy}], support_npc: true, note: "ADR 0046 5.1: the NPC citizen who keeps the village shop (the founding stall too); a player may hold the post later (ADR 0046 M5)"}

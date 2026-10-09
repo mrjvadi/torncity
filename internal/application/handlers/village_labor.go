@@ -405,10 +405,11 @@ func (h *VillageHandler) startLaborShift(ctx context.Context, tx application.Tx,
 		if !ok || b.Status != "complete" || len(d.Produces) == 0 {
 			return refuseVillage(village.LaborNoSite, village.AddrLaborBoard)
 		}
-		if cap := int64(d.Workers) * h.labor.NPCShiftsPerSlotDay; cap > 0 {
-			if n, err := repo.NPCShiftsSince(ctx, b.ID, localDayStart(now, s.Zone())); err != nil {
+		if cap := int64(d.Workers) * h.labor.NPCHoursPerSlotDay * 3600; cap > 0 {
+			shift := int64(h.scale.RealWait(d.Def().Work.Shift).Seconds())
+			if used, err := repo.NPCShiftSecondsSince(ctx, b.ID, localDayStart(now, s.Zone())); err != nil {
 				return err
-			} else if n >= cap {
+			} else if used+shift > cap {
 				return refuseVillage(village.LaborBudgetSpent, village.AddrLaborBoard)
 			}
 		}

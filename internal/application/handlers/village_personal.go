@@ -173,3 +173,49 @@ func courseNamed(snap *content.Snapshot, code string) presentation.Named {
 	ref := courseRef(snap, code)
 	return named(ref.Code, ref.Name)
 }
+
+// WithPersonal gives the education handler the rules of the personal prerequisites (the student's literacy).
+func (h *EducationHandler) WithPersonal(r PersonalRules) *EducationHandler {
+	h.personal = r
+	return h
+}
+
+// literacyGate is the student's literacy at a village class (owner, 2026-10-10): every class given in a founded
+// settlement except the literacy class itself asks the student to read. It returns the requirement the student fails
+// (nil when he reads, or nothing is asked), and whether it blocks now: from the rule date plus the grace on; before it
+// the requirement only warns, with the date, and where to learn to read.
+func (h *EducationHandler) literacyGate(ctx context.Context, tx application.Tx, snap *content.Snapshot, p *application.Player, code, cityID string, now time.Time,
+) (*presentation.Requirement, bool, error) {
+	if !h.personal.enabled() || code == literacyCourse || cityID == "" {
+		return nil, false, nil
+	}
+	if _, err := tx.Settlements().ByID(ctx, cityID); err != nil {
+		if isSentinel(err, application.ErrCityNotFound) {
+			return nil, false, nil // a class of the neutral city
+		}
+		return nil, false, err
+	}
+	certs, err := tx.Education().Certifications(ctx, p.ID)
+	if err != nil {
+		return nil, false, err
+	}
+	for _, c := range certs {
+		if c.CourseCode == literacyCourse {
+			return nil, false, nil
+		}
+	}
+	ref := courseRef(snap, literacyCourse)
+	req := &presentation.Requirement{Kind: presentation.ReqLiteracy, CourseCode: ref.Code, CourseName: ref.Name}
+	tag, tagged := snap.AvailabilityTag("course", literacyCourse)
+	if near, err := h.nearest(ctx, tag, tagged); err != nil {
+		return nil, false, err
+	} else if near != nil {
+		req.CityCode, req.City = near.Code, near.Name
+		req.Trip = tripTo(ctx, tx, h.trips, p, near)
+	}
+	if h.personal.InGrace(now) {
+		req.Until = h.personal.GraceUntil()
+		return req, false, nil
+	}
+	return req, true, nil
+}

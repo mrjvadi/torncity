@@ -504,7 +504,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	h.jobs, h.education = newWorkHandlers(uow, messages, registry, cities,
 		postgres.NewPolicyReader(pool, nil), gametime.Scale(cfg.Game.TimeScale), cfg.Game.IdempotencyTTL)
 	h.education.WithHomeCity(cfg.Settlement.HomeCityCode)
-	h.education.WithExperience(cfg.Settlement.ResearchExperiencePerShift)
+	h.education.WithExperience(cfg.Settlement.ResearchExperiencePerShift).WithPersonal(personalRules(cfg))
 	h.training = handlers.NewTrainingHandler(uow, uuidGenerator{}, messages, registry, cities, trainingRules(cfg.Training),
 		cfg.Settlement.HomeCityCode, cfg.Game.IdempotencyTTL, nil)
 	h.training.WithTrainer(h.village.TrainerSeat)

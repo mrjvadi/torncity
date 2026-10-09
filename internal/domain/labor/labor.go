@@ -79,8 +79,9 @@ type Rules struct {
 	// BudgetSlackBPS is how many more shifts than the work strictly needs an
 	// automatic job may be paid for (apprentices are slower).
 	BudgetSlackBPS int64
-	// NPCShiftsPerSlotDay is how many shifts an NPC may work at one post per local day.
-	NPCShiftsPerSlotDay int64
+	// NPCHoursPerSlotDay is how many hours of work an NPC crew may do at one post per local day (owner, 2026-10-10: 8):
+	// shorter shifts mean more shifts.
+	NPCHoursPerSlotDay int64
 	// HungryOutputBPS and HungryShiftHunger: see config labor.hungry_*.
 	HungryOutputBPS, HungryShiftHunger int64
 	RepairMaterialShareBPS             int64
@@ -117,8 +118,8 @@ func (r Rules) Validate() error {
 	if r.NPCProductivityBPS < 1 {
 		fail("npc productivity %d", r.NPCProductivityBPS)
 	}
-	if r.NPCShiftsPerSlotDay < 1 {
-		fail("npc shifts per slot day %d", r.NPCShiftsPerSlotDay)
+	if r.NPCHoursPerSlotDay < 1 || r.NPCHoursPerSlotDay > 24 {
+		fail("npc hours per slot day %d", r.NPCHoursPerSlotDay)
 	}
 	if r.FeeBPS < 0 || r.FeeBPS > BPS {
 		fail("fee %d", r.FeeBPS)
@@ -256,7 +257,7 @@ func Default() Rules {
 		ShiftMinutes: 60, ShiftRealMinutes: 1, ReferenceCrew: 4, BaseWage: 30,
 		MinWage:          map[string]int64{"village": 10, "town": 15, "city": 25},
 		Curve:            []Point{{0, 7_000}, {5_000, 10_000}, {10_000, 15_000}, {20_000, 25_000}},
-		ParticipationBPS: 6_000, BaseHousing: 8, NPCProductivityBPS: 8_500, FeeBPS: 500, BudgetSlackBPS: 5_000, NPCShiftsPerSlotDay: 10, HungryOutputBPS: 5_000, HungryShiftHunger: 5, RepairMaterialShareBPS: 2000, RepairShiftsFull: 10, WornOutputBPS: 7500, ClosedBPS: 2500, WornBPS: 5000, RepairBelowBPS: 7000, DecayBPSPerDay: 50,
+		ParticipationBPS: 6_000, BaseHousing: 8, NPCProductivityBPS: 8_500, FeeBPS: 500, BudgetSlackBPS: 5_000, NPCHoursPerSlotDay: 8, HungryOutputBPS: 5_000, HungryShiftHunger: 5, RepairMaterialShareBPS: 2000, RepairShiftsFull: 10, WornOutputBPS: 7500, ClosedBPS: 2500, WornBPS: 5000, RepairBelowBPS: 7000, DecayBPSPerDay: 50,
 		Levels: []Level{{"apprentice", 0, 7_000}, {"journeyman", 6, 10_000}, {"master", 30, 13_000}},
 	}
 }

@@ -117,3 +117,30 @@ func TestEveryResearchFieldHasARealSource(t *testing.T) {
 		}
 	}
 }
+
+// The wage classes (owner, 2026-10-10): the raw trades earn about 100 SUP a worker-hour, the skilled ones 130 to 150.
+func TestWorkplaceWagesFollowTheirClasses(t *testing.T) {
+	p := shippedPack(t)
+	snap, err := BuildSnapshot(1, p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	perHour := func(code string) int64 {
+		d, ok := snap.SettlementBuildingDef(code)
+		if !ok {
+			t.Fatalf("no building %s", code)
+		}
+		shift := d.Def().Work.Shift
+		return d.Wage * int64(time.Hour/shift)
+	}
+	for _, code := range []string{"woodcutter_camp", "small_pit", "farm_canal", "well", "iron_pit", "clay_pit", "pasture_range", "charcoal_clamp"} {
+		if got := perHour(code); got < 95 || got > 105 {
+			t.Errorf("%s: a raw trade should earn about 100 an hour, it earns %d", code, got)
+		}
+	}
+	for _, code := range []string{"carpentry_workshop", "masonry_workshop", "smithy", "bloomery", "weaving_shed", "pottery_kiln", "tannery", "brickworks", "paper_mill", "tool_workshop", "mill", "bakery"} {
+		if got := perHour(code); got < 128 || got > 152 {
+			t.Errorf("%s: a skilled trade should earn 130 to 150 an hour, it earns %d", code, got)
+		}
+	}
+}

@@ -599,6 +599,8 @@ job:
 
 # One line of a requirements list; {text} is one of the lines below it.
 requirement:
+  literacy: "reading and writing (the class {course})"
+  literacy_soon: "from {until} this class asks you to read and write (the class {course})"
   met: "✅ {text}"
   unmet: "❌ {text}"
   level: Level {level}

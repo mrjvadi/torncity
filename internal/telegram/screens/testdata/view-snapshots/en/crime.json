@@ -442,6 +442,7 @@
             "name": ""
           },
           "trip": null,
+          "until": null,
           "venues": [
             {
               "code": "city_centre",
@@ -536,6 +537,7 @@
             "name": ""
           },
           "trip": null,
+          "until": null,
           "venues": null,
           "wait_seconds": 0
         },
@@ -567,6 +569,7 @@
             "name": ""
           },
           "trip": null,
+          "until": null,
           "venues": null,
           "wait_seconds": 0
         },
@@ -598,6 +601,7 @@
             "name": ""
           },
           "trip": null,
+          "until": null,
           "venues": null,
           "wait_seconds": 0
         },
@@ -629,6 +633,7 @@
             "name": ""
           },
           "trip": null,
+          "until": null,
           "venues": null,
           "wait_seconds": 0
         },
@@ -660,6 +665,7 @@
             "name": ""
           },
           "trip": null,
+          "until": null,
           "venues": [
             {
               "code": "city_centre",
@@ -742,6 +748,7 @@
             "name": ""
           },
           "trip": null,
+          "until": null,
           "venues": null,
           "wait_seconds": 0
         }
@@ -864,6 +871,7 @@
             "name": "Lockpick set"
           },
           "trip": null,
+          "until": null,
           "venues": null,
           "wait_seconds": 0
         }
@@ -941,6 +949,7 @@
             "name": "Lockpick set"
           },
           "trip": null,
+          "until": null,
           "venues": null,
           "wait_seconds": 0
         }
@@ -2022,6 +2031,7 @@
             "name": ""
           },
           "trip": null,
+          "until": null,
           "venues": null,
           "wait_seconds": 0
         },
@@ -2053,6 +2063,7 @@
             "name": ""
           },
           "trip": null,
+          "until": null,
           "venues": null,
           "wait_seconds": 0
         }

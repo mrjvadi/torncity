@@ -1397,8 +1397,8 @@ type Labor struct {
 	NPCProductivityBPS int64 // labor.npc_productivity_bps
 	FeeBPS             int64 // labor.fee_bps
 	BudgetSlackBPS     int64 // labor.budget_slack_bps
-	// NPCShiftsPerSlotDay is how many shifts an NPC may work at one post per local day.
-	NPCShiftsPerSlotDay int64 // labor.npc_shifts_per_slot_day
+	// NPCHoursPerSlotDay is how many hours of work an NPC crew may do at one post per local day.
+	NPCHoursPerSlotDay int64 // labor.npc_hours_per_slot_day
 	// HungryOutputBPS is a hungry player's output at a workplace (they ate nothing);
 	// HungryShiftHunger the hunger points such a shift adds to their own need.
 	HungryOutputBPS        int64   // labor.hungry_output_bps
@@ -1954,7 +1954,7 @@ func Defaults() *Config {
 			NPCProductivityBPS:     8500,
 			FeeBPS:                 500,
 			BudgetSlackBPS:         5000,
-			NPCShiftsPerSlotDay:    10,
+			NPCHoursPerSlotDay:     8,
 			HungryOutputBPS:        5000,
 			HungryShiftHunger:      5,
 			RepairMaterialShareBPS: 2000,

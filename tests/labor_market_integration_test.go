@@ -704,9 +704,9 @@ func TestNPCCrewWorksAProductionJob(t *testing.T) {
 		l.end(s)
 	}
 	// the day's shifts are stamped with the game clock (the cap counts per local day of the game clock)
-	for i := 0; i < 40; i++ {
+	for i := 0; i < 40; i++ { // forty hour-long shifts: the day's cap of NPC hours (8 a slot) is spent
 		if _, err := l.pool.Raw().Exec(ctx, `INSERT INTO settlement_shifts (id, settlement_id, building_id, player_id, status, wage, wage_paid, produced, consumed,
-			game_action_id, started_at, finish_at, finished_at, kind, worker_kind) VALUES ($1::uuid, $2::uuid, $3::uuid, NULL, 'done', 0, 0, '{}', '{}', $4::uuid, $5, $5, $5, 'production', 'npc')`,
+			game_action_id, started_at, finish_at, finished_at, kind, worker_kind) VALUES ($1::uuid, $2::uuid, $3::uuid, NULL, 'done', 0, 0, '{}', '{}', $4::uuid, $5, $5::timestamptz + interval '1 hour', $5, 'production', 'npc')`,
 			newUUID(t), l.cityID, camp, newUUID(t), l.clock.Now()); err != nil {
 			t.Fatal(err)
 		}

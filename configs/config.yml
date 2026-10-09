@@ -1521,10 +1521,10 @@ labor:
   npc_productivity_bps: 8500   # an NPC labourer works at 85 %
   fee_bps: 500                 # the village's levy on a citizen employer's wage
   budget_slack_bps: 5000       # an automatic job pays 50 % more shifts than the work needs
-  # How many shifts an NPC may work at one post per local day of the settlement (ADR 0041
-  # N6 on the real clock): a post's daily output is slots x this x the shift's output, so
-  # tune it with the balance sheet, not with hours.
-  npc_shifts_per_slot_day: 10
+  # How many hours of work an NPC crew may do at one post per local day of the settlement
+  # (owner, 2026-10-10: 8): a post's daily output is slots x this x the output of an hour, so a
+  # shorter shift means more shifts. Tune it with the balance sheet.
+  npc_hours_per_slot_day: 8
   # A player may start a workplace shift with the village out of food (ADR 0041 owner
   # decision 3): they work hungry at this share of the output, and their own hunger need
   # rises by this many points. An NPC refuses a shift with no food.

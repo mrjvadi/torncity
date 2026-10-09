@@ -1284,6 +1284,7 @@ export interface CrimeRequirement {
   city: string
   wait_seconds: number
   trip: TripHint | null
+  until: string | null
   tier: Named
   have_tier: Named
   venues: Named[] | null
@@ -4888,6 +4889,7 @@ export interface Requirement {
   city: string
   wait_seconds: number
   trip: TripHint | null
+  until: string | null
 }
 
 export interface ResearchBoardView {

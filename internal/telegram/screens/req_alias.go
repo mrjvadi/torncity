@@ -10,6 +10,7 @@ const (
 	ReqLevel            = presentation.ReqLevel
 	ReqSkill            = presentation.ReqSkill
 	ReqCertificate      = presentation.ReqCertificate
+	ReqLiteracy         = presentation.ReqLiteracy
 	ReqResidence        = presentation.ReqResidence
 	ReqPerformance      = presentation.ReqPerformance
 	ReqTime             = presentation.ReqTime

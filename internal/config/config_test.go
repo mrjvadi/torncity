@@ -761,7 +761,7 @@ labor:
   npc_productivity_bps: 8501
   fee_bps: 501
   budget_slack_bps: 5001
-  npc_shifts_per_slot_day: 11
+  npc_hours_per_slot_day: 11
   hungry_output_bps: 5001
   hungry_shift_hunger: 6
   repair_material_share_bps: 2001
@@ -1327,7 +1327,7 @@ var envOverrides = map[string]string{
 	"TORN_CURRENCY_MACRO_PI_MAX_BPS":                       "302",
 	"TORN_CURRENCY_MACRO_W_TRADABLE_BPS":                   "6002",
 	"TORN_CURRENCY_INTERVENTION_DELAY":                     "26h",
-	"TORN_LABOR_NPC_SHIFTS_PER_SLOT_DAY":                   "12",
+	"TORN_LABOR_NPC_HOURS_PER_SLOT_DAY":                   "12",
 	"TORN_LABOR_HUNGRY_OUTPUT_BPS":                         "5002",
 	"TORN_LABOR_HUNGRY_SHIFT_HUNGER":                       "7",
 	"TORN_LABOR_REPAIR_MATERIAL_SHARE_BPS":                 "2002",

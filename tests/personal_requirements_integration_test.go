@@ -15,7 +15,8 @@ import (
 	"github.com/mrjvadi/torncity/internal/presentation/village"
 )
 
-// The personal prerequisites of a post (ADR 0055, plan A7): a carpenter's shift asks level 2, a scholar's post literacy. The
+// The personal prerequisites of a post (ADR 0055, plan A7): the smith of a bloomery asks level 3, a scholar's post literacy; the
+// carpenter and the mason ask no level (owner, 2026-10-10). The
 // rules are built the way the service builds them (cmd/game personalRules): refused after the grace with what is missing,
 // allowed during it with a warning, never silent.
 
@@ -25,14 +26,15 @@ type personalEnv struct {
 
 func newPersonalEnv(t *testing.T, inGrace bool) *personalEnv {
 	t.Helper()
-	w := newWorkplaceEnv(t, "carpentry_workshop")
+	w := newWorkplaceEnv(t, "bloomery")
 	cfg := config.Defaults()
 	from := w.clock.Now().Add(-time.Hour) // the rule began an hour ago: the grace is running
 	if !inGrace {
 		from = w.clock.Now().Add(-time.Duration(cfg.Settlement.PersonalGraceDays+1) * 24 * time.Hour)
 	}
 	w.village.WithPersonal(handlers.PersonalRules{From: from, GraceDays: cfg.Settlement.PersonalGraceDays})
-	w.stock("timber", 6)
+	w.stock("iron_ore", 6)
+	w.stock("charcoal", 8)
 	return &personalEnv{w}
 }
 
@@ -50,7 +52,7 @@ func (e *personalEnv) setLevel(n int) {
 	setLevelOf(e.t, e.researchEnv, e.worker.ID, n)
 }
 
-// During the grace a player below level 2 may still work at the carpenter's, and the work screen warns him what will be
+// During the grace a player below level 3 may still work at the bloomery, and the work screen warns him what will be
 // needed and from when.
 func TestPersonalPrerequisitesWarnDuringTheGrace(t *testing.T) {
 	e := newPersonalEnv(t, true)
@@ -71,11 +73,11 @@ func TestPersonalPrerequisitesWarnDuringTheGrace(t *testing.T) {
 	warned := false
 	for _, p := range v.Places {
 		for _, n := range p.Personal {
-			warned = warned || (n.Kind == village.PersonalLevel && n.Need == 2)
+			warned = warned || (n.Kind == village.PersonalLevel && n.Need == 3)
 		}
 	}
 	if !warned || v.PersonalUntil.IsZero() {
-		t.Errorf("the work screen should warn of level 2 and say until when: %+v until %v", v.Places, v.PersonalUntil)
+		t.Errorf("the work screen should warn of level 3 and say until when: %+v until %v", v.Places, v.PersonalUntil)
 	}
 }
 
@@ -86,17 +88,17 @@ func TestPersonalPrerequisitesRefuseAfterTheGrace(t *testing.T) {
 	e.setLevel(1)
 	resp := e.work()
 	if !strings.Contains(resp.Text, "شرط شخصی") || !strings.Contains(resp.Text, "سطح") {
-		t.Fatalf("a level 1 player at the carpenter's after the grace: %q", resp.Text)
+		t.Fatalf("a level 1 player at the bloomery after the grace: %q", resp.Text)
 	}
 	if n := len(e.workingShifts(e.camp)); n != 0 {
 		t.Fatalf("a refused shift started: %d running", n)
 	}
-	e.setLevel(2)
+	e.setLevel(3)
 	if resp := e.work(); strings.Contains(resp.Text, "شرط شخصی") {
-		t.Fatalf("a level 2 player was refused: %q", resp.Text)
+		t.Fatalf("a level 3 player was refused: %q", resp.Text)
 	}
 	if n := len(e.workingShifts(e.camp)); n != 1 {
-		t.Fatalf("a level 2 player's shift should run: %d", n)
+		t.Fatalf("a level 3 player's shift should run: %d", n)
 	}
 	// the smithy has a smith (level 3) and a labourer who needs nothing: anyone may work there
 	e.stock("bloom", 2)

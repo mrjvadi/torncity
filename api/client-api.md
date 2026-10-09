@@ -1775,3 +1775,10 @@ ADR 0054, migration 0138. No new command. `VillageOverviewView.watch[]` (A4b) is
 ## Personal requirements of posts (2026-10-10)
 
 ADR 0055, no migration. New type `PersonalNeed {kind, item, have, need, how}` (`kind`: `level`, `skill`, `certificate`, `literacy`, `rank`; `item` names the skill or the course). Where it appears: `WorkplaceLine.personal` and `WorkView.personal_until` (what the viewer lacks for a shift there and until when he may go on); `ResearchBoardView.personal` and `personal_until` (the scholar's post); `VillageRefusalView.personal` with the new refusal kind `personal` (a shift or a scholar's post refused after the grace). Config `settlement.personal_rule_at`, `personal_grace_days`. A finished class a certified teacher gave now counts for education experience.
+
+## Owner decisions of 2026-10-10 (personal requirements, pay, NPC hours)
+
+- `Requirement` (course and job views) gains `until` and the kind `literacy`: a village class warns of the student's literacy during the grace (the requirement carries `until`, the literacy class in `course_code`, the nearest place and the trip) and refuses after it.
+- Carpentry and masonry no longer ask a level (`PersonalNeed` only appears for the smith's level 3 and the scholar's literacy).
+- Wages per shift follow the wage classes: raw trades 50 per half hour, skilled ones 65 to 75 (`WorkplaceLine.wage`).
+- Config: `labor.npc_hours_per_slot_day` (8) replaces `labor.npc_shifts_per_slot_day`.

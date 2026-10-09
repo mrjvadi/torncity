@@ -1472,6 +1472,7 @@ staff_role:
   watchman: "Watchman"
   scholar: "Scholar"
   market_clerk: "Market clerk"
+  tanner: "Tanner"
   labourer: "Labourer"
   woodcutter: "Woodcutter"
   carpenter: "Carpenter"

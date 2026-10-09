@@ -114,8 +114,9 @@ type LaborRepository interface {
 	JobOfBuildingKind(ctx context.Context, buildingID, kind string) (*LaborJob, error)
 	// PauseJob records why a job's crew stopped; an empty reason clears it.
 	PauseJob(ctx context.Context, jobID, reason string) error
-	// NPCShiftsSince counts the NPC shifts a building started since an instant.
-	NPCShiftsSince(ctx context.Context, buildingID string, since time.Time) (int64, error)
+	// NPCShiftSecondsSince is the seconds of work the NPC shifts a building started since an instant last (a running shift
+	// counts whole): what the day's cap of NPC hours is held against.
+	NPCShiftSecondsSince(ctx context.Context, buildingID string, since time.Time) (int64, error)
 	// CountStarted adds one to the shifts a job has started.
 	CountStarted(ctx context.Context, jobID string) error
 	// UpdateJob sets an open job's wage, budget and crew.

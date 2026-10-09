@@ -106,12 +106,12 @@ func (r *SettlementTreasuryRepository) PauseJob(ctx context.Context, jobID, reas
 	return nil
 }
 
-// NPCShiftsSince counts the NPC shifts a building started since an instant.
-func (r *SettlementTreasuryRepository) NPCShiftsSince(ctx context.Context, buildingID string, since time.Time) (int64, error) {
+// NPCShiftSecondsSince is the seconds of work the NPC shifts a building started since an instant last.
+func (r *SettlementTreasuryRepository) NPCShiftSecondsSince(ctx context.Context, buildingID string, since time.Time) (int64, error) {
 	var n int64
-	if err := r.q.QueryRow(ctx, `SELECT count(*) FROM settlement_shifts
+	if err := r.q.QueryRow(ctx, `SELECT COALESCE(SUM(EXTRACT(EPOCH FROM (finish_at - started_at))), 0)::bigint FROM settlement_shifts
 		WHERE building_id = $1::uuid AND worker_kind = 'npc' AND started_at >= $2`, buildingID, since.UTC()).Scan(&n); err != nil {
-		return 0, fmt.Errorf("postgres: counting a building's NPC shifts: %w", err)
+		return 0, fmt.Errorf("postgres: summing a building's NPC shift time: %w", err)
 	}
 	return n, nil
 }

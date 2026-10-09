@@ -25,14 +25,20 @@ type WorkplaceDef struct {
 	// Role and Tier place the building in the build menu and in the promotion ladders (settlement_buildings.yml roles).
 	Role string `yaml:"role" json:"role"`
 	Tier int    `yaml:"tier,omitempty" json:"tier,omitempty"`
-	// Wage is paid from the treasury for a finished shift, minor units; Upkeep is drawn every settlement period.
-	Wage   int64 `yaml:"wage" json:"wage"`
+	// Wage is paid from the treasury for a finished shift, minor units; omitted, it is the wage class of the row:
+	// WorkplaceBaseHourlyWage a worker-hour times the dearest staff role's wage_bps (a raw trade 10000 earns 100 an
+	// hour, a skilled one 13000 to 15000), times the shift's length. Upkeep is drawn every settlement period.
+	Wage   int64 `yaml:"wage,omitempty" json:"wage,omitempty"`
 	Upkeep int64 `yaml:"upkeep,omitempty" json:"upkeep,omitempty"`
 	// Effects are the coverage numbers it adds while it stands (the same shape as a settlement building's).
 	Effects []EffectDef `yaml:"effects,omitempty" json:"effects,omitempty"`
 	// Trains is the skill a finished shift teaches.
 	Trains *SkillXPDef `yaml:"trains,omitempty" json:"trains,omitempty"`
 }
+
+// WorkplaceBaseHourlyWage is what a worker of a raw trade (wage class 10000) earns in an hour, minor units (owner,
+// 2026-10-09: about 100; 2026-10-10: the skilled trades 30 to 50 percent more).
+const WorkplaceBaseHourlyWage = 100
 
 // expandFunctionWorkplaces replaces every generated workplace of the pack with the ones its function rows describe.
 // Idempotent; run before validation, so the lints and the snapshot see one list.
@@ -46,12 +52,16 @@ func (p *Pack) expandFunctionWorkplaces() {
 		kept = append(kept, b)
 		have[b.Code] = true
 	}
+	roleBPS := map[string]int{}
+	for _, r := range p.StaffRoles {
+		roleBPS[r.Code] = r.WageBPS
+	}
 	var gen []SettlementBuildingDef
 	for _, f := range p.BuildingFunctions {
 		if f.Workplace == nil || have[f.Workplace.buildingCode(f.Code)] {
 			continue // a code in both files is refused by the building schema lint
 		}
-		gen = append(gen, f.generatedWorkplace())
+		gen = append(gen, f.generatedWorkplace(roleBPS))
 	}
 	sort.Slice(gen, func(i, j int) bool { return gen[i].Code < gen[j].Code })
 	p.SettlementBuildings = append(kept, gen...)
@@ -65,7 +75,7 @@ func (w *WorkplaceDef) buildingCode(row string) string {
 }
 
 // generatedWorkplace is the settlement building a function row stands as.
-func (f BuildingFunctionDef) generatedWorkplace() SettlementBuildingDef {
+func (f BuildingFunctionDef) generatedWorkplace(roleBPS map[string]int) SettlementBuildingDef {
 	w := f.Workplace
 	d := SettlementBuildingDef{
 		Code: w.buildingCode(f.Code), Name: f.Name, Role: w.Role, Tier: max(w.Tier, 1), Generated: true,
@@ -126,6 +136,22 @@ func (f BuildingFunctionDef) generatedWorkplace() SettlementBuildingDef {
 	d.Shift = (time.Duration(hours) * time.Hour).String()
 	if w.Shift != "" {
 		d.Shift = w.Shift
+	}
+	if d.Wage == 0 {
+		// the wage class: the dearest role of the row decides, a staff slot's own wage_bps before the role's
+		bps := 0
+		for _, st := range f.Staff {
+			b := st.WageBPS
+			if b == 0 {
+				b = roleBPS[st.Role]
+			}
+			bps = max(bps, b)
+		}
+		if bps == 0 {
+			bps = 10_000
+		}
+		shift, _ := optionalDuration(d.Shift)
+		d.Wage = (int64(shift/time.Minute)*WorkplaceBaseHourlyWage*int64(bps) + 300_000) / 600_000
 	}
 	return d
 }
