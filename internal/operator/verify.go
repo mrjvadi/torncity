@@ -202,11 +202,11 @@ func VerifyChecks(v postgres.LedgerVerification, cfg *config.Config) []Check {
 		out.add(t.ToolWearBroken == 0, fmt.Sprintf("no workplace carries more tool wear than one tool (%d off)", t.ToolWearBroken))
 	}
 
-	if v.Village && v.Watch {
+	if v.Village && v.Service {
 		t := v.VillageInvariants
-		out.add(t.WatchLedger == t.WatchRows, fmt.Sprintf("the watchmen's wages in the ledger are what the watch days paid (%d = %d)", t.WatchLedger, t.WatchRows))
-		out.add(t.WatchItems == t.WatchFuelRows, fmt.Sprintf("the firewood the watch fires burnt in the item journal is what the days say (%d = %d)", t.WatchItems, t.WatchFuelRows))
-		out.add(t.WatchDayBroken == 0, fmt.Sprintf("each watch day is the sum of its posts and has one ledger transaction for exactly the wage (%d off)", t.WatchDayBroken))
+		out.add(t.ServiceLedger == t.ServiceRows, fmt.Sprintf("the staff wages of watch posts and inns in the ledger are what the service days paid (%d = %d)", t.ServiceLedger, t.ServiceRows))
+		out.add(t.ServiceItems == t.ServiceUsedRows, fmt.Sprintf("the firewood, bread and water the open posts used, in the item journal, are what the days say (%d = %d)", t.ServiceItems, t.ServiceUsedRows))
+		out.add(t.ServiceDayBroken == 0, fmt.Sprintf("each service day is the sum of its posts and has one ledger transaction for exactly the wage (%d off)", t.ServiceDayBroken))
 	}
 
 	if v.Village && v.Trade {

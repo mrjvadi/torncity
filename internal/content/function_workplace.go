@@ -73,6 +73,11 @@ func (f BuildingFunctionDef) generatedWorkplace() SettlementBuildingDef {
 	if d.BuildTime == "" {
 		d.BuildTime = "1h0m0s"
 	}
+	if f.Produces != nil && f.Produces.Daily {
+		// a daily service (an inn) is a plain building: the service day judges its staff and upkeep, there are no shifts
+		d.Wage = 0
+		return d
+	}
 	if f.Produces != nil && len(f.Produces.Outputs) > 0 {
 		d.Produces = map[string]int64{}
 		for it, q := range f.Produces.Outputs {
@@ -123,7 +128,11 @@ func (l *schemaLint) workplaces() {
 		if w.Role == "" || w.Wage < 0 || w.Upkeep < 0 || w.Tier < 0 {
 			l.bad("%s: workplace needs a role, and no negative wage or upkeep", key)
 		}
-		if f.Produces == nil || len(f.Produces.Outputs) == 0 {
+		if daily := f.Produces != nil && f.Produces.Daily; daily {
+			if f.Produces.Service == "" || len(f.Produces.Outputs) > 0 {
+				l.bad("%s: a daily service names its service and makes no goods", key)
+			}
+		} else if f.Produces == nil || len(f.Produces.Outputs) == 0 {
 			l.bad("%s: a workplace makes something: produces.outputs is empty", key)
 		}
 		if len(f.Staff) == 0 || f.IfUnstaffed != "idle" {

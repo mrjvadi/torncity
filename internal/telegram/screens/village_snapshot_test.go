@@ -59,7 +59,7 @@ func villageSnapshots(c Context, who people, add func(string, *presenter.Respons
 		Population: 40, PopulationCap: 100,
 		FoodPercent: 20, JobPercent: 10, ServicePercent: 0, HappinessPercent: 30, SecurityPercent: 15,
 		LiteracyPercent: 2, Treasury: 900,
-		Watch: []village.WatchLine{{Building: Named{Code: "watch_hut"}, Idle: "no_fuel"}},
+		Watch: []village.WatchLine{{Building: Named{Code: "watch_hut"}, Idle: "no_supplies"}},
 	}))
 
 	add("Knowledge list · mixed states, research running", KnowledgeList(g, KnowledgeListView{

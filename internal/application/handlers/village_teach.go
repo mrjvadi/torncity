@@ -149,13 +149,13 @@ func (h *VillageHandler) Taught(ctx context.Context, meta envelope.Metadata, req
 				return err
 			}
 		}
-		// and so does the night watch (watch_days)
-		if h.watch.enabled() {
+		// and so do the daily services (service_days)
+		if h.service.enabled() {
 			s, err := tx.Settlements().ByID(ctx, in.SettlementID)
 			if err != nil {
 				return err
 			}
-			if _, err := h.SettleWatchDay(ctx, tx, snap, s, buildings); err != nil {
+			if _, err := h.SettleServiceDay(ctx, tx, snap, s, buildings); err != nil {
 				return err
 			}
 		}

@@ -156,12 +156,12 @@ type VillageInvariants struct {
 	TradeItems, TradeLineUnits     int64
 	TradeDayBroken                 int64
 	TradeWageLedger, TradeWageRows int64
-	// The night watch (migration 0137, docs/adr/0052): Watch is whether the tables exist; the wages and the fuel in the
-	// ledger and the item journal against the days; WatchDayBroken days that are not the sum of their posts.
-	Watch                     bool
-	WatchLedger, WatchRows    int64
-	WatchItems, WatchFuelRows int64
-	WatchDayBroken            int64
+	// The daily services (migration 0137, docs/adr/0052): Service is whether the tables exist; the wages and the upkeep
+	// in the ledger and the item journal against the days; ServiceDayBroken days that are not the sum of their posts.
+	Service                       bool
+	ServiceLedger, ServiceRows    int64
+	ServiceItems, ServiceUsedRows int64
+	ServiceDayBroken              int64
 	// The tool wear (docs/adr/0050): ToolInputs are the tools the item journal shows leaving the stores as shift inputs,
 	// ToolShiftUnits the tools the shifts recorded as consumed, ToolWearBroken the workplaces whose wear is out of range.
 	ToolInputs, ToolShiftUnits int64
@@ -217,7 +217,7 @@ func (v VillageInvariants) WorkNodesOK() bool {
 		(!v.Lots || (v.LotOrphans == 0 && v.LotWorkMismatched == 0 && v.LotShiftsWithoutJob == 0 && v.LotMaterialsMismatched == 0 &&
 			v.LotFeeMismatched == 0 && v.LotHistoryGuards == 2)) &&
 		v.ToolInputs == v.ToolShiftUnits && v.ToolWearBroken == 0 &&
-		(!v.Watch || (v.WatchLedger == v.WatchRows && v.WatchItems == v.WatchFuelRows && v.WatchDayBroken == 0)) &&
+		(!v.Service || (v.ServiceLedger == v.ServiceRows && v.ServiceItems == v.ServiceUsedRows && v.ServiceDayBroken == 0)) &&
 		(!v.Trade || (v.TradeLedger == v.TradeRows && v.TradeItems == v.TradeLineUnits && v.TradeDayBroken == 0 && v.TradeWageLedger == v.TradeWageRows)) &&
 		(!v.LevyRefunds || (v.LevyRefundLedger == v.LevyRefundRows && v.LevyRefundMismatched == 0)) &&
 		(!v.Research || (v.ResearchWageLedger == v.ResearchWageRows && v.ResearchWageMismatched == 0 && v.ResearchDayBroken == 0 &&

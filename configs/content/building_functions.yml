@@ -630,7 +630,7 @@ building_functions:
     staff: [{role: watchman, slots: 2, shift_hours: 4}]
     if_unstaffed: idle
     consumes: {fuel: {firewood: 1}, food_points: 4}
-    produces: {service: local_security}
+    produces: {service: local_security, daily: true}
     links: {from: [woodcutter_yard, granary], to: [granary]}
     ledger_reasons: [wages, fine_to_treasury]
     replaces: [watch_hut]
@@ -733,7 +733,7 @@ building_functions:
   # where the note says E_read. Thresholds (growth.thresholds.<service>: inn by traffic,
   # land_registry 60, exchange_house 40, bank 120) are config, never content.
   - code: teahouse_inn
-    source: "RESEARCH 2026-10-03 2.3, 2.5; ADR 0041 8.27"
+    source: "RESEARCH 2026-10-03 2.3, 2.5; ADR 0041 8.27; RESEARCH 2026-10-09 A4b (Wikipedia Caravanserai, Inn)"
     evidence: D
     name: "چایخانه و مسافرخانه"
     requires: {buildings: [{code: road}]}
@@ -753,12 +753,14 @@ building_functions:
       - {role: housekeeper, slots: 2, min_level: 2}
       - {role: hotel_manager, slots: 1, min_level: 2}
     if_unstaffed: idle
-    consumes: {inputs: {tea: 1}, fuel: {firewood: 1}, food_points: 4, water: true}
-    produces: {service: lodging_and_tea}
+    consumes: {inputs: {bread: 1, spring_water: 2}, fuel: {firewood: 1}, food_points: 4}
+    produces: {service: lodging_and_tea, daily: true}
     links: {from: [woodcutter_yard, well, bakery]}
-    ledger_reasons: [service_fee, service_levy, wages]
-    needs_research: [slot_limits, upkeep, wage_bps, housekeeper_shift, bread_per_guest_night, inner_store_size, well_within_4_lots_rule, level_2_cost_materials, level_2_build_hours]
-    note: "an inn is a function of a road and of travellers, not of population (E, read, S2, S4); the village inn needed no research (I), a hotel needs masonry_ii and record_keeping (I). Role is hospitality, never housing, so housing gates are not satisfied by an inn (research 0.4). ADR 0041 5.1 asks level 2 of the innkeeper; the accepted research says no personal prerequisite: the research wins. Beds are transient (sleep spot hostel). Cost 1200, timber 6, stone 4, build 3 h are ADR 0041 8.27 drafts; level 2 cost 9000 is (D)."
+    ledger_reasons: [service_wage, lodging_fee]
+    replaces: [teahouse_inn]
+    workplace: {role: recreation, tier: 1, upkeep: 40}
+    needs_research: [slot_limits, wage_bps, level_2_cost_materials, level_2_build_hours]
+    note: "an inn is a function of a road and of travellers, not of population (E, read, S2, S4); the village inn needed no research (I), a hotel needs masonry_ii and record_keeping (I). A day it is open (an innkeeper and a tea server from the pool, paid by the treasury; bread, water and a fire in the store) travellers may sleep in its hostel beds (life.sleep, the lodging fee goes to the treasury). Tea is imported and no village can buy it, so the table serves what the village bakes. Role is hospitality, never housing, so housing gates are not satisfied by an inn (research 0.4). Beds are transient; level 2 (a hotel: housekeepers, manager) waits for the upgrade runtime."
   - code: land_registry
     source: "RESEARCH 2026-10-03 5.3, 5.5"
     evidence: D

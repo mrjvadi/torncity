@@ -178,12 +178,12 @@ village:
   population: "👥 Population: {population} of {cap}"
   treasury: "🏦 City treasury: {amount}"
   watch:
-    idle: "🌙 {building}: kept no watch tonight - {reason}"
+    idle: "🌙 {building}: was not open today - {reason}"
     reason:
-      no_guard: "no free watchman could be found"
-      no_wage: "the treasury could not pay the watchmen"
-      no_fuel: "no firewood in the store for the watch fire"
-      "": "the watch is not kept"
+      no_staff: "no free person could be found for it"
+      no_wage: "the treasury could not pay its staff"
+      no_supplies: "the firewood, bread and water it uses were not in store"
+      "": "it is not kept"
   coverage:
     food: "🌾 Food coverage: {percent}%"
     job: "💼 Job coverage: {percent}%"

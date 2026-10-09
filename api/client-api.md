@@ -1754,3 +1754,12 @@ Config: `settlement.real_items_rule_at`, `real_items_grace_days`, `tool_bare_han
 ADR 0051, no migration, no view change. New buildings in the build menu (codes = function codes): `well`, `mill`, `bakery`, `charcoal_clamp`, `iron_pit`, `bloomery`; the existing `smithy` now works (bloom + charcoal gives tools). New knowledge `charcoal_burning` and `bloomery`. New stock items `flour_sack`, `charcoal`, `bloom`, `spring_water` (barrels from the well); `bread` is now made in a village. Every one is an ordinary workplace: `BuildingView.work` / `WorkNode` shows its staff, inputs (with stock and what is missing), outputs and where they go. A workplace that needs tools shows `tool_wear_bps`. Item names come from `component.<code>` in the locales; `bread` is a good and its name comes from the item catalogue.
 
 Content (not API): a function row with a `workplace` block generates its building; see `configs/content/building_functions.yml`.
+
+## A4b: tannery, brickworks, the daily services and the inn (2026-10-09)
+
+ADR 0052, migration 0137. New buildings in the build menu: `tannery`, `brickworks`, `teahouse_inn` (the inn). New knowledge `tanning`. New items `bark` (from the woodcutter) and `leather`. The bakery and the bloomery now cost bricks instead of stone.
+
+- `VillageOverviewView` gains `watch[]` (`WatchLine {building, held, idle}`): one line per standing watch post; `idle` is `no_staff`, `no_wage` or `no_supplies` (or empty when held). An idle post adds nothing to `security_percent`.
+- `life.sleep` with `spot: hostel` in a founded settlement: the bed exists only where an inn stands (availability `sleep_spot/hostel` requires `teahouse_inn`) and only on a day the inn is open; otherwise the refusal view `LifeRefusalView.kind = "closed"` (text: the inn is closed today and lacks staff, bread, water or firewood).
+- Ledger (finance screens): reason `service_wage` (treasury to sink), once per settlement per local day; item reason `service_upkeep` (an end).
+- Events: none new.

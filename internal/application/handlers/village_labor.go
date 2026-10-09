@@ -198,10 +198,10 @@ func (h *VillageHandler) laborMarket(ctx context.Context, tx application.Tx, sna
 	} else if last != nil && last.Outcome == application.TradeSold && last.Wage > 0 {
 		claims.Clerks = min(1, max(claims.StaffFree()-shopSeat-storeSeats-claims.Scholars, 0))
 	}
-	if last, err := tx.WatchDays().Last(ctx, s.CityID); err != nil {
+	if last, err := tx.ServiceDays().Last(ctx, s.CityID); err != nil {
 		return laborMarket{}, err
-	} else if last != nil && last.Guards > 0 {
-		claims.Watch = min(last.Guards, max(claims.StaffFree()-shopSeat-storeSeats-claims.Scholars-claims.Clerks, 0))
+	} else if last != nil && last.Staff > 0 {
+		claims.Services = min(last.Staff, max(claims.StaffFree()-shopSeat-storeSeats-claims.Scholars-claims.Clerks, 0))
 	}
 	reserved := claims.Reserved()
 	available := claims.Free()

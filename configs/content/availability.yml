@@ -123,6 +123,7 @@ availability:
   - {kind: building, code: charcoal_clamp, requires: {knowledge: [charcoal_burning]}}
   - {kind: building, code: iron_pit, requires: {knowledge: [smithing]}}
   - {kind: building, code: bloomery, requires: {knowledge: [bloomery]}}
+  - {kind: building, code: teahouse_inn, requires: {buildings: [{code: road}]}}
   - {kind: building, code: tannery, requires: {knowledge: [tanning]}}
   - {kind: building, code: brickworks, requires: {knowledge: [pottery, masonry]}}
   - {kind: building, code: clay_pit, requires: {knowledge: [pottery]}, elsewhere: [{where: support}]}
@@ -597,7 +598,7 @@ availability:
   # ---- sleep spots
   - {kind: sleep_spot, code: home, stage: village, requires: {buildings: [{role: housing, tier: 1}]}}
   - {kind: sleep_spot, code: bench, stage: village, requires: {buildings: [{code: park}]}}
-  - {kind: sleep_spot, code: hostel, stage: undecided, growth: {deferred: building_missing, row: 380, note: "App. A: an inn building (housing role); the catalogue has none"}, requires: {}, question: مسافرخانه ساختمانی در فهرست ساختمان‌ها ندارد؛ آیا ساختمان «مسافرخانه» (نقش اقامت) اضافه شود و از چه سطحی؟}
+  - {kind: sleep_spot, code: hostel, requires: {buildings: [{code: teahouse_inn}]}, note: "ADR 0052: a settlement offers hostel beds when an inn stands (and is open that day); the neutral city has its own hostel"}
 
   # ---- health services (health.yml)
   - {kind: health_service, code: home_rest, stage: village, requires: {buildings: [{role: housing, tier: 1}]}}

@@ -401,7 +401,7 @@ func (h *VillageHandler) clerkSeat(ctx context.Context, tx application.Tx, snap 
 		}
 	}
 	c := market.claims
-	return c.StaffFree() + c.Clerks - shopSeat - c.Keepers - c.Scholars - c.Watch, market.line.NPCWage, nil
+	return c.StaffFree() + c.Clerks - shopSeat - c.Keepers - c.Scholars - c.Services, market.line.NPCWage, nil
 }
 
 var _ = time.Second

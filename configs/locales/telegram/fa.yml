@@ -178,12 +178,12 @@ village:
   population: "👥 جمعیت: {population} از {cap}"
   treasury: "🏦 خزانهٔ شهر: {amount}"
   watch:
-    idle: "🌙 {building}: امشب نگهبانی نکرد - {reason}"
+    idle: "🌙 {building}: امروز باز نبود - {reason}"
     reason:
-      no_guard: "نگهبان آزاد پیدا نشد"
-      no_wage: "خزانه برای مزد نگهبان‌ها کافی نیست"
-      no_fuel: "هیزمی برای آتش نگهبانی در انبار نبود"
-      "": "نگهبانی دایر نیست"
+      no_staff: "کارکن آزاد پیدا نشد"
+      no_wage: "خزانه برای مزد کارکن‌ها کافی نیست"
+      no_supplies: "هیزم و نان و آب مصرفی در انبار نبود"
+      "": "دایر نیست"
   coverage:
     food: "🌾 پوشش خوراک: {percent}٪"
     job: "💼 پوشش شغل: {percent}٪"

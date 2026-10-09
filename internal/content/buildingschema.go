@@ -247,6 +247,9 @@ type ProducesDef struct {
 	Outputs map[string]int `yaml:"outputs,omitempty" json:"outputs,omitempty"`
 	// Store is the storage class the outputs go to.
 	Store string `yaml:"store,omitempty" json:"store,omitempty"`
+	// Daily marks a service that is judged once a local day (staff seats, the wage, the upkeep: village_service.go): a watch
+	// post, an inn. On a day it is not open it gives nothing.
+	Daily bool `yaml:"daily,omitempty" json:"daily,omitempty"`
 	// Service names the service it provides while staffed (coverage, teaching,
 	// treatment, security, housing): a code the presentation reads.
 	Service string `yaml:"service,omitempty" json:"service,omitempty"`

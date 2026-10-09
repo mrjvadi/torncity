@@ -99,8 +99,8 @@ type VillageHandler struct {
 	research ResearchRules
 	// trade is the market day's rules (village_trade.go).
 	trade TradeRules
-	// watch is the night watch's clock (village_watch.go).
-	watch WatchRules
+	// service is the clock of the daily services (village_service.go).
+	service ServiceRules
 	// realItems is the grace of the real goods and the bare-handed share without tools (village_realitems.go).
 	realItems RealItemRules
 	// storage is the stores' keepers and spoilage (village_storage.go).
@@ -510,15 +510,17 @@ func (h *VillageHandler) overview(ctx context.Context, meta envelope.Metadata, h
 		var cap int64
 		coverage := map[string]int64{}
 		byRole := map[string]village.VillageRoleLine{}
-		// The night watch (ADR 0052): a watch post counts its security on a day it was held (guards, wage and fire).
-		watchDay, err := h.SettleWatchDay(ctx, tx, snap, s, buildings)
+		// The daily services (ADR 0052): a watch post counts its security on a day it was held (guards, wage and fire).
+		watchDay, err := h.SettleServiceDay(ctx, tx, snap, s, buildings)
 		if err != nil {
 			return err
 		}
-		posts := map[string]watchPost{}
-		if h.watch.enabled() {
-			for _, p := range watchPosts(snap, buildings) {
-				posts[p.b.ID] = p
+		posts := map[string]servicePost{}
+		if h.service.enabled() {
+			for _, p := range servicePosts(snap, buildings) {
+				if p.service() == application.ServiceSecurity {
+					posts[p.b.ID] = p
+				}
 			}
 		}
 		var watchLines []village.WatchLine
