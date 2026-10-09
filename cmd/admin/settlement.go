@@ -38,6 +38,10 @@ func settlementUsage() {
                           treasury left after the fee, so no treasury is stripped; under
                           currency.auto_charter_floor the settlement is skipped and its head keeps
                           the offer. Audited per settlement; a rerun charters nothing twice
+  backfill-functions      give every finished building of every founded settlement the function
+                          (and the modules its level includes) its catalogue code stands for (docs/adr/0045
+                          step 0.5, phase B1); idempotent, batched per settlement, safe to rerun. Reports
+                          the catalogue codes no function replaces
   backfill-timezones      give every founded settlement with no time zone the one its
                           longitude on the world gives (one hour per 15 degrees); never
                           touches a zone a charter set. Run it before game.clock_cutover
@@ -81,6 +85,8 @@ func settlementCommand(ctx context.Context, args []string) error {
 		return settlementLandlocked(ctx)
 	case "backfill-timezones":
 		return settlementBackfillTimezones(ctx)
+	case "backfill-functions":
+		return settlementBackfillFunctions(ctx)
 	case "charter-currencies":
 		return settlementCharterCurrencies(ctx, args[1:])
 	}

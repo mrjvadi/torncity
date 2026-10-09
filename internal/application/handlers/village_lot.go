@@ -229,6 +229,12 @@ func (ls lotStanding) unmet(needs *content.AvailabilityNeeds, planned []string) 
 func (h *VillageHandler) ensureFunction(ctx context.Context, tx application.Tx, k lotKit, s application.FoundedSettlement,
 	b application.SettlementBuildingInstance,
 ) (*application.BuildingFunction, error) {
+	return ensureLotFunction(ctx, tx, k, s, b)
+}
+
+func ensureLotFunction(ctx context.Context, tx application.Tx, k lotKit, s application.FoundedSettlement,
+	b application.SettlementBuildingInstance,
+) (*application.BuildingFunction, error) {
 	repo := tx.SettlementBuildings()
 	if f, err := repo.FunctionOf(ctx, application.BuildingRefSettlement, b.ID); err != nil || f != nil {
 		return f, err
