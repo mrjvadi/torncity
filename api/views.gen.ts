@@ -5758,10 +5758,46 @@ export interface TierView {
   next_xp: number
 }
 
+export interface TradeDayLine {
+  outcome: string
+  gross: number
+  wage: number
+  at: string | null
+  lines: TradeSoldLine[] | null
+}
+
+export interface TradeDeskView {
+  name: string
+  has_post: boolean
+  cap: number
+  price_bps: number
+  prospect: number
+  items: TradeItemLine[] | null
+  last: TradeDayLine | null
+  may_order: boolean
+  keep_presets: number[] | null
+}
+
+export interface TradeItemLine {
+  item: Named
+  stock: number
+  reference: number
+  unit: number
+  on: boolean
+  keep: number
+  surplus: number
+}
+
 export interface TradeLine {
   qty: number
   price: number
   at: string | null
+}
+
+export interface TradeSoldLine {
+  item: Named
+  qty: number
+  unit: number
 }
 
 export interface TrainedView {
@@ -6720,6 +6756,7 @@ export interface ScreenViews {
   studio: StudioView
   suppliers: SuppliersView
   tech: TechView
+  trade: TradeDeskView
   trained: TrainedView
   training_home: TrainingHomeView
   travel_arrived: TravelArrivedView

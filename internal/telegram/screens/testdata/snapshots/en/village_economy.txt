@@ -21,6 +21,7 @@ What the city's own workplaces make comes cheaper than the market; to get going 
   [🛒 Stone x5] → settlement:materials.buy:stone:5   │   [🛒 Stone x20] → settlement:materials.buy:stone:20   │   [🛒 Stone x50] → settlement:materials.buy:stone:50
   [🛒 Wool x5] → settlement:materials.buy:wool:5   │   [🛒 Wool x20] → settlement:materials.buy:wool:20   │   [🛒 Wool x50] → settlement:materials.buy:wool:50
   [🛒 Shop] → settlement:shop   │   [⚒ Work in the city] → settlement:work
+  [🚚 Trader] → settlement:trade   │   [🏗 Construction] → settlement:build
   [🏗 Construction] → settlement:build   │   [🏘 City] → settlement:overview
   [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:materials
 
@@ -43,6 +44,7 @@ The stock is empty.
 What the city's own workplaces make comes cheaper than the market; to get going you can buy here.
   ───
   [🛒 Shop] → settlement:shop   │   [⚒ Work in the city] → settlement:work
+  [🚚 Trader] → settlement:trade   │   [🏗 Construction] → settlement:build
   [🏗 Construction] → settlement:build   │   [🏘 City] → settlement:overview
   [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:materials
 

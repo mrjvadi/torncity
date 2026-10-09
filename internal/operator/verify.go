@@ -196,6 +196,13 @@ func VerifyChecks(v postgres.LedgerVerification, cfg *config.Config) []Check {
 		out.add(t.LotHistoryGuards == 2, fmt.Sprintf("the conversion history is append-only (%d of 2 guards)", t.LotHistoryGuards))
 	}
 
+	if v.Village && v.Trade {
+		t := v.VillageInvariants
+		out.add(t.TradeLedger == t.TradeRows && t.TradeDayBroken == 0, fmt.Sprintf("the trader's money in the ledger is what the market days say (%d = %d), each day is its lines, never above its cap, one transaction of source to treasury for the gross and one of treasury to sink for the clerk's wage (%d off)", t.TradeLedger, t.TradeRows, t.TradeDayBroken))
+		out.add(t.TradeItems == t.TradeLineUnits, fmt.Sprintf("the goods that left the stores in the item journal are the units the lines sold (%d = %d)", t.TradeItems, t.TradeLineUnits))
+		out.add(t.TradeWageLedger == t.TradeWageRows, fmt.Sprintf("the clerks' wages in the ledger are what the market days paid (%d = %d)", t.TradeWageLedger, t.TradeWageRows))
+	}
+
 	if v.Village && v.LevyRefunds {
 		t := v.VillageInvariants
 		out.add(t.LevyRefundLedger == t.LevyRefundRows && t.LevyRefundMismatched == 0, fmt.Sprintf("the levy refunds in the ledger match the refund rows (%d = %d), and each refund is exactly what the national levy took from that settlement, in one transaction of that amount (%d mismatched)", t.LevyRefundLedger, t.LevyRefundRows, t.LevyRefundMismatched))

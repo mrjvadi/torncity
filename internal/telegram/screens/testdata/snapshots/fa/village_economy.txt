@@ -21,6 +21,7 @@
   [🛒 سنگ ×5] → settlement:materials.buy:stone:5   │   [🛒 سنگ ×20] → settlement:materials.buy:stone:20   │   [🛒 سنگ ×50] → settlement:materials.buy:stone:50
   [🛒 پشم ×5] → settlement:materials.buy:wool:5   │   [🛒 پشم ×20] → settlement:materials.buy:wool:20   │   [🛒 پشم ×50] → settlement:materials.buy:wool:50
   [🛒 دکان] → settlement:shop   │   [⚒ کار در شهر] → settlement:work
+  [🚚 بازرگان] → settlement:trade   │   [🏗 ساخت‌وساز] → settlement:build
   [🏗 ساخت‌وساز] → settlement:build   │   [🏘 نمای شهر] → settlement:overview
   [🔙 بازگشت] → settlement:overview   │   [🔄 به‌روزرسانی] → settlement:materials
 
@@ -43,6 +44,7 @@
 کالایی که کارگاه‌های شهر خودشان تولید می‌کنند ارزان‌تر از بازار درمی‌آید؛ برای شروع می‌توانید از بازار بخرید.
   ───
   [🛒 دکان] → settlement:shop   │   [⚒ کار در شهر] → settlement:work
+  [🚚 بازرگان] → settlement:trade   │   [🏗 ساخت‌وساز] → settlement:build
   [🏗 ساخت‌وساز] → settlement:build   │   [🏘 نمای شهر] → settlement:overview
   [🔙 بازگشت] → settlement:overview   │   [🔄 به‌روزرسانی] → settlement:materials
 

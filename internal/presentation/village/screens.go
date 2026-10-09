@@ -633,7 +633,7 @@ func VillageStock(c presentation.Ctx, v MaterialsView) *presentation.Response {
 		}
 	}
 	a = append(a, act(AddrShop).Named("village.shop"), act(AddrWork).Named("village.work"), act(AddrBuildMenu).Named("village.build"),
-		back(AddrVillageOverview), refresh(AddrMaterials))
+		act(AddrTradeDesk).Named("village.trade"), back(AddrVillageOverview), refresh(AddrMaterials))
 	return screenMaterials.Response(c.Lang, v, a...)
 }
 

@@ -846,3 +846,26 @@ building_functions:
     replaces: [academy]
     needs_research: [shift_hours, food_points, wage_bps, upkeep, cost_materials, build_hours]
     note: "the higher school: lecturers, a library and a workshop under one roof, three projects at a time. It stands only on a school tradition and a laboratory, and it eats the most paper and fuel."
+
+  # ---- the market day (ADR 0049): the settlement earns from its surplus ----
+  - code: barter_post
+    source: "ADR 0049"
+    evidence: D
+    name: "بازارچه"
+    requires: {knowledge: [barter_ring]}
+    kind: service
+    family: market
+    zones: [core, residential]
+    footprint: [1, 1, 1, 1]
+    owners: [treasury]
+    levels:
+      - {level: 1, requires: {knowledge: [barter_ring]}, cost_money: 200, build_hours: 1}
+    staff: [{role: market_clerk, slots: 1, shift_hours: 6}]
+    if_unstaffed: idle
+    consumes: {food_points: 1}
+    produces: {service: trade_day}
+    trade: {export: true, clerk_role: market_clerk}
+    links: {from: [woodcutter_yard, granary, storehouse, weaving_shed, carpentry_workshop, masonry_workshop], to: [storehouse]}
+    ledger_reasons: [export_sale, market_clerk_wage]
+    replaces: [barter_post]
+    note: "the village market under its charter: on a market day with goods put on sale a travelling trader buys the surplus above what the head keeps, at a share of the reference price (config settlement.export_price_bps) and up to one visit's load (export_cap_*); the clerk of the market, an NPC citizen of the labour pool, weighs and records it and is paid for the day. Without a clerk, a road, goods on sale or a treasury that can pay him there is no market day. The stalls and the village book stay as they were."

@@ -342,6 +342,16 @@ type BuildingFunctionDef struct {
 	Replaces []string `yaml:"replaces,omitempty" json:"replaces,omitempty"`
 	// Research is what a research building gives the settlement while it is staffed (ADR 0048).
 	Research *ResearchDef `yaml:"research,omitempty" json:"research,omitempty"`
+	// Trade marks a market post where a travelling trader buys the settlement's surplus on market day (ADR 0049).
+	Trade *TradeDef `yaml:"trade,omitempty" json:"trade,omitempty"`
+}
+
+// TradeDef is what a market post does on market day: the clerk of the market (staff role ClerkRole) weighs and records
+// the sale; without him there is no market day (if_unstaffed: idle). The prices and the cap are config
+// (settlement.export_*), the goods that may be sold are the components with village_sell.
+type TradeDef struct {
+	Export    bool   `yaml:"export" json:"export"`
+	ClerkRole string `yaml:"clerk_role" json:"clerk_role"`
 }
 
 // ResearchDef is the research a staffed research building gives (ADR 0048). The settlement can run Slots more

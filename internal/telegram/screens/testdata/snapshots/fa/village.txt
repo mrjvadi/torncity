@@ -124,6 +124,46 @@
   ───
   [🔙 بازگشت] → settlement:overview   │   [🔄 به‌روزرسانی] → settlement:build.progress
 
+━━━ Trade desk · goods on sale, the last market day sold ━━━
+(edits message 42)
+🚚 بازرگان «کورندال»
+بازرگان هر روز یک بار می‌آید و مازادی را که روی فروش بگذارید با ⁨90⁩٪ قیمت مرجع می‌خرد؛ در هر دیدار بیشتر از ⁨⁨480⁩ ساپ⁩ نمی‌دهد.
+
+کالاهایی که بازرگان می‌خرد:
+• الوار: انبار ⁨39⁩ - هر واحد ⁨⁨13⁩ ساپ⁩ (مرجع ⁨⁨15⁩ ساپ⁩) - نگه می‌دارید ⁨30⁩، مازاد ⁨9⁩
+• پشم: انبار ⁨25⁩ - هر واحد ⁨⁨10⁩ ساپ⁩ (مرجع ⁨⁨12⁩ ساپ⁩) - روی فروش نیست
+
+اگر امروز بیاید، ⁨⁨117⁩ ساپ⁩ می‌دهد.
+
+✅ آخرین بازار (⁨14⁩:⁨35⁩): فروختید ⁨الوار ⁨10⁩ تا (هر کدام ⁨⁨13⁩ ساپ⁩)⁩ - جمعاً ⁨⁨130⁩ ساپ⁩؛ مزد کارمند بازارچه ⁨⁨35⁩ ساپ⁩.
+  ───
+  [الوار - همه] → settlement:trade:keep:timber:0   │   [نگه ⁨10⁩] → settlement:trade:keep:timber:10   │   [نگه ⁨25⁩] → settlement:trade:keep:timber:25   │   [✖] → settlement:trade:off:timber
+  [پشم - همه] → settlement:trade:keep:wool:0   │   [نگه ⁨10⁩] → settlement:trade:keep:wool:10   │   [نگه ⁨25⁩] → settlement:trade:keep:wool:25
+  [🔙 بازگشت] → settlement:materials   │   [🔄 به‌روزرسانی] → settlement:trade
+
+━━━ Trade desk · no clerk could be found, a resident without the permission ━━━
+(edits message 42)
+🚚 بازرگان «کورندال»
+بازرگان هر روز یک بار می‌آید و مازادی را که روی فروش بگذارید با ⁨90⁩٪ قیمت مرجع می‌خرد؛ در هر دیدار بیشتر از ⁨⁨480⁩ ساپ⁩ نمی‌دهد.
+
+کالاهایی که بازرگان می‌خرد:
+• الوار: انبار ⁨39⁩ - هر واحد ⁨⁨13⁩ ساپ⁩ (مرجع ⁨⁨15⁩ ساپ⁩) - نگه می‌دارید ⁨0⁩، مازاد ⁨39⁩
+
+اگر امروز بیاید، ⁨⁨0⁩ ساپ⁩ می‌دهد.
+
+⛔ آخرین بازار (⁨14⁩:⁨35⁩): کارمندی برای بازارچه پیدا نشد؛ از مردم شهر کسی آزاد نبود.
+  ───
+  [🔙 بازگشت] → settlement:materials   │   [🔄 به‌روزرسانی] → settlement:trade
+
+━━━ Trade desk · no market post yet ━━━
+(edits message 42)
+🚚 بازرگان «کورندال»
+بازرگان هر روز یک بار می‌آید و مازادی را که روی فروش بگذارید با ⁨90⁩٪ قیمت مرجع می‌خرد؛ در هر دیدار بیشتر از ⁨⁨400⁩ ساپ⁩ نمی‌دهد.
+
+بازرگان فقط پیش بازارچه می‌آید؛ بازارچهٔ شهر هنوز نیست.
+  ───
+  [🔙 بازگشت] → settlement:materials   │   [🔄 به‌روزرسانی] → settlement:trade
+
 ━━━ Research desk · a laboratory at work, a library short of paper, a pact offered ━━━
 (edits message 42)
 🔬 پژوهش‌های «کورندال»

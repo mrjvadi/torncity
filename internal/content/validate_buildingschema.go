@@ -599,6 +599,22 @@ func (l *schemaLint) functions() {
 			}
 		}
 
+		// the market post (ADR 0049): a clerk of the market, idle without him
+		if tr := f.Trade; tr != nil {
+			clerk := false
+			for _, st := range f.Staff {
+				clerk = clerk || st.Role == tr.ClerkRole
+			}
+			switch {
+			case f.Kind != FunctionService:
+				l.bad("%s: a market post is a service function", key)
+			case tr.ClerkRole == "" || !clerk:
+				l.bad("%s: trade needs its clerk among the staff (clerk_role)", key)
+			case f.IfUnstaffed != "idle":
+				l.bad("%s: a market post without its clerk stands idle (if_unstaffed: idle)", key)
+			}
+		}
+
 		// what it produces, and where it goes
 		if pr := f.Produces; pr != nil {
 			for it, q := range pr.Outputs {

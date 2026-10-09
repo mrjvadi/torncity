@@ -57,6 +57,13 @@ func researchRules(cfg *config.Config) handlers.ResearchRules {
 		ExperiencePerShift: cfg.Settlement.ResearchExperiencePerShift, ScholarXP: cfg.Settlement.ResearchScholarXP}
 }
 
+// tradeRules reads the market day's tuning (settlement.export_*, game.clock_epoch): the rules of the domain, the game
+// clock their days are counted on and the amounts the trade desk offers to keep back (ADR 0049).
+func tradeRules(cfg *config.Config) handlers.TradeRules {
+	clock, _ := cfg.GameClock()
+	return handlers.TradeRules{Rules: settlementcfg.Trade(cfg.Settlement), Clock: clock, KeepPresets: cfg.Settlement.ExportKeepPresets}
+}
+
 // currencyRules is the money rules of a settlement's charter (config currency.*).
 // reserveRules is the rules of the reserve tools: the Reserve Bank's levers resolved through the policy
 // reader, with the configuration only as the fallback, the head's limits and the macro constants.

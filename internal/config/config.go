@@ -1026,6 +1026,12 @@ type Settlement struct {
 	ResearchBreakthroughMaxBPS       int64 // settlement.research_breakthrough_max_bps
 	ResearchExperiencePerShift       int64 // settlement.research_experience_per_shift
 	ResearchScholarXP                int64 // settlement.research_scholar_xp
+	// The market day (ADR 0049): what a travelling trader pays for the surplus a settlement puts on sale.
+	ExportPriceBPS       int64 // settlement.export_price_bps
+	ExportCapBase        int64 // settlement.export_cap_base
+	ExportCapPerResident int64 // settlement.export_cap_per_resident
+	// ExportKeepPresets are the amounts the head's trade desk offers to keep back of an item (zero, sell all, is always offered).
+	ExportKeepPresets []int64 // settlement.export_keep_presets
 	// MaterialBuyMax is the most units of one material a village may buy from
 	// Support in one purchase.
 	MaterialBuyMax int64 // settlement.material_buy_max
@@ -1849,6 +1855,10 @@ func Defaults() *Config {
 			ResearchBreakthroughMaxBPS:       4000,
 			ResearchExperiencePerShift:       10,
 			ResearchScholarXP:                40,
+			ExportPriceBPS:                   9000,
+			ExportCapBase:                    400,
+			ExportCapPerResident:             40,
+			ExportKeepPresets:                []int64{10, 25, 50, 100},
 			MaterialBuyMax:                   200,
 			MaterialBuyPresets:               []int64{5, 20, 50},
 			FoundingGrant:                    10_000,

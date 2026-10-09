@@ -204,6 +204,7 @@ village:
       hospital: "🏥 بیمارستان - سفر به {city}"
       jail: "⛓ زندان - سفر به {city}"
   button:
+    trade: "🚚 بازرگان"
     overview: "🏘 نمای شهر"
     who: "👥 اهالی"
     knowledge: "📚 دانش شهر"
@@ -349,6 +350,7 @@ village:
       jobs_post: "آگهی کار"
       research_start: "شروع پژوهش"
       research_share: "پیمان همکاری پژوهشی"
+      trade_export: "فروش مازاد به بازرگان"
       police_patrol: "گشت"
       police_fine: "جریمه"
       court_judge: "قضاوت"
@@ -931,6 +933,28 @@ knowledge:
     desk: "🔬 پژوهش‌ها و پژوهشگران"
     research: "🔬 پژوهش {knowledge}"
     buy: "💰 خرید {knowledge}"
+
+trade:
+  title: "🚚 بازرگان «{name}»"
+  rules: "بازرگان هر روز یک بار می‌آید و مازادی را که روی فروش بگذارید با {percent}٪ قیمت مرجع می‌خرد؛ در هر دیدار بیشتر از {cap} نمی‌دهد."
+  no_post: "بازرگان فقط پیش بازارچه می‌آید؛ بازارچهٔ شهر هنوز نیست."
+  items_title: "کالاهایی که بازرگان می‌خرد:"
+  item:
+    on: "• {item}: انبار {stock} - هر واحد {unit} (مرجع {ref}) - نگه می‌دارید {keep}، مازاد {surplus}"
+    off: "• {item}: انبار {stock} - هر واحد {unit} (مرجع {ref}) - روی فروش نیست"
+  prospect: "اگر امروز بیاید، {amount} می‌دهد."
+  sold_line: "{item} {qty} تا (هر کدام {unit})"
+  last:
+    sold: "✅ آخرین بازار ({time}): فروختید {items} - جمعاً {gross}؛ مزد کارمند بازارچه {wage}."
+    nothing: "آخرین بازار ({time}): چیزی برای فروش نبود."
+    too_little: "آخرین بازار ({time}): فروش از مزد کارمند بازارچه ({wage}) بیشتر نمی‌شد؛ بازرگان نیامد."
+    no_clerk: "⛔ آخرین بازار ({time}): کارمندی برای بازارچه پیدا نشد؛ از مردم شهر کسی آزاد نبود."
+    no_wage: "⛔ آخرین بازار ({time}): خزانه مزد کارمند بازارچه را نداشت."
+    no_road: "⛔ آخرین بازار ({time}): راهی نبود که بازرگان بیاید."
+  button:
+    all: "{item} - همه"
+    keep: "نگه {n}"
+    off: "✖"
 
 research:
   title: "🔬 پژوهش‌های «{name}»"

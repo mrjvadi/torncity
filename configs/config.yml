@@ -1409,6 +1409,15 @@ settlement:
   research_experience_per_shift: 10
   # scholarship experience a player scholar on duty earns each research day
   research_scholar_xp: 40
+  # The market day (docs/adr/0049): a travelling trader buys the surplus the head puts on sale.
+  # share of an item's reference price the travelling trader pays on market day (below 10000: he resells elsewhere, and a round trip through Support, where the settlement buys above the reference price, always loses)
+  export_price_bps: 9000
+  # most one trader's visit pays in all, minor units, whatever the size of the settlement
+  export_cap_base: 400
+  # what each resident adds to the visit's cap, minor units
+  export_cap_per_resident: 40
+  # the amounts the trade desk offers to keep back of an item
+  export_keep_presets: [10, 25, 50, 100]
   material_buy_max: 200
   material_buy_presets: [5, 20, 50]
   # Village treasury start-up. A village has no income until its abstract

@@ -204,6 +204,7 @@ village:
       hospital: "🏥 Hospital - travel to {city}"
       jail: "⛓ Jail - travel to {city}"
   button:
+    trade: "🚚 Trader"
     overview: "🏘 City"
     who: "👥 People"
     knowledge: "📚 City knowledge"
@@ -349,6 +350,7 @@ village:
       jobs_post: "post jobs"
       research_start: "start research"
       research_share: "research-sharing pacts"
+      trade_export: "sell the surplus to the trader"
       police_patrol: "patrol"
       police_fine: "fine"
       court_judge: "judge"
@@ -931,6 +933,28 @@ knowledge:
     desk: "🔬 Research and scholars"
     research: "🔬 Research {knowledge}"
     buy: "💰 Buy {knowledge}"
+
+trade:
+  title: "🚚 The trader of {name}"
+  rules: "A trader comes once a day and buys the surplus you put on sale at {percent}% of the reference price; he pays no more than {cap} a visit."
+  no_post: "The trader only comes to a market post, and the town has none yet."
+  items_title: "What the trader buys:"
+  item:
+    on: "• {item}: {stock} in store - {unit} each (reference {ref}) - you keep {keep}, surplus {surplus}"
+    off: "• {item}: {stock} in store - {unit} each (reference {ref}) - not on sale"
+  prospect: "If he came today he would pay {amount}."
+  sold_line: "{item} {qty} (at {unit} each)"
+  last:
+    sold: "✅ Last market day ({time}): you sold {items} - {gross} in all; the clerk's day cost {wage}."
+    nothing: "Last market day ({time}): nothing was on sale."
+    too_little: "Last market day ({time}): the sale would not have covered the clerk's wage ({wage}); the trader did not come."
+    no_clerk: "⛔ Last market day ({time}): no clerk could be found for the market post; nobody in town was free."
+    no_wage: "⛔ Last market day ({time}): the treasury could not pay the clerk."
+    no_road: "⛔ Last market day ({time}): there was no road for the trader to come by."
+  button:
+    all: "{item} - all"
+    keep: "keep {n}"
+    off: "✖"
 
 research:
   title: "🔬 Research of {name}"
