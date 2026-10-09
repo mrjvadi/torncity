@@ -27,8 +27,8 @@ func TestFunctionRowsBecomeWorkplaces(t *testing.T) {
 	if b.Consumes["flour_sack"] != 8 || b.Consumes["spring_water"] != 2 || b.Consumes["firewood"] != 1 || b.Produces["bread"] != 8 {
 		t.Errorf("the bakery: %+v -> %+v", b.Consumes, b.Produces)
 	}
-	if got := b.Def().Work.Shift; got != 2*time.Hour {
-		t.Errorf("the bakery's shift is the staff's 2 game hours: %s", got)
+	if got := b.Def().Work.Shift; got != 30*time.Minute {
+		t.Errorf("the bakery has a half-hour shift (the owner's scale): %s", got)
 	}
 	// bread is the crews' best meal, so the bakery feeds the shifts of every other workplace
 	if foods := snap.MealFoods(); len(foods) == 0 || foods[0].Item != "bread" {
@@ -48,5 +48,46 @@ func TestAWorkplaceIsWrittenOnce(t *testing.T) {
 	err := p.Validate()
 	if err == nil || !strings.Contains(err.Error(), "written once") && !strings.Contains(err.Error(), "also in settlement_buildings.yml") {
 		t.Fatalf("a mill in both files was accepted: %v", err)
+	}
+}
+
+// Every workshop's shift is on one scale (owner, 2026-10-09): 15 minutes for a short job, 30 for a long one, an hour at
+// most; and one shift's net growth of any storage class fits the class's base room, so a single shift never needs a
+// store the settlement does not have (the balance check of docs/adr/0053).
+func TestEveryWorkshopShiftIsOnTheOwnersScale(t *testing.T) {
+	p := shippedPack(t)
+	snap, err := BuildSnapshot(1, p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	seen := 0
+	for _, d := range p.SettlementBuildings {
+		if len(d.Produces) == 0 {
+			continue
+		}
+		seen++
+		shift := d.Def().Work.Shift
+		if shift < 15*time.Minute || shift > time.Hour {
+			t.Errorf("%s: a shift of %s is off the 15 minutes to an hour scale", d.Code, shift)
+		}
+		growth := map[string]int64{}
+		for it, q := range d.Produces {
+			if st, ok := snap.ItemStorage(it); ok {
+				growth[st.Class] += q * int64(st.Bulk)
+			}
+		}
+		for it, q := range d.Consumes {
+			if st, ok := snap.ItemStorage(it); ok {
+				growth[st.Class] -= q * int64(st.Bulk)
+			}
+		}
+		for class, n := range growth {
+			if c, ok := snap.StorageClass(class); ok && n > int64(c.BaseRoom) {
+				t.Errorf("%s: one shift grows %s by %d, the base room is %d", d.Code, class, n, c.BaseRoom)
+			}
+		}
+	}
+	if seen < 20 {
+		t.Errorf("only %d workplaces seen", seen)
 	}
 }

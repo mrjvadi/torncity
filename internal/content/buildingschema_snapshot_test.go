@@ -8,7 +8,7 @@ func TestBuildingSchemaSnapshotLookups(t *testing.T) {
 		t.Fatal(err)
 	}
 	f, ok := snap.BuildingFunction("woodcutter_yard")
-	if !ok || f.Produces == nil || f.Produces.Outputs["timber"] != 8 || f.Produces.Outputs["firewood"] != 4 {
+	if !ok || f.Produces == nil || f.Produces.Outputs["timber"] != 6 || f.Produces.Outputs["firewood"] != 3 {
 		t.Fatalf("woodcutter_yard: %+v", f)
 	}
 	if got, ok := snap.FunctionReplacing("woodcutter_camp"); !ok || got != "woodcutter_yard" {

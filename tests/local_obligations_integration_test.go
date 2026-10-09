@@ -109,12 +109,12 @@ func TestAPlayersWageIsPaidInTheSettlementMoney(t *testing.T) {
 	}
 	cash0, treasury0 := l.cash(worker.ID), l.holding(l.cityID)
 	work()
-	// the camp's wage is 40 SUP: ceil(40 x 10) = 400 units, in the player's holding, from the treasury's
-	if got := l.holding(worker.ID); got != 400 {
-		t.Errorf("the worker holds %d units, want 400 (40 SUP at 10 per SUP)", got)
+	// the camp's wage is 50 SUP: ceil(50 x 10) = 500 units, in the player's holding, from the treasury's
+	if got := l.holding(worker.ID); got != 500 {
+		t.Errorf("the worker holds %d units, want 500 (50 SUP at 10 per SUP)", got)
 	}
-	if got := treasury0 - l.holding(l.cityID); got != 400 {
-		t.Errorf("the treasury's holding fell by %d, want 400", got)
+	if got := treasury0 - l.holding(l.cityID); got != 500 {
+		t.Errorf("the treasury's holding fell by %d, want 500", got)
 	}
 	if got := l.cash(worker.ID); got != cash0 {
 		t.Errorf("the worker's SUP changed (%d -> %d): the wage was paid in the local money", cash0, got)
@@ -123,7 +123,7 @@ func TestAPlayersWageIsPaidInTheSettlementMoney(t *testing.T) {
 		t.Errorf("one local payment row, %d", got)
 	}
 	var wagePaid int64
-	if err := l.pool.Raw().QueryRow(ctx, `SELECT wage_paid FROM settlement_shifts WHERE building_id = $1::uuid AND status = 'done'`, camp).Scan(&wagePaid); err != nil || wagePaid != 40 {
+	if err := l.pool.Raw().QueryRow(ctx, `SELECT wage_paid FROM settlement_shifts WHERE building_id = $1::uuid AND status = 'done'`, camp).Scan(&wagePaid); err != nil || wagePaid != 50 {
 		t.Errorf("the shift row keeps the SUP wage: %d %v", wagePaid, err)
 	}
 	// the treasury runs out of units: the next wage is SUP
@@ -144,8 +144,8 @@ func TestAPlayersWageIsPaidInTheSettlementMoney(t *testing.T) {
 	}
 	cash1 := l.cash(worker.ID)
 	work()
-	if got := l.cash(worker.ID) - cash1; got != 40 {
-		t.Errorf("with no units in the treasury the wage is 40 SUP, got %d", got)
+	if got := l.cash(worker.ID) - cash1; got != 50 {
+		t.Errorf("with no units in the treasury the wage is 50 SUP, got %d", got)
 	}
 	if got := localPaymentRows(t, l); got != 1 {
 		t.Errorf("no second local payment row: %d", got)

@@ -183,7 +183,7 @@ func TestRealItemsToolsWearOnTheWorkplace(t *testing.T) {
 	// the grace is over
 	w.village.WithRealItems(realItemRules(cfg, w.clock.Now(), 30*24*time.Hour))
 
-	w.setWear(9_800) // 300 more makes a whole tool due
+	w.setWear(9_900) // 150 more makes a whole tool due
 	w.shift()
 	full := w.lastOutputBPS()
 	if w.wear() != 10_000 {
@@ -207,8 +207,8 @@ func TestRealItemsToolsWearOnTheWorkplace(t *testing.T) {
 	if want := whole * cfg.Settlement.ToolBareHandsBPS / 10_000; bare < want-whole/20-1 || bare > want+whole/20+1 {
 		t.Errorf("bare-handed %d should be %d of the whole %d", bare, cfg.Settlement.ToolBareHandsBPS, whole)
 	}
-	if w.wear() != 300 {
-		t.Errorf("after the tool the wear starts again at the shift's own 300: %d", w.wear())
+	if w.wear() != 150 {
+		t.Errorf("after the tool the wear starts again at the shift's own 150: %d", w.wear())
 	}
 	if n := w.scalar(`SELECT COALESCE(SUM(quantity), 0)::bigint FROM item_movements WHERE item_code = 'tools' AND reason = 'production_input' AND from_org = $1::uuid`, w.cityID); n != 1 {
 		t.Errorf("the tool is in the item journal as a shift input: %d", n)

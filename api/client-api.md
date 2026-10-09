@@ -1763,3 +1763,7 @@ ADR 0052, migration 0137. New buildings in the build menu: `tannery`, `brickwork
 - `life.sleep` with `spot: hostel` in a founded settlement: the bed exists only where an inn stands (availability `sleep_spot/hostel` requires `teahouse_inn`) and only on a day the inn is open; otherwise the refusal view `LifeRefusalView.kind = "closed"` (text: the inn is closed today and lacks staff, bread, water or firewood).
 - Ledger (finance screens): reason `service_wage` (treasury to sink), once per settlement per local day; item reason `service_upkeep` (an end).
 - Events: none new.
+
+## The pace of work (2026-10-09)
+
+ADR 0053, no migration, no view change. Every workplace shift is now 15 to 60 real minutes (`WorkNode.shift_seconds` and `WorkplaceLine.shift` carry the length); wages per shift are about 100 SUP per worker-hour. The woodcutter, carpenter, mason, weaving shed and kiln keep their building codes. Show shift lengths in minutes and hours, not seconds.
