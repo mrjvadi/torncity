@@ -543,7 +543,7 @@ func PrivateConfirm(c presentation.Ctx, v PrivateConfirmView) *presentation.Resp
 
 // Mine is a resident's own property page.
 func Mine(c presentation.Ctx, v MineView) *presentation.Response {
-	a := []presentation.Action{act(AddrLand).Named("citizen.land"), act(AddrPrivateMenu).Named("citizen.build_house")}
+	a := []presentation.Action{act(AddrLand).Named("citizen.land"), act(AddrPrivateMenu).Named("citizen.build_house"), act(AddrLotManage).Named("lot.manage")}
 	if v.Home != nil {
 		a = append(a, act(AddrHomeRest).Named("citizen.rest"))
 	}

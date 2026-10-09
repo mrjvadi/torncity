@@ -328,6 +328,10 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	if err != nil {
 		return err
 	}
+	lotRules, err := settlementcfg.LotRules(cfg.Settlement)
+	if err != nil {
+		return err
+	}
 	h := phaseHandlers{
 		profile: handlers.NewProfileHandler(
 			uow,
@@ -491,7 +495,8 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			}).
 			WithLabor(laborRules(cfg.Labor), cfg.Labor.HirePresets, cfg.Labor.WagePresets).
 			WithActivities(activityRules(cfg)).
-			WithShop(shopRules(cfg)).WithStorage(storageRules(cfg)).WithCurrencyRules(currencyRules(cfg, postgres.NewPolicyReader(pool, nil))),
+			WithShop(shopRules(cfg)).WithStorage(storageRules(cfg)).WithCurrencyRules(currencyRules(cfg, postgres.NewPolicyReader(pool, nil))).
+			WithLotRules(lotRules),
 	}
 
 	// Work and study read careers and courses from the live registry and a

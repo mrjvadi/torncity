@@ -227,9 +227,9 @@ func (r StoreyRules) StoreyCost(w, d, from, to int) Cost {
 }
 
 // QuoteOrder prices an order against a composition. The level and the conversion are priced by the function's
-// ladder (money, materials, hours -> shifts through shiftsPerHour), the modules by their own costs, the storeys
+// ladder (money, materials, hours -> shifts through levelShifts), the modules by their own costs, the storeys
 // by the storey rules. It does not check gates (knowledge, buildings) or money: the caller does.
-func QuoteOrder(specs map[string]Spec, mods map[string]Module, c Composition, o Order, sr StoreyRules, shiftsPerHour int) (Cost, error) {
+func QuoteOrder(specs map[string]Spec, mods map[string]Module, c Composition, o Order, sr StoreyRules, levelShifts func(hours int) int) (Cost, error) {
 	if o.Empty() {
 		return Cost{}, ErrNothing
 	}
@@ -248,7 +248,7 @@ func QuoteOrder(specs map[string]Spec, mods map[string]Module, c Composition, o 
 		if !ok {
 			return Cost{}, ErrUnknownModule
 		}
-		total.Add(levelCost(l1, shiftsPerHour))
+		total.Add(levelCost(l1, levelShifts))
 		spec = to
 		c = c.Clone()
 		c.Function, c.Level = to.Code, 1
@@ -260,7 +260,7 @@ func QuoteOrder(specs map[string]Spec, mods map[string]Module, c Composition, o 
 			if !ok {
 				return Cost{}, ErrUnknownModule
 			}
-			total.Add(levelCost(l, shiftsPerHour))
+			total.Add(levelCost(l, levelShifts))
 			for _, a := range l.Adds {
 				c.Modules[a]++
 			}
@@ -286,8 +286,8 @@ func QuoteOrder(specs map[string]Spec, mods map[string]Module, c Composition, o 
 	return total, nil
 }
 
-func levelCost(l Level, shiftsPerHour int) Cost {
-	return Cost{Money: l.CostMoney, Materials: scale(l.Materials, 1), Shifts: max(l.Hours*max(shiftsPerHour, 1), 1)}
+func levelCost(l Level, shiftsOf func(hours int) int) Cost {
+	return Cost{Money: l.CostMoney, Materials: scale(l.Materials, 1), Shifts: max(shiftsOf(l.Hours), 1)}
 }
 
 func scale(m map[string]int64, n int64) map[string]int64 {

@@ -482,6 +482,7 @@ var all = []Subscription{
 	{Domain: "settlement", Action: "currency.desk", Origin: FromPlayer},
 	{Domain: "settlement", Action: "currency.fee", Origin: FromPlayer},
 	{Domain: "settlement", Action: "currency.reserve", Origin: FromPlayer},
+	{Domain: "settlement", Action: "lot.manage", Origin: FromPlayer},
 	{Domain: "settlement", Action: "charter.election.open", Origin: FromPlayer},
 	{Domain: "settlement", Action: "charter.stand", Origin: FromPlayer},
 	{Domain: "settlement", Action: "charter.vote", Origin: FromPlayer},

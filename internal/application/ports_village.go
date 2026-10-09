@@ -228,6 +228,9 @@ type SettlementKnowledgeRepository interface {
 // SettlementBuildingRepository is the transactional port behind ADR 0028
 // section 6's construction queue for a settlement's own lot grid.
 type SettlementBuildingRepository interface {
+	// BuildingFunctionRepository is the function-and-content model of the lots (ADR 0045 B1).
+	BuildingFunctionRepository
+
 	// List returns every building (any status) a settlement has, for the
 	// grid's own occupancy and for the build-progress/overview screens.
 	List(ctx context.Context, settlementID string) ([]SettlementBuildingInstance, error)

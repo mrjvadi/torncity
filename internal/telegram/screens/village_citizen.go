@@ -326,6 +326,9 @@ func renderMine(c Context, v MineView) *presenter.Response {
 
 	kb := keyboards.New()
 	kb.Row(citizenButtons(c, "citizen.button.buy_land", AddrLand, "citizen.button.build_house", AddrPrivateMenu)...)
+	if b, ok := keyboards.Button(c.T("citizen.button.manage_lot", nil), AddrLotManage); ok {
+		kb.Row(b)
+	}
 	for _, b := range roadRows {
 		kb.Row(b)
 	}

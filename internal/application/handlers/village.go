@@ -108,6 +108,9 @@ type VillageHandler struct {
 	// citizen is the citizen loop's tuning (village_citizen.go).
 	citizen CitizenRules
 
+	// lot is the tuning of the lot a resident builds (village_lot.go); zero is off.
+	lot LotRules
+
 	// activity is where the Activities hub lists crime (WithActivities).
 	activity ActivityRules
 

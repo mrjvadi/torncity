@@ -29,6 +29,8 @@ func testSpecs() map[string]Spec {
 	}
 }
 
+func perHour(h int) int { return h * 2 }
+
 var storeyRules = StoreyRules{AreaPerCell: 6, TimberPerCell: 4, StonePerCell: 6, StoneFrom: 3, ShiftsPerCell: 4}
 
 func cottage() Composition {
@@ -98,7 +100,7 @@ func TestQuoteSumsTheModulesAndTheLevel(t *testing.T) {
 	mods, specs := testMods(), testSpecs()
 	c := cottage()
 	// one bedroom and a cellar: 3+1 timber, 3 stone, 3+3 shifts
-	cost, err := QuoteOrder(specs, mods, c, Order{Adds: map[string]int{"bedroom": 1, "cellar": 1}}, storeyRules, 2)
+	cost, err := QuoteOrder(specs, mods, c, Order{Adds: map[string]int{"bedroom": 1, "cellar": 1}}, storeyRules, perHour)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -106,7 +108,7 @@ func TestQuoteSumsTheModulesAndTheLevel(t *testing.T) {
 		t.Errorf("cost %+v", cost)
 	}
 	// the level costs its own money, materials and hours (4 hours at 2 shifts an hour)
-	cost, err = QuoteOrder(specs, mods, c, Order{LevelTo: 2}, storeyRules, 2)
+	cost, err = QuoteOrder(specs, mods, c, Order{LevelTo: 2}, storeyRules, perHour)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -114,23 +116,23 @@ func TestQuoteSumsTheModulesAndTheLevel(t *testing.T) {
 		t.Errorf("level cost %+v", cost)
 	}
 	// a storey: 4 timber a cell, 4 shifts a cell; the third is stone
-	cost, err = QuoteOrder(specs, mods, c, Order{StoreysTo: 2}, storeyRules, 2)
+	cost, err = QuoteOrder(specs, mods, c, Order{StoreysTo: 2}, storeyRules, perHour)
 	if err != nil || cost.Materials["timber"] != 4 || cost.Shifts != 4 {
 		t.Errorf("storey cost %+v %v", cost, err)
 	}
-	cost, _ = QuoteOrder(specs, mods, c, Order{StoreysTo: 3}, storeyRules, 2)
+	cost, _ = QuoteOrder(specs, mods, c, Order{StoreysTo: 3}, storeyRules, perHour)
 	if cost.Materials["timber"] != 4 || cost.Materials["stone"] != 6 {
 		t.Errorf("third storey cost %+v", cost)
 	}
 	// a storey makes room for a second extra bedroom in the same order
-	if _, err := QuoteOrder(specs, mods, c, Order{StoreysTo: 2, Adds: map[string]int{"bedroom": 2}}, storeyRules, 2); err != nil {
+	if _, err := QuoteOrder(specs, mods, c, Order{StoreysTo: 2, Adds: map[string]int{"bedroom": 2}}, storeyRules, perHour); err != nil {
 		t.Errorf("storey then bedrooms: %v", err)
 	}
-	if _, err := QuoteOrder(specs, mods, c, Order{}, storeyRules, 2); !errors.Is(err, ErrNothing) {
+	if _, err := QuoteOrder(specs, mods, c, Order{}, storeyRules, perHour); !errors.Is(err, ErrNothing) {
 		t.Errorf("empty order: %v", err)
 	}
 	// a conversion costs the new function's first level, and its included modules replace the old ones
-	cost, err = QuoteOrder(specs, mods, c, Order{ConvertTo: "stall", Adds: map[string]int{"shelves": 1}}, storeyRules, 2)
+	cost, err = QuoteOrder(specs, mods, c, Order{ConvertTo: "stall", Adds: map[string]int{"shelves": 1}}, storeyRules, perHour)
 	if err != nil {
 		t.Fatal(err)
 	}

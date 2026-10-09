@@ -871,7 +871,7 @@ func (h *VillageHandler) Worked(ctx context.Context, meta envelope.Metadata, req
 		if now.Before(sh.FinishAt) {
 			return errors.Internal(stderrors.New("handlers: a village shift finished before its time"))
 		}
-		if sh.Kind == application.LaborKindConstruction || sh.Kind == application.LaborKindRepair {
+		if sh.Kind == application.LaborKindConstruction || sh.Kind == application.LaborKindRepair || sh.Kind == application.LaborKindFitout {
 			return h.workedSite(ctx, tx, meta, snap, sh, now)
 		}
 		org := application.SettlementOrg(sh.SettlementID)

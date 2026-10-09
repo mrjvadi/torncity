@@ -179,6 +179,8 @@ var itemReasons = map[ItemReason]bool{
 	ItemSettlementConstruction: true,
 	ItemMealEaten:              true,
 	ItemRepairMaterials:        true,
+	ItemFitoutMaterials:        true,
+	ItemSalvage:                true,
 }
 
 // Known reports whether r is in the closed set.
