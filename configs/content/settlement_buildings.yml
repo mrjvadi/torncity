@@ -60,7 +60,7 @@ build_categories:
   - {code: construction, roles: [infrastructure, forestry, extraction, storage]}
   - {code: production, roles: [craft]}
   - {code: farming, roles: [food, water_infra]}
-  - {code: public, roles: [governance, health, education, recreation, training, transport]}
+  - {code: public, roles: [governance, health, education, research, recreation, training, transport]}
   - {code: security, roles: [security, military]}
   - {code: other, roles: []}
 
@@ -560,6 +560,47 @@ settlement_buildings:
     build_time: 2h
     upkeep: 45
     effects: [{target: happiness_bps, op: add, value: 100}]
+
+  # ---------------------------------------------------------------------
+  # research — reading room -> laboratory -> higher school (ADR 0048). Each is a working node
+  # (building_functions.yml): scholars hired through the labour market open its research slots;
+  # the day's paper, fuel and reagents are drawn from the stock; with no scholars it stands idle.
+  # ---------------------------------------------------------------------
+  - code: library
+    name: "کتابخانه"
+    role: research
+    tier: 1
+    footprint: [2, 2]
+    requires_knowledge: [basic_literacy]
+    cost_money: 1500
+    cost_materials: {timber: 8}
+    build_time: 3h
+    upkeep: 25
+
+  - code: laboratory
+    name: "آزمایشگاه"
+    role: research
+    tier: 2
+    footprint: [2, 2]
+    requires_knowledge: [basic_mathematics]
+    requires_building_role: {role: research, tier: 1}
+    cost_money: 5000
+    cost_materials: {timber: 10, stone: 10}
+    build_time: 6h
+    upkeep: 60
+
+  - code: academy
+    name: "مدرسهٔ عالی"
+    role: research
+    tier: 3
+    footprint: [3, 3]
+    requires_knowledge: [state_school]
+    requires_building_role: {role: research, tier: 2}
+    min_literacy_share_bps: 5000
+    cost_money: 15000
+    cost_materials: {timber: 20, stone: 20}
+    build_time: 12h
+    upkeep: 120
 
   - code: school
     name: "مدرسه"

@@ -37,6 +37,8 @@ skills:
   - {code: driving,     name: Driving,     category: trades}
   - {code: medicine,    name: Medicine,    category: professional}
   - {code: management,  name: Management,  category: professional}
+  # ADR 0048: the scholar's trade, trained by finishing a research project at a research building.
+  - {code: scholarship, name: Scholarship, category: professional}
   - {code: finance,     name: Finance,     category: professional}
   # The criminal skills (crimes.yml). Streetwise is also how alert a player
   # is to a thief.

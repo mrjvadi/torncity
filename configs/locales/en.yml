@@ -35,6 +35,7 @@ skill:
   mechanics: Mechanics
   medicine: Medicine
   management: Management
+  scholarship: Scholarship
   finance: Finance
   engineering: Engineering
   cooking: Cooking
@@ -345,6 +346,9 @@ settlement_building:
   clinic: Clinic
   teaching_circle: City classroom
   school: School
+  library: Library
+  laboratory: Laboratory
+  academy: Higher school
   training_ground: Training ground
   barter_post: City market
   general_store: "General store"
@@ -1453,6 +1457,7 @@ staff_role:
   health_worker: "Health worker"
   nurse: "Nurse"
   watchman: "Watchman"
+  scholar: "Scholar"
   labourer: "Labourer"
   woodcutter: "Woodcutter"
   carpenter: "Carpenter"
@@ -1501,6 +1506,9 @@ building_function:
   granary: "Granary"
   storehouse: "Storehouse"
   watch_post: "Neighbourhood watch post"
+  library: "Library"
+  laboratory: "Laboratory"
+  academy: "Higher school"
   lookout_post: "Lookout post"
   watchtower: "Watchtower"
   beacon_tower: "Beacon tower"

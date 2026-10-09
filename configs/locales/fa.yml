@@ -99,6 +99,7 @@ skill:
   mechanics: مکانیک
   medicine: پزشکی
   management: مدیریت
+  scholarship: پژوهش
   finance: امور مالی
   engineering: مهندسی
   cooking: آشپزی
@@ -422,6 +423,9 @@ settlement_building:
   clinic: "درمانگاه"
   teaching_circle: "کلاس درس"
   school: "مدرسه"
+  library: "کتابخانه"
+  laboratory: "آزمایشگاه"
+  academy: "مدرسهٔ عالی"
   training_ground: "زمین تمرین"
   barter_post: "بازارچه"
   general_store: "دکان"
@@ -1558,6 +1562,7 @@ staff_role:
   health_worker: "بهورز"
   nurse: "پرستار"
   watchman: "نگهبان"
+  scholar: "پژوهشگر"
   labourer: "کارگر"
   woodcutter: "هیزم‌شکن"
   carpenter: "نجار"
@@ -1606,6 +1611,9 @@ building_function:
   granary: "انبار غله"
   storehouse: "انبار"
   watch_post: "نگهبانی محله"
+  library: "کتابخانه"
+  laboratory: "آزمایشگاه"
+  academy: "مدرسهٔ عالی"
   lookout_post: "دیده‌بانی"
   watchtower: "برج دیده‌بانی"
   beacon_tower: "برج آتش"

@@ -775,3 +775,74 @@ building_functions:
     replaces: [bank]
     needs_research: [shift_hours, food_points, wage_bps, upkeep_in_kind, paper_quantity, min_paid_in_capital_check, vault_rating_scale, owners]
     note: "no teller, no deposits; no loan officer, no loans; the vault guard is the watchman role. The licence is the charter permission bank.licence (ADR 0044 G2, not built): deferred, and the minimum paid-in capital config finance.min_paid_in_bps_of_building_cost is (D) 4000. Stays at building level 3 until the owner decides (research question 2). Real basis: medici-style double entry, strongrooms, banking licence by the regulator (E, read, S29, S31, S34); staff duties are common knowledge (I, S36 and S37 blocked). Cost 50000, build 10 h are the legacy row; upkeep 300 becomes upkeep in kind. Replaces the legacy bank row, which stays until the owner flips the gate (it is on legacy_stage_only today)."
+
+  # ---- research capacity (ADR 0048): the library, the laboratory and the higher school ----
+  # Each gives research slots while its scholars work there and the day's upkeep is in the stock. The numbers
+  # are drafts (evidence D) for `admin economy verify` and the owner's tuning; the speed and price rules are
+  # config (settlement.research_*).
+  - code: library
+    source: "ADR 0048"
+    evidence: D
+    name: "کتابخانه"
+    requires: {knowledge: [basic_literacy]}
+    kind: service
+    family: research
+    zones: [core, residential]
+    footprint: [2, 2, 2, 2]
+    owners: [treasury]
+    levels:
+      - {level: 1, requires: {knowledge: [basic_literacy]}, cost_money: 1500, cost_materials: {timber: 8}, build_hours: 3}
+    staff: [{role: scholar, slots: 1, shift_hours: 6}]
+    if_unstaffed: idle
+    consumes: {inputs: {wool: 1}, food_points: 2}
+    produces: {service: research_slot}
+    research: {slots: 1, min_staff: 1, bonus_bps: 500, upkeep: {wool: 1}}
+    links: {from: [civic_hall]}
+    ledger_reasons: [scholar_wage, scholar_wage_npc]
+    replaces: [library]
+    needs_research: [shift_hours, food_points, wage_bps, upkeep, cost_materials, build_hours]
+    note: "a reading room: the scholar reads, copies and teaches from the shelves; the day's parchment and ink (wool stands in for the flock's hides until hides are an item) come out of the stock. It gives one research project at a time while a scholar works there."
+  - code: laboratory
+    source: "ADR 0048"
+    evidence: D
+    name: "آزمایشگاه"
+    requires: {knowledge: [basic_mathematics], buildings: [{role: research, tier: 1}]}
+    kind: service
+    family: research
+    zones: [core, residential, industry]
+    footprint: [2, 2, 3, 3]
+    owners: [treasury]
+    levels:
+      - {level: 1, requires: {knowledge: [basic_mathematics], buildings: [{role: research, tier: 1}]}, cost_money: 5000, cost_materials: {timber: 10, stone: 10}, build_hours: 6}
+    staff: [{role: scholar, slots: 3, shift_hours: 6}]
+    if_unstaffed: idle
+    consumes: {inputs: {timber: 2, wool: 1}, food_points: 2}
+    produces: {service: research_slot}
+    research: {slots: 2, min_staff: 2, bonus_bps: 1000, upkeep: {timber: 2, wool: 1}}
+    links: {from: [library, woodcutter_yard]}
+    ledger_reasons: [scholar_wage, scholar_wage_npc]
+    replaces: [laboratory]
+    needs_research: [shift_hours, food_points, wage_bps, upkeep, cost_materials, build_hours]
+    note: "benches, a furnace and measures: experiments cannot be done by one pair of hands, so it needs two scholars to open and gives two projects at a time; the third scholar only makes them faster. Charcoal timber and the day's reagents are drawn from the stock."
+  - code: academy
+    source: "ADR 0048"
+    evidence: D
+    name: "مدرسهٔ عالی"
+    requires: {knowledge: [state_school], buildings: [{role: research, tier: 2}]}
+    kind: service
+    family: research
+    zones: [core]
+    footprint: [3, 3, 4, 4]
+    owners: [treasury]
+    levels:
+      - {level: 1, requires: {knowledge: [state_school], buildings: [{role: research, tier: 2}]}, cost_money: 15000, cost_materials: {timber: 20, stone: 20}, build_hours: 12}
+    staff: [{role: scholar, slots: 4, shift_hours: 6}]
+    if_unstaffed: idle
+    consumes: {inputs: {timber: 2, wool: 2}, food_points: 2}
+    produces: {service: research_slot}
+    research: {slots: 3, min_staff: 3, bonus_bps: 1500, upkeep: {timber: 2, wool: 2}}
+    links: {from: [library, laboratory]}
+    ledger_reasons: [scholar_wage, scholar_wage_npc]
+    replaces: [academy]
+    needs_research: [shift_hours, food_points, wage_bps, upkeep, cost_materials, build_hours]
+    note: "the higher school: lecturers, a library and a workshop under one roof, three projects at a time. It stands only on a school tradition and a laboratory, and it eats the most paper and fuel."

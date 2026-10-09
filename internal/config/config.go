@@ -1007,6 +1007,25 @@ type Settlement struct {
 	// real days after it, so no town loses room overnight; 0 days switches the grace off.
 	StorageKeeperRuleAt    string // settlement.storage_keeper_rule_at
 	StorageKeeperGraceDays int64  // settlement.storage_keeper_grace_days
+	// Research capacity and speed (ADR 0048, internal/domain/research).
+	ResearchFreeSlots int64 // settlement.research_free_slots
+	ResearchSpeedFloorBPS int64 // settlement.research_speed_floor_bps
+	ResearchScholarFloorBPS int64 // settlement.research_scholar_floor_bps
+	ResearchSkillBPSPerLevel int64 // settlement.research_skill_bps_per_level
+	ResearchScholarCapBPS int64 // settlement.research_scholar_cap_bps
+	ResearchNPCScholarLevel int64 // settlement.research_npc_scholar_level
+	ResearchLiteracyBonusBPS int64 // settlement.research_literacy_bonus_bps
+	ResearchCatchUpBPS int64 // settlement.research_catch_up_bps
+	ResearchEraBaseDepth int64 // settlement.research_era_base_depth
+	ResearchEraShareBPS int64 // settlement.research_era_share_bps
+	ResearchAheadPerStepBPS int64 // settlement.research_ahead_per_step_bps
+	ResearchAheadCapBPS int64 // settlement.research_ahead_cap_bps
+	ResearchSharePerPartnerBPS int64 // settlement.research_share_per_partner_bps
+	ResearchShareCapBPS int64 // settlement.research_share_cap_bps
+	ResearchBreakthroughNeedPerDepth int64 // settlement.research_breakthrough_need_per_depth
+	ResearchBreakthroughMaxBPS int64 // settlement.research_breakthrough_max_bps
+	ResearchExperiencePerShift int64 // settlement.research_experience_per_shift
+	ResearchScholarXP int64 // settlement.research_scholar_xp
 	// MaterialBuyMax is the most units of one material a village may buy from
 	// Support in one purchase.
 	MaterialBuyMax int64 // settlement.material_buy_max
@@ -1812,6 +1831,24 @@ func Defaults() *Config {
 			StorageSpoilUnkeptBPS:        30,
 			StorageKeeperRuleAt:          "2026-10-03T00:00:00Z",
 			StorageKeeperGraceDays:       14,
+			ResearchFreeSlots: 1,
+			ResearchSpeedFloorBPS: 10000,
+			ResearchScholarFloorBPS: 500,
+			ResearchSkillBPSPerLevel: 100,
+			ResearchScholarCapBPS: 2000,
+			ResearchNPCScholarLevel: 3,
+			ResearchLiteracyBonusBPS: 2000,
+			ResearchCatchUpBPS: 4000,
+			ResearchEraBaseDepth: 4,
+			ResearchEraShareBPS: 1600,
+			ResearchAheadPerStepBPS: 3000,
+			ResearchAheadCapBPS: 10000,
+			ResearchSharePerPartnerBPS: 1000,
+			ResearchShareCapBPS: 5000,
+			ResearchBreakthroughNeedPerDepth: 100,
+			ResearchBreakthroughMaxBPS: 4000,
+			ResearchExperiencePerShift: 10,
+			ResearchScholarXP: 40,
 			MaterialBuyMax:               200,
 			MaterialBuyPresets:           []int64{5, 20, 50},
 			FoundingGrant:                10_000,

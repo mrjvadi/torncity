@@ -340,6 +340,20 @@ type BuildingFunctionDef struct {
 	// Replaces lists the catalogue codes (settlement_buildings.yml,
 	// citizen_buildings.yml) this function takes over: the data migration plan.
 	Replaces []string `yaml:"replaces,omitempty" json:"replaces,omitempty"`
+	// Research is what a research building gives the settlement while it is staffed (ADR 0048).
+	Research *ResearchDef `yaml:"research,omitempty" json:"research,omitempty"`
+}
+
+// ResearchDef is the research a staffed research building gives (ADR 0048). The settlement can run Slots more
+// projects at once while at least MinStaff scholars work there and the day's upkeep is in the stock; every project
+// in it goes BonusBPS faster (shelves, benches, rooms). A building without its scholars or its upkeep stands idle and
+// gives nothing (if_unstaffed: idle).
+type ResearchDef struct {
+	Slots    int `yaml:"slots" json:"slots"`
+	MinStaff int `yaml:"min_staff" json:"min_staff"`
+	BonusBPS int `yaml:"bonus_bps" json:"bonus_bps"`
+	// Upkeep is what the building uses up each day it works (item -> quantity): paper and ink, fuel, reagents.
+	Upkeep map[string]int `yaml:"upkeep" json:"upkeep"`
 }
 
 // Terrain tag origins.

@@ -570,6 +570,35 @@ func (l *schemaLint) functions() {
 			l.bad("%s: a %s function has no staff: who works there (rule 1c)", key, f.Kind)
 		}
 
+		// research capacity (ADR 0048): slots, the scholars that open them, what the days use up
+		if rs := f.Research; rs != nil {
+			scholars := 0
+			for _, s := range f.Staff {
+				if s.Role == "scholar" {
+					scholars += s.Slots
+				}
+			}
+			switch {
+			case f.Kind != FunctionService:
+				l.bad("%s: research is a service function", key)
+			case rs.Slots < 1 || rs.Slots > 8:
+				l.bad("%s: research slots %d must lie between 1 and 8", key, rs.Slots)
+			case rs.MinStaff < 1 || rs.MinStaff > scholars:
+				l.bad("%s: research needs between 1 and the %d scholar posts of the function (min_staff %d)", key, scholars, rs.MinStaff)
+			case rs.BonusBPS < 0 || rs.BonusBPS > 5000:
+				l.bad("%s: research bonus %d must lie between 0 and 5000", key, rs.BonusBPS)
+			case len(rs.Upkeep) == 0:
+				l.bad("%s: a research building has an upkeep (paper, ink, fuel, reagents): the soft cap of ADR 0048", key)
+			case f.IfUnstaffed != "idle":
+				l.bad("%s: an unstaffed research building stands idle (if_unstaffed: idle)", key)
+			}
+			for it, q := range rs.Upkeep {
+				if !l.itemKnown(it) || q < 1 {
+					l.bad("%s: research upkeep %q x%d is unknown or not positive", key, it, q)
+				}
+			}
+		}
+
 		// what it produces, and where it goes
 		if pr := f.Produces; pr != nil {
 			for it, q := range pr.Outputs {

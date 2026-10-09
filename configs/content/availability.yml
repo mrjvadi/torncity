@@ -86,6 +86,7 @@ staff_roles:
   - {code: teller, building: {code: bank}, personal: [{kind: literacy}, {kind: certificate, code: bookkeeping}], support_npc: true, note: "RESEARCH 2026-10-03 6.5"}
   - {code: loan_officer, building: {code: bank}, personal: [{kind: skill, code: finance, min: 2}, {kind: certificate, code: credit_analysis}], support_npc: true, note: "RESEARCH 2026-10-03 6.5; the course credit_analysis is in education.yml"}
   - {code: bank_manager, building: {code: bank}, personal: [{kind: skill, code: management, min: 3}, {kind: skill, code: finance, min: 3}], support_npc: true, note: "RESEARCH 2026-10-03 6.5"}
+  - {code: scholar, building: {role: research, tier: 1}, skill: scholarship, wage_bps: 13000, personal: [{kind: literacy}], support_npc: true, note: "ADR 0048: the reader, the experimenter, the lecturer; a player holds the post by taking it, an NPC of the labour pool fills the rest"}
   - {code: banksman, skill: "", support_npc: true, note: "ADR 0045 8.3 (the hoist's banksman); prerequisite, skill and wage class not written (needs research)"}
 
 # Personal prerequisites that no certifying course provides yet.
@@ -131,6 +132,9 @@ availability:
   - {kind: building, code: health_house, stage: village, growth: {open: true, founding: true, row: 34}, elsewhere: [{where: support}]}
   - {kind: building, code: clinic, stage: town, elsewhere: [{where: support}]}
   - {kind: building, code: teaching_circle, stage: village, growth: {open: true, founding: true, row: 36}, elsewhere: [{where: support}]}
+  - {kind: building, code: library, growth: {requires: {knowledge: [basic_literacy]}, note: "ADR 0048: a reading room needs a literate people and a scholar to open its shelves"}, elsewhere: [{where: support}]}
+  - {kind: building, code: laboratory, growth: {requires: {knowledge: [basic_mathematics], buildings: [{role: research, tier: 1}]}, note: "ADR 0048: a laboratory needs measure and a reading room to start from"}, elsewhere: [{where: support}]}
+  - {kind: building, code: academy, growth: {requires: {knowledge: [state_school], buildings: [{role: research, tier: 2}]}, note: "ADR 0048: a higher school needs a school tradition and a laboratory"}, elsewhere: [{where: support}]}
   - {kind: building, code: school, stage: town, growth: {requires: {knowledge: [temple_school]}, note: "2026-10-03 audit M-09: a teaching tradition (the building itself asks for a teaching circle and half the people literate)"}, elsewhere: [{where: support}], note: "gated by min_literacy_share_bps 5000 in the building itself; it names no teacher knowledge (state_school) yet, see audit M-09"}
   - {kind: building, code: barter_post, stage: village, growth: {open: true, founding: true, row: 38}, elsewhere: [{where: support}]}
   - {kind: building, code: market, stage: town, elsewhere: [{where: support}]}
@@ -443,6 +447,7 @@ availability:
   - {kind: skill, code: lockpicking, stage: village, growth: {open: true, founding: true, row: 283}, requires: {}, elsewhere: [{where: support}]}
   - {kind: skill, code: deception, stage: village, growth: {open: true, founding: true, row: 284}, requires: {}, elsewhere: [{where: support}]}
   - {kind: skill, code: streetwise, stage: village, growth: {open: true, founding: true, row: 285}, requires: {}, elsewhere: [{where: support}]}
+  - {kind: skill, code: scholarship, stage: village, growth: {open: true}, requires: {knowledge: [basic_literacy]}, elsewhere: [{where: support}]}
   - {kind: skill, code: carpentry, stage: village, growth: {open: true}, requires: {knowledge: [carpentry]}, elsewhere: [{where: support}]}
   - {kind: skill, code: masonry, stage: village, growth: {open: true}, requires: {knowledge: [masonry]}, elsewhere: [{where: support}]}
   - {kind: skill, code: smithing, stage: village, growth: {open: true}, requires: {knowledge: [smithing]}, elsewhere: [{where: support}]}
