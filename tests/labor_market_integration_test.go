@@ -601,12 +601,21 @@ func TestNPCCrewWorksAProductionJob(t *testing.T) {
 	    VALUES ($1::uuid, $2::uuid, 'woodcutter_camp', 81, 3, 'complete', now(), now())`, camp, l.cityID); err != nil {
 		t.Fatal(err)
 	}
+	// the head finds the standing camp with no posting on the hiring board, with a post button
+	board, err := rrc(l.village.LaborBoard(ctx, l.as(l.head, "settlement.labor.board", "labor.board")))
+	if err != nil || !strings.Contains(econButtonData(board), "settlement:labor.post:"+camp) || !strings.Contains(string(board.View), `"standing":true`) {
+		t.Fatalf("the standing camp is not on the head's board: %v\n%s\n%s", err, econButtonData(board), board.View)
+	}
 	if _, err := rrc(l.village.LaborPost(ctx, l.as(l.head, "settlement.labor.post", "labor.post"), handlers.VillageLaborRequest{ID: camp})); err != nil {
 		t.Fatal(err)
 	}
 	var jobID string
 	if err := l.pool.Raw().QueryRow(ctx, `SELECT id::text FROM labor_jobs WHERE building_id = $1::uuid AND status = 'open'`, camp).Scan(&jobID); err != nil {
 		t.Fatalf("no production job: %v", err)
+	}
+	// its site offers the head the crew sizes and the wage buttons
+	if _, resp := l.site(l.head, camp); !strings.Contains(string(resp.View), `"hire_presets":[1,2,4]`) {
+		t.Fatalf("the workplace's site offers no crew to hire: %s", resp.View)
 	}
 	sink0, treasury0 := l.sink(), treasuryOf(t, l.pool, l.cityID)
 	hire := func() {

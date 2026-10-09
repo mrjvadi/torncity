@@ -750,13 +750,19 @@ func (h *VillageHandler) boardView(ctx context.Context, tx application.Tx, p *ap
 	}
 	head := hasPermission(ctx, tx, s, p.ID, charter.JobsPost)
 	for _, b := range buildings {
-		if b.Status != "building" || !b.ByWork() || hasJob[b.ID] {
+		if hasJob[b.ID] {
 			continue
 		}
-		if b.EmployerPlayerID == p.ID || (b.EmployerPlayerID == "" && head) {
-			d, _ := snap.SettlementBuildingDef(b.TypeCode)
-			view.Sites = append(view.Sites, village.LaborSiteRef{ID: b.ID, Building: named(d.Code, d.Name),
-				ProgressBPS: labor.ProgressBPS(b.WorkDone, b.WorkRequired)})
+		d, _ := snap.SettlementBuildingDef(b.TypeCode)
+		switch {
+		case b.Status == "building" && b.ByWork():
+			if b.EmployerPlayerID == p.ID || (b.EmployerPlayerID == "" && head) {
+				view.Sites = append(view.Sites, village.LaborSiteRef{ID: b.ID, Building: named(d.Code, d.Name),
+					ProgressBPS: labor.ProgressBPS(b.WorkDone, b.WorkRequired)})
+			}
+		case b.Status == "complete" && len(d.Produces) > 0 && head:
+			// a standing workplace with no posting: its job is always the treasury's (postable), so the head may post it here
+			view.Sites = append(view.Sites, village.LaborSiteRef{ID: b.ID, Building: named(d.Code, d.Name), Standing: true})
 		}
 	}
 	return view, nil
@@ -833,7 +839,8 @@ func (h *VillageHandler) siteView(ctx context.Context, tx application.Tx, p *app
 			view.CanPost = true
 		}
 	}
-	if view.CanEmploy && job != nil && job.Kind == application.LaborKindConstruction {
+	// a building site and a standing workplace both take an NPC crew (a workplace's within its posts' hours a day)
+	if view.CanEmploy && job != nil && (job.Kind == application.LaborKindConstruction || job.Kind == application.LaborKindProduction) {
 		for _, n := range h.laborHire {
 			view.HirePresets = append(view.HirePresets, int(n))
 		}
