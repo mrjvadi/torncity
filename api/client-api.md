@@ -1661,3 +1661,39 @@ Actions: `issue {amount: SUP}` (mint more against a deposit from the treasury; `
 **Ledger reasons** (finance screens): `intervention_buy` (the pot's SUP set aside for the head's purchase), `reserve_release` (excess to the treasury, or the remainder at retirement), `wind_down_claim` (a holder's share of the pot); the burn of a holder's units in a claim is `currency_burn`.
 
 **Entry points.** The village money panel gains the action `currency.reserve`.
+
+## Manage my lot: `settlement.lot.manage` (2026-10-09)
+
+Phase B1 of ADR 0045 (section 3, the function-and-content model; ADR 0044 5.5 for the fee). The owner of a lot chooses the FUNCTION of the building on it and what is INSIDE; the game builds it by the hiring board's shifts and generates the look. One command, screen `lot_manage`, view `LotManageView` (`api/views.gen.ts`). It is the popup «مدیریت قطعهٔ من».
+
+| Command | Args | Answer |
+|---|---|---|
+| `settlement.lot.manage` | `building`?, `action`?, `code`?, `n`?, `name`?, `confirm`?, `convert`?, `max_sup`? | Without `building` and with one building of mine: its detail; with several: stage `menu` and `buildings[{id, building, x, y, function, function_name, level, storeys, built, has_order}]`. With `building`: stage `detail`. With `action` and no `confirm`: stage `ask`, `quote` and `reason`; nothing changes. With `confirm: "confirm"`: carries it out once (a repeated confirm shows stage `done` and does nothing twice) |
+
+**Detail** (stage `detail`, also inside `done`): `id`, `building`, `x`, `y`, `w`, `d`, `mine`, `public` (the settlement's own building and I hold `public.build`), `can_manage` (I may order now), `built`, `function {code, name, family, level, max_level, status, permit}`, `storeys`, `max_storeys` (the knowledge's support table), `stability_bps` (10000 for one storey, falling as the storeys near the most allowed), `area_used` of `area_capacity` (floor area: a footprint cell gives `settlement.building_area_per_cell` per storey), `modules[{module, count, included, max, effect, area_each, housing_capacity, personal_storage, stall_slots, removable}]` (`included` came with the level and cannot be removed), `additions[{module, left, materials[{item, qty}], shifts, area_each, can, reason, needs}]` (what could be added, with the reason when not), `upgrade {to, building, cost_money, materials, shifts, adds, can, reason, needs}` (the next level; null on the top or on a settlement's own building), `storey_up {to, materials, shifts, can, reason}`, `functions[{function, family, current, available, needs, cost_money, materials, shifts, fee_sup, permit_fee, effects}]` (the functions a resident can build, with what a change costs; the footprint must match), `work {id, adds, level_to, storeys_to, convert_to, shifts_total, work_done, work_needed, progress_bps, job_open, paused, status}` (the open order; `job_open` false means its job is not on the hiring board: post it again with `settlement.labor.post {id: building}`), `staff[{role, slots}]`, `if_unstaffed`, what the lot gives `housing_capacity`, `personal_storage`, `stall_slots`, `condition_bps`, `look`, `templates[{id, name, code, function, level, storeys, modules, mine, applicable, reason}]`, `cash`.
+
+**Actions** (the `action` argument; each is ask then confirm):
+
+| action | code | n | does |
+|---|---|---|---|
+| `add` | module | count (default 1, at most 20) | builds modules (an order) |
+| `remove` | module | count | takes modules beyond the level out at once; `building_salvage_bps` percent of the materials come back to the holding slot |
+| `level` | | | raises the function one level (an order); the catalogue building follows the level |
+| `storey` | | | builds one storey (an order) |
+| `function` | function code | | changes the use of the lot (an order); costs the new first level and the use-change fee |
+| `template_save` | | | saves the building's composition; `name` (1 to 60 characters; empty: «قالب n» in the player's language); answers `share_code` |
+| `template_apply` | template id (mine) or share code (anyone's) | | the order that reaches the template: never removes, never bypasses a gate; modules no rule reads yet are skipped (`quote.skipped`) |
+| `template_delete` | template id | | deletes one of mine |
+
+**Quote** (`quote`): `materials[{item, need, have}]` (from the home store, then the bags), `money` (to the trade), `fee_sup` (the use-change fee), `wages` (the labour at today's wage, paid shift by shift), `shifts`, `cash`, `total` (money plus fee, paid now), `adds`, `level_to`, `storeys_to`, `convert_to`, `salvage` (what a removal gives back), `skipped`. `reason` (ask stage) says why the confirm is not offered: `materials` (with `needs`: the VillageNeed list, where each missing material comes from), `cash`, `requires` (`needs`: the knowledge or the building), `area`, `slot`, `storeys`, `busy`, `not_built`. The fee of a change of use settles in the settlement's own money where it is chartered: the response's `offer` (as for every confirm that pays a settlement) carries the desk's price, and `convert` / `max_sup` convert inside the confirm.
+
+**Look** (`look`): the descriptor the client draws. `version` (kit 1), `function`, `level`, `w`, `d`, `storeys`, `material` (`timber` `stone`), `roof` (`gable` `hip` `shed` `flat`), `modules` (counts that show), `condition`, `seed`, `palette` (the biome code), `wobble` (-2..2 tenths of a cell), `windows`, `door` (`n` `e` `s` `w`), `hue` (-15..15 degrees), `prop` (`none` `woodpile` `barrels` `cart` `crates` `bench`), `chimney` (a hearth or a fire), `awning` (a stall's shelves). It is a pure function of the building and its contents, the same on every replica, and changes only when the contents do. The client builds the geometry from a small kit of instanced parts; no geometry crosses the wire.
+
+**Refusals** (`response.refusal.code`, screen `village_refusal`): `village_lot_not_yours`, `village_lot_not_built`, `village_lot_busy` (an order is already being built), `village_lot_no_function`, `village_lot_no_module`, `village_lot_no_area`, `village_lot_slot_full`, `village_lot_not_buildable`, `village_lot_storeys`, `village_lot_nothing`, `village_lot_templates_full`, `village_lot_no_template`, `village_lot_invalid`, plus `village_materials` / `village_prerequisite` with the needs list, `village_citizen_no_cash`.
+
+**Labour.** An order posts a job of kind `fitout` on the hiring board (`settlement.labor.board`, `settlement.labor.site`): `LaborJobLine.kind` is `fitout`, its progress is the order's. The owner works his own shifts, hires NPC labourers (`settlement.labor.hire`) or lets a neighbour take the job; the wage is the employer's, shift by shift.
+
+**Events** (outbox): `settlement.lot_ordered {settlement_id, building_id, work_id, function, convert_to, level_to, storeys_to, adds, shifts, player_id}`, `settlement.lot_built {settlement_id, building_id, work_id?, function, level, storeys, modules, removed?}` (the layout of a building changed: refetch its look), `settlement.shift_done` with `kind: "fitout"`.
+
+**Entry points.** `settlement.mine` (`village_mine`) gains the action `lot.manage`; the own-lot ring of the 3D view opens it for the building under the finger.
+
