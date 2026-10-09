@@ -1853,7 +1853,7 @@ func Defaults() *Config {
 			RealItemsRuleAt:                  "2026-10-10T18:00:00Z",
 			RealItemsGraceDays:               7,
 			ToolBareHandsBPS:                 6000,
-			ServiceRuleAt:                    "2026-10-12T00:00:00Z",
+			ServiceRuleAt:                    "2026-10-10T12:00:00Z",
 			ServiceGraceDays:                 7,
 			ResearchFreeSlots:                1,
 			ResearchSpeedFloorBPS:            10000,

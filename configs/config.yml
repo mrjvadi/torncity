@@ -1381,7 +1381,7 @@ settlement:
   # The daily services (docs/adr/0052): a watch post, a health house and an inn are open on a day they are staffed,
   # paid and supplied. A post that stood complete before this date counts as open for this many real days after it
   # while a person of the pool staffs it, even with the store thin, so no live settlement loses its coverage overnight.
-  service_rule_at: "2026-10-12T00:00:00Z"
+  service_rule_at: "2026-10-10T12:00:00Z"
   service_grace_days: 7
   # Research capacity and speed (docs/adr/0048): slots from staffed research buildings, speed from
   # the scholars, a dearer price for what is ahead of the world, a discount for real work in the field.
