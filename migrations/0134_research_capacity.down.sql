@@ -22,4 +22,8 @@ ALTER TABLE settlement_research
 DROP INDEX settlement_research_running_idx;
 CREATE UNIQUE INDEX settlement_research_one_running_idx ON settlement_research (settlement_id) WHERE status = 'running';
 
+UPDATE charter_offices
+   SET grants = COALESCE((SELECT jsonb_agg(g) FROM jsonb_array_elements(grants) g WHERE g->>'p' <> 'research.share'), '[]'::jsonb)
+ WHERE grants @> '[{"p": "research.share"}]'::jsonb;
+
 COMMIT;

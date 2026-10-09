@@ -119,4 +119,11 @@ CREATE UNIQUE INDEX research_pacts_open_idx ON research_pacts (LEAST(settlement_
 CREATE INDEX research_pacts_a_idx ON research_pacts (settlement_a) WHERE status IN ('proposed', 'active');
 CREATE INDEX research_pacts_b_idx ON research_pacts (settlement_b) WHERE status IN ('proposed', 'active');
 
+-- The new charter permission research.share (offer, answer and end a research-sharing pact): the head office of a
+-- stored charter that may start research gets it with the same hand (the founder's office holds every power; a
+-- charter that already took research.start from it keeps that choice). Offices created later get it from the code.
+UPDATE charter_offices
+   SET grants = grants || '[{"p": "research.share"}]'::jsonb
+ WHERE acquisition = 'head' AND grants @> '[{"p": "research.start"}]'::jsonb AND NOT grants @> '[{"p": "research.share"}]'::jsonb;
+
 COMMIT;
