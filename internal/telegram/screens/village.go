@@ -677,11 +677,19 @@ func buildWait(w village.BuildWaitView, effort time.Duration) time.Duration {
 
 // serviceNote says which service posts stood idle today and why (an idle post covers nothing).
 func serviceNote(c Context, v VillageOverviewView) string {
-	var idle []string
+	var lines []string
 	for _, w := range v.Services {
-		if !w.Held {
-			idle = append(idle, c.T("village.watch.idle", map[string]any{"building": c.SettlementBuildingName(w.Building), "reason": c.T("village.watch.reason."+w.Idle, nil)}))
+		switch {
+		case w.Grace && !w.GraceUntil.IsZero():
+			var needs []string
+			for _, n := range w.Needs {
+				needs = append(needs, c.T("village.watch.need", map[string]any{"item": c.ComponentName(n.Component), "qty": FormatNumber(c, n.Quantity)}))
+			}
+			lines = append(lines, c.T("village.watch.grace", map[string]any{"building": c.SettlementBuildingName(w.Building),
+				"until": FormatDate(c, w.GraceUntil), "needs": c.list(needs)}))
+		case !w.Held:
+			lines = append(lines, c.T("village.watch.idle", map[string]any{"building": c.SettlementBuildingName(w.Building), "reason": c.T("village.watch.reason."+w.Idle, nil)}))
 		}
 	}
-	return body(idle...)
+	return body(lines...)
 }

@@ -1014,6 +1014,12 @@ type Settlement struct {
 	RealItemsRuleAt    string // settlement.real_items_rule_at
 	RealItemsGraceDays int64  // settlement.real_items_grace_days
 	ToolBareHandsBPS   int64  // settlement.tool_bare_hands_bps
+	// ServiceRuleAt (RFC 3339) is when the daily services (watch post, health house, inn) began to ask for staff, a wage
+	// and supplies: a post that stood complete before it keeps counting as open for ServiceGraceDays real days after it
+	// as long as a person of the pool staffs it, however thin the store, so no live settlement loses its coverage
+	// overnight; 0 days switches the grace off.
+	ServiceRuleAt    string // settlement.service_rule_at
+	ServiceGraceDays int64  // settlement.service_grace_days
 	// Research capacity and speed (ADR 0048, internal/domain/research).
 	ResearchFreeSlots                int64 // settlement.research_free_slots
 	ResearchSpeedFloorBPS            int64 // settlement.research_speed_floor_bps
@@ -1847,6 +1853,8 @@ func Defaults() *Config {
 			RealItemsRuleAt:                  "2026-10-10T18:00:00Z",
 			RealItemsGraceDays:               7,
 			ToolBareHandsBPS:                 6000,
+			ServiceRuleAt:                    "2026-10-12T00:00:00Z",
+			ServiceGraceDays:                 7,
 			ResearchFreeSlots:                1,
 			ResearchSpeedFloorBPS:            10000,
 			ResearchScholarFloorBPS:          500,

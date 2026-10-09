@@ -18,4 +18,8 @@ CREATE TABLE experience_days (
     CONSTRAINT experience_days_check CHECK (points > 0 AND length(btrim(field)) > 0 AND length(btrim(source)) > 0)
 );
 
+-- a service post that was open only because of the grace of the rule date (ADR 0052): staffed, but the wage or the
+-- supplies were short; the overview says so calmly and from when it will ask for them
+ALTER TABLE service_day_posts ADD COLUMN grace boolean NOT NULL DEFAULT false;
+
 COMMIT;

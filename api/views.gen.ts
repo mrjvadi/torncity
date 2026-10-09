@@ -5220,6 +5220,9 @@ export interface ServiceLine {
   service: string
   held: boolean
   idle: string
+  grace: boolean
+  grace_until: string | null
+  needs: MaterialLine[] | null
 }
 
 export interface SettingsView {

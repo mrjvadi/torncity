@@ -59,7 +59,9 @@ func villageSnapshots(c Context, who people, add func(string, *presenter.Respons
 		Population: 40, PopulationCap: 100,
 		FoodPercent: 20, JobPercent: 10, ServicePercent: 0, HappinessPercent: 30, SecurityPercent: 15,
 		LiteracyPercent: 2, Treasury: 900,
-		Services: []village.ServiceLine{{Building: Named{Code: "watch_hut"}, Service: "local_security", Idle: "no_supplies"}},
+		Services: []village.ServiceLine{{Building: Named{Code: "watch_hut"}, Service: "local_security", Idle: "no_supplies"},
+			{Building: Named{Code: "health_house"}, Service: "primary_care", Held: true, Grace: true, GraceUntil: snapshotNow.AddDate(0, 0, 6),
+				Needs: []village.MaterialLine{{Component: sampleNamed(c.Lang, "cloth", "پارچه", "Cloth"), Quantity: 1}, {Component: sampleNamed(c.Lang, "spring_water", "آب", "Water"), Quantity: 2}}}},
 	}))
 
 	add("Knowledge list · mixed states, research running", KnowledgeList(g, KnowledgeListView{

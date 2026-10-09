@@ -1664,4 +1664,9 @@ type ServiceLine struct {
 	Service string
 	Held    bool
 	Idle    string
+	// Grace says the post is open only because of the grace of the rule date: it has its staff but the wage or the
+	// supplies are short. GraceUntil is when it will ask for them (zero otherwise); Needs is what it uses up a day.
+	Grace      bool
+	GraceUntil time.Time
+	Needs      []MaterialLine
 }

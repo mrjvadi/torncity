@@ -178,6 +178,8 @@ village:
   population: "👥 Population: {population} of {cap}"
   treasury: "🏦 City treasury: {amount}"
   watch:
+    need: "{item} {qty}"
+    grace: "ℹ️ {building}: stays open as it is until {until}; from that day it asks every day for staff, a wage and these: {needs}."
     idle: "🌙 {building}: was not open today - {reason}"
     reason:
       no_staff: "no free person could be found for it"

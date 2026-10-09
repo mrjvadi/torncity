@@ -538,8 +538,18 @@ func (h *VillageHandler) overview(ctx context.Context, meta envelope.Metadata, h
 					for _, wp := range serviceDay.Posts {
 						if wp.BuildingID == b.ID {
 							line.Idle = wp.Idle
+							if wp.Grace {
+								line.Grace, line.GraceUntil = true, h.service.GraceUntil()
+							}
 						}
 					}
+				}
+				if line.Grace || (!held && h.service.graced(b, h.now())) {
+					need := map[string]int64{}
+					for it, q := range posts[b.ID].upkeep() {
+						need[it] = int64(q)
+					}
+					line.Needs = materialLinesOf(snap, need)
 				}
 				serviceLines = append(serviceLines, line)
 			}

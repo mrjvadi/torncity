@@ -57,6 +57,8 @@ func (e *watchEnv) days() int64 {
 	return e.scalar(`SELECT count(*) FROM service_days WHERE settlement_id = $1::uuid`, e.cityID)
 }
 
+func (e *watchEnv) verifyService() { e.verifyWatch() }
+
 func (e *watchEnv) verifyWatch() {
 	e.t.Helper()
 	v, err := postgres.NewEconomyAdmin(e.pool).VerifyLedger(testCtx(e.t), 10)
@@ -187,4 +189,62 @@ func TestInnOpensTheHostelOnlyWhenItIsOpen(t *testing.T) {
 		t.Errorf("the lodging fee should reach the treasury: before %d after %d (wage %d)", treasury0, e.treasury(), wage)
 	}
 	e.verifyWatch()
+}
+
+// The grace of the rule date (settlement.service_rule_at, service_grace_days): a post that stood before the rule, staffed
+// by a person of the pool, is open with whatever the store and the treasury can give, and the overview says calmly what it
+// will ask for and from when; a post built after the rule gets no grace; when the grace is over the old posts are judged
+// like any other.
+func TestServiceGraceKeepsALivePostOpenForADays(t *testing.T) {
+	e := newWatchEnv(t)
+	cfg := config.Defaults()
+	clock, err := cfg.GameClock()
+	if err != nil {
+		t.Fatal(err)
+	}
+	rule := e.clock.Now().Add(time.Hour)
+	e.village.WithService(handlers.ServiceRules{Clock: clock, From: rule, GraceDays: cfg.Settlement.ServiceGraceDays})
+	for i := 0; i < 4; i++ {
+		e.building("cottage") // homes: the pool that staffs the posts
+	}
+	e.building("watch_hut")
+	e.building("health_house")
+	// no firewood, no cloth, no water in the store: before the grace this would be two idle posts
+	v := e.overview()
+	if len(v.Services) != 2 || v.SecurityPercent <= 0 {
+		t.Fatalf("the live posts under the grace: %+v, security %d", v.Services, v.SecurityPercent)
+	}
+	for _, l := range v.Services {
+		if !l.Held || !l.Grace || l.GraceUntil.IsZero() || len(l.Needs) == 0 {
+			t.Errorf("a live post under the grace should be open with a calm notice of what it will need: %+v", l)
+		}
+	}
+	e.verifyService()
+
+	// a post built after the rule date has no grace
+	e.clock.Advance(26 * time.Hour)
+	late := e.building("watch_hut")
+	if _, err := e.pool.Raw().Exec(testCtx(t), `UPDATE settlement_buildings SET completed_at = $2 WHERE id = $1::uuid`, late, rule.Add(2*time.Hour)); err != nil {
+		t.Fatal(err)
+	}
+	v = e.overview()
+	idleLate := 0
+	for _, l := range v.Services {
+		if l.Service == "local_security" && !l.Held && l.Idle == "no_supplies" {
+			idleLate++
+		}
+	}
+	if idleLate != 1 {
+		t.Errorf("the post built after the rule date should stand idle for want of firewood: %+v", v.Services)
+	}
+
+	// the grace is over: the old posts are judged like any other
+	e.clock.Advance(10 * 24 * time.Hour)
+	v = e.overview()
+	for _, l := range v.Services {
+		if l.Held || l.Grace || l.Idle != "no_supplies" {
+			t.Errorf("after the grace a post without supplies is idle: %+v", l)
+		}
+	}
+	e.verifyService()
 }
