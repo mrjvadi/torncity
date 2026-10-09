@@ -6446,6 +6446,7 @@ export interface WorkNode {
   food_shifts: number
   condition: WorkCondition | null
   job: WorkJob | null
+  knowledge_bps: number
   tool_wear_bps: number
   tools_have: number
   bare_hands: boolean

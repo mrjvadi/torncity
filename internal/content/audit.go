@@ -98,9 +98,16 @@ func (p *Pack) Audit(o AuditOptions) []AuditFinding {
 	// --- reader
 	if o.Literals != nil {
 		seenTarget := map[string]bool{}
+		// a knowledge effect is also read by the workplace that names it as its output target (docs/adr/0058)
+		outputs := map[string]bool{}
+		for _, b := range p.SettlementBuildings {
+			if b.OutputTarget != "" {
+				outputs[b.OutputTarget] = true
+			}
+		}
 		check := func(kind, code, target string) {
 			key := target
-			if target == "" || o.Literals[target] || seenTarget[key+"|"+kind+code] {
+			if target == "" || o.Literals[target] || outputs[target] || seenTarget[key+"|"+kind+code] {
 				return
 			}
 			seenTarget[key+"|"+kind+code] = true
@@ -132,9 +139,18 @@ func (p *Pack) Audit(o AuditOptions) []AuditFinding {
 			}
 		}
 		// the personal prerequisites of an availability row are read only for crimes (the level)
+		techSkill := map[string]bool{}
+		for _, td := range p.Technologies {
+			if td.Skill != "" {
+				techSkill[td.Code] = true
+			}
+		}
 		for _, t := range p.Availability {
 			if t.Requires == nil || len(t.Requires.Personal) == 0 || t.Kind == "crime" {
 				continue
+			}
+			if t.Kind == "technology" && techSkill[t.Code] {
+				continue // read from the technology's own skill and level
 			}
 			add(AuditReader, t.Kind, t.Code, "asks personal prerequisites (%s) that no code reads for a %s row", personalKinds(t.Requires.Personal), t.Kind)
 		}
@@ -147,7 +163,8 @@ func (p *Pack) Audit(o AuditOptions) []AuditFinding {
 				add(AuditReader, "availability", kind, "no code mentions the availability kind %q: its rows are decoration", kind)
 			}
 		}
-		// the optional blocks of a function row: some code must select the field
+		// the optional blocks of a function row: some code must select the field. Zones and LedgerReasons are documentation of the row
+		// (where it may stand, which ledger reasons its money uses) and are not levers, so they are not listed (ADR 0058)
 		type fieldUse struct {
 			name string
 			used func(f BuildingFunctionDef) bool
@@ -160,9 +177,7 @@ func (p *Pack) Audit(o AuditOptions) []AuditFinding {
 			{"DemandClass", func(f BuildingFunctionDef) bool { return f.DemandClass != "" }},
 			{"Permit", func(f BuildingFunctionDef) bool { return f.Permit != "" }},
 			{"Market", func(f BuildingFunctionDef) bool { return f.Market != "" }},
-			{"LedgerReasons", func(f BuildingFunctionDef) bool { return len(f.LedgerReasons) > 0 }},
 			{"Links", func(f BuildingFunctionDef) bool { return f.Links != nil }},
-			{"Zones", func(f BuildingFunctionDef) bool { return len(f.Zones) > 0 }},
 		} {
 			if o.Fields[fu.name] {
 				continue
@@ -176,6 +191,67 @@ func (p *Pack) Audit(o AuditOptions) []AuditFinding {
 			if rows > 0 {
 				add(AuditReader, "building_function", fu.name, "%d function rows set %s and no code outside the content package reads it", rows, fu.name)
 			}
+		}
+	}
+
+	// --- reader: a knowledge item no building, function, row, course or other knowledge needs and no effect of which anything reads
+	used := map[string]bool{}
+	need := func(n *AvailabilityNeeds) {
+		if n != nil {
+			for _, k := range n.Knowledge {
+				used[k] = true
+			}
+		}
+	}
+	caps := map[string]bool{}
+	for _, b := range p.SettlementBuildings {
+		for _, k := range b.RequiresKnowledge {
+			used[k] = true
+		}
+		for _, c := range b.RequiresKnowledgeCapability {
+			caps[c] = true
+		}
+	}
+	for _, k := range p.SettlementKnowledge {
+		for _, r := range k.Requires {
+			used[r] = true
+		}
+	}
+	for _, f := range p.BuildingFunctions {
+		need(f.Requires)
+		for _, lv := range f.Levels {
+			need(lv.Requires)
+		}
+	}
+	for _, t := range p.Availability {
+		need(t.Requires)
+		if t.Growth != nil {
+			need(t.Growth.Requires)
+		}
+		for _, e := range t.Elsewhere {
+			need(e.Needs)
+		}
+	}
+	for _, r := range p.Recipes {
+		need(r.Requires)
+	}
+	for _, k := range p.SettlementKnowledge {
+		for _, pv := range k.Provides {
+			if caps[pv] {
+				used[k.Code] = true
+			}
+		}
+	}
+	for _, k := range p.SettlementKnowledge {
+		if used[k.Code] {
+			continue
+		}
+		readEffect := false
+		for _, e := range k.Effects {
+			readEffect = readEffect || e.Target != "" && (outputsOf(p)[e.Target] || (o.Literals != nil && o.Literals[e.Target]))
+		}
+		if !readEffect {
+			add(AuditReader, "knowledge", k.Code, "unlocks nothing: no building, function, row, course or other knowledge needs it and its effects are read by nothing")
 		}
 	}
 
@@ -275,4 +351,14 @@ func personalKinds(ps []AvailabilityPersonal) string {
 		s += k
 	}
 	return s
+}
+
+func outputsOf(p *Pack) map[string]bool {
+	out := map[string]bool{}
+	for _, b := range p.SettlementBuildings {
+		if b.OutputTarget != "" {
+			out[b.OutputTarget] = true
+		}
+	}
+	return out
 }

@@ -1786,3 +1786,7 @@ ADR 0055, no migration. New type `PersonalNeed {kind, item, have, need, how}` (`
 ## The remaining stand-ins (2026-10-10)
 
 ADR 0057, no migration, no view change. New skills (names from the `skill.*` locale): forestry, herding, weaving, pottery, milling, baking, teaching; a shift in the matching workplace adds experience (the skills screen). The literacy a class moves follows the teacher's teaching level. Config `settlement.teacher_base_bps`, `teacher_per_level_bps`, `teacher_xp_per_class`.
+
+## Dead levers (2026-10-10)
+
+ADR 0058, no migration. The work block of a building view (`village.NodeWork`) has `knowledge_bps` (omitted when 0): the share of every shift's output that the settlement's knowledge of the craft adds. The building panel may show it beside the tool wear line.

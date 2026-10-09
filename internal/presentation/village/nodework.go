@@ -131,6 +131,8 @@ type WorkNode struct {
 	Job *WorkJob `json:"job,omitempty"`
 	// ToolWearBPS is the share of a tool one shift wears (0: the work needs none), ToolsHave the tools in the stock, and
 	// BareHands says the next shift works at BareHandsBPS of its output because its tool is worn out and the stock has none.
+	// KnowledgeBPS is the share of output the settlement's knowledge of this craft adds to every shift.
+	KnowledgeBPS int64 `json:"knowledge_bps,omitempty"`
 	ToolWearBPS  int64 `json:"tool_wear_bps,omitempty"`
 	ToolsHave    int64 `json:"tools_have,omitempty"`
 	BareHands    bool  `json:"bare_hands,omitempty"`
