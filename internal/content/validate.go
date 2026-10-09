@@ -145,6 +145,7 @@ var (
 // the check and the write. See postgres.ContentStore.Apply.
 func (p *Pack) Validate() error {
 	var problems []error
+	p.expandFunctionWorkplaces()
 
 	known := p.validateCities(&problems)
 	p.validateRoutes(known, &problems)

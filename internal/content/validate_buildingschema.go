@@ -36,6 +36,7 @@ func (p *Pack) validateBuildingSchema(problems *[]error) {
 	l.storageClasses()
 	l.itemStorage()
 	l.moduleKinds()
+	l.workplaces()
 	l.functions()
 	l.recipes()
 	l.climate()

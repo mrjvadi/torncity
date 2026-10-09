@@ -117,6 +117,9 @@ type SettlementBuildingDef struct {
 	// tool in about thirty-three shifts. With none in the stock the shift works bare-handed at a share of its output
 	// (settlement.tool_bare_hands_bps). 0: the work needs no tools.
 	ToolWearBPS int64 `yaml:"tool_wear_bps,omitempty" json:"tool_wear_bps,omitempty"`
+	// Generated marks a building the content loader made from a function row's workplace block (never written in
+	// settlement_buildings.yml).
+	Generated bool `yaml:"-" json:"generated,omitempty"`
 	// Trains is the skill (and the experience) a finished shift here gives the
 	// worker: the trade is learned by doing it. The skill is in skills.yml.
 	Trains *SkillXPDef `yaml:"trains,omitempty" json:"trains,omitempty"`
@@ -214,6 +217,15 @@ func (p *Pack) validateSettlementBuildings(problems *[]error) {
 	for _, c := range p.Components {
 		components[c.Code] = true
 	}
+	// a workplace may also make a finished good the stock holds (bread), when the stock has a storage row for it
+	goods := map[string]bool{}
+	for _, i := range p.Items {
+		for _, st := range p.ItemStorage {
+			if st.Code == i.Code && !st.Planned {
+				goods[i.Code] = true
+			}
+		}
+	}
 
 	defs := make([]settlementbuilding.Def, 0, len(p.SettlementBuildings))
 	seen := map[string]bool{}
@@ -273,7 +285,7 @@ func (p *Pack) validateSettlementBuildings(problems *[]error) {
 			}
 		}
 		for material := range d.Produces {
-			if !components[material] {
+			if !components[material] && !goods[material] && len(p.Items) > 0 {
 				bad("%s %q produces unknown component %q", where, d.Code, material)
 			}
 		}

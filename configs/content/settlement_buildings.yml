@@ -286,19 +286,6 @@ settlement_buildings:
     tool_wear_bps: 200
     trains: {skill: masonry, xp: 20}
 
-  - code: smithy
-    name: آهنگری
-    role: craft
-    tier: 1
-    footprint: [2, 2]
-    requires_knowledge: [smithing]
-    terrain_tags: [ore_deposit]
-    terrain_mode: required
-    cost_money: 1800
-    build_time: 4h
-    upkeep: 70
-    effects: [{target: job_coverage_bps, op: add, value: 160}]
-
   - code: weaving_shed
     name: "کارگاه بافندگی"
     role: craft

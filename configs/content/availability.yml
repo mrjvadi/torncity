@@ -117,6 +117,12 @@ availability:
   - {kind: building, code: smithy, stage: village}
   - {kind: building, code: weaving_shed, stage: village}
   - {kind: building, code: pottery_kiln, stage: village}
+  - {kind: building, code: mill, requires: {knowledge: [milling]}, elsewhere: [{where: support}]}
+  - {kind: building, code: bakery, requires: {knowledge: [milling]}, elsewhere: [{where: support}]}
+  - {kind: building, code: well, growth: {open: true, founding: true}, requires: {}}
+  - {kind: building, code: charcoal_clamp, requires: {knowledge: [charcoal_burning]}}
+  - {kind: building, code: iron_pit, requires: {knowledge: [smithing]}}
+  - {kind: building, code: bloomery, requires: {knowledge: [bloomery]}}
   - {kind: building, code: clay_pit, requires: {knowledge: [pottery]}, elsewhere: [{where: support}]}
   - {kind: building, code: tool_workshop, requires: {knowledge: [carpentry]}, elsewhere: [{where: support}]}
   - {kind: building, code: paper_mill, requires: {knowledge: [papermaking]}, elsewhere: [{where: support}]}
@@ -205,6 +211,8 @@ availability:
   - {kind: knowledge, code: road_code}
   - {kind: knowledge, code: military_drill}
   - {kind: knowledge, code: printing}
+  - {kind: knowledge, code: charcoal_burning, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: bloomery}
   - {kind: knowledge, code: papermaking, elsewhere: [{where: support}]}
 
   # ---- courses and education (ADR 0038 section 5 and owner decisions 4 and 6): a course needs the knowledge, the building and a teacher; Support teaches every one
@@ -364,6 +372,9 @@ availability:
   - {kind: component, code: brick, stage: village, growth: {open: true, founding: true, row: 203}, requires: {}}
   - {kind: component, code: cloth, stage: village, growth: {open: true, founding: true, row: 204}, requires: {}}
   - {kind: component, code: flour, stage: village, growth: {open: true, founding: true, row: 205}, requires: {}}
+  - {kind: component, code: flour_sack, requires: {buildings: [{code: mill}]}, note: "ADR 0051: milled from wheat"}
+  - {kind: component, code: charcoal, requires: {buildings: [{code: charcoal_clamp}]}, note: "ADR 0051: burnt from firewood"}
+  - {kind: component, code: bloom, requires: {buildings: [{code: bloomery}]}, note: "ADR 0051: smelted from ore and charcoal"}
   - {kind: component, code: firewood, requires: {buildings: [{code: woodcutter_camp}]}, note: "ADR 0050: cut with the timber at the woodcutter's camp"}
   - {kind: component, code: clay, requires: {buildings: [{code: clay_pit}]}, elsewhere: [{where: support}], note: "ADR 0050: dug on a riverside lot; bought from Support by a village (village_buy)"}
   - {kind: component, code: hide, requires: {buildings: [{code: pasture_range}]}, note: "ADR 0050: the herd's culled animals' hides; the tannery is a later link"}

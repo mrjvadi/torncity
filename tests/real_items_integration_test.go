@@ -146,13 +146,16 @@ func newWorkplaceEnv(t *testing.T, code string, knowledge ...string) *workplaceE
 }
 
 // shift runs one shift to its end.
-func (w *workplaceEnv) shift() {
+func (w *workplaceEnv) shift() { w.shiftIn(w.camp) }
+
+// shiftIn runs one shift in a building of the settlement to its end (the longest shift is the charcoal clamp's 8 hours).
+func (w *workplaceEnv) shiftIn(id string) {
 	w.t.Helper()
-	if _, err := rrc(w.village.Work(testCtx(w.t), w.as(w.worker, "settlement.work", "work"), handlers.VillageWorkRequest{ID: w.camp})); err != nil {
+	if _, err := rrc(w.village.Work(testCtx(w.t), w.as(w.worker, "settlement.work", "work"), handlers.VillageWorkRequest{ID: id})); err != nil {
 		w.t.Fatal(err)
 	}
-	w.clock.Advance(3 * time.Hour)
-	for _, s := range w.workingShifts(w.camp) {
+	w.clock.Advance(9 * time.Hour)
+	for _, s := range w.workingShifts(id) {
 		w.end(s)
 	}
 }
@@ -251,22 +254,34 @@ func TestRealItemsProducersMakeThem(t *testing.T) {
 		{"clay_pit", []string{"pottery"}, nil, []string{"clay"}},
 		{"tool_workshop", []string{"carpentry"}, map[string]int64{"timber": 10, "stone": 10}, []string{"tools"}},
 		{"pasture_range", []string{"open_range_herding"}, nil, []string{"wool", "hide"}},
+		// the function rows that became workplaces (ADR 0051)
+		{"well", nil, nil, []string{"spring_water"}},
+		{"mill", []string{"milling"}, map[string]int64{"wheat": 30}, []string{"flour_sack"}},
+		{"bakery", []string{"milling"}, map[string]int64{"flour_sack": 30, "spring_water": 10, "firewood": 6}, []string{"bread"}},
+		{"charcoal_clamp", []string{"charcoal_burning"}, map[string]int64{"firewood": 30}, []string{"charcoal"}},
+		{"iron_pit", []string{"smithing"}, nil, []string{"iron_ore"}},
+		{"bloomery", []string{"bloomery"}, map[string]int64{"iron_ore": 30, "charcoal": 30}, []string{"bloom"}},
+		{"smithy", []string{"smithing"}, map[string]int64{"bloom": 10, "charcoal": 10}, []string{"tools"}},
 	} {
 		t.Run(c.building, func(t *testing.T) {
 			w := newWorkplaceEnv(t, c.building, c.knowledge...)
 			w.village.WithRealItems(realItemRules(w.cfg, w.clock.Now(), time.Hour)) // in the grace: tools are not asked
+			before := map[string]int64{}
 			for item, n := range c.in {
 				w.stock(item, n)
+			}
+			for item := range c.in {
+				before[item] = w.held(item)
 			}
 			for i := 0; i < 4; i++ {
 				w.shift()
 			}
 			for _, o := range c.out {
-				if w.held(o) <= c.in[o] {
+				if w.held(o) <= before[o] {
 					t.Errorf("%s made no %s: %d in the store", c.building, o, w.held(o))
 				}
 			}
-			for item, n := range c.in {
+			for item, n := range before {
 				if w.held(item) >= n {
 					t.Errorf("%s used no %s: %d left of %d", c.building, item, w.held(item), n)
 				}
@@ -274,4 +289,45 @@ func TestRealItemsProducersMakeThem(t *testing.T) {
 			w.verify()
 		})
 	}
+}
+
+// The iron tier end to end: an iron pit digs ore, a charcoal clamp burns firewood, the bloomery smelts the two into a
+// bloom, the smithy forges it into tools; nothing but firewood and food is put in by hand. Each link is a standing
+// workplace with its own shifts, and a missing link stops what comes after it.
+func TestRealItemsIronTierChain(t *testing.T) {
+	w := newWorkplaceEnv(t, "iron_pit", "smithing", "charcoal_burning", "bloomery")
+	w.village.WithRealItems(realItemRules(w.cfg, w.clock.Now(), time.Hour))
+	clamp, bloomery, smithy := w.building("charcoal_clamp"), w.building("bloomery"), w.building("smithy")
+	w.stock("firewood", 40)
+	// without ore and charcoal the bloomery cannot start
+	if _, err := rrc(w.village.Work(testCtx(t), w.as(w.worker, "settlement.work", "work"), handlers.VillageWorkRequest{ID: bloomery})); err != nil {
+		t.Fatal(err)
+	}
+	if n := len(w.workingShifts(bloomery)); n != 0 {
+		t.Fatalf("a bloomery with no ore and charcoal started %d shifts", n)
+	}
+	for i := 0; i < 2; i++ {
+		w.shift()
+	}
+	for i := 0; i < 2; i++ {
+		w.shiftIn(clamp)
+	}
+	if w.held("iron_ore") < 6 || w.held("charcoal") < 1 {
+		t.Fatalf("ore %d, charcoal %d", w.held("iron_ore"), w.held("charcoal"))
+	}
+	w.stock("charcoal", 8) // the clamp is slow: a night's burn is two sacks; the rest is topped up by hand
+	for i := 0; i < 3 && w.held("bloom") < 1; i++ {
+		w.shiftIn(bloomery)
+	}
+	if w.held("bloom") < 1 {
+		t.Fatalf("no bloom: ore %d charcoal %d", w.held("iron_ore"), w.held("charcoal"))
+	}
+	w.stock("charcoal", 2) // the forge's heat; the clamp is slow
+	for i := 0; i < 3 && w.held("tools") < 1; i++ {
+		w.shiftIn(smithy)
+	}
+	if w.held("tools") < 1 {
+		t.Errorf("the smithy made no tools: bloom %d charcoal %d", w.held("bloom"), w.held("charcoal"))
+	}
+	w.verify()
 }

@@ -260,6 +260,26 @@ knowledge:
     time: 18h
     effects: [{target: pottery_output_bps, op: add, value: 300}]
 
+  # charcoal_burning and bloomery - the road from wood and ore to iron (docs/adr/0051).
+  - code: charcoal_burning
+    field: craft
+    name: "زغال‌پزی"
+    requires: [carpentry]
+    family: charcoal
+    generation: 1
+    cost: 1200
+    time: 10h
+    effects: [{target: charcoal_output_bps, op: add, value: 400}]
+  - code: bloomery
+    field: craft
+    name: "ذوب آهن"
+    requires: [smithing, charcoal_burning]
+    family: smelting
+    generation: 1
+    cost: 3500
+    time: 28h
+    effects: [{target: smelting_output_bps, op: add, value: 400}]
+
   # papermaking — paper beaten from rags in running water (Samarkand, Fabriano; docs/adr/0050).
   - code: papermaking
     field: craft

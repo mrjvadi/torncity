@@ -190,6 +190,9 @@ components:
   - {code: rag, shelf: materials.fibre, weight_g: 300, name: Rags, category: fibre, base_price: 2, attributes: {quality: 40}}
   - {code: paper, shelf: materials.fibre, weight_g: 200, name: Paper, category: fibre, base_price: 18, attributes: {quality: 50}, village_buy: true, village_sell: true, stand_in: wool}
   - {code: tools, shelf: tools.work, weight_g: 1500, name: Tools, category: tool, base_price: 30, attributes: {quality: 50}, village_buy: true}
+  - {code: flour_sack, shelf: food.grain, weight_g: 5000, name: Flour sack, category: grain, base_price: 4, attributes: {quality: 50}}
+  - {code: charcoal, shelf: materials.fuel, weight_g: 2000, name: Charcoal, category: fuel, base_price: 12, attributes: {quality: 55}, village_sell: true}
+  - {code: bloom, shelf: materials.metal, weight_g: 9000, name: Iron bloom, category: metal, base_price: 90, attributes: {quality: 45}}
   - {code: pots, shelf: household.kitchen, weight_g: 2000, name: Pots, category: pottery, base_price: 22, attributes: {quality: 50}, village_sell: true}
 
   # --- Made from other components by factories and kitchens ----------------

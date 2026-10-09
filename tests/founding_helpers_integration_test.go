@@ -79,10 +79,24 @@ func foundVillage(t *testing.T, pool *postgres.Pool, h *handlers.SettlementsHand
 	if _, err := h.Found(ctx, meta); err != nil {
 		t.Fatalf("Found: %v", err)
 	}
-	req := validFoundingRequest(t, openDraftID(t, pool, meta.TelegramChatID))
-	resp, err := rr(h.Submit(ctx, clientMeta(meta, "settlement.found.submit", "found.submit"), req))
-	if err != nil {
-		t.Fatalf("Submit: %v", err)
+	// The form draws a random three-letter currency code and a random name, and a code another village already
+	// holds is refused: a suite founding many villages meets that now and then. A refused draft stays open, so ask
+	// again with a new form (a few times) instead of letting the test depend on luck.
+	var resp *presenter.Response
+	for attempt := 0; attempt < 6; attempt++ {
+		req := validFoundingRequest(t, openDraftID(t, pool, meta.TelegramChatID))
+		var err error
+		resp, err = rr(h.Submit(ctx, clientMeta(meta, "settlement.found.submit", "found.submit"), req))
+		if err != nil {
+			t.Fatalf("Submit: %v", err)
+		}
+		var n int
+		if err := pool.Raw().QueryRow(ctx, `SELECT count(*) FROM cities WHERE founded_by_group_id = $1`, meta.TelegramChatID).Scan(&n); err != nil {
+			t.Fatal(err)
+		}
+		if n > 0 {
+			return resp
+		}
 	}
 	return resp
 }

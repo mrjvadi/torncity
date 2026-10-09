@@ -262,6 +262,9 @@ func (h *VillageHandler) placementRefusal(ctx context.Context, tx application.Tx
 func materialLineOf(snap *content.Snapshot, code string, qty int64) village.MaterialLine {
 	cd, _ := snap.ComponentDef(code)
 	if cd.Code == "" {
+		if d, ok := snap.ItemDef(code); ok {
+			return village.MaterialLine{Component: named(code, d.Name), Quantity: qty}
+		}
 		return village.MaterialLine{Component: named(code, code), Quantity: qty}
 	}
 	return village.MaterialLine{Component: named(cd.Code, cd.Name), Quantity: qty}
