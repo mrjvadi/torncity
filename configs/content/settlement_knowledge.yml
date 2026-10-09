@@ -260,6 +260,17 @@ knowledge:
     time: 18h
     effects: [{target: pottery_output_bps, op: add, value: 300}]
 
+  # papermaking — paper beaten from rags in running water (Samarkand, Fabriano; docs/adr/0050).
+  - code: papermaking
+    field: craft
+    name: "کاغذسازی"
+    requires: [basic_literacy, weaving]
+    family: papermaking
+    generation: 1
+    cost: 1800
+    time: 14h
+    effects: [{target: papermaking_output_bps, op: add, value: 400}]
+
   # milling — generations i-ii.
   - code: milling
     field: food

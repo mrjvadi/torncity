@@ -140,21 +140,9 @@ func (h *VillageHandler) SettleTradeDay(ctx context.Context, tx application.Tx, 
 		d.Outcome = application.TradeNothing
 	default:
 		// the clerk: a seat of the labour pool and a day's wage
-		var seats, base int64
-		if len(h.labor.Curve) >= 4 {
-			market, err := h.laborMarket(ctx, tx, snap, s, buildings)
-			if err != nil {
-				return nil, err
-			}
-			shopSeat := int64(0)
-			if h.shop.enabled() {
-				if _, ok := snap.VillageShop(); ok {
-					shopSeat = 1
-				}
-			}
-			c := market.claims
-			seats = c.StaffFree() + c.Clerks - shopSeat - c.Keepers - c.Scholars
-			base = market.line.NPCWage
+		seats, base, err := h.clerkSeat(ctx, tx, snap, s, buildings)
+		if err != nil {
+			return nil, err
 		}
 		wage = base * clerkWageBPS(posts[0]) / 10_000
 		treasury, err := treasuryBalance(ctx, tx, s.CityID)
@@ -360,6 +348,28 @@ func (h *VillageHandler) tradeDesk(ctx context.Context, tx application.Tx, snap 
 	}
 	plan := trade.Make(stock, tOrders, prices, residents, rules)
 	view.Prospect = plan.Gross
+	if len(posts) > 0 {
+		// the next visit: the start of the settlement's next local day
+		view.NextAt = h.trade.Clock.RealAtHourIn(h.trade.Clock.DayAtIn(h.now(), s.Zone())+1, 0, s.Zone())
+		seats, base, err := h.clerkSeat(ctx, tx, snap, s, buildings)
+		if err != nil {
+			return village.TradeDeskView{}, err
+		}
+		seatB := ""
+		for _, b := range buildings {
+			if b.Status != "complete" {
+				continue
+			}
+			if fn, ok := snap.FunctionReplacing(b.TypeCode); ok {
+				if def, ok := snap.BuildingFunction(fn); ok && def.Trade != nil && def.Trade.Export {
+					seatB = b.TypeCode
+					break
+				}
+			}
+		}
+		view.Clerk = &village.TradeClerkLine{SeatBuilding: named(seatB, ""), Filled: seats >= 1, StaffedBy: "npc",
+			Wage: base * clerkWageBPS(posts[0]) / 10_000}
+	}
 	if last, err := tx.Trade().Last(ctx, s.CityID); err != nil {
 		return village.TradeDeskView{}, err
 	} else if last != nil {
@@ -370,6 +380,28 @@ func (h *VillageHandler) tradeDesk(ctx context.Context, tx application.Tx, snap 
 		view.Last = &line
 	}
 	return view, nil
+}
+
+// clerkSeat is the seats of the labour pool a clerk of the market could take (the one he holds today counts as free) and
+// the base wage of a pool worker.
+func (h *VillageHandler) clerkSeat(ctx context.Context, tx application.Tx, snap *content.Snapshot, s application.FoundedSettlement,
+	buildings []application.SettlementBuildingInstance,
+) (seats, base int64, err error) {
+	if len(h.labor.Curve) < 4 {
+		return 0, 0, nil
+	}
+	market, err := h.laborMarket(ctx, tx, snap, s, buildings)
+	if err != nil {
+		return 0, 0, err
+	}
+	shopSeat := int64(0)
+	if h.shop.enabled() {
+		if _, ok := snap.VillageShop(); ok {
+			shopSeat = 1
+		}
+	}
+	c := market.claims
+	return c.StaffFree() + c.Clerks - shopSeat - c.Keepers - c.Scholars, market.line.NPCWage, nil
 }
 
 var _ = time.Second

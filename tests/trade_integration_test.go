@@ -106,6 +106,13 @@ func TestMarketDaySellsTheSurplusOnce(t *testing.T) {
 	if e.days() != 1 {
 		t.Fatalf("the day was judged %d times", e.days())
 	}
+	// the desk says when the trader comes next and who sits in the clerk's seat
+	if !d.NextAt.After(e.clock.Now()) || d.NextAt.Sub(e.clock.Now()) > 24*time.Hour {
+		t.Errorf("the next market day is the next local midnight: %v at %v", d.NextAt, e.clock.Now())
+	}
+	if d.Clerk == nil || !d.Clerk.Filled || d.Clerk.StaffedBy != "npc" || d.Clerk.SeatBuilding.Code != "barter_post" || d.Clerk.Wage <= 0 {
+		t.Errorf("the clerk's seat: %+v", d.Clerk)
+	}
 	// 9 surplus timber at 90 percent of 15 = 13 each
 	if d.Last == nil || d.Last.Outcome != "sold" || d.Last.Gross != 9*13 {
 		t.Fatalf("the last market day: %+v", d.Last)

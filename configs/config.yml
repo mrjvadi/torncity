@@ -1371,6 +1371,13 @@ settlement:
   # screen warns "no keeper" and says until when.
   storage_keeper_rule_at: "2026-10-03T00:00:00Z"
   storage_keeper_grace_days: 14
+  # The real village goods (docs/adr/0050): firewood, paper and tools are goods with producers now. For this many
+  # real days after the rule date the older stand-in (timber for firewood, wool for paper) still serves a settlement
+  # that has none of the real item, and a workplace without tools keeps its full output; after it a shift without
+  # tools yields tool_bare_hands_bps of its output (10000 = all of it).
+  real_items_rule_at: "2026-10-12T00:00:00Z"
+  real_items_grace_days: 7
+  tool_bare_hands_bps: 6000
   # Research capacity and speed (docs/adr/0048): slots from staffed research buildings, speed from
   # the scholars, a dearer price for what is ahead of the world, a discount for real work in the field.
   # research projects every settlement can run with no research building (ADR 0048)

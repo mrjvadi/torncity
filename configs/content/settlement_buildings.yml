@@ -179,10 +179,11 @@ settlement_buildings:
     cost_money: 300
     build_time: 30m
     upkeep: 20
-    produces: {timber: 4}
+    produces: {timber: 4, firewood: 2}
     workers: 3
     shift: 1m
     wage: 40
+    tool_wear_bps: 300
 
   # ---------------------------------------------------------------------
   # security — watch -> post (ADR 0031 section 3.2, section 7's own
@@ -263,6 +264,7 @@ settlement_buildings:
     workers: 2
     shift: 1m30s
     wage: 30
+    tool_wear_bps: 150
     trains: {skill: carpentry, xp: 20}
 
   - code: masonry_workshop
@@ -281,6 +283,7 @@ settlement_buildings:
     workers: 2
     shift: 1m30s
     wage: 20
+    tool_wear_bps: 200
     trains: {skill: masonry, xp: 20}
 
   - code: smithy
@@ -307,7 +310,7 @@ settlement_buildings:
     upkeep: 55
     effects: [{target: job_coverage_bps, op: add, value: 140}]
     consumes: {wool: 3}
-    produces: {cloth: 2}
+    produces: {cloth: 2, rag: 1}
     workers: 2
     shift: 1m30s
     wage: 30
@@ -322,6 +325,74 @@ settlement_buildings:
     build_time: 3h
     upkeep: 50
     effects: [{target: job_coverage_bps, op: add, value: 140}]
+    consumes: {clay: 3, firewood: 1}
+    produces: {pots: 2}
+    workers: 2
+    shift: 1m30s
+    wage: 30
+    tool_wear_bps: 100
+  # ---------------------------------------------------------------------
+  # Plan A2 (docs/adr/0050): the first workplaces of the real village goods.
+  # ---------------------------------------------------------------------
+  # clay_pit: clay is dug where the river leaves it, on a riverside lot.
+  - code: clay_pit
+    name: "گودال گِل"
+    role: extraction
+    tier: 1
+    footprint: [2, 2]
+    requires_knowledge: [pottery]
+    terrain_tags: [river_lot]
+    terrain_mode: required
+    cost_money: 500
+    build_time: 1h
+    upkeep: 20
+    effects: [{target: job_coverage_bps, op: add, value: 100}]
+    produces: {clay: 6}
+    workers: 2
+    shift: 1m
+    wage: 25
+    tool_wear_bps: 400
+
+  # tool_workshop: the first tools of a village are a wooden haft and a stone head (hoe, adze, axe, sickle).
+  # Iron tools wait for the smithy, an ore mine and charcoal.
+  - code: tool_workshop
+    name: "کارگاه ابزارسازی"
+    role: craft
+    tier: 1
+    footprint: [2, 2]
+    requires_knowledge: [carpentry]
+    cost_money: 1100
+    cost_materials: {timber: 4}
+    build_time: 3h
+    upkeep: 55
+    effects: [{target: job_coverage_bps, op: add, value: 140}]
+    consumes: {timber: 1, stone: 1}
+    produces: {tools: 1}
+    workers: 2
+    shift: 1m30s
+    wage: 30
+    trains: {skill: carpentry, xp: 15}
+
+  # paper_mill: paper is beaten from rags in running water.
+  - code: paper_mill
+    name: "کارگاه کاغذسازی"
+    role: craft
+    tier: 1
+    footprint: [2, 2]
+    requires_knowledge: [papermaking]
+    terrain_tags: [river_lot]
+    terrain_mode: required
+    cost_money: 1600
+    cost_materials: {timber: 6, stone: 4}
+    build_time: 4h
+    upkeep: 70
+    effects: [{target: job_coverage_bps, op: add, value: 140}]
+    consumes: {rag: 3}
+    produces: {paper: 2}
+    workers: 2
+    shift: 2m
+    wage: 35
+    tool_wear_bps: 150
 
   - code: manufactory
     name: "کارگاه بزرگ"
@@ -363,6 +434,7 @@ settlement_buildings:
     workers: 2
     shift: 1m
     wage: 25
+    tool_wear_bps: 400
 
   - code: mine
     name: "معدن"
@@ -438,6 +510,7 @@ settlement_buildings:
     workers: 4
     shift: 2m
     wage: 50
+    tool_wear_bps: 100
     trains: {skill: farming, xp: 15}
 
   - code: farm_shaft
@@ -454,6 +527,7 @@ settlement_buildings:
     workers: 4
     shift: 2m
     wage: 50
+    tool_wear_bps: 100
     trains: {skill: farming, xp: 15}
 
   - code: farm_terrace
@@ -470,6 +544,7 @@ settlement_buildings:
     workers: 4
     shift: 2m
     wage: 50
+    tool_wear_bps: 100
     trains: {skill: farming, xp: 15}
 
   - code: farm_paddy
@@ -486,6 +561,7 @@ settlement_buildings:
     workers: 4
     shift: 2m
     wage: 50
+    tool_wear_bps: 100
     trains: {skill: farming, xp: 15}
 
   - code: pasture_range
@@ -498,7 +574,7 @@ settlement_buildings:
     build_time: 3h30m
     upkeep: 38
     effects: [{target: food_coverage_bps, op: add, value: 550}]
-    produces: {wool: 5}
+    produces: {wool: 5, hide: 1}
     workers: 3
     shift: 2m
     wage: 45

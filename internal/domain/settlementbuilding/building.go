@@ -205,6 +205,8 @@ type Work struct {
 	Shift time.Duration
 	// Wage is paid per finished shift from the village treasury, minor units.
 	Wage int64
+	// ToolWearBPS is the tool wear of one shift, ten-thousandths of a `tools` unit (0 = needs none).
+	ToolWearBPS int64
 }
 
 // Workplace reports whether the building can be worked in at all.
@@ -372,6 +374,9 @@ func ValidateCatalogue(defs []Def) error {
 			}
 			if w.Wage < 0 {
 				fail(ErrInvalidBuilding, "%q wage %d", d.Code, w.Wage)
+			}
+			if w.ToolWearBPS < 0 || w.ToolWearBPS > 10_000 {
+				fail(ErrInvalidBuilding, "%q tool wear %d", d.Code, w.ToolWearBPS)
 			}
 			for c, q := range w.Produces {
 				if q <= 0 {

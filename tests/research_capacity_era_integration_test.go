@@ -118,8 +118,8 @@ func TestResearchTheLaboratoryNeedsTwoScholars(t *testing.T) {
 	e := newResearchEnv(t)
 	e.building("library")
 	lab := e.building("laboratory")
-	e.stock("wool", 10)
-	e.stock("timber", 10)
+	e.stock("paper", 10)
+	e.stock("firewood", 10)
 	scholar := e.scholar()
 
 	// one player is not enough to open it; a town scholar fills the second post
@@ -137,11 +137,11 @@ func TestResearchTheLaboratoryNeedsTwoScholars(t *testing.T) {
 	if d.Capacity != 1+1+2 {
 		t.Errorf("capacity = %d, want the free slot, the library's one and the laboratory's two", d.Capacity)
 	}
-	if got := e.held("timber"); got != 8 {
-		t.Errorf("the laboratory burns 2 timber a working day: %d left of 10", got)
+	if got := e.held("firewood"); got != 8 {
+		t.Errorf("the laboratory burns 2 firewood a working day: %d left of 10", got)
 	}
-	if got := e.held("wool"); got != 8 {
-		t.Errorf("the library takes 1 wool and the laboratory 1: %d left of 10", got)
+	if got := e.held("paper"); got != 8 {
+		t.Errorf("the library takes 1 paper and the laboratory 1: %d left of 10", got)
 	}
 	e.verify()
 }

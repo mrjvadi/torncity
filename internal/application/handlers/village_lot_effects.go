@@ -98,13 +98,25 @@ func (h *VillageHandler) burnHearth(ctx context.Context, tx application.Tx, play
 	if err := tx.Items().LockOwner(ctx, playerID); err != nil {
 		return false, err
 	}
-	err = tx.Items().Move(ctx, application.ItemMove{Item: fuel, Qty: 1, From: playerID, FromHolding: application.HoldHome,
-		Reason: application.ItemUsed, ReferenceType: "settlement_building", ReferenceID: buildingID, At: now})
-	if err != nil {
-		if stderrors.Is(err, application.ErrNotEnoughItems) {
-			return false, nil
+	burn := func(item string) (bool, error) {
+		err := tx.Items().Move(ctx, application.ItemMove{Item: item, Qty: 1, From: playerID, FromHolding: application.HoldHome,
+			Reason: application.ItemUsed, ReferenceType: "settlement_building", ReferenceID: buildingID, At: now})
+		if err != nil {
+			if stderrors.Is(err, application.ErrNotEnoughItems) {
+				return false, nil
+			}
+			return false, err
 		}
-		return false, err
+		return true, nil
 	}
-	return true, nil
+	if ok, err := burn(fuel); ok || err != nil {
+		return ok, err
+	}
+	// the older fuel (timber) still burns while the grace of the real goods lasts (docs/adr/0050)
+	if h.realItems.InGrace(now) {
+		if si := standInOf(h.content.Current(), fuel); si != "" {
+			return burn(si)
+		}
+	}
+	return false, nil
 }

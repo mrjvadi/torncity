@@ -61,6 +61,15 @@ type TradeDayLine struct {
 	Lines   []TradeSoldLine
 }
 
+// TradeClerkLine is the clerk of the market's seat: the building he sits in, whether the labour pool has a person for it,
+// his daily wage (paid on a day the trader comes) and who staffs it (a worker of the settlement's pool, "npc").
+type TradeClerkLine struct {
+	SeatBuilding presentation.Named
+	Filled       bool
+	Wage         int64
+	StaffedBy    string
+}
+
 // TradeDeskView is the trade desk.
 type TradeDeskView struct {
 	Name string
@@ -73,6 +82,10 @@ type TradeDeskView struct {
 	Prospect int64
 	Items    []TradeItemLine
 	Last     *TradeDayLine
+	// NextAt is the next market day: the start of the settlement's next local day (zero without a market post).
+	NextAt time.Time
+	// Clerk is the clerk of the market's seat (nil without a market post).
+	Clerk *TradeClerkLine
 	// MayOrder says the viewer holds trade.export; KeepPresets are the amounts the desk offers to keep back.
 	MayOrder    bool
 	KeepPresets []int64

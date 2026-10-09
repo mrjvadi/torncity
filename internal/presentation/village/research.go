@@ -82,6 +82,10 @@ type ResearchUpkeepLine struct {
 	Item presentation.Named
 	Qty  int64
 	Have int64
+	// StandIn is the older material that still serves in place of Item until the board's StandInUntil (zero value: none);
+	// StandInHave is how much of it the stock holds.
+	StandIn     presentation.Named
+	StandInHave int64
 }
 
 // ResearchBuildingLine is one research building and its scholars.
@@ -148,6 +152,9 @@ type ResearchBoardView struct {
 	// Neighbours are settlements a pact may be offered to (their codes are the act's argument).
 	Neighbours []presentation.Named
 	Experience []ResearchExperienceLine
+	// StandInUntil is when the grace of the real goods ends: until then an upkeep line may be met by its StandIn
+	// (zero: no grace).
+	StandInUntil time.Time
 	// MayShare says the viewer holds research.share.
 	MayShare bool
 	// ShareCapBPS is the most sharing pacts add to a project.

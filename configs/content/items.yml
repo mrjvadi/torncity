@@ -97,7 +97,7 @@
 version: 1
 
 component_categories: [grain, water, leavening, flavouring, alkaloid, binder, fibre, steel, casing, circuit, battery, gem, metal,
-                       fuel, seed, salt, mineral, ore, oil, crop, wood, wire, resin, board]
+                       fuel, seed, salt, mineral, ore, oil, crop, wood, wire, resin, board, tool, pottery]
 
 components:
   # --- Bought from NPC suppliers only (production.yml suppliers) -----------
@@ -177,6 +177,20 @@ components:
   - {code: plank, shelf: materials.wood, weight_g: 6000, name: Planks, category: wood,    base_price: 30, attributes: {quality: 50}, village_sell: true}
   - {code: brick, shelf: materials.mineral, weight_g: 3000, name: Bricks, category: mineral, base_price: 14, attributes: {quality: 50}, village_sell: true}
   - {code: cloth, shelf: materials.fibre, weight_g: 400, name: Cloth,  category: fibre,   base_price: 40, attributes: {quality: 50}, village_sell: true}
+
+  # --- Village goods of the first workplaces (docs/adr/0050, plan A2) -------------------------------
+  # Each has a producer a settlement can place and staff (settlement_buildings.yml) and a user in the
+  # village machinery: firewood fuels hearths and the research buildings, paper is the research upkeep,
+  # tools wear out on workplaces, clay and firewood fire pots, rags are the weaving shed's offcuts that
+  # the paper mill pulps, hides come off the pasture. `stand_in` is the older material that served
+  # until these existed; it still works for settlement.real_items_grace_days after the rule date.
+  - {code: firewood, shelf: materials.fuel, weight_g: 4000, name: Firewood, category: fuel, base_price: 4, attributes: {quality: 50}, village_sell: true, stand_in: timber}
+  - {code: clay, shelf: materials.mineral, weight_g: 6000, name: Clay, category: mineral, base_price: 3, attributes: {quality: 50}, village_buy: true}
+  - {code: hide, shelf: materials.fibre, weight_g: 7000, name: Hide, category: fibre, base_price: 14, attributes: {quality: 50}, village_sell: true}
+  - {code: rag, shelf: materials.fibre, weight_g: 300, name: Rags, category: fibre, base_price: 2, attributes: {quality: 40}}
+  - {code: paper, shelf: materials.fibre, weight_g: 200, name: Paper, category: fibre, base_price: 18, attributes: {quality: 50}, village_buy: true, village_sell: true, stand_in: wool}
+  - {code: tools, shelf: tools.work, weight_g: 1500, name: Tools, category: tool, base_price: 30, attributes: {quality: 50}, village_buy: true}
+  - {code: pots, shelf: household.kitchen, weight_g: 2000, name: Pots, category: pottery, base_price: 22, attributes: {quality: 50}, village_sell: true}
 
   # --- Made from other components by factories and kitchens ----------------
   # A design counts flour in grams: one wheat mills into a hundred.

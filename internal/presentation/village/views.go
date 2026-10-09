@@ -1050,6 +1050,16 @@ type MaterialsView struct {
 	Presets []int64
 	// Bought is set on the screen shown right after a purchase.
 	Bought *MaterialBought `json:"bought,omitempty"`
+	// StandIns are the older materials that still serve in place of the real goods (wool for paper, timber for firewood)
+	// until StandInUntil; empty once the grace is over (docs/adr/0050).
+	StandIns     []StandInLine `json:"stand_ins,omitempty"`
+	StandInUntil time.Time     `json:"stand_in_until,omitempty"`
+}
+
+// StandInLine says that Stand still does in place of Item.
+type StandInLine struct {
+	Item  presentation.Named
+	Stand presentation.Named
 }
 
 // StockClassLine is one storage class of the stock: the spaces held, the room

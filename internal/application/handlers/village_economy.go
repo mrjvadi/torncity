@@ -309,6 +309,17 @@ func (h *VillageHandler) materialsView(ctx context.Context, tx application.Tx, m
 		Village: s.Name, Treasury: treasury, Used: stock.Used, Capacity: stock.Capacity, Presets: h.materialBuyPresets,
 		Wage: stock.Wage, SpoilBPS: stock.SpoilBPS,
 	}
+	if si := h.realItems.standIns(snap, h.now()); len(si) > 0 {
+		view.StandInUntil = h.realItems.GraceUntil()
+		items := make([]string, 0, len(si))
+		for it := range si {
+			items = append(items, it)
+		}
+		sort.Strings(items)
+		for _, it := range items {
+			view.StandIns = append(view.StandIns, village.StandInLine{Item: itemNamed(snap, it), Stand: itemNamed(snap, si[it])})
+		}
+	}
 	classCodes := make([]string, 0, len(stock.Classes))
 	for c := range stock.Classes {
 		classCodes = append(classCodes, c)
@@ -771,11 +782,42 @@ func (h *VillageHandler) startProduction(ctx context.Context, tx application.Tx,
 	}
 
 	now := h.now()
+	// The tools wear (docs/adr/0050): a shift wears a share of one tool; the workplace carries the share, and when a whole
+	// tool is due it leaves the stock with the shift's inputs. With none in the stock the shift works bare-handed at a
+	// share of its output once the grace of the real goods is over.
+	consumes := copyQty(d.Consumes)
+	toolUsed, bare := false, false
+	if wear := d.Def().Work.ToolWearBPS; wear > 0 {
+		carry, err := tx.SettlementTreasury().Carry(ctx, b.ID)
+		if err != nil && !stderrors.Is(err, application.ErrBuildingNotFound) {
+			return err
+		}
+		if carry == nil {
+			carry = map[string]int64{}
+		}
+		carry[ToolWearKey] += wear
+		if carry[ToolWearKey] >= labor.BPS {
+			if stock.Units[ToolItem] >= 1 {
+				toolUsed = true
+				consumes[ToolItem]++
+				carry[ToolWearKey] -= labor.BPS
+			} else {
+				carry[ToolWearKey] = labor.BPS // a drought never piles up more than the one tool that is due
+				bare = h.realItems.BareHandsBPS > 0 && !h.realItems.InGrace(now)
+			}
+		}
+		if err := tx.SettlementTreasury().SetCarry(ctx, b.ID, carry); err != nil && !stderrors.Is(err, application.ErrBuildingNotFound) {
+			return err
+		}
+	}
+	if bare {
+		outputBPS = outputBPS * h.realItems.BareHandsBPS / labor.BPS
+	}
 	shiftID := h.ids.NewID()
-	consumed := materialCodes(d.Consumes)
+	consumed := materialCodes(consumes)
 	for _, c := range consumed {
 		if err := tx.Items().Move(ctx, application.ItemMove{
-			Item: c, Qty: d.Consumes[c], FromOrg: application.SettlementOrg(s.CityID), FromHolding: application.HoldWarehouse,
+			Item: c, Qty: consumes[c], FromOrg: application.SettlementOrg(s.CityID), FromHolding: application.HoldWarehouse,
 			Reason: application.ItemProductionInput, ReferenceType: application.SettlementShiftItemReference, ReferenceID: shiftID, At: now,
 		}); err != nil {
 			if stderrors.Is(err, application.ErrNotEnoughItems) {
@@ -798,7 +840,7 @@ func (h *VillageHandler) startProduction(ctx context.Context, tx application.Tx,
 	sh := application.SettlementShift{
 		MealPoints: points, Fed: fed, OutputBPS: outputBPS,
 		ID: shiftID, SettlementID: s.CityID, BuildingID: b.ID, Wage: wage, JobID: jobID, WorkerKind: application.LaborWorkerNPC,
-		Produced: copyQty(d.Produces), Consumed: copyQty(d.Consumes), GameActionID: actionID, StartedAt: now, FinishAt: finish,
+		Produced: copyQty(d.Produces), Consumed: copyQty(consumes), GameActionID: actionID, StartedAt: now, FinishAt: finish,
 	}
 	playerID := ""
 	if p != nil {
@@ -823,7 +865,7 @@ func (h *VillageHandler) startProduction(ctx context.Context, tx application.Tx,
 	}
 	return appendVillageEvent(ctx, tx, meta, "shift_started", s.CityID, map[string]any{
 		"settlement_id": s.CityID, "shift_id": shiftID, "building_id": b.ID, "type_code": b.TypeCode, "player_id": playerID,
-		"fed": fed, "meal_points": points, "output_bps": outputBPS,
+		"fed": fed, "meal_points": points, "output_bps": outputBPS, "tool_used": toolUsed, "bare_handed": bare,
 		"worker": sh.WorkerKind, "finish_at": finish.UTC().Format(time.RFC3339),
 	})
 }

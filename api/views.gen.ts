@@ -3660,6 +3660,8 @@ export interface MaterialsView {
   can_buy: boolean
   presets: number[] | null
   bought: MaterialBought | null
+  stand_ins: StandInLine[] | null
+  stand_in_until: string | null
 }
 
 export interface MeasureToggle {
@@ -4892,6 +4894,7 @@ export interface ResearchBoardView {
   pacts: ResearchPactLine[] | null
   neighbours: Named[] | null
   experience: ResearchExperienceLine[] | null
+  stand_in_until: string | null
   may_share: boolean
   share_cap_bps: number
 }
@@ -4957,6 +4960,8 @@ export interface ResearchUpkeepLine {
   item: Named
   qty: number
   have: number
+  stand_in: Named
+  stand_in_have: number
 }
 
 export interface ReserveView {
@@ -5469,6 +5474,11 @@ export interface SpecialistsView {
   notice_seed: number
 }
 
+export interface StandInLine {
+  item: Named
+  stand: Named
+}
+
 export interface StandingLine {
   id: string
   building: Named
@@ -5758,6 +5768,13 @@ export interface TierView {
   next_xp: number
 }
 
+export interface TradeClerkLine {
+  seat_building: Named
+  filled: boolean
+  wage: number
+  staffed_by: string
+}
+
 export interface TradeDayLine {
   outcome: string
   gross: number
@@ -5774,6 +5791,8 @@ export interface TradeDeskView {
   prospect: number
   items: TradeItemLine[] | null
   last: TradeDayLine | null
+  next_at: string | null
+  clerk: TradeClerkLine | null
   may_order: boolean
   keep_presets: number[] | null
 }
@@ -6403,6 +6422,10 @@ export interface WorkNode {
   food_shifts: number
   condition: WorkCondition | null
   job: WorkJob | null
+  tool_wear_bps: number
+  tools_have: number
+  bare_hands: boolean
+  bare_hands_bps: number
   if_unstaffed: string
 }
 
