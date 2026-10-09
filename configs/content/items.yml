@@ -175,7 +175,7 @@ components:
   - {code: stone, shelf: materials.mineral, weight_g: 10000, name: Stone,  category: mineral, base_price: 6,  attributes: {quality: 50}, village_buy: true, village_sell: true}
   - {code: wool, shelf: materials.fibre, weight_g: 500,  name: Wool,   category: fibre,   base_price: 12, attributes: {quality: 50}, village_buy: true, village_sell: true}
   - {code: plank, shelf: materials.wood, weight_g: 6000, name: Planks, category: wood,    base_price: 30, attributes: {quality: 50}, village_sell: true}
-  - {code: brick, shelf: materials.mineral, weight_g: 3000, name: Bricks, category: mineral, base_price: 14, attributes: {quality: 50}, village_sell: true}
+  - {code: brick, shelf: materials.mineral, weight_g: 3000, name: Bricks, category: mineral, base_price: 14, attributes: {quality: 50}, village_buy: true, village_sell: true}
   - {code: cloth, shelf: materials.fibre, weight_g: 400, name: Cloth,  category: fibre,   base_price: 40, attributes: {quality: 50}, village_sell: true}
 
   # --- Village goods of the first workplaces (docs/adr/0050, plan A2) -------------------------------
@@ -190,6 +190,8 @@ components:
   - {code: rag, shelf: materials.fibre, weight_g: 300, name: Rags, category: fibre, base_price: 2, attributes: {quality: 40}}
   - {code: paper, shelf: materials.fibre, weight_g: 200, name: Paper, category: fibre, base_price: 18, attributes: {quality: 50}, village_buy: true, village_sell: true, stand_in: wool}
   - {code: tools, shelf: tools.work, weight_g: 1500, name: Tools, category: tool, base_price: 30, attributes: {quality: 50}, village_buy: true}
+  - {code: bark, shelf: materials.wood, weight_g: 1500, name: Bark, category: wood, base_price: 3, attributes: {quality: 50}}
+  - {code: leather, shelf: materials.fibre, weight_g: 2500, name: Leather, category: fibre, base_price: 40, attributes: {quality: 50}, village_sell: true}
   - {code: flour_sack, shelf: food.grain, weight_g: 5000, name: Flour sack, category: grain, base_price: 4, attributes: {quality: 50}}
   - {code: charcoal, shelf: materials.fuel, weight_g: 2000, name: Charcoal, category: fuel, base_price: 12, attributes: {quality: 55}, village_sell: true}
   - {code: bloom, shelf: materials.metal, weight_g: 9000, name: Iron bloom, category: metal, base_price: 90, attributes: {quality: 45}}

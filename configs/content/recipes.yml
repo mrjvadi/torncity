@@ -26,7 +26,7 @@ recipes:
   - {code: woollen_cloth, name: "پارچهٔ پشمی", source: "ADR 0045 4.3 #10", evidence: adr, requires: {knowledge: [weaving]}, stations: [weaving_shed], inputs: {yarn: 3}, outputs: {cloth: 1}, skill: weaving}
   - {code: fulled_cloth, name: "نمد", source: "ADR 0045 4.3 #11", evidence: adr, requires: {knowledge: [weaving_ii]}, stations: [fulling_place], inputs: {cloth: 1, fullers_clay: 1}, outputs: {fulled_cloth: 1}, skill: weaving, needs_water: true}
   - {code: linen, name: "کتان", source: "ADR 0045 4.3 #12", evidence: adr, requires: {knowledge: [weaving]}, stations: [weaving_shed, dwelling], inputs: {flax: 1}, outputs: {linen: 1}, skill: weaving}
-  - {code: leather, name: "چرم", source: "ADR 0045 4.3 #13", evidence: adr, requires: {}, planned_knowledge: [tanning], stations: [tannery], inputs: {hide: 1, bark: 1}, outputs: {leather: 1}, needs_water: true}
+  - {code: leather, name: "چرم", source: "ADR 0045 4.3 #13", evidence: adr, requires: {knowledge: [tanning]}, stations: [tannery], inputs: {hide: 1, bark: 1}, outputs: {leather: 1}, needs_water: true}
   - {code: bloom, name: "آهن خام", source: "ADR 0045 4.3 #15, S68", evidence: adr, requires: {knowledge: [bloomery]}, stations: [bloomery], inputs: {iron_ore: 3, charcoal: 4}, outputs: {bloom: 1}, skill: smithing, tool_tier: 1}
   - {code: bar_iron, name: "شمش آهن", source: "ADR 0045 4.3 #16", evidence: adr, requires: {knowledge: [smithing]}, stations: [smithy], inputs: {bloom: 1, charcoal: 1}, outputs: {bar_iron: 1}, skill: smithing, tool_tier: 1}
   - {code: rope, name: "طناب", source: "ADR 0045 4.3 #19", evidence: adr, requires: {}, stations: [dwelling], inputs: {fibre: 2}, outputs: {rope: 1}, note: "the ADR also allows linen as input"}
