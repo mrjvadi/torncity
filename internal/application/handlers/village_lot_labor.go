@@ -41,7 +41,7 @@ func (h *VillageHandler) fitoutDone(ctx context.Context, tx application.Tx, meta
 	}
 	if finished {
 		w.WorkDone = done
-		return h.applyWork(ctx, tx, meta, newLotKit(snap), s, *w, now)
+		return h.applyWork(ctx, tx, meta, kitOf(snap), s, *w, now)
 	}
 	if ok && sh.JobID != "" {
 		if _, err := h.fillCrew(ctx, tx, meta, snap, s, sh.JobID); err != nil {

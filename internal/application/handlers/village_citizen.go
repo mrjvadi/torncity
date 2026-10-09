@@ -1194,6 +1194,7 @@ func (h *VillageHandler) mineView(ctx context.Context, tx application.Tx, meta e
 // nothing: living in one's own house is comfort, never income.
 func (h *VillageHandler) HomeRest(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	lang := meta.Language
+	notice := "rested"
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		sc, err := h.citizenScope(ctx, tx, meta, &lang, true)
 		if err != nil {
@@ -1222,9 +1223,20 @@ func (h *VillageHandler) HomeRest(ctx context.Context, meta envelope.Metadata) (
 		if err != nil {
 			return err
 		}
+		// a hearth in the house makes the rest warm: a unit of wood from the home store buys a quarter more
+		// (docs/adr/0041 8.33, docs/adr/0045 B1); resting works without it
+		gainHealth, gainHappiness := h.citizen.HomeRestHealth, h.citizen.HomeRestHappiness
+		warm, werr := h.burnHearth(ctx, tx, sc.p.ID, pb.BuildingID, now)
+		if werr != nil {
+			return werr
+		}
+		if warm {
+			gainHealth, gainHappiness = gainHealth*125/100, gainHappiness*125/100
+			notice = "rested_warm"
+		}
 		next := *st
-		next.Health = minInt(st.MaxHealth, st.Health+h.citizen.HomeRestHealth)
-		next.Happiness = minInt(100, st.Happiness+h.citizen.HomeRestHappiness)
+		next.Health = minInt(st.MaxHealth, st.Health+gainHealth)
+		next.Happiness = minInt(100, st.Happiness+gainHappiness)
 		if err := tx.Stats().Save(ctx, next); err != nil {
 			return err
 		}
@@ -1233,7 +1245,7 @@ func (h *VillageHandler) HomeRest(ctx context.Context, meta envelope.Metadata) (
 	if resp, err := h.villageFinish(meta, lang, err); resp != nil || err != nil {
 		return resp, err
 	}
-	return h.mine(ctx, meta, "rested")
+	return h.mine(ctx, meta, notice)
 }
 
 func minInt(a, b int) int {

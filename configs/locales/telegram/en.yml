@@ -128,6 +128,7 @@ citizen:
     cash: "👛 Your money: {cash}"
     notice:
       rested: "🛋 You rested at home and feel better."
+      rested_warm: "🔥 You rested by a warm hearth and feel much better."
       tax_paid: "✅ Tax paid."
       tax_none: "There is no debt to pay, or you cannot afford it."
   terms:

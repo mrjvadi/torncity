@@ -519,15 +519,27 @@ func (h *MarketHandler) Order(ctx context.Context, meta envelope.Metadata, req M
 			if err != nil {
 				return err
 			}
-			if used >= vb.Stalls {
-				r := refuseMarket(economy.MarketRefusedStallsFull)
-				r.view.Count = vb.Stalls
-				return r
+			// The counters of the player's own stalls (docs/adr/0045 B1: the shelves of a stall they own): the
+			// first of their orders sit on those, take no common stall and pay no listing fee.
+			own, err := tx.SettlementBuildings().OwnStallSlots(ctx, w.city.ID, p.ID)
+			if err != nil {
+				return err
 			}
-			if mine >= vb.PerPlayer {
-				r := refuseMarket(economy.MarketRefusedStallLimit)
-				r.view.Count = vb.PerPlayer
-				return r
+			if int64(mine) < own {
+				vb.ListingBPS = 0
+			} else {
+				cover := int(min(int64(mine), own))
+				used, mine = used-cover, mine-cover
+				if used >= vb.Stalls {
+					r := refuseMarket(economy.MarketRefusedStallsFull)
+					r.view.Count = vb.Stalls
+					return r
+				}
+				if mine >= vb.PerPlayer {
+					r := refuseMarket(economy.MarketRefusedStallLimit)
+					r.view.Count = vb.PerPlayer
+					return r
+				}
 			}
 		}
 		open, err := tx.Market().CountOpen(ctx, p.ID)

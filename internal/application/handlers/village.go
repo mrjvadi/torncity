@@ -524,7 +524,11 @@ func (h *VillageHandler) overview(ctx context.Context, meta envelope.Metadata, h
 		}
 		// The homes the village has: the households it starts with plus what its
 		// standing buildings add, the same number the labour market reads.
-		cap = h.labor.BaseHousing + housingOf(snap, buildings)
+		extra, err := h.housingNow(ctx, tx, snap, s.CityID, buildings)
+		if err != nil {
+			return err
+		}
+		cap = h.labor.BaseHousing + extra
 		var roleLines []village.VillageRoleLine
 		for _, role := range []string{"security", "craft", "forestry", "extraction", "water_infra", "food", "housing", "health", "education", "market", "storage", "recreation"} {
 			if l, ok := byRole[role]; ok {

@@ -50,6 +50,8 @@ type LotRules struct {
 	UseChangeFeeBPS int64
 	// LookRerolls bounds the re-rolls of a look to differ from a neighbour; TemplatesMax the saved layouts a player keeps.
 	LookRerolls, TemplatesMax int
+	// HearthFuel is the item a hearth burns for a warm rest (the module's own consumes row).
+	HearthFuel string
 }
 
 // Enabled reports whether the lot rules are configured.
@@ -452,7 +454,7 @@ func (h *VillageHandler) ManageLot(ctx context.Context, meta envelope.Metadata, 
 			return refuseVillage(village.VillageNotAvailable, village.AddrMine)
 		}
 		snap := h.content.Current()
-		k := newLotKit(snap)
+		k := kitOf(snap)
 		buildings, err := tx.SettlementBuildings().List(ctx, s.CityID)
 		if err != nil {
 			return err

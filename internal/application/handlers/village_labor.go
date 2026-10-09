@@ -152,7 +152,10 @@ func (h *VillageHandler) laborMarket(ctx context.Context, tx application.Tx, sna
 		}
 		vacancies += left
 	}
-	housing := housingOf(snap, buildings)
+	housing, err := h.housingNow(ctx, tx, snap, s.CityID, buildings)
+	if err != nil {
+		return laborMarket{}, err
+	}
 	pool := h.labor.PoolSize(housing, residents)
 	force := pool + residents
 	tight := h.labor.Tightness(all+vacancies, force)
@@ -1351,6 +1354,18 @@ func (h *VillageHandler) workedSite(ctx context.Context, tx application.Tx, meta
 		}
 		if err := repo.CloseJobOfBuilding(ctx, sh.BuildingID, now); err != nil {
 			return err
+		}
+		// a finished building gets its function and its look (docs/adr/0045 B1); idempotent
+		if h.lot.Enabled() {
+			if fb, ferr := tx.SettlementBuildings().Get(ctx, sh.BuildingID); ferr == nil {
+				if f, ferr := h.ensureFunction(ctx, tx, kitOf(snap), s, *fb); ferr != nil {
+					return ferr
+				} else if f != nil {
+					if _, ferr := h.lookOf(ctx, tx, s, f, false, now); ferr != nil {
+						return ferr
+					}
+				}
+			}
 		}
 	}
 	if err := appendVillageEvent(ctx, tx, meta, "shift_done", s.CityID, map[string]any{

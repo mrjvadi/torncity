@@ -26,6 +26,6 @@ func LotRules(s config.Settlement) (handlers.LotRules, error) {
 		Storey: lotbuild.StoreyRules{AreaPerCell: s.BuildingAreaPerCell, TimberPerCell: int64(s.BuildingStoreyTimberPerCell),
 			StonePerCell: int64(s.BuildingStoreyStonePerCell), StoneFrom: s.BuildingStoreyStoneFrom, ShiftsPerCell: s.BuildingStoreyShiftsPerCell},
 		StoreyKnowledge: support, SalvageBPS: int64(s.BuildingSalvageBPS), UseChangeFeeBPS: int64(s.UseChangeFeeBPS),
-		LookRerolls: s.BuildingLookRerolls, TemplatesMax: s.BuildingTemplatesMax,
+		LookRerolls: s.BuildingLookRerolls, TemplatesMax: s.BuildingTemplatesMax, HearthFuel: "timber",
 	}, nil
 }

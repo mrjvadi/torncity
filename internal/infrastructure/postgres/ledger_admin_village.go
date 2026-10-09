@@ -136,6 +136,17 @@ type VillageInvariants struct {
 	FXTradeLedgerVC, FXTradeRowsVC       int64
 	FXTradeMismatched, FXOrderMismatched int64
 	FXRateMismatched, FXHistoryGuards    int64
+	// The lot model (migration 0133, docs/adr/0045 B1): Lots is whether the tables exist. LotOrphans counts modules
+	// and looks without a function row and function rows without a building; LotWorkMismatched orders done
+	// without all their work or with more work than their fitout shifts did; LotShiftsWithoutJob fitout shifts no
+	// fitout job posted; LotMaterialsMismatched the difference between the materials the item journal says the
+	// orders took and what the orders cost; LotFeeMismatched the difference between the fees of change of use in
+	// the ledger and in the orders, plus conversions without their paid order; LotHistoryGuards the triggers that
+	// keep the conversion history append-only (two expected).
+	Lots                                               bool
+	LotOrphans, LotWorkMismatched, LotShiftsWithoutJob int64
+	LotMaterialsMismatched, LotFeeMismatched           int64
+	LotHistoryGuards                                   int64
 	// The reserve tools (migration 0131): Reserve is whether the tables exist. ReserveFlowMismatched counts
 	// moneys whose intervention_out/in counters differ from the ledger's pot legs; ReleasedMismatched those whose
 	// released_sup differs from what left the pot for good (excess withdrawn, claims, retirement remainder);
@@ -165,7 +176,9 @@ func (v VillageInvariants) WorkNodesOK() bool {
 		(!v.FXBook || (v.FXEscrowMismatched == 0 && v.FXTradeLedgerSUP == v.FXTradeRowsSUP && v.FXTradeLedgerVC == v.FXTradeRowsVC &&
 			v.FXTradeMismatched == 0 && v.FXOrderMismatched == 0 && v.FXRateMismatched == 0 && v.FXHistoryGuards == 2)) &&
 		(!v.Reserve || (v.ReserveFlowMismatched == 0 && v.ReleasedMismatched == 0 && v.ClaimMismatched == 0 && v.ClaimOverdrawn == 0 &&
-			v.WithdrawalMismatched == 0 && v.RetiredPotMismatched == 0 && v.MacroGuards == 2))
+			v.WithdrawalMismatched == 0 && v.RetiredPotMismatched == 0 && v.MacroGuards == 2)) &&
+		(!v.Lots || (v.LotOrphans == 0 && v.LotWorkMismatched == 0 && v.LotShiftsWithoutJob == 0 && v.LotMaterialsMismatched == 0 &&
+			v.LotFeeMismatched == 0 && v.LotHistoryGuards == 2))
 }
 
 // TeachingOK reports whether the teaching checks hold.
@@ -266,11 +279,11 @@ func (a *EconomyAdmin) verifyVillage(ctx context.Context, v *LedgerVerification)
 		{&s.LaborWageLedger, "labour wages", `
 			SELECT COALESCE(SUM(amount), 0)::bigint FROM ledger_entries WHERE reason IN ('labor_wage', 'labor_wage_npc') AND amount > 0`, nil},
 		{&s.LaborWageRows, "labour wage rows", `
-			SELECT COALESCE(SUM(wage_paid), 0)::bigint FROM settlement_shifts s WHERE s.status = 'done' AND s.kind IN ('construction', 'repair')
+			SELECT COALESCE(SUM(wage_paid), 0)::bigint FROM settlement_shifts s WHERE s.status = 'done' AND s.kind IN ('construction', 'repair', 'fitout')
 			   AND NOT EXISTS (SELECT 1 FROM local_payments lp WHERE lp.reference_id = s.id)`, nil},
 		{&s.LaborMismatched, "labour wage transactions", `
 			SELECT count(*) FROM settlement_shifts s
-			 WHERE s.status = 'done' AND s.kind IN ('construction', 'repair')
+			 WHERE s.status = 'done' AND s.kind IN ('construction', 'repair', 'fitout')
 			   AND NOT EXISTS (SELECT 1 FROM local_payments lp WHERE lp.reference_id = s.id)
 			   AND ((s.wage_paid > 0
 			         AND ((SELECT count(*) FROM ledger_entries e
@@ -281,7 +294,7 @@ func (a *EconomyAdmin) verifyVillage(ctx context.Context, v *LedgerVerification)
 			     OR (s.wage_paid = 0 AND s.ledger_transaction_id IS NOT NULL))`, nil},
 		{&s.LaborEscrowLedger, "labour escrow", credited, []any{"labor_escrow"}},
 		{&s.LaborEscrowRows, "labour escrow rows", `
-			SELECT COALESCE(SUM(wage), 0)::bigint FROM settlement_shifts WHERE kind = 'construction' AND payer_kind = 'player'`, nil},
+			SELECT COALESCE(SUM(wage), 0)::bigint FROM settlement_shifts WHERE kind IN ('construction', 'fitout') AND payer_kind = 'player'`, nil},
 		{&s.ServiceMisrouted, "training and repair routes", `
 			SELECT count(*) FROM ledger_entries e JOIN accounts a ON a.id = e.account_id
 			 WHERE (e.reason = 'training_fee' AND ((e.amount > 0 AND a.kind <> 'city_treasury') OR (e.amount < 0 AND a.kind <> 'player_cash')))

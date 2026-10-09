@@ -187,6 +187,15 @@ func VerifyChecks(v postgres.LedgerVerification, cfg *config.Config) []Check {
 		out.add(t.FXRateMismatched == 0 && t.FXHistoryGuards == 2, fmt.Sprintf("the reference rate history is append-only (%d of 2 guards), continuous, and every money's x_ref is its last reading's (%d off)", t.FXHistoryGuards, t.FXRateMismatched))
 	}
 
+	if v.Village && v.Lots {
+		t := v.VillageInvariants
+		out.add(t.LotOrphans == 0, fmt.Sprintf("every module and look belongs to a function row and every function row to a building (%d off)", t.LotOrphans))
+		out.add(t.LotWorkMismatched == 0 && t.LotShiftsWithoutJob == 0, fmt.Sprintf("an owner's order is exactly the work its fitout shifts did, and every fitout shift has its job (%d orders off, %d shifts without a job)", t.LotWorkMismatched, t.LotShiftsWithoutJob))
+		out.add(t.LotMaterialsMismatched == 0, fmt.Sprintf("the materials the item journal says the orders took are what the orders cost (%d off)", t.LotMaterialsMismatched))
+		out.add(t.LotFeeMismatched == 0, fmt.Sprintf("the fees of change of use in the ledger are what the orders paid in SUP, and every conversion is a paid order (%d off)", t.LotFeeMismatched))
+		out.add(t.LotHistoryGuards == 2, fmt.Sprintf("the conversion history is append-only (%d of 2 guards)", t.LotHistoryGuards))
+	}
+
 	if v.Village && v.Reserve {
 		t := v.VillageInvariants
 		out.add(t.ReserveFlowMismatched == 0, fmt.Sprintf("what the head's interventions took from the pot and what came back match the ledger's pot legs, and the pot is deposits minus releases minus what is out plus what came back (%d off)", t.ReserveFlowMismatched))
