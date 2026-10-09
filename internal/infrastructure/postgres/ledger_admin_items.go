@@ -9,6 +9,13 @@ import (
 // tools the shifts recorded as consumed, and no workplace carries more wear than the one tool that can be due.
 func (a *EconomyAdmin) verifyToolWear(ctx context.Context, v *LedgerVerification) error {
 	s := &v.VillageInvariants
+	var have bool
+	if err := a.q.QueryRow(ctx, `SELECT to_regclass('public.settlement_shifts') IS NOT NULL`).Scan(&have); err != nil {
+		return fmt.Errorf("postgres: looking for the shifts: %w", err)
+	}
+	if !have {
+		return nil // a database from before the village
+	}
 	for _, c := range []struct {
 		into *int64
 		what string

@@ -48,7 +48,7 @@ func TestStoreroomsAndShelvesRaiseTheHomeStore(t *testing.T) {
 		return v.Home.Capacity
 	}
 	id := e.house(owner, "private_cottage", 800)
-	e.give(owner, application.HoldHome, "firewood", 20)
+	e.give(owner, application.HoldHome, "timber", 20)
 	grantCash(t, e.pool, owner.ID, 5000)
 	if got := capacity(); got != 40 {
 		t.Fatalf("a cottage keeps 40 spaces: %d", got)
@@ -148,7 +148,7 @@ func TestTwoOrdersAtOnceTakeTheMaterialsOnce(t *testing.T) {
 	e := newLotEnv(t)
 	owner := e.owner
 	id := e.house(owner, "private_cottage", 800)
-	e.give(owner, application.HoldHome, "firewood", 20)
+	e.give(owner, application.HoldHome, "timber", 20)
 	grantCash(t, e.pool, owner.ID, 5000)
 	var wg sync.WaitGroup
 	results := make([]*presentation.Response, 6)
@@ -169,8 +169,8 @@ func TestTwoOrdersAtOnceTakeTheMaterialsOnce(t *testing.T) {
 	if n := e.scalar(`SELECT count(*) FROM building_works WHERE building_id = $1::uuid AND status = 'open'`, id); n != 1 {
 		t.Errorf("%d open orders, want 1", n)
 	}
-	if got := e.held(owner, application.HoldHome, "firewood"); got != 18 {
-		t.Errorf("the home store holds %d firewood, want 18 (2 taken once)", got)
+	if got := e.held(owner, application.HoldHome, "timber"); got != 18 {
+		t.Errorf("the home store holds %d timber, want 18 (2 taken once)", got)
 	}
 	e.build(owner, id)
 	e.verifyLots()
