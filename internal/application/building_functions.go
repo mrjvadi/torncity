@@ -109,8 +109,8 @@ type BuildingWork struct {
 	// FeeTx is the ledger transaction of the use-change fee (or of its local payment), empty when none was paid.
 	FeeTx     string
 	OrderedBy string
-	OrderedAt     time.Time
-	DoneAt        *time.Time
+	OrderedAt time.Time
+	DoneAt    *time.Time
 }
 
 // FunctionConversion is one change of use, kept for good.

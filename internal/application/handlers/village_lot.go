@@ -75,7 +75,9 @@ type VillageManageRequest struct {
 	LocalSettle
 }
 
-func (r VillageManageRequest) confirmed() bool { return strings.TrimSpace(r.Confirm) == village.ResidenceConfirm }
+func (r VillageManageRequest) confirmed() bool {
+	return strings.TrimSpace(r.Confirm) == village.ResidenceConfirm
+}
 
 func (r VillageManageRequest) count() int {
 	n, err := strconv.Atoi(strings.TrimSpace(r.N))

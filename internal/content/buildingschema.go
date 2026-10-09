@@ -200,10 +200,10 @@ type FunctionLevelDef struct {
 	// Building is the catalogue building (settlement_buildings.yml, citizen_buildings.yml) the lot stands as at
 	// this level: the old tier is a level, and the legacy code is what the effects and the map still read until
 	// ADR 0044 G7 drops it. It must be one of the function's `replaces`.
-	Building  string `yaml:"building,omitempty" json:"building,omitempty"`
-	CostMoney int64  `yaml:"cost_money,omitempty" json:"cost_money,omitempty"`
-	CostMaterials    map[string]int64   `yaml:"cost_materials,omitempty" json:"cost_materials,omitempty"`
-	BuildHours       int                `yaml:"build_hours,omitempty" json:"build_hours,omitempty"`
+	Building      string           `yaml:"building,omitempty" json:"building,omitempty"`
+	CostMoney     int64            `yaml:"cost_money,omitempty" json:"cost_money,omitempty"`
+	CostMaterials map[string]int64 `yaml:"cost_materials,omitempty" json:"cost_materials,omitempty"`
+	BuildHours    int              `yaml:"build_hours,omitempty" json:"build_hours,omitempty"`
 }
 
 // StaffSlotDef is a post at the function (ADR 0041 5): a role, how many, the
