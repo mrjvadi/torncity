@@ -1860,7 +1860,7 @@ func Defaults() *Config {
 			ToolBareHandsBPS:                 6000,
 			ServiceRuleAt:                    "2026-10-10T12:00:00Z",
 			ServiceGraceDays:                 7,
-			PersonalRuleAt:                   "2026-10-12T00:00:00Z",
+			PersonalRuleAt:                   "2026-10-10T00:00:00Z",
 			PersonalGraceDays:                7,
 			ResearchFreeSlots:                1,
 			ResearchSpeedFloorBPS:            10000,
