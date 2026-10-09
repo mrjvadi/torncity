@@ -188,6 +188,9 @@ func (h *VillageHandler) SettleTradeDay(ctx context.Context, tx application.Tx, 
 			return nil, err
 		}
 	}
+	if err := h.accrueDaily(ctx, tx, s.CityID, "market", "trade", today, 1, now); err != nil {
+		return nil, err
+	}
 	treasury, err := tx.Ledger().AccountFor(ctx, application.AccountCityTreasury, s.CityID)
 	if err != nil {
 		return nil, err

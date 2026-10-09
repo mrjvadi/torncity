@@ -1657,9 +1657,11 @@ type SettlementWhoView struct {
 	Offline int
 }
 
-// WatchLine is one watch post's day: held, or why it stood idle.
-type WatchLine struct {
+// ServiceLine is one daily service post's day: open (held), or why it stood idle.
+type ServiceLine struct {
 	Building presentation.Named
-	Held     bool
-	Idle     string
+	// Service is the service code (local_security, primary_care, lodging_and_tea).
+	Service string
+	Held    bool
+	Idle    string
 }

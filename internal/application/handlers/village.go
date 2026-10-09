@@ -510,20 +510,18 @@ func (h *VillageHandler) overview(ctx context.Context, meta envelope.Metadata, h
 		var cap int64
 		coverage := map[string]int64{}
 		byRole := map[string]village.VillageRoleLine{}
-		// The daily services (ADR 0052): a watch post counts its security on a day it was held (guards, wage and fire).
-		watchDay, err := h.SettleServiceDay(ctx, tx, snap, s, buildings)
+		// The daily services (ADR 0052): a watch post or a health house counts its coverage on a day it was open.
+		serviceDay, err := h.SettleServiceDay(ctx, tx, snap, s, buildings)
 		if err != nil {
 			return err
 		}
 		posts := map[string]servicePost{}
 		if h.service.enabled() {
 			for _, p := range servicePosts(snap, buildings) {
-				if p.service() == application.ServiceSecurity {
-					posts[p.b.ID] = p
-				}
+				posts[p.b.ID] = p
 			}
 		}
-		var watchLines []village.WatchLine
+		var serviceLines []village.ServiceLine
 		for _, b := range buildings {
 			if !b.Complete() || b.Status == "demolished" {
 				continue
@@ -533,24 +531,24 @@ func (h *VillageHandler) overview(ctx context.Context, meta envelope.Metadata, h
 				continue
 			}
 			_, isPost := posts[b.ID]
-			held := isPost && watchDay != nil && watchDay.HeldPost(b.ID)
+			held := isPost && serviceDay != nil && serviceDay.HeldPost(b.ID)
 			if isPost {
-				line := village.WatchLine{Building: presentation.Named{Code: def.Code, Name: def.Name}, Held: held}
-				if watchDay != nil {
-					for _, wp := range watchDay.Posts {
+				line := village.ServiceLine{Building: presentation.Named{Code: def.Code, Name: def.Name}, Service: posts[b.ID].service(), Held: held}
+				if serviceDay != nil {
+					for _, wp := range serviceDay.Posts {
 						if wp.BuildingID == b.ID {
 							line.Idle = wp.Idle
 						}
 					}
 				}
-				watchLines = append(watchLines, line)
+				serviceLines = append(serviceLines, line)
 			}
 			for _, e := range def.BuildingEffects() {
 				if e.Target == "housing_capacity" {
 					continue
 				}
-				if isPost && !held && e.Target == "local_security_bps" {
-					continue // an idle post secures nothing today
+				if isPost && !held {
+					continue // a post that was not open today covers nothing
 				}
 				coverage[e.Target] += e.Value
 			}
@@ -585,7 +583,7 @@ func (h *VillageHandler) overview(ctx context.Context, meta envelope.Metadata, h
 			ServicePercent:   int(coverage["service_coverage_bps"] / 100),
 			HappinessPercent: int(coverage["happiness_bps"] / 100),
 			SecurityPercent:  int(coverage["local_security_bps"] / 100),
-			Watch:            watchLines,
+			Services:         serviceLines,
 			LiteracyPercent:  literacyBPS / 100,
 			Buildings:        roleLines,
 		}

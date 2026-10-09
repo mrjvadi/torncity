@@ -92,8 +92,8 @@ func TestWatchPostIsHeldWithGuardsWageAndFire(t *testing.T) {
 	if e.days() != 1 {
 		t.Fatalf("the watch was judged %d times", e.days())
 	}
-	if len(v.Watch) != 1 || !v.Watch[0].Held || v.SecurityPercent <= 0 {
-		t.Fatalf("a held post counts its security: %+v, %d percent", v.Watch, v.SecurityPercent)
+	if len(v.Services) != 1 || !v.Services[0].Held || v.SecurityPercent <= 0 {
+		t.Fatalf("a held post counts its security: %+v, %d percent", v.Services, v.SecurityPercent)
 	}
 	if e.held("firewood") != 4 {
 		t.Errorf("the fire burns one firewood a night: %d left of 5", e.held("firewood"))
@@ -121,15 +121,15 @@ func TestWatchPostIdleWithoutFuelOrWage(t *testing.T) {
 	e := newWatchEnv(t)
 	e.building("watch_hut")
 	v := e.overview() // no firewood in the store
-	if len(v.Watch) != 1 || v.Watch[0].Held || v.Watch[0].Idle != "no_supplies" || v.SecurityPercent != 0 {
-		t.Fatalf("a fire with no wood: %+v, %d percent", v.Watch, v.SecurityPercent)
+	if len(v.Services) != 1 || v.Services[0].Held || v.Services[0].Idle != "no_supplies" || v.SecurityPercent != 0 {
+		t.Fatalf("a fire with no wood: %+v, %d percent", v.Services, v.SecurityPercent)
 	}
 	e.clock.Advance(26 * time.Hour)
 	e.stock("firewood", 3)
 	e.drainTreasury()
 	v = e.overview()
-	if len(v.Watch) != 1 || v.Watch[0].Held || v.Watch[0].Idle != "no_wage" || e.held("firewood") != 3 {
-		t.Fatalf("watchmen nobody can pay: %+v, firewood %d", v.Watch, e.held("firewood"))
+	if len(v.Services) != 1 || v.Services[0].Held || v.Services[0].Idle != "no_wage" || e.held("firewood") != 3 {
+		t.Fatalf("watchmen nobody can pay: %+v, firewood %d", v.Services, e.held("firewood"))
 	}
 	e.verifyWatch()
 }

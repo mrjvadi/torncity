@@ -204,6 +204,23 @@ func (h *VillageHandler) SettleServiceDay(ctx context.Context, tx application.Tx
 			}
 		}
 	}
+	// a day a service was open is practice in its field (a held watch teaches security, a health house health)
+	held := map[string]int64{}
+	for _, p := range posts {
+		if d.HeldPost(p.b.ID) && p.def.Produces.Field != "" {
+			held[p.def.Produces.Field]++
+		}
+	}
+	fields := make([]string, 0, len(held))
+	for f := range held {
+		fields = append(fields, f)
+	}
+	sort.Strings(fields)
+	for _, f := range fields {
+		if err := h.accrueDaily(ctx, tx, s.CityID, f, "service", today, held[f], now); err != nil {
+			return nil, err
+		}
+	}
 	if d.Wage > 0 {
 		acct, err := tx.Ledger().AccountFor(ctx, application.AccountCityTreasury, s.CityID)
 		if err != nil {

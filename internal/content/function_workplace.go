@@ -150,6 +150,9 @@ func (l *schemaLint) workplaces() {
 		if w.Role == "" || w.Wage < 0 || w.Upkeep < 0 || w.Tier < 0 {
 			l.bad("%s: workplace needs a role, and no negative wage or upkeep", key)
 		}
+		if f.Produces != nil && f.Produces.Field != "" && !ResearchFields[f.Produces.Field] {
+			l.bad("%s: produces.field %q is not a research field", key, f.Produces.Field)
+		}
 		if daily := f.Produces != nil && f.Produces.Daily; daily {
 			if f.Produces.Service == "" || len(f.Produces.Outputs) > 0 {
 				l.bad("%s: a daily service names its service and makes no goods", key)

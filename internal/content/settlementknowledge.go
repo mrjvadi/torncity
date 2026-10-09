@@ -139,6 +139,18 @@ var ResearchFields = map[string]bool{
 	"security": true, "education": true, "market": true, "infrastructure": true,
 }
 
+// FieldOfRole is the research field the work of a building role feeds (ADR 0053): the role itself when it is a field, and
+// the raw trades that supply the crafts (felling, digging) feed craft. "" for a role no field grows out of (housing).
+func FieldOfRole(role string) string {
+	switch {
+	case ResearchFields[role]:
+		return role
+	case role == "forestry", role == "extraction":
+		return "craft"
+	}
+	return ""
+}
+
 func mustDuration(s string) time.Duration {
 	d, _ := optionalDuration(s)
 	return d

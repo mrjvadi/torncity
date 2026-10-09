@@ -635,12 +635,32 @@ building_functions:
     staff: [{role: watchman, slots: 2, shift_hours: 4}]
     if_unstaffed: idle
     consumes: {fuel: {firewood: 1}, food_points: 4}
-    produces: {service: local_security, daily: true}
+    produces: {service: local_security, daily: true, field: security}
     links: {from: [woodcutter_yard, granary], to: [granary]}
     ledger_reasons: [wages, fine_to_treasury]
     replaces: [watch_hut]
     needs_research: [decay_bps_per_day]
     note: "security +150 bps per post while a watchman is on duty (ADR 0041 8.6); no meal or firewood and an NPC watch does not start"
+  - code: health_house
+    source: "ADR 0038 section 2 (village health worker); RESEARCH 2026-10-09 A6 (Wikipedia Primary health care, Community health worker)"
+    evidence: adr
+    name: "خانهٔ بهداشت"
+    requires: {knowledge: [basic_medicine]}
+    kind: service
+    family: health
+    zones: [core, residential]
+    footprint: [2, 2, 2, 2]
+    owners: [treasury]
+    levels:
+      - {level: 1, requires: {knowledge: [basic_medicine]}, cost_money: 1500, build_hours: 3}
+    staff: [{role: health_worker, slots: 1, shift_hours: 6}]
+    if_unstaffed: idle
+    consumes: {inputs: {cloth: 1, spring_water: 2}}
+    produces: {service: primary_care, daily: true, field: health}
+    links: {from: [weaving_shed, well]}
+    ledger_reasons: [service_wage]
+    replaces: [health_house]
+    note: "a village health worker keeps the house: clean water and cloth for dressings every day it is open, a wage from the treasury. A day it was open counts its service coverage and is practice in health; closed it counts nothing. Medicine and treatment of the sick are phase B5/C4"
   - code: lookout_post
     source: "ADR 0042 8.1, 4.4"
     evidence: adr
