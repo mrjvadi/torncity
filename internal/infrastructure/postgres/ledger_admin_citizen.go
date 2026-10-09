@@ -82,7 +82,10 @@ func (a *EconomyAdmin) verifyCitizen(ctx context.Context, v *LedgerVerification)
 		{&s.PermitRows, "permit rows", `SELECT COALESCE(SUM(permit_fee), 0)::bigint FROM settlement_private_buildings b
 			WHERE NOT EXISTS (SELECT 1 FROM local_payments lp WHERE lp.reference_id = b.building_id)`, nil},
 		{&s.ConstructionLedger, "private construction", credited, []any{"citizen_construction"}},
-		{&s.ConstructionRows, "private construction rows", `SELECT COALESCE(SUM(construction_paid), 0)::bigint FROM settlement_private_buildings`, nil},
+		// a lot-manage order (ADR 0045 B1) pays its building money under the same reason, referencing its building_works row
+		{&s.ConstructionRows, "private construction rows", `SELECT (SELECT COALESCE(SUM(construction_paid), 0) FROM settlement_private_buildings)
+			+ (SELECT COALESCE(SUM(w.cost_money), 0) FROM building_works w
+			    WHERE EXISTS (SELECT 1 FROM ledger_entries e WHERE e.reference_id = w.id AND e.reason = 'citizen_construction' AND e.amount > 0))`, nil},
 		{&s.MaterialsLedger, "bought materials", credited, []any{"citizen_materials"}},
 		{&s.MaterialsRows, "bought materials rows", `SELECT COALESCE(SUM(materials_paid), 0)::bigint FROM settlement_private_buildings`, nil},
 		{&s.BuildingMismatched, "private building transactions", `
