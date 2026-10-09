@@ -1,4 +1,4 @@
--- 0138_experience_days: practice in a field counts once a day per source (ADR 0053, plan A6).
+-- 0138_experience_days: practice in a field counts once a day per source (ADR 0054, plan A6).
 --
 -- A settlement's experience in a field (settlement_experience) is what real work earns: finished production and
 -- construction shifts, a held watch or health day, a market day that sold, a staffed research day, a teaching day.

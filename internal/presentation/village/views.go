@@ -101,9 +101,9 @@ type VillageRoleLine struct {
 // 8.1's coverage numbers, ADR 0031 section 4.4's literacy).
 type VillageOverviewView struct {
 	Name string
-	// Watch is the day's state of each watch post: held (guards, wage and a fire) or idle for a reason (no_guard,
-	// no_wage, no_fuel). An idle post counts nothing in SecurityPercent (ADR 0052).
-	Watch []WatchLine
+	// Services is the day's state of each daily service post (watch post, health house, inn): open, or idle for a reason
+	// (no_staff, no_wage, no_supplies). An idle post counts nothing in the coverage numbers (ADR 0052).
+	Services []ServiceLine
 	// ZoneMinutes is the settlement's own time zone, minutes east of UTC: its daily
 	// rhythms (the shop's morning, the stores' day, the market day) run on local
 	// time there. A client shows its own device time beside it.

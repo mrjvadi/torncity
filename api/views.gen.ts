@@ -5215,6 +5215,13 @@ export interface Sentence {
   ends_at: string | null
 }
 
+export interface ServiceLine {
+  building: Named
+  service: string
+  held: boolean
+  idle: string
+}
+
 export interface SettingsView {
   language: string
   languages: string[] | null
@@ -6081,7 +6088,7 @@ export interface VillageNewsView {
 
 export interface VillageOverviewView {
   name: string
-  watch: WatchLine[] | null
+  services: ServiceLine[] | null
   zone_minutes: number
   tier: string
   population: number
@@ -6339,12 +6346,6 @@ export interface WarehouseView {
   listings: number
   can_research: boolean
   next: NextStep | null
-}
-
-export interface WatchLine {
-  building: Named
-  held: boolean
-  idle: string
 }
 
 export interface Way {

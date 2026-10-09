@@ -1767,3 +1767,7 @@ ADR 0052, migration 0137. New buildings in the build menu: `tannery`, `brickwork
 ## The pace of work (2026-10-09)
 
 ADR 0053, no migration, no view change. Every workplace shift is now 15 to 60 real minutes (`WorkNode.shift_seconds` and `WorkplaceLine.shift` carry the length); wages per shift are about 100 SUP per worker-hour. The woodcutter, carpenter, mason, weaving shed and kiln keep their building codes. Show shift lengths in minutes and hours, not seconds.
+
+## Breakthrough fields are fed by real work (2026-10-09)
+
+ADR 0054, migration 0138. No new command. `VillageOverviewView.watch[]` (A4b) is renamed `services[]`: `{building, service, held, idle}` for every daily service post (watch post: `local_security`, health house: `primary_care`, inn: `lodging_and_tea`); `idle` is `no_staff`, `no_wage` or `no_supplies`. A post that was not open today adds nothing to the coverage numbers. The health house now needs a health worker (a seat of the labour pool), cloth 1 and water 2 a day. Experience (the research desk's `experience[]`) now grows in all eight fields.

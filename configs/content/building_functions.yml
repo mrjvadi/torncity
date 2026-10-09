@@ -655,7 +655,7 @@ building_functions:
       - {level: 1, requires: {knowledge: [basic_medicine]}, cost_money: 1500, build_hours: 3}
     staff: [{role: health_worker, slots: 1, shift_hours: 6}]
     if_unstaffed: idle
-    consumes: {inputs: {cloth: 1, spring_water: 2}}
+    consumes: {inputs: {cloth: 1, spring_water: 2}, food_points: 2}
     produces: {service: primary_care, daily: true, field: health}
     links: {from: [weaving_shed, well]}
     ledger_reasons: [service_wage]
