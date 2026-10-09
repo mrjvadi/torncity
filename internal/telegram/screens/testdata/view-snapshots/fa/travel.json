@@ -177,6 +177,7 @@
       "cash": 5000,
       "from": "Ostmarch",
       "from_code": "ostmarch",
+      "licence": null,
       "options": [
         {
           "busy": false,
@@ -231,6 +232,7 @@
       "cash": 5000,
       "from": "Ostmarch",
       "from_code": "ostmarch",
+      "licence": null,
       "options": [
         {
           "busy": false,
@@ -268,6 +270,7 @@
       "cash": 5000,
       "from": "Ostmarch",
       "from_code": "ostmarch",
+      "licence": null,
       "options": [
         {
           "busy": true,

@@ -1790,3 +1790,7 @@ ADR 0057, no migration, no view change. New skills (names from the `skill.*` loc
 ## Dead levers (2026-10-10)
 
 ADR 0058, no migration. The work block of a building view (`village.NodeWork`) has `knowledge_bps` (omitted when 0): the share of every shift's output that the settlement's knowledge of the craft adds. The building panel may show it beside the tool wear line.
+
+## The car asks its licence (2026-10-10)
+
+ADR 0059, no migration. `TravelOptionsView` has `licence`: a list of `{mode_code, course, until}` for the private modes that ask a certificate the rider lacks. `until` set: the mode is still in `options` and the certificate is needed from that time; `until` unset: the mode is left out of `options`. Empty for a rider who needs nothing.

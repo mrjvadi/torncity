@@ -73,10 +73,21 @@ func renderTravelOptions(c Context, v TravelOptionsView) *presenter.Response {
 			AddrTravelStart, v.ToCode, o.ModeCode, strconv.FormatInt(o.Fare, 10))
 	}
 
+	var licence []string
+	for _, l := range v.Licence {
+		key, until := "travel.licence_needed", ""
+		if !l.Until.IsZero() {
+			key, until = "travel.licence_soon", FormatDate(c, l.Until)
+		}
+		licence = append(licence, c.T(key, map[string]any{
+			"mode": c.ModeName(l.ModeCode, l.ModeCode), "course": c.CourseName(l.Course.Code, l.Course.Name), "date": until,
+		}))
+	}
 	text := paragraphs(
 		c.T("travel.options_title", map[string]any{"to": to, "from": c.CityName(v.FromCode, v.From)}),
 		requoteNotice(c, v.Requoted),
 		body(lines...),
+		body(licence...),
 		cashLine(c, v.Cash),
 	)
 

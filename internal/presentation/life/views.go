@@ -1081,6 +1081,17 @@ type TravelOptionsView struct {
 	// fare rose since they saw it, so nothing was charged and the current
 	// prices are shown instead.
 	Requoted bool
+	// Licence lists the modes that ask a certificate the rider lacks (the car's driving licence). Until set: the mode is
+	// still offered and the licence will be needed from that time; zero: the mode is left out of Options.
+	Licence []TravelLicence
+}
+
+// TravelLicence is a transport mode asking a certificate (docs/adr/0059).
+type TravelLicence struct {
+	ModeCode string
+	// Course is the course whose certificate is asked.
+	Course Named
+	Until  time.Time
 }
 
 // TravelCheckoutView is the price of one way to make a journey, and the ways

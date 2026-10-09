@@ -5898,6 +5898,12 @@ export interface TravelHereView {
   village_code: string
 }
 
+export interface TravelLicence {
+  mode_code: string
+  course: Named
+  until: string | null
+}
+
 export interface TravelOption {
   mode_code: string
   mode_name: string
@@ -5917,6 +5923,7 @@ export interface TravelOptionsView {
   options: TravelOption[] | null
   cash: number
   requoted: boolean
+  licence: TravelLicence[] | null
 }
 
 export interface TravelStartedView {

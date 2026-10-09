@@ -51,6 +51,8 @@ travel:
     🧭 Travel to {to}
     📍 From: {from}
   options_choose: "How would you like to travel?"
+  licence_soon: "🪪 From {date} driving the {mode} needs the \"{course}\" certificate. Until then you may drive without it; take the course under Education."
+  licence_needed: "🪪 Driving the {mode} needs the \"{course}\" certificate. Take the course under Education; until then travel another way."
   option: "• {mode} - {fare} - {wait} on the way - {energy} energy"
   option_busy: "• {mode} - {fare} (busy route) - {wait} on the way - {energy} energy"
   option_own: "• In your own {mode} - fuel {fare} - {wait} on the way - {energy} energy - condition {condition}"

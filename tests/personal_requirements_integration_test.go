@@ -152,6 +152,13 @@ func setLevelOf(t *testing.T, e *researchEnv, playerID string, level int) {
 // switched off for this one transaction).
 func certify(t *testing.T, e *researchEnv, playerID, course string) {
 	t.Helper()
+	certifyIn(t, e.pool, playerID, course)
+}
+
+// certifyIn is certify against a pool, for the tests that have no research env.
+func certifyIn(t *testing.T, pool *postgres.Pool, playerID, course string) {
+	t.Helper()
+	e := struct{ pool *postgres.Pool }{pool}
 	ctx := testCtx(t)
 	tx, err := e.pool.Raw().Begin(ctx)
 	if err != nil {
