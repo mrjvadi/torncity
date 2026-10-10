@@ -101,7 +101,7 @@ func (h *VillageHandler) craftLine(ctx context.Context, tx application.Tx, snap 
 	line := &village.LotCraftLine{Stations: stations, MaxJobs: cd.MaxJobs, MaxBatches: cd.MaxBatches, YieldBPS: int64(cd.HomeYieldBPS)}
 	wanted := map[string]bool{}
 	for _, r := range recipes {
-		rl := village.RecipeLine{Code: r.Code, Name: named(r.Code, r.Name), Minutes: r.CycleMinutes(),
+		rl := village.StationRecipeLine{Code: r.Code, Name: named(r.Code, r.Name), Minutes: r.CycleMinutes(),
 			Inputs: materialLinesOf(snap, scaleQty(r.Inputs, 1)), Outputs: materialLinesOf(snap, scaleQty(r.Outputs, 1))}
 		miss := missingKnowledge(r, owned)
 		rl.Available = len(miss) == 0

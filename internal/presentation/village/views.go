@@ -1153,8 +1153,8 @@ type WorkplaceLine struct {
 	Farm *FarmLine `json:"farm,omitempty"`
 	Mill *MillLine `json:"mill,omitempty"`
 	// Recipes are the recipes the workshop offers, its standard shift first (docs/adr/0068); Tool the state of its tool.
-	Recipes []RecipeLine `json:"recipes,omitempty"`
-	Tool    *ToolLine    `json:"tool,omitempty"`
+	Recipes []StationRecipeLine `json:"recipes,omitempty"`
+	Tool    *ToolLine           `json:"tool,omitempty"`
 }
 
 // WorkShiftLine is a shift in progress.

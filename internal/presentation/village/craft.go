@@ -31,8 +31,8 @@ const (
 	AddrCraft          = "settlement:craft"
 )
 
-// RecipeLine is one recipe a workshop offers: Code "" and Default are the station's standard shift.
-type RecipeLine struct {
+// StationRecipeLine is one recipe a workshop offers: Code "" and Default are the station's standard shift.
+type StationRecipeLine struct {
 	Code     string             `json:"code"`
 	Name     presentation.Named `json:"name"`
 	Default  bool               `json:"default,omitempty"`
@@ -60,9 +60,9 @@ type ToolLine struct {
 // LotCraftLine is the home station of a lot: what the building can make at home and the jobs running.
 type LotCraftLine struct {
 	// Stations are the stations the building stands for (its function and the modules that stand for others).
-	Stations []string       `json:"stations"`
-	Recipes  []RecipeLine   `json:"recipes"`
-	Jobs     []CraftJobLine `json:"jobs"`
+	Stations []string            `json:"stations"`
+	Recipes  []StationRecipeLine `json:"recipes"`
+	Jobs     []CraftJobLine      `json:"jobs"`
 	// MaxJobs and MaxBatches bound what the player may start; YieldBPS is the share a home station makes.
 	MaxJobs    int   `json:"max_jobs"`
 	MaxBatches int   `json:"max_batches"`

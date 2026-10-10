@@ -216,7 +216,7 @@ func (h *VillageHandler) toolStepOf(snap *content.Snapshot, units map[string]int
 // recipeLines are the recipes a workshop offers, with the standard shift first, for the work screen and the building panel.
 func (h *VillageHandler) recipeLines(ctx context.Context, tx application.Tx, snap *content.Snapshot, s application.FoundedSettlement,
 	b application.SettlementBuildingInstance, d content.SettlementBuildingDef, chosen string,
-) ([]village.RecipeLine, error) {
+) ([]village.StationRecipeLine, error) {
 	station := stationOf(snap, b.TypeCode)
 	rs := workshopRecipes(snap, station)
 	if len(rs) == 0 {
@@ -226,14 +226,14 @@ func (h *VillageHandler) recipeLines(ctx context.Context, tx application.Tx, sna
 	if err != nil {
 		return nil, err
 	}
-	out := []village.RecipeLine{{Code: "", Default: true, Selected: chosen == "", Available: true,
+	out := []village.StationRecipeLine{{Code: "", Default: true, Selected: chosen == "", Available: true,
 		Inputs: materialLinesOf(snap, d.Consumes), Outputs: materialLinesOf(snap, d.Produces)}}
 	for _, r := range rs {
 		if isDefaultAt(r, station) {
 			continue
 		}
 		n := int64(r.BatchOf())
-		line := village.RecipeLine{Code: r.Code, Name: named(r.Code, r.Name), Selected: chosen == r.Code,
+		line := village.StationRecipeLine{Code: r.Code, Name: named(r.Code, r.Name), Selected: chosen == r.Code,
 			Inputs: materialLinesOf(snap, scaleQty(r.Inputs, n)), Outputs: materialLinesOf(snap, scaleQty(r.Outputs, n))}
 		miss := missingKnowledge(r, owned)
 		line.Available = len(miss) == 0

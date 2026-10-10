@@ -141,10 +141,10 @@ type WorkNode struct {
 	IfUnstaffed string `json:"if_unstaffed,omitempty"`
 	// Farm is the crop of a farm of the cycle, Mill the toll of a mill, Water the water work's state, Grazing the open lots
 	// a pasture has round it (docs/adr/0067); nil for any other building.
-	Recipes []RecipeLine `json:"recipes,omitempty"`
-	Tool    *ToolLine    `json:"tool,omitempty"`
-	Farm    *FarmLine    `json:"farm,omitempty"`
-	Mill    *MillLine    `json:"mill,omitempty"`
-	Water   *WaterWork   `json:"water,omitempty"`
-	Grazing *GrazingLine `json:"grazing,omitempty"`
+	Recipes []StationRecipeLine `json:"recipes,omitempty"`
+	Tool    *ToolLine           `json:"tool,omitempty"`
+	Farm    *FarmLine           `json:"farm,omitempty"`
+	Mill    *MillLine           `json:"mill,omitempty"`
+	Water   *WaterWork          `json:"water,omitempty"`
+	Grazing *GrazingLine        `json:"grazing,omitempty"`
 }
