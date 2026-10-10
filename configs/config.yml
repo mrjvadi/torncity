@@ -1398,7 +1398,7 @@ settlement:
   personal_rule_at: "2026-10-10T00:00:00Z"
   personal_grace_days: 7
   # the land model (ADR 0065): trees and rocks as land. The rule date and the grace of the woodcutter's stop
-  land_rule_at: "2026-10-10T00:00:00Z"
+  land_rule_at: "2026-10-10T17:00:00Z"
   land_grace_days: 7
   land_woodland_ring: 3
   land_regrow_hours: 120
@@ -1408,7 +1408,7 @@ settlement:
   land_rock_shifts: 2
   # the farm cycle (ADR 0067): sowing, tending, harvest. The rule date and the grace of the farms that stood before it, which keep
   # their flat shift of 12 wheat until the grace is over
-  farm_rule_at: "2026-10-10T00:00:00Z"
+  farm_rule_at: "2026-10-10T17:00:00Z"
   farm_grace_days: 14
   # The teacher's skill in the literacy tick (docs/adr/0057): a class a player with the teaching skill gives moves literacy at
   # teacher_base_bps plus teacher_per_level_bps for each level of the skill (never above 10000); with no player teacher it moves at
