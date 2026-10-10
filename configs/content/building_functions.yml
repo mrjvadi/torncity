@@ -56,7 +56,7 @@ item_storage:
   - {code: wool,     source: "ADR 0041 6.4", evidence: adr, requires: {}, class: goods, bulk: 1}
   - {code: tools,     source: "ADR 0041 6.4, 8.12", evidence: adr, requires: {}, class: goods, bulk: 1, note: "the village tool kit; the existing `tool` is an archetype of company goods, not a component"}
   - {code: bandage,  source: "ADR 0041 6.4", evidence: adr, requires: {}, class: goods, bulk: 1}
-  - {code: brick,    source: "ADR 0045 4.3", evidence: adr, requires: {}, class: bulk, bulk: 2, needs_research: [class, bulk], note: "ADR 0041 6.4 does not list bricks; stone's bulk is used as a stand-in until the owner sets it"}
+  - {code: brick,    source: "ADR 0045 4.3", evidence: adr, requires: {}, class: bulk, bulk: 2, note: "a brick is a bulk good of two spaces like stone (owner default 2026-10-10; ADR 0041 6.4 does not list bricks)"}
   # planned: new village goods
   - {code: firewood,     source: "ADR 0041 6.4, 6.6", evidence: adr, requires: {}, class: bulk, bulk: 1}
   - {code: cut_stone,   planned: true, raw: true, source: "ADR 0041 6.4, 8.11", evidence: adr, requires: {}, class: bulk, bulk: 2, note: "no producer until phase W5 (the masonry shop makes bricks from stone today); marked raw so the lint passes while it is planned"}
@@ -102,7 +102,7 @@ module_kinds:
   # work amount in builder shifts and an upkeep decay, and an effect that is a
   # real mechanic. The ADR fixes none of those numbers: flagged, not invented.
   - {code: bedroom,   source: "ADR 0045 3.2", evidence: D, requires: {}, effect: housing_capacity, provides: {housing_capacity: 2}, cost_materials: {timber: 3}, build_shifts: 3, area: 2, needs_research: [decay_bps_per_day], note: "the legacy private_cottage gives capacity 2, private_house 4 (citizen_buildings.yml); materials, shifts and area are B1 draft numbers (the ADR names the fields, not the figures), proportioned to the cottage (3 timber, 2 hours)"}
-  - {code: hearth,    source: "ADR 0045 3.2, 0041 8.3, 8.33", evidence: D, requires: {}, effect: warmth_shelter, consumes: {timber: 1}, cost_materials: {stone: 2}, build_shifts: 2, area: 1, needs_research: [decay_bps_per_day], note: "fuel: one unit of timber per warm rest from the owner's home store (0041 8.33: rest +25 percent when warm; resting works without it). The ADR burns firewood, which is not an item yet (planned in item_storage); timber stands in until it is; B1 draft numbers"}
+  - {code: hearth,    source: "ADR 0045 3.2, 0041 8.3, 8.33", evidence: D, requires: {}, effect: warmth_shelter, consumes: {timber: 1}, cost_materials: {stone: 2}, build_shifts: 2, area: 1, needs_research: [decay_bps_per_day], note: "fuel: one firewood per warm rest from the owner's home store (0041 8.33: rest +25 percent when warm; resting works without it); timber still burns only during the grace of the real goods (ADR 0050); B1 draft numbers"}
   - {code: kitchen,   source: "ADR 0045 3.2", evidence: adr, requires: {}, waits_for: "B3: cooking and warmth at home need the survival chain (a stove that cooks the larder)", effect: cooking, needs_research: [cost_materials, build_shifts, decay_bps_per_day]}
   - {code: storeroom, source: "ADR 0045 3.2, 0040 6", evidence: D, requires: {}, effect: personal_storage, provides: {personal_storage: 40}, cost_materials: {timber: 2}, build_shifts: 2, area: 1, needs_research: [decay_bps_per_day], note: "personal storage +40 / +100 / +60 by building in ADR 0040 6.2: the cottage's room is one storeroom; B1 draft numbers for the cost"}
   - {code: water_barrel, source: "ADR 0045 3.2", evidence: adr, requires: {}, waits_for: "B3: drinking water at home needs thirst and the well draw (spring_water)", effect: water_supply, needs_research: [cost_materials, build_shifts, decay_bps_per_day]}
@@ -311,7 +311,7 @@ building_functions:
     links: {to: [storehouse]}
     replaces: [masonry_workshop]
     workplace: {output_target: masonry_output_bps, role: craft, tier: 1, shift: 30m, upkeep: 65, effects: [{target: job_coverage_bps, op: add, value: 150}], trains: {skill: masonry, xp: 20}}
-    note: "stone 3 to brick 2 per half-hour shift (the shop's bricks are a stand-in for clay bricks, which the brickworks makes); the ADR 0041 target of cut stone waits for phase W5"
+    note: "stone 3 to brick 2 per half-hour shift: the mason's dressed stone bricks; clay bricks are the brickworks' own good. Cut stone as a separate good is not made (owner default 2026-10-10, ADR 0057)"
   - code: kiln
     source: "ADR 0041 8.14, 0045 4.3 recipes 4, 5"
     evidence: adr
@@ -499,7 +499,7 @@ building_functions:
     links: {from: [clay_pit, woodcutter_yard], to: [bakery, bloomery, land_registry]}
     replaces: [brickworks]
     workplace: {output_target: pottery_output_bps, role: craft, tier: 1, shift: 30m, upkeep: 40, effects: [{target: job_coverage_bps, op: add, value: 100}], trains: {skill: pottery, xp: 20}}
-    note: "clay is moulded and fired with wood in a clamp or a kiln: clay 4 and firewood 2 give four bricks in a 3 game hour firing. The masonry shop still makes bricks from stone (a stand-in); ovens, the bloomery and the land registry are built of brick"
+    note: "clay is moulded and fired with wood in a clamp or a kiln: clay 4 and firewood 2 give four bricks in a 3 game hour firing. The masonry shop makes dressed stone bricks of its own; ovens, the bloomery and the land registry are built of brick"
   - code: mill
     source: "ADR 0041 8.15, 0045 4.3 recipe 6"
     evidence: adr
@@ -875,7 +875,7 @@ building_functions:
     ledger_reasons: [scholar_wage, scholar_wage_npc]
     replaces: [library]
     needs_research: [shift_hours, food_points, wage_bps, upkeep, cost_materials, build_hours]
-    note: "a reading room: the scholar reads, copies and teaches from the shelves; the day's paper (ink waits for an ink works: soot and a binder, phase A3b) come out of the stock. It gives one research project at a time while a scholar works there."
+    note: "a reading room: the scholar reads, copies and teaches from the shelves; the day's paper comes out of the stock (owner default 2026-10-10: the libraries stay on paper, ink is not an input). It gives one research project at a time while a scholar works there."
   - code: laboratory
     source: "ADR 0048"
     evidence: D
