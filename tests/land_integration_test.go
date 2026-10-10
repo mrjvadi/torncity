@@ -266,3 +266,74 @@ func TestALotWithTreesOrRocksCannotBeBuiltOn(t *testing.T) {
 		t.Errorf("a refused building left %d rows", n)
 	}
 }
+
+// An order is idempotent: the same order twice, or a cancel of a lot nobody ordered, answers the same screen and writes nothing.
+func TestAClearOrderRepeatedOrCancelledTwiceChangesNothing(t *testing.T) {
+	e := newLandEnv(t)
+	view := e.view()
+	camp := land.Pos{X: 6, Y: 2}
+	var lot land.Pos
+	found := false
+	for _, p := range view.Order() {
+		if l := view.Lots[p]; l.Commons && !l.Occupied && l.Trees > 0 && land.Dist(camp, p) <= 4 {
+			lot, found = p, true
+			break
+		}
+	}
+	if !found {
+		t.Skip("no wooded lot of the commons in reach in this world")
+	}
+	req := handlers.VillageClearRequest{X: itoa(int64(lot.X)), Y: itoa(int64(lot.Y)), What: "trees"}
+	order := func() (string, string) {
+		resp, err := rrc(e.village.ClearOrder(testCtx(t), e.as(e.head, "settlement.clear.order", "clear.order"), req))
+		if err != nil {
+			t.Fatal(err)
+		}
+		return resp.Screen, string(resp.View)
+	}
+	cancel := func() (string, string) {
+		resp, err := rrc(e.village.ClearCancel(testCtx(t), e.as(e.head, "settlement.clear.cancel", "clear.cancel"), req))
+		if err != nil {
+			t.Fatal(err)
+		}
+		return resp.Screen, string(resp.View)
+	}
+	events := func() int64 {
+		return e.scalar(`SELECT count(*) FROM outbox WHERE payload::text LIKE '%"kind": "ordered"%' AND payload::text LIKE '%' || $1 || '%'`, e.cityID)
+	}
+	// a cancel of a lot nobody ordered: the cancelled screen, no row, no event
+	before := events()
+	if screen, _ := cancel(); screen == screens.ScreenVillageRefusal {
+		t.Fatal("a cancel of a lot nobody ordered is a no-op, not a refusal")
+	}
+	if events() != before {
+		t.Error("the no-op cancel wrote an event")
+	}
+	s1, v1 := order()
+	if s1 == screens.ScreenVillageRefusal {
+		t.Fatal("the order is taken")
+	}
+	after := events()
+	var at1 string
+	if err := e.pool.Raw().QueryRow(testCtx(t), `SELECT ordered_at::text FROM settlement_land WHERE settlement_id = $1::uuid AND lot_x = $2 AND lot_y = $3`, e.cityID, lot.X, lot.Y).Scan(&at1); err != nil {
+		t.Fatal(err)
+	}
+	e.clock.Advance(time.Hour)
+	s2, v2 := order()
+	if s2 != s1 || v2 != v1 {
+		t.Errorf("the repeated order answers the same screen: %s %s / %s %s", s1, v1, s2, v2)
+	}
+	var at2 string
+	if err := e.pool.Raw().QueryRow(testCtx(t), `SELECT ordered_at::text FROM settlement_land WHERE settlement_id = $1::uuid AND lot_x = $2 AND lot_y = $3`, e.cityID, lot.X, lot.Y).Scan(&at2); err != nil {
+		t.Fatal(err)
+	}
+	if at1 != at2 || events() != after {
+		t.Errorf("the repeated order wrote again: ordered_at %s -> %s, events %d -> %d", at1, at2, after, events())
+	}
+	// cancel twice: the second changes nothing
+	cancel()
+	mid := events()
+	if screen, _ := cancel(); screen == screens.ScreenVillageRefusal || events() != mid {
+		t.Error("a second cancel is a no-op")
+	}
+}

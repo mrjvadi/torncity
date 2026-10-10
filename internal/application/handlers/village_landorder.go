@@ -111,6 +111,10 @@ func (h *VillageHandler) clearing(ctx context.Context, meta envelope.Metadata, r
 			}
 		}
 		out.OrderTrees, out.OrderRocks = trees, rocks
+		// the same order again, or a cancel of a lot nobody ordered, changes nothing: it answers the same screen and writes nothing
+		if lot.Delta.ClearTrees == trees && lot.Delta.ClearRocks == rocks {
+			return nil
+		}
 		now := h.now()
 		if err := tx.Land().Order(ctx, s.CityID, pos, trees, rocks, p.ID, now); err != nil {
 			return err
