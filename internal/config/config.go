@@ -1904,7 +1904,7 @@ func Defaults() *Config {
 			LandRockShifts:                   2,
 			FarmRuleAt:                       "2026-10-10T17:00:00Z",
 			FarmGraceDays:                    14,
-			CraftingRuleAt:                   "2026-10-10T00:00:00Z",
+			CraftingRuleAt:                   "2026-10-10T21:00:00Z",
 			CraftingGraceDays:                14,
 			TeacherBaseBPS:                   6000,
 			TeacherPerLevelBPS:               150,
