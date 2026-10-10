@@ -1910,7 +1910,7 @@ func Defaults() *Config {
 			FarmGraceDays:                    14,
 			CraftingRuleAt:                   "2026-10-10T21:00:00Z",
 			CraftingGraceDays:                14,
-			CareRuleAt:                       "2026-10-10T00:00:00Z",
+			CareRuleAt:                       "2026-10-10T22:00:00Z",
 			CareGraceDays:                    14,
 			TeacherBaseBPS:                   6000,
 			TeacherPerLevelBPS:               150,

@@ -1415,7 +1415,7 @@ settlement:
   crafting_grace_days: 14
   # care in a founded settlement (ADR 0069): from the rule date plus the grace a settlement is no longer offered the city hospital it never
   # built; what it offers a hurt player is what it built and staffed (health house, clinic). A stay admitted before keeps what it was offered
-  care_rule_at: "2026-10-10T00:00:00Z"
+  care_rule_at: "2026-10-10T22:00:00Z"
   care_grace_days: 14
   # The teacher's skill in the literacy tick (docs/adr/0057): a class a player with the teaching skill gives moves literacy at
   # teacher_base_bps plus teacher_per_level_bps for each level of the skill (never above 10000); with no player teacher it moves at
