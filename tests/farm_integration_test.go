@@ -504,3 +504,127 @@ func TestAPastureNeedsOpenLandToGraze(t *testing.T) {
 }
 
 var _ = gametime.Scale(1)
+
+// A citizen's own field (the farm's citizen twin): the owner sows it from his own store of seed, works it for no wage, a
+// stranger may not, and the harvest comes into his home store.
+func TestAPlayerFarmsHisOwnField(t *testing.T) {
+	e := newFarmEnv(t)
+	ctx := testCtx(t)
+	owner := e.resident()
+	stranger := e.resident()
+	t.Cleanup(func() { purgeLedgerFor(t, e.pool, owner.ID) })
+	for i := 0; i < 5; i++ {
+		e.yard(owner)
+	}
+	field := newUUID(t)
+	if _, err := e.pool.Raw().Exec(ctx, `INSERT INTO settlement_buildings (id, settlement_id, type_code, lot_x, lot_y, status, queued_at, completed_at)
+		VALUES ($1::uuid, $2::uuid, 'farm_dry_own', 40, 30, 'complete', now(), now())`, field, e.cityID); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := e.pool.Raw().Exec(ctx, `INSERT INTO settlement_private_buildings (building_id, settlement_id, owner_id, permit_fee, construction_paid, materials_paid, assessed_value, created_at)
+		VALUES ($1::uuid, $2::uuid, $3::uuid, 0, 0, 0, 2000, now())`, field, e.cityID, owner.ID); err != nil {
+		t.Fatal(err)
+	}
+	e.give(owner, "wheat", 40)
+	e.give(owner, "bread", 12)
+	// the head has no say over a citizen's field; a stranger cannot work it
+	if got := e.order(field); got == "" {
+		t.Fatal("the head cannot sow a citizen's field")
+	}
+	if resp, err := rrc(e.village.FarmSow(ctx, e.as(owner, "settlement.farm.sow", "farm.sow"), handlers.VillageFarmRequest{ID: field})); err != nil || resp.Screen == screens.ScreenVillageRefusal {
+		t.Fatalf("the owner sows his field: %v", err)
+	}
+	if got := e.shift(stranger, field); got == "" {
+		t.Fatal("a stranger may not work a citizen's field")
+	}
+	cash0 := cashBalance(t, e.pool, application.AccountPlayerCash, owner.ID)
+	for i := 0; i < 8; i++ {
+		if got := e.shift(owner, field); got != "" {
+			t.Fatalf("sowing shift %d of the owner: %q", i+1, got)
+		}
+	}
+	if got := e.homeHeld(owner, "wheat"); got != 15 {
+		t.Errorf("the seed (25) left his own store: %d wheat left of 40", got)
+	}
+	if c := e.cycle(field); c.seed != 25 || c.sow != 8 {
+		t.Errorf("the private crop: %+v", c)
+	}
+	e.clock.Advance(7 * time.Hour)
+	for i := 0; i < 12; i++ {
+		if got := e.shift(owner, field); got != "" {
+			t.Fatalf("harvest shift %d of the owner: %q", i+1, got)
+		}
+	}
+	c := e.cycle(field)
+	if got := e.homeHeld(owner, "wheat") - 15; got <= 0 || got > c.yield {
+		t.Errorf("the harvest comes into his own store, %d of %d", got, c.yield)
+	}
+	if cashBalance(t, e.pool, application.AccountPlayerCash, owner.ID) != cash0 {
+		t.Error("the owner works his own field for no wage and pays none")
+	}
+	e.verify()
+}
+
+// The water mill grinds three times what the hand mill does in a shift.
+func TestAWaterMillGrindsThreeTimesTheHandMill(t *testing.T) {
+	e := newFarmEnv(t)
+	hand := e.resident()
+	hands := e.placeAt("mill", 40, 0)
+	water := e.placeAt("water_mill", 50, 0)
+	w0 := e.held("wheat")
+	if got := e.shift(hand, hands); got != "" {
+		t.Fatalf("the hand mill: %q", got)
+	}
+	handWheat := w0 - e.held("wheat")
+	w1 := e.held("wheat")
+	if got := e.shift(hand, water); got != "" {
+		t.Fatalf("the water mill: %q", got)
+	}
+	waterWheat := w1 - e.held("wheat")
+	if handWheat != 8 || waterWheat != 24 {
+		t.Errorf("a hand mill takes 8 wheat a shift and a water mill 24: %d and %d", handWheat, waterWheat)
+	}
+	e.verify()
+}
+
+// A crew of the village's labourers sows the field, tends it and waits for the crop: the job pauses with the reason.
+func TestACrewSowsTheFieldAndWaitsForTheCrop(t *testing.T) {
+	e := newFarmEnv(t)
+	ctx := testCtx(t)
+	farm := e.placeAt("farm_dry", 40, 0)
+	if got := e.order(farm); got != "" {
+		t.Fatal(got)
+	}
+	if _, err := rrc(e.village.LaborPost(ctx, e.as(e.head, "settlement.labor.post", "labor.post"), handlers.VillageLaborRequest{ID: farm})); err != nil {
+		t.Fatal(err)
+	}
+	var jobID string
+	if err := e.pool.Raw().QueryRow(ctx, `SELECT id::text FROM labor_jobs WHERE building_id = $1::uuid AND kind = 'production' AND status = 'open'`, farm).Scan(&jobID); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := rrc(e.village.LaborHire(ctx, e.as(e.head, "settlement.labor.hire", "labor.hire"), handlers.VillageLaborRequest{ID: jobID, N: "2"})); err != nil {
+		t.Fatal(err)
+	}
+	for i := 0; i < 200 && e.cycle(farm).tended < 6; i++ {
+		e.clock.Advance(time.Hour)
+		for _, s := range e.workingShifts(farm) {
+			e.end(s)
+		}
+	}
+	c := e.cycle(farm)
+	if c.sow != 8 || c.tended != 6 {
+		t.Fatalf("the crew sowed (8) and tended (6): %+v", c)
+	}
+	e.clock.Advance(time.Hour)
+	for _, s := range e.workingShifts(farm) {
+		e.end(s)
+	}
+	var paused string
+	if err := e.pool.Raw().QueryRow(ctx, `SELECT COALESCE(paused, '') FROM labor_jobs WHERE id = $1::uuid`, jobID).Scan(&paused); err != nil {
+		t.Fatal(err)
+	}
+	if paused != "crop_growing" {
+		t.Errorf("the crew waits for the crop and says so: %q", paused)
+	}
+	e.verify()
+}
