@@ -57,6 +57,36 @@ type CityHospitalDef struct {
 	Care      CareDef `yaml:"care" json:"care"`
 }
 
+// VillageCareDef is the care a founded settlement gives a hurt player (docs/adr/0069): what its health house and its clinic take
+// off a stay, with which medicine from the settlement stock, and what the clinic charges.
+type VillageCareDef struct {
+	// House is first aid at the health house: one unit of Medicine from the stock, ReductionBPS off the stay left, no fee.
+	House VillageHouseCareDef `yaml:"house" json:"house"`
+	// Clinic is care at the clinic: a medicine of the stock (the first of Medicines the stock holds), its reduction, and a fee of
+	// BasePrice plus PerHour for every GAME hour of the stay left, paid into the treasury (hospital_fee).
+	Clinic VillageClinicCareDef `yaml:"clinic" json:"clinic"`
+}
+
+// VillageHouseCareDef is the health house's first aid.
+type VillageHouseCareDef struct {
+	Medicine     string `yaml:"medicine" json:"medicine"`
+	ReductionBPS int    `yaml:"reduction_bps" json:"reduction_bps"`
+}
+
+// VillageClinicCareDef is the clinic's care.
+type VillageClinicCareDef struct {
+	BasePrice int64 `yaml:"base_price" json:"base_price"`
+	PerHour   int64 `yaml:"per_hour" json:"per_hour"`
+	// Medicines are the goods it treats with, the better first.
+	Medicines []VillageMedicineDef `yaml:"medicines" json:"medicines"`
+}
+
+// VillageMedicineDef is one medicine of the clinic and how much of the stay it takes off.
+type VillageMedicineDef struct {
+	Item         string `yaml:"item" json:"item"`
+	ReductionBPS int    `yaml:"reduction_bps" json:"reduction_bps"`
+}
+
 // WorkInjuryDef is the chance of an accident on a shift of one career
 // category (jobs.yml).
 type WorkInjuryDef struct {
@@ -91,6 +121,8 @@ type HealthDef struct {
 	Medicine string `yaml:"medicine" json:"medicine"`
 	// MedicineUnits is how many units of it one clinic treatment uses.
 	MedicineUnits int `yaml:"medicine_units" json:"medicine_units"`
+	// VillageCare is the care of a founded settlement's health house and clinic (ADR 0069).
+	VillageCare VillageCareDef `yaml:"village_care" json:"village_care"`
 }
 
 // Rules is the domain's value; the pack has been validated.
@@ -187,6 +219,22 @@ func (p *Pack) validateHealth(problems *[]error) {
 	}
 	if h.MedicineUnits < 1 || h.MedicineUnits > 100 {
 		bad("medicine_units %d is outside 1..100", h.MedicineUnits)
+	}
+	itemCodes := map[string]bool{}
+	for _, it := range p.Items {
+		itemCodes[it.Code] = true
+	}
+	vc := h.VillageCare
+	if !itemCodes[vc.House.Medicine] || vc.House.ReductionBPS < 1 || vc.House.ReductionBPS > health.WholeBPS {
+		bad("village_care.house: medicine %q or reduction %d is wrong", vc.House.Medicine, vc.House.ReductionBPS)
+	}
+	if vc.Clinic.BasePrice < 0 || vc.Clinic.PerHour < 0 || vc.Clinic.BasePrice+vc.Clinic.PerHour == 0 || len(vc.Clinic.Medicines) == 0 {
+		bad("village_care.clinic: a fee and at least one medicine are needed")
+	}
+	for i, m := range vc.Clinic.Medicines {
+		if !itemCodes[m.Item] || m.ReductionBPS < 1 || m.ReductionBPS > health.WholeBPS {
+			bad("village_care.clinic.medicines[%d]: item %q or reduction %d is wrong", i, m.Item, m.ReductionBPS)
+		}
 	}
 }
 

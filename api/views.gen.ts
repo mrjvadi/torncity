@@ -556,6 +556,22 @@ export interface CardView {
   notice: string
 }
 
+export interface CareSiteView {
+  building: Named
+  present: boolean
+  open: boolean
+  idle: string
+}
+
+export interface CareView {
+  city_hospital_gone: boolean
+  house: CareSiteView
+  clinic: CareSiteView
+  apothecary: Named
+  no_medicine: boolean
+  refer: Named
+}
+
 export interface CarryLine {
   used: number
   reserved: number
@@ -2563,6 +2579,9 @@ export interface HospitalView {
   treated_by: TreatOption
   city_hospital: TreatOption | null
   clinics: TreatOption[] | null
+  village: TreatOption[] | null
+  care: CareView | null
+  founded: boolean
 }
 
 export interface HospitalisedView {
@@ -6162,6 +6181,8 @@ export interface TreatOption {
   stock: number
   open: boolean
   can_treat: boolean
+  medicine: string
+  idle: string
 }
 
 export interface TreatedView {

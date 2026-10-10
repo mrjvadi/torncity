@@ -3,6 +3,7 @@
     "title": "Hospital · well, resting back to full",
     "screen": "hospital",
     "view": {
+      "care": null,
       "cause": "",
       "city": "Ostmarch",
       "city_code": "ostmarch",
@@ -19,6 +20,8 @@
             }
           },
           "doctor": 12,
+          "idle": "",
+          "medicine": "",
           "open": true,
           "price": 1200,
           "provider": "clinic",
@@ -36,6 +39,8 @@
             }
           },
           "doctor": 1,
+          "idle": "",
+          "medicine": "",
           "open": false,
           "price": 500,
           "provider": "clinic",
@@ -44,6 +49,7 @@
         }
       ],
       "ends_at": null,
+      "founded": false,
       "full_in_seconds": 420,
       "health": 72,
       "in_hospital": false,
@@ -61,18 +67,22 @@
           }
         },
         "doctor": 0,
+        "idle": "",
+        "medicine": "",
         "open": false,
         "price": 0,
         "provider": "",
         "saves_seconds": 0,
         "stock": 0
-      }
+      },
+      "village": null
     }
   },
   {
     "title": "Hospital · in hospital, three ways to be treated",
     "screen": "hospital",
     "view": {
+      "care": null,
       "cause": "crime",
       "city": "Ostmarch",
       "city_code": "ostmarch",
@@ -87,6 +97,8 @@
           }
         },
         "doctor": 0,
+        "idle": "",
+        "medicine": "",
         "open": true,
         "price": 750,
         "provider": "city",
@@ -105,6 +117,8 @@
             }
           },
           "doctor": 12,
+          "idle": "",
+          "medicine": "",
           "open": true,
           "price": 1200,
           "provider": "clinic",
@@ -122,6 +136,8 @@
             }
           },
           "doctor": 3,
+          "idle": "",
+          "medicine": "",
           "open": true,
           "price": 900,
           "provider": "clinic",
@@ -139,6 +155,8 @@
             }
           },
           "doctor": 1,
+          "idle": "",
+          "medicine": "",
           "open": false,
           "price": 500,
           "provider": "clinic",
@@ -147,6 +165,7 @@
         }
       ],
       "ends_at": "2026-09-23T11:11:00Z",
+      "founded": false,
       "full_in_seconds": 0,
       "health": 23,
       "in_hospital": true,
@@ -164,24 +183,29 @@
           }
         },
         "doctor": 0,
+        "idle": "",
+        "medicine": "",
         "open": false,
         "price": 0,
         "provider": "",
         "saves_seconds": 0,
         "stock": 0
-      }
+      },
+      "village": null
     }
   },
   {
     "title": "Hospital · treated, resting",
     "screen": "hospital",
     "view": {
+      "care": null,
       "cause": "war",
       "city": "Ostmarch",
       "city_code": "ostmarch",
       "city_hospital": null,
       "clinics": null,
       "ends_at": "2026-09-23T11:06:30Z",
+      "founded": false,
       "full_in_seconds": 0,
       "health": 41,
       "in_hospital": true,
@@ -199,24 +223,29 @@
           }
         },
         "doctor": 12,
+        "idle": "",
+        "medicine": "",
         "open": true,
         "price": 1200,
         "provider": "clinic",
         "saves_seconds": 270,
         "stock": 18
-      }
+      },
+      "village": null
     }
   },
   {
     "title": "Hospital · full health, nowhere",
     "screen": "hospital",
     "view": {
+      "care": null,
       "cause": "",
       "city": "",
       "city_code": "",
       "city_hospital": null,
       "clinics": null,
       "ends_at": null,
+      "founded": false,
       "full_in_seconds": 0,
       "health": 100,
       "in_hospital": false,
@@ -234,12 +263,377 @@
           }
         },
         "doctor": 0,
+        "idle": "",
+        "medicine": "",
         "open": false,
         "price": 0,
         "provider": "",
         "saves_seconds": 0,
         "stock": 0
-      }
+      },
+      "village": null
+    }
+  },
+  {
+    "title": "Hospital · a settlement with a health house and a clinic",
+    "screen": "hospital",
+    "view": {
+      "care": {
+        "apothecary": {
+          "code": "",
+          "name": ""
+        },
+        "city_hospital_gone": true,
+        "clinic": {
+          "building": {
+            "code": "clinic",
+            "name": "درمانگاه"
+          },
+          "idle": "",
+          "open": true,
+          "present": true
+        },
+        "house": {
+          "building": {
+            "code": "health_house",
+            "name": "خانهٔ بهداشت"
+          },
+          "idle": "",
+          "open": true,
+          "present": true
+        },
+        "no_medicine": false,
+        "refer": {
+          "code": "",
+          "name": ""
+        }
+      },
+      "cause": "work",
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "city_hospital": null,
+      "clinics": null,
+      "ends_at": "2026-09-23T11:11:00Z",
+      "founded": true,
+      "full_in_seconds": 0,
+      "health": 23,
+      "in_hospital": true,
+      "max": 100,
+      "remaining_seconds": 360,
+      "treated": false,
+      "treated_by": {
+        "can_treat": false,
+        "clinic": {
+          "code": "",
+          "name": "",
+          "type": {
+            "code": "",
+            "name": ""
+          }
+        },
+        "doctor": 0,
+        "idle": "",
+        "medicine": "",
+        "open": false,
+        "price": 0,
+        "provider": "",
+        "saves_seconds": 0,
+        "stock": 0
+      },
+      "village": [
+        {
+          "can_treat": true,
+          "clinic": {
+            "code": "",
+            "name": "",
+            "type": {
+              "code": "",
+              "name": ""
+            }
+          },
+          "doctor": 0,
+          "idle": "",
+          "medicine": "bandage",
+          "open": true,
+          "price": 0,
+          "provider": "health_house",
+          "saves_seconds": 54,
+          "stock": 4
+        },
+        {
+          "can_treat": true,
+          "clinic": {
+            "code": "",
+            "name": "",
+            "type": {
+              "code": "",
+              "name": ""
+            }
+          },
+          "doctor": 0,
+          "idle": "",
+          "medicine": "painkillers",
+          "open": true,
+          "price": 3200,
+          "provider": "village_clinic",
+          "saves_seconds": 126,
+          "stock": 3
+        }
+      ]
+    }
+  },
+  {
+    "title": "Hospital · a settlement with a closed house and no medicine",
+    "screen": "hospital",
+    "view": {
+      "care": {
+        "apothecary": {
+          "code": "apothecary",
+          "name": "عطاری"
+        },
+        "city_hospital_gone": true,
+        "clinic": {
+          "building": {
+            "code": "clinic",
+            "name": "درمانگاه"
+          },
+          "idle": "",
+          "open": true,
+          "present": true
+        },
+        "house": {
+          "building": {
+            "code": "health_house",
+            "name": "خانهٔ بهداشت"
+          },
+          "idle": "",
+          "open": false,
+          "present": true
+        },
+        "no_medicine": true,
+        "refer": {
+          "code": "support",
+          "name": "شهر مرکزی"
+        }
+      },
+      "cause": "crime",
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "city_hospital": null,
+      "clinics": null,
+      "ends_at": "2026-09-23T11:11:00Z",
+      "founded": true,
+      "full_in_seconds": 0,
+      "health": 23,
+      "in_hospital": true,
+      "max": 100,
+      "remaining_seconds": 360,
+      "treated": false,
+      "treated_by": {
+        "can_treat": false,
+        "clinic": {
+          "code": "",
+          "name": "",
+          "type": {
+            "code": "",
+            "name": ""
+          }
+        },
+        "doctor": 0,
+        "idle": "",
+        "medicine": "",
+        "open": false,
+        "price": 0,
+        "provider": "",
+        "saves_seconds": 0,
+        "stock": 0
+      },
+      "village": [
+        {
+          "can_treat": false,
+          "clinic": {
+            "code": "",
+            "name": "",
+            "type": {
+              "code": "",
+              "name": ""
+            }
+          },
+          "doctor": 0,
+          "idle": "no_staff",
+          "medicine": "",
+          "open": false,
+          "price": 0,
+          "provider": "health_house",
+          "saves_seconds": 0,
+          "stock": 0
+        },
+        {
+          "can_treat": false,
+          "clinic": {
+            "code": "",
+            "name": "",
+            "type": {
+              "code": "",
+              "name": ""
+            }
+          },
+          "doctor": 0,
+          "idle": "",
+          "medicine": "",
+          "open": true,
+          "price": 3200,
+          "provider": "village_clinic",
+          "saves_seconds": 0,
+          "stock": 0
+        },
+        {
+          "can_treat": false,
+          "clinic": {
+            "code": "",
+            "name": "",
+            "type": {
+              "code": "",
+              "name": ""
+            }
+          },
+          "doctor": 0,
+          "idle": "",
+          "medicine": "",
+          "open": true,
+          "price": 0,
+          "provider": "health_house",
+          "saves_seconds": 0,
+          "stock": 0
+        }
+      ]
+    }
+  },
+  {
+    "title": "Hospital · a settlement with no care built",
+    "screen": "hospital",
+    "view": {
+      "care": {
+        "apothecary": {
+          "code": "",
+          "name": ""
+        },
+        "city_hospital_gone": true,
+        "clinic": {
+          "building": {
+            "code": "clinic",
+            "name": "درمانگاه"
+          },
+          "idle": "",
+          "open": false,
+          "present": false
+        },
+        "house": {
+          "building": {
+            "code": "health_house",
+            "name": "خانهٔ بهداشت"
+          },
+          "idle": "",
+          "open": false,
+          "present": false
+        },
+        "no_medicine": false,
+        "refer": {
+          "code": "support",
+          "name": "شهر مرکزی"
+        }
+      },
+      "cause": "crime",
+      "city": "Ostmarch",
+      "city_code": "ostmarch",
+      "city_hospital": null,
+      "clinics": null,
+      "ends_at": "2026-09-23T11:11:00Z",
+      "founded": true,
+      "full_in_seconds": 0,
+      "health": 23,
+      "in_hospital": true,
+      "max": 100,
+      "remaining_seconds": 360,
+      "treated": false,
+      "treated_by": {
+        "can_treat": false,
+        "clinic": {
+          "code": "",
+          "name": "",
+          "type": {
+            "code": "",
+            "name": ""
+          }
+        },
+        "doctor": 0,
+        "idle": "",
+        "medicine": "",
+        "open": false,
+        "price": 0,
+        "provider": "",
+        "saves_seconds": 0,
+        "stock": 0
+      },
+      "village": null
+    }
+  },
+  {
+    "title": "Treat · confirm, first aid at the health house",
+    "screen": "treat_confirm",
+    "view": {
+      "ends_at": "2026-09-23T11:10:06Z",
+      "option": {
+        "can_treat": true,
+        "clinic": {
+          "code": "",
+          "name": "",
+          "type": {
+            "code": "",
+            "name": ""
+          }
+        },
+        "doctor": 0,
+        "idle": "",
+        "medicine": "bandage",
+        "open": true,
+        "price": 0,
+        "provider": "health_house",
+        "saves_seconds": 54,
+        "stock": 4
+      },
+      "payment": null,
+      "remaining_seconds": 360
+    }
+  },
+  {
+    "title": "Treat · treated at the town clinic",
+    "screen": "treated",
+    "view": {
+      "ends_at": "2026-09-23T11:09:00Z",
+      "method": "cash",
+      "option": {
+        "can_treat": true,
+        "clinic": {
+          "code": "",
+          "name": "",
+          "type": {
+            "code": "",
+            "name": ""
+          }
+        },
+        "doctor": 0,
+        "idle": "",
+        "medicine": "painkillers",
+        "open": true,
+        "price": 3200,
+        "provider": "village_clinic",
+        "saves_seconds": 126,
+        "stock": 3
+      },
+      "paid": 3200,
+      "remaining_seconds": 240,
+      "saved_seconds": 126
     }
   },
   {
@@ -258,6 +652,8 @@
           }
         },
         "doctor": 12,
+        "idle": "",
+        "medicine": "",
         "open": true,
         "price": 1200,
         "provider": "clinic",
@@ -296,6 +692,8 @@
           }
         },
         "doctor": 0,
+        "idle": "",
+        "medicine": "",
         "open": true,
         "price": 750,
         "provider": "city",
@@ -331,6 +729,8 @@
           }
         },
         "doctor": 12,
+        "idle": "",
+        "medicine": "",
         "open": true,
         "price": 0,
         "provider": "clinic",
@@ -358,6 +758,8 @@
           }
         },
         "doctor": 12,
+        "idle": "",
+        "medicine": "",
         "open": true,
         "price": 1200,
         "provider": "clinic",

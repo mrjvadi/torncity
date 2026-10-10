@@ -196,6 +196,15 @@ func (r *HealthRepository) RecordTreatment(ctx context.Context, t application.Tr
 	if err != nil {
 		return fmt.Errorf("postgres: recording a treatment: %w", err)
 	}
+	if t.BuildingID != "" {
+		// the care of a founded settlement (migration 0146): the building, the medicine from its stock and the fee
+		if _, err := r.q.Exec(ctx,
+			`INSERT INTO village_treatments (treatment_id, settlement_id, building_id, kind, medicine_item, medicine_units, fee, created_at)
+			 VALUES ($1::uuid, $2::uuid, $3::uuid, $4, $5, $6, $7, $8)`,
+			id, t.CityID, t.BuildingID, t.Provider, t.MedicineItem, t.MedicineUnits, t.Price, t.CreatedAt.UTC()); err != nil {
+			return fmt.Errorf("postgres: recording a village treatment: %w", err)
+		}
+	}
 	return nil
 }
 

@@ -50,8 +50,19 @@ type HealthHandler struct {
 	scale   gametime.Scale
 	limits  bank.Limits
 
+	// care reads the health house and the clinic of a founded settlement (docs/adr/0069); nil leaves the city hospital everywhere.
+	care      application.VillageCarer
+	careRules application.CareRules
+
 	idempotencyTTL time.Duration
 	now            func() time.Time
+}
+
+// WithVillageCare gives the handler the reader of a founded settlement's care and the rule date after which a settlement is no
+// longer offered a city hospital it never built (docs/adr/0069).
+func (h *HealthHandler) WithVillageCare(c application.VillageCarer, r application.CareRules) *HealthHandler {
+	h.care, h.careRules = c, r
+	return h
 }
 
 // NewHealthHandler wires the handler. A missing dependency or a game clock
@@ -220,6 +231,9 @@ type option struct {
 	stock      int64
 	open       bool
 	treatsHere bool
+	// building is the health house or clinic of a settlement that treats; idle why it is closed.
+	building string
+	idle     string
 }
 
 // cityOption is the city hospital's offer for a stay with remaining left.
@@ -231,6 +245,75 @@ func (h *HealthHandler) cityOption(def content.HealthDef, remaining time.Duratio
 	price := budget.Lower(health.CityPrice(ch.BasePrice, ch.PerHour, h.remainingGame(remaining)), subsidyBPS)
 	return option{provider: application.ProviderCity, open: true, treatsHere: true,
 		price: price, reduction: red, saves: remaining - health.Shorten(remaining, red)}
+}
+
+// villageOptions are the offers of a founded settlement's health house and clinic, the ones that stand, for a stay with remaining
+// left (docs/adr/0069): the house gives first aid from a bandage of the stock for nothing, the clinic treats with the better of its
+// medicines the stock holds for a fee into the treasury.
+func (h *HealthHandler) villageOptions(def content.HealthDef, care *application.VillageCare, remaining time.Duration) []option {
+	var out []option
+	vc := def.VillageCare
+	units := int64(def.MedicineUnits)
+	if care.House.Present {
+		o := option{provider: application.ProviderHouse, building: care.House.BuildingID, open: care.House.Open, idle: care.House.Idle,
+			reduction: vc.House.ReductionBPS, stock: care.Stock[vc.House.Medicine]}
+		if o.stock >= units {
+			o.medicine = vc.House.Medicine
+		}
+		o.treatsHere = o.open && o.medicine != ""
+		o.saves = remaining - health.Shorten(remaining, o.reduction)
+		out = append(out, o)
+	}
+	if care.Clinic.Present {
+		o := option{provider: application.ProviderVillageClinic, building: care.Clinic.BuildingID, open: care.Clinic.Open, idle: care.Clinic.Idle,
+			price: health.CityPrice(vc.Clinic.BasePrice, vc.Clinic.PerHour, h.remainingGame(remaining))}
+		for i, m := range vc.Clinic.Medicines {
+			o.stock += care.Stock[m.Item]
+			if i == 0 {
+				o.reduction = m.ReductionBPS // what the better medicine would do, shown when the shelf is empty
+			}
+		}
+		for _, m := range vc.Clinic.Medicines {
+			if care.Stock[m.Item] >= units {
+				o.medicine, o.reduction = m.Item, m.ReductionBPS
+				break
+			}
+		}
+		o.treatsHere = o.open && o.medicine != ""
+		o.saves = remaining - health.Shorten(remaining, o.reduction)
+		out = append(out, o)
+	}
+	return out
+}
+
+// careView says what a founded settlement lacks for its hurt, and what its head can build.
+func (h *HealthHandler) careView(ctx context.Context, snap *content.Snapshot, def content.HealthDef, care *application.VillageCare, gone bool) plife.CareView {
+	site := func(code string, s application.CareSite) plife.CareSiteView {
+		v := plife.CareSiteView{Present: s.Present, Open: s.Open, Idle: s.Idle}
+		if f, ok := snap.BuildingFunction(code); ok {
+			v.Building = named(f.Code, f.Name)
+		}
+		return v
+	}
+	v := plife.CareView{CityHospitalGone: gone, House: site("health_house", care.House), Clinic: site("clinic", care.Clinic)}
+	units := int64(def.MedicineUnits)
+	vc := def.VillageCare
+	usable := care.Stock[vc.House.Medicine] >= units
+	for _, m := range vc.Clinic.Medicines {
+		usable = usable || care.Stock[m.Item] >= units
+	}
+	if !usable {
+		v.NoMedicine = true
+		if f, ok := snap.BuildingFunction("apothecary"); ok {
+			v.Apothecary = named(f.Code, f.Name)
+		}
+	}
+	if care.Refer != "" {
+		if c, err := h.cities.ByCode(ctx, care.Refer); err == nil && c != nil {
+			v.Refer = named(c.Code, c.Name)
+		}
+	}
+	return v
 }
 
 // clinicOption is a clinic's offer for a stay with remaining left.
@@ -258,7 +341,7 @@ func (h *HealthHandler) clinicOption(ctx context.Context, tx application.Tx, sna
 
 func (o option) view(snap *content.Snapshot) plife.TreatOption {
 	v := plife.TreatOption{Provider: o.provider, Price: o.price, Saves: o.saves, Doctor: o.doctor,
-		Stock: o.stock, Open: o.open, CanTreat: o.treatsHere}
+		Stock: o.stock, Open: o.open, CanTreat: o.treatsHere, Medicine: o.medicine, Idle: o.idle}
 	if o.clinic != nil {
 		v.Clinic = companyRef(snap, *o.clinic)
 	}
@@ -348,13 +431,28 @@ func (h *HealthHandler) hospitalView(ctx context.Context, tx application.Tx, sna
 		case !isSentinel(err, application.ErrTreatmentNotFound):
 			return view, err
 		}
-		if !view.Treated {
+		var care *application.VillageCare
+		if h.care != nil {
+			if care, err = h.care.CareHere(ctx, tx, stay.CityID); err != nil {
+				return view, err
+			}
+		}
+		gone := care != nil && h.careRules.CityHospitalGone(stay.AdmittedAt, now)
+		if !view.Treated && !gone {
 			subsidy, err := budgetEffect(ctx, tx, stay.CityID, budget.EffectHospitalPrice)
 			if err != nil {
 				return view, err
 			}
 			v := h.cityOption(def, remaining, subsidy).view(snap)
 			view.CityHospital = &v
+		}
+		view.Founded = care != nil
+		if !view.Treated && care != nil {
+			for _, o := range h.villageOptions(def, care, remaining) {
+				view.Village = append(view.Village, o.view(snap))
+			}
+			cv := h.careView(ctx, snap, def, care, gone)
+			view.Care = &cv
 		}
 	}
 	clinics, err := tx.Health().Clinics(ctx, city.ID, careKinds(snap))
@@ -515,6 +613,19 @@ func (h *HealthHandler) Treat(ctx context.Context, meta envelope.Metadata, req H
 			}
 			t.CompanyID, t.MedicineItem, t.MedicineUnits = o.clinic.ID, o.medicine, def.MedicineUnits
 		}
+		if o.building != "" {
+			if err := tx.Items().Move(ctx, application.ItemMove{
+				ID: h.ids.NewID(), Item: o.medicine, Qty: int64(def.MedicineUnits),
+				FromOrg: application.SettlementOrg(stay.CityID), FromHolding: application.HoldWarehouse,
+				Reason: application.ItemMedicineUsed, ReferenceType: application.HospitalReference, ReferenceID: stay.ID, At: now,
+			}); err != nil {
+				if isSentinel(err, application.ErrNotEnoughItems) {
+					return refuseHealth(plife.HealthRefusedNoMedicine)
+				}
+				return err
+			}
+			t.BuildingID, t.MedicineItem, t.MedicineUnits = o.building, o.medicine, def.MedicineUnits
+		}
 		left := health.Shorten(remaining, o.reduction)
 		ends := now.Add(max(left, time.Second))
 		t.Saved = stay.EndsAt.Sub(ends)
@@ -571,11 +682,23 @@ func (h *HealthHandler) provider(ctx context.Context, tx application.Tx, snap *c
 	provider string, stay *application.HospitalStay, remaining time.Duration,
 ) (option, error) {
 	if provider == application.ProviderCity {
+		if h.care != nil {
+			care, err := h.care.CareHere(ctx, tx, stay.CityID)
+			if err != nil {
+				return option{}, err
+			}
+			if care != nil && h.careRules.CityHospitalGone(stay.AdmittedAt, h.now()) {
+				return option{}, refuseHealth(plife.HealthRefusedNoClinic) // a settlement has the hospital it built
+			}
+		}
 		subsidy, err := budgetEffect(ctx, tx, stay.CityID, budget.EffectHospitalPrice)
 		if err != nil {
 			return option{}, err
 		}
 		return h.cityOption(def, remaining, subsidy), nil
+	}
+	if provider == application.ProviderHouse || provider == application.ProviderVillageClinic {
+		return h.villageProvider(ctx, tx, def, provider, stay, remaining)
 	}
 	code := playercode.Normalize(provider)
 	if !playercode.Valid(code) {
@@ -616,6 +739,39 @@ func (h *HealthHandler) provider(ctx context.Context, tx application.Tx, snap *c
 		return option{}, refuseHealth(plife.HealthRefusedNoMedicine)
 	}
 	return o, nil
+}
+
+// villageProvider works out the offer of a founded settlement's health house or clinic, refusing one that does not stand, is closed
+// today, or has no medicine in the stock. The settlement's stock is locked, so two patients do not take the same bandage.
+func (h *HealthHandler) villageProvider(ctx context.Context, tx application.Tx, def content.HealthDef, provider string,
+	stay *application.HospitalStay, remaining time.Duration,
+) (option, error) {
+	if h.care == nil {
+		return option{}, refuseHealth(plife.HealthRefusedNoClinic)
+	}
+	if err := tx.Items().LockOrg(ctx, application.SettlementOrg(stay.CityID)); err != nil {
+		return option{}, err
+	}
+	care, err := h.care.CareHere(ctx, tx, stay.CityID)
+	if err != nil {
+		return option{}, err
+	}
+	if care == nil {
+		return option{}, refuseHealth(plife.HealthRefusedNoClinic)
+	}
+	for _, o := range h.villageOptions(def, care, remaining) {
+		if o.provider != provider {
+			continue
+		}
+		switch {
+		case !o.open:
+			return option{}, refuseHealth(plife.HealthRefusedClosed)
+		case o.medicine == "":
+			return option{}, refuseHealth(plife.HealthRefusedNoMedicine)
+		}
+		return o, nil
+	}
+	return option{}, refuseHealth(plife.HealthRefusedNoClinic)
 }
 
 // Discharge ends a stay whose time is up. It arrives from the SCHEDULER and

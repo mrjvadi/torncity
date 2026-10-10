@@ -30,6 +30,8 @@ type (
 	EducationView       = life.EducationView
 	EnrolledView        = life.EnrolledView
 	HealthRefusalView   = life.HealthRefusalView
+	CareView            = life.CareView
+	CareSiteView        = life.CareSiteView
 	HeatView            = life.HeatView
 	HospitalView        = life.HospitalView
 	InjuryView          = life.InjuryView

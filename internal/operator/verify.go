@@ -209,6 +209,13 @@ func VerifyChecks(v postgres.LedgerVerification, cfg *config.Config) []Check {
 		out.add(t.ServiceDayBroken == 0, fmt.Sprintf("each service day is the sum of its posts and has one ledger transaction for exactly the wage (%d off)", t.ServiceDayBroken))
 	}
 
+	if v.Village && v.Care {
+		t := v.VillageInvariants
+		out.add(t.CareFeeLedger == t.CareFeeRows, fmt.Sprintf("the fees clinics of settlements charged, in the ledger, are what the village treatments say (%d = %d)", t.CareFeeLedger, t.CareFeeRows))
+		out.add(t.CareMedicineJournal == t.CareMedicineRows, fmt.Sprintf("the medicine that left the settlement stocks, in the item journal, is what the treatments used (%d = %d)", t.CareMedicineJournal, t.CareMedicineRows))
+		out.add(t.CareBroken == 0, fmt.Sprintf("every treatment of a health house or a clinic is its village row, of its own kind, with the fee and the medicine it names, and the other way round (%d off)", t.CareBroken))
+	}
+
 	if v.Village && v.Trade {
 		t := v.VillageInvariants
 		out.add(t.TradeLedger == t.TradeRows && t.TradeDayBroken == 0, fmt.Sprintf("the trader's money in the ledger is what the market days say (%d = %d), each day is its lines, never above its cap, one transaction of source to treasury for the gross and one of treasury to sink for the clerk's wage (%d off)", t.TradeLedger, t.TradeRows, t.TradeDayBroken))

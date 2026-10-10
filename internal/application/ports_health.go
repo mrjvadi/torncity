@@ -78,6 +78,8 @@ type Treatment struct {
 	CityID        string
 	Provider      string
 	CompanyID     string
+	// BuildingID is the health house or clinic of a settlement that treated (provider health_house or village_clinic).
+	BuildingID    string
 	Price         int64
 	Method        string
 	LedgerTxID    string

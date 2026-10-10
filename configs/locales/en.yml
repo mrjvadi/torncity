@@ -900,6 +900,7 @@ company_type:
 
 # Components and materials, by content code (configs/content/items.yml).
 component:
+  herbs: "Medicinal herbs"
   tools: "Tools"
   stone_tools: "Stone tools"
   forged_tools: "Forged tools"
@@ -1476,6 +1477,8 @@ climate_band:
   cold: "Cold"
   severe: "Severe cold"
 staff_role:
+  herbalist: "Herb gardener"
+  apothecary: "Apothecary"
   teacher: "Teacher"
   trainer: "Trainer"
   health_worker: "Health worker"
@@ -1516,6 +1519,11 @@ staff_role:
   loan_officer: "Loan officer"
   bank_manager: "Bank manager"
 building_function:
+  herb_garden: "Herb garden"
+  herb_garden_own: "Herb garden (own)"
+  apothecary: "Apothecary"
+  apothecary_own: "Apothecary (own)"
+  clinic: "Clinic"
   forester_lodge: "Forester's lodge"
   charcoal_clamp_own: "Charcoal clamp (own)"
   carpentry_workshop_own: "Carpentry workshop (own)"
@@ -1580,6 +1588,9 @@ building_function:
   exchange_house: "Exchange house"
   bank: "Bank"
 recipe:
+  herb_extract: "Herb extract"
+  painkillers: "Painkillers"
+  first_aid_kit: "First aid kit"
   stone_tools: "Stone tools"
   iron_tools: "Iron tools"
   forged_tools: "Forged tools"

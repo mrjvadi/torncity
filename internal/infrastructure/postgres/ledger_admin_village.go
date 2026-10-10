@@ -105,7 +105,7 @@ type VillageInvariants struct {
 	// consumed goods; CraftMadeJournal and CraftMadeRows the goods that came in, in the journal and as the finished jobs' made
 	// goods; CraftOverPlanned counts finished jobs that made more of a good than they planned (migration 0145, ADR 0068).
 	CraftInputsJournal, CraftInputsRows, CraftMadeJournal, CraftMadeRows, CraftOverPlanned int64
-	NPCShiftsWithoutJob, NPCHungry, CarryOutOfRange    int64
+	NPCShiftsWithoutJob, NPCHungry, CarryOutOfRange                                        int64
 	// Condition (migration 0126): Repairs is whether the columns exist; RepairWithoutJob counts
 	// repair shifts no repair job posted or that restore nothing; DamageOutOfRange buildings
 	// whose damage is outside 0..10000; RepairUnpaid finished repair shifts with a gain but
@@ -177,6 +177,13 @@ type VillageInvariants struct {
 	ServiceLedger, ServiceRows    int64
 	ServiceItems, ServiceUsedRows int64
 	ServiceDayBroken              int64
+	// Care in founded settlements (migration 0146, docs/adr/0069): Care is whether the table exists; the clinic fees in the ledger and
+	// in the village treatments, the medicine that left the stocks in the item journal and in the treatments, and the treatments whose
+	// village row is missing or of another kind.
+	Care                                  bool
+	CareFeeLedger, CareFeeRows            int64
+	CareMedicineJournal, CareMedicineRows int64
+	CareBroken                            int64
 	// The tool wear (docs/adr/0050): ToolInputs are the tools the item journal shows leaving the stores as shift inputs,
 	// ToolShiftUnits the tools the shifts recorded as consumed, ToolWearBroken the workplaces whose wear is out of range.
 	ToolInputs, ToolShiftUnits int64
@@ -235,6 +242,7 @@ func (v VillageInvariants) WorkNodesOK() bool {
 			v.LotFeeMismatched == 0 && v.LotHistoryGuards == 2)) &&
 		v.ToolInputs == v.ToolShiftUnits && v.ToolWearBroken == 0 &&
 		(!v.Service || (v.ServiceLedger == v.ServiceRows && v.ServiceItems == v.ServiceUsedRows && v.ServiceDayBroken == 0)) &&
+		(!v.Care || (v.CareFeeLedger == v.CareFeeRows && v.CareMedicineJournal == v.CareMedicineRows && v.CareBroken == 0)) &&
 		(!v.Trade || (v.TradeLedger == v.TradeRows && v.TradeItems == v.TradeLineUnits && v.TradeDayBroken == 0 && v.TradeWageLedger == v.TradeWageRows)) &&
 		(!v.LevyRefunds || (v.LevyRefundLedger == v.LevyRefundRows && v.LevyRefundMismatched == 0)) &&
 		(!v.Research || (v.ResearchWageLedger == v.ResearchWageRows && v.ResearchWageMismatched == 0 && v.ResearchDayBroken == 0 &&

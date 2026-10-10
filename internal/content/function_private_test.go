@@ -40,8 +40,8 @@ func TestAWorkplaceHasItsCitizenTwin(t *testing.T) {
 			t.Errorf("%s: the twin function row is wrong: %+v", f.Code, fn)
 		}
 	}
-	// the first wave of 11 (docs/adr/0066) and the five farms and the water mill (docs/adr/0067)
-	if twins != 17 {
-		t.Errorf("%d workplaces opt in to a citizen twin, want 17", twins)
+	// the first wave of 11 (docs/adr/0066) and the five farms and the water mill (docs/adr/0067), the herb garden and the apothecary (docs/adr/0069)
+	if twins != 19 {
+		t.Errorf("%d workplaces opt in to a citizen twin, want 19", twins)
 	}
 }

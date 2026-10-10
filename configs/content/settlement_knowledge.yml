@@ -107,6 +107,16 @@ knowledge:
     time: 60h
     effects: [{target: service_coverage_bps, op: add, value: 300}]
 
+  # herbalism — the garden and the preparing of remedies: the herb garden and the apothecary need it (ADR 0069).
+  - code: herbalism
+    field: health
+    name: "گیاهان دارویی"
+    requires: [basic_medicine]
+    family: herbalism
+    generation: 1
+    cost: 1500
+    time: 18h
+
   # forestry — the care of the woods: the forester's lodge needs it (ADR 0065).
   - code: forestry
     field: craft

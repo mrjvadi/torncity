@@ -452,7 +452,6 @@ settlement_buildings:
 
   - code: clinic
     name: "درمانگاه"
-    waits_for: "C4: the care and medicine chain (a doctor, medicine, treatment of injuries); a clinic that only adds a percentage is not offered"
     role: health
     tier: 2
     footprint: [3, 3]
