@@ -5702,6 +5702,7 @@ export interface StationRecipeLine {
   available: boolean
   missing: Named[] | null
   minutes: number
+  station: string
 }
 
 export interface StationView {
@@ -5980,6 +5981,7 @@ export interface ToolLine {
   has_tool: boolean
   factor_bps: number
   tiers: boolean
+  starts_at: string | null | null
 }
 
 export interface TradeClerkLine {

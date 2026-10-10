@@ -275,6 +275,10 @@ func (h *VillageHandler) toolLine(ctx context.Context, tx application.Tx, snap *
 		return nil
 	}
 	line := &village.ToolLine{Need: d.ToolTierNeeded(), FactorBPS: labor.BPS, Tiers: h.craftRules.TiersOn(h.now())}
+	if !line.Tiers && h.craftRules.Enabled() {
+		from := h.craftRules.GraceUntil()
+		line.StartsAt = &from
+	}
 	if best, any := ladder.Best(stock.Units); any {
 		line.Have, line.HasTool = best, true
 		if line.Tiers {
