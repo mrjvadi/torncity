@@ -240,8 +240,8 @@ func TestCitizenLoop(t *testing.T) {
 	for _, l := range viewOf(t, menu)["lines"].([]any) {
 		codes[l.(map[string]any)["building"].(map[string]any)["code"].(string)] = true
 	}
-	if !codes["private_house"] || codes["home_workshop"] {
-		t.Fatalf("with carpentry the house is offered and the home workshop, which waits for personal crafting, is not: %v", codes)
+	if !codes["private_house"] || !codes["home_workshop"] {
+		t.Fatalf("with carpentry the house and the home workshop (the bench at home, ADR 0068) are offered: %v", codes)
 	}
 
 	// ---- cannot build on another's lot ------------------------------------

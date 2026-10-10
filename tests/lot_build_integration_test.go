@@ -262,14 +262,14 @@ func TestTheLotRefusesWhatTheTownCannotDo(t *testing.T) {
 	}
 	e.give(owner, application.HoldHome, "timber", 30)
 	e.give(owner, application.HoldHome, "stone", 30)
-	// a cellar needs masonry, a second storey needs carpentry_ii, the workbench has no rule yet
+	// a cellar needs masonry, a second storey needs carpentry_ii, the kitchen has no rule yet (it waits for the survival chain)
 	if v := ask(village.LotActionAdd, "cellar"); v.Reason != village.LotReasonRequires {
 		t.Errorf("a cellar without masonry: %q", v.Reason)
 	}
 	if v := ask(village.LotActionStorey, ""); v.Reason != village.LotReasonStoreys {
 		t.Errorf("a second storey without the knowledge: %q", v.Reason)
 	}
-	if _, r := e.manage(owner, handlers.VillageManageRequest{Building: id, Action: village.LotActionAdd, Code: "workbench", N: "1", Confirm: village.ResidenceConfirm}); r.Refusal == nil {
+	if _, r := e.manage(owner, handlers.VillageManageRequest{Building: id, Action: village.LotActionAdd, Code: "kitchen", N: "1", Confirm: village.ResidenceConfirm}); r.Refusal == nil {
 		t.Error("a module no rule reads was built")
 	}
 	// the floor is full after one bedroom (2 of 6 left); two bedrooms do not fit
