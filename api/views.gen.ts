@@ -3375,6 +3375,10 @@ export interface LotKeeperLine {
   wage: number
   wage_min: number
   wage_max: number
+  sold_away: number
+  cut_total: number
+  sold_away_today: number
+  cut_today: number
   left: string
   can: boolean
   reason: string

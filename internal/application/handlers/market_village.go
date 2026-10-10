@@ -219,19 +219,22 @@ func (h *MarketHandler) awayAsks(ctx context.Context, tx application.Tx, cityID 
 	return away, nil
 }
 
-// keeperShare is the share (basis points) a hired keeper takes of a sale of the seller's, when the seller is away from the
-// settlement and has a keeper; 0 when the seller is there or has none.
-func (h *MarketHandler) keeperShare(ctx context.Context, tx application.Tx, cityID, sellerID string) (int64, error) {
+// keeperShare says whether the seller is away with a keeper minding the stall (away) and, when the keeper is paid by a
+// share, that share in basis points; 0 when the keeper is paid by the day, the seller is there or has none.
+func (h *MarketHandler) keeperShare(ctx context.Context, tx application.Tx, cityID, sellerID string) (share int64, away bool, err error) {
 	k, err := tx.StallKeepers().OfOwner(ctx, cityID, sellerID)
 	if err != nil || k == nil {
-		return 0, err
+		return 0, false, err
 	}
 	facts, err := tx.Presence().Facts(ctx, []string{sellerID})
 	if err != nil {
-		return 0, err
+		return 0, false, err
 	}
-	if facts[sellerID].CityID == cityID || k.Pay != application.KeeperPayShare {
-		return 0, nil // a keeper paid by the day takes no share
+	if facts[sellerID].CityID == cityID {
+		return 0, false, nil
 	}
-	return k.ShareBPS, nil
+	if k.Pay != application.KeeperPayShare {
+		return 0, true, nil // a keeper paid by the day takes no share
+	}
+	return k.ShareBPS, true, nil
 }

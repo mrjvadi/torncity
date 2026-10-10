@@ -60,6 +60,14 @@ func (h *VillageHandler) stallKeeperLine(ctx context.Context, tx application.Tx,
 	}
 	if hire != nil {
 		line.Hired, line.Pay, line.ShareBPS, line.Wage = true, hire.Pay, hire.ShareBPS, hire.DailyWage
+		var terr error
+		if line.SoldAway, line.CutTotal, terr = tx.StallKeepers().Takings(ctx, lc.s.CityID, lc.p.ID, hire.HiredAt); terr != nil {
+			return nil, terr
+		}
+		dayStart := localDayStart(h.now(), lc.s.Zone())
+		if line.SoldAwayToday, line.CutToday, terr = tx.StallKeepers().Takings(ctx, lc.s.CityID, lc.p.ID, maxTime(dayStart, hire.HiredAt)); terr != nil {
+			return nil, terr
+		}
 		return line, nil
 	}
 	if last, err := tx.StallKeepers().LastEnded(ctx, lc.s.CityID, lc.p.ID); err != nil {
@@ -247,4 +255,11 @@ func (h *VillageHandler) SettleKeeperWages(ctx context.Context, tx application.T
 		}
 	}
 	return nil
+}
+
+func maxTime(a, b time.Time) time.Time {
+	if a.After(b) {
+		return a
+	}
+	return b
 }

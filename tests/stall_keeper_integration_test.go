@@ -136,6 +136,9 @@ func TestAStallKeeperPaidByTheDay(t *testing.T) {
 	if n := e.scalar(`SELECT count(*) FROM stall_keeper_wages WHERE settlement_id = $1::uuid`, e.cityID); n != 2 {
 		t.Fatalf("%d wage days, want 2", n)
 	}
+	if v, _ := e.manage(owner, handlers.VillageManageRequest{Building: id}); v.Keeper == nil || v.Keeper.CutTotal != 1400 || v.Keeper.SoldAway != 0 {
+		t.Fatalf("the keeper block shows two day wages and no sales: %+v", v.Keeper)
+	}
 	// 100 is left: the keeper goes, and the lot says why
 	e.clock.Advance(26 * time.Hour)
 	settle()

@@ -405,9 +405,15 @@ func (h *VillageHandler) charterViewOf(ctx context.Context, tx application.Tx, s
 		v.ZoneNextChange = &next
 	}
 	for _, g := range sortedHeld(held) {
+		if !permissionShown(g.Permission) {
+			continue
+		}
 		v.Mine = append(v.Mine, village.CharterGrantView{Permission: string(g.Permission), Limit: g.Limit})
 	}
 	for _, d := range charter.Catalogue() {
+		if !d.Active {
+			continue // a permission no act asks for is not shown (progressive disclosure); it stays in code (docs/adr/0064)
+		}
 		v.Permissions = append(v.Permissions, village.CharterPermissionView{Code: string(d.Code), Group: d.Group, Limited: d.Limited, Active: d.Active})
 	}
 	ids := map[string]bool{}
@@ -445,6 +451,9 @@ func (h *VillageHandler) charterViewOf(ctx context.Context, tx application.Tx, s
 			Manager: charter.IsManager(o.Grants),
 		}
 		for _, g := range o.Grants {
+			if !permissionShown(g.Permission) {
+				continue
+			}
 			ov.Grants = append(ov.Grants, village.CharterGrantView{Permission: string(g.Permission), Limit: g.Limit})
 		}
 		if o.Acquisition == charter.AcquireHead {
@@ -1147,4 +1156,11 @@ func (h *VillageHandler) openAmendment(ctx context.Context, tx application.Tx, s
 		return "", err
 	}
 	return id, nil
+}
+
+// permissionShown reports whether a permission is shown to players: only those some act asks for today. The rest stay in the
+// catalogue and in the offices that hold them; they appear when their act exists.
+func permissionShown(p charter.Permission) bool {
+	d, ok := charter.Lookup(p)
+	return ok && d.Active
 }

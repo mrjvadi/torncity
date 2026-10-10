@@ -1,0 +1,3 @@
+BEGIN;
+ALTER TABLE market_trades DROP COLUMN away;
+COMMIT;
