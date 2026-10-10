@@ -176,6 +176,8 @@ type Tx interface {
 	Trade() TradeRepository
 	// ServiceDays is the daily services of the settlement's posts (migration 0137).
 	ServiceDays() ServiceDayRepository
+	// StallKeepers is the keepers stall owners hire (migration 0139, ADR 0062).
+	StallKeepers() StallKeeperRepository
 	// Charters holds each settlement's offices, seats and audit (ADR 0044
 	// section 6, migration 0121); see ports_charter.go.
 	Charters() CharterRepository

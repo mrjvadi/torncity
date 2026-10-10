@@ -46,6 +46,8 @@ func (h *VillageHandler) manageOne(ctx context.Context, tx application.Tx, meta 
 		return h.templateAct(ctx, tx, meta, req, lc, view, confirmed)
 	case village.LotActionRemove:
 		return h.removeAct(ctx, tx, meta, req, lc, view, confirmed)
+	case village.LotActionKeeperHire, village.LotActionKeeperEnd:
+		return h.keeperAct(ctx, tx, meta, lc, view, action, confirmed)
 	}
 
 	var o lotbuild.Order

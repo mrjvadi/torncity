@@ -380,6 +380,8 @@ type MarketTrade struct {
 	Buyer, Seller       string
 	Qty, Price          int64
 	Notional, Fee       int64
+	// KeeperCut is what a hired keeper took of the seller's proceeds (docs/adr/0062); 0 when the owner was there.
+	KeeperCut           int64
 	LedgerTransactionID string
 	At                  time.Time
 }

@@ -70,7 +70,7 @@ staff_roles:
   - {code: storekeeper, skill: trade, wage_bps: 11000, personal: [{kind: literacy}], support_npc: true, note: "ADR 0041 5.1"}
   - {code: beacon_keeper, skill: vigilance, wage_bps: 10000, personal: [{kind: level, min: 1}], support_npc: true, note: "ADR 0042 8.9"}
   - {code: shopkeeper, building: {code: general_store}, skill: trade, wage_bps: 11000, personal: [{kind: literacy}], support_npc: true, note: "ADR 0046 5.1: the NPC citizen who keeps the village shop (the founding stall too); a player may hold the post later (ADR 0046 M5)"}
-  - {code: stall_keeper, skill: "", support_npc: true, note: "ADR 0040 16.4 names the keeper; neither its prerequisite nor its wage is written (needs research)"}
+  - {code: stall_keeper, building: {code: barter_post}, skill: trade, wage_bps: 10000, support_npc: true, note: "ADR 0062: the NPC citizen a stall owner hires to mind the stall while he is away; he holds a pool seat and takes trade.stall_keeper_share_bps of each sale made then, out of the seller's proceeds (stall_keeper_wage); a player does not hold the post"}
   - {code: miner, skill: "", support_npc: true, note: "ADR 0045 8.3 names the face miner; prerequisite, skill and wage class are not written (needs research)"}
   - {code: mine_hauler, skill: "", support_npc: true, note: "ADR 0045 8.3 (hand-cart hauler); prerequisite, skill and wage class not written (needs research)"}
   - {code: timberman, skill: "", support_npc: true, note: "ADR 0045 8.3; prerequisite, skill and wage class not written (needs research)"}

@@ -21,9 +21,9 @@ import (
 //
 //   - WHO WORKS THERE. The market warden, an office the mayor appoints (the real
 //     muhtasib: weights, dues, honest dealing); the stall owners themselves.
-//     A stall sells for its owner only while the owner is in the settlement; a
-//     hired seller who keeps it open while the owner is away needs the stall
-//     keeper hire of ADR 0040 Part B, which is not built (documented gap).
+//     A stall sells for its owner while the owner is in the settlement; a keeper he
+//     hired (an NPC of the labour pool, ADR 0062) keeps it open while he is away and
+//     takes a share of what it sells then.
 //   - WHAT IT CONSUMES. Stalls: a market post gives VillageStallsPost, a market
 //     hall VillageStallsHall; every open order takes one while it rests.
 //   - WHAT IT PROVIDES. The book where residents trade with their own money; the
@@ -38,7 +38,7 @@ type VillageMarketRules struct {
 	StallsPost, StallsHall                   int
 	StallsPerPlayerPost, StallsPerPlayerHall int
 	DayEveryDays                             int
-	Clock                                    gametime.Clock
+	Clock          gametime.Clock
 }
 
 // WithVillageBook gives the market the village book's stalls, fees and market day.
@@ -188,8 +188,7 @@ func (h *MarketHandler) payListingFee(ctx context.Context, tx application.Tx, sn
 }
 
 // awayAsks are the resting asks whose owner is not in the settlement: their stall
-// is shut, so they do not sell (ADR 0040 Part B; the seller a stall may hire to
-// keep it open is not built yet).
+// is shut, so they do not sell, unless the owner hired a keeper (ADR 0040 Part B, ADR 0062).
 func (h *MarketHandler) awayAsks(ctx context.Context, tx application.Tx, cityID string, resting []application.MarketOrder) (map[string]bool, error) {
 	away := map[string]bool{}
 	var ids []string
@@ -207,10 +206,32 @@ func (h *MarketHandler) awayAsks(ctx context.Context, tx application.Tx, cityID 
 	if err != nil {
 		return nil, err
 	}
+	// an owner who hired a keeper keeps his stall open while he is away (ADR 0062)
+	kept, err := tx.StallKeepers().OfOwners(ctx, cityID, ids)
+	if err != nil {
+		return nil, err
+	}
 	for _, id := range ids {
-		if facts[id].CityID != cityID {
+		if _, ok := kept[id]; !ok && facts[id].CityID != cityID {
 			away[id] = true
 		}
 	}
 	return away, nil
+}
+
+// keeperShare is the share (basis points) a hired keeper takes of a sale of the seller's, when the seller is away from the
+// settlement and has a keeper; 0 when the seller is there or has none.
+func (h *MarketHandler) keeperShare(ctx context.Context, tx application.Tx, cityID, sellerID string) (int64, error) {
+	k, err := tx.StallKeepers().OfOwner(ctx, cityID, sellerID)
+	if err != nil || k == nil {
+		return 0, err
+	}
+	facts, err := tx.Presence().Facts(ctx, []string{sellerID})
+	if err != nil {
+		return 0, err
+	}
+	if facts[sellerID].CityID == cityID {
+		return 0, nil
+	}
+	return k.ShareBPS, nil
 }

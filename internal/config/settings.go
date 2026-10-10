@@ -549,6 +549,7 @@ type tradeSettings struct {
 	VillageStallsPerPlayerPost *int     `yaml:"village_stalls_per_player_post"`
 	VillageStallsPerPlayerHall *int     `yaml:"village_stalls_per_player_hall"`
 	MarketDayEveryDays         *int     `yaml:"market_day_every_days"`
+	StallKeeperShareBPS        *int     `yaml:"stall_keeper_share_bps"`
 	MarketMaxQuantity          *int     `yaml:"market_max_quantity"`
 	MarketMaxPrice             *int64   `yaml:"market_max_price"`
 	AuctionDurations           []string `yaml:"auction_durations"`
@@ -2111,6 +2112,9 @@ var coreSettings = []setting{
 	limitSetting("trade", "market_day_every_days",
 		func(c *Config) *int { return &c.Trade.MarketDayEveryDays },
 		func(f *fileConfig) *int { return f.Trade.MarketDayEveryDays }),
+	limitSetting("trade", "stall_keeper_share_bps",
+		func(c *Config) *int { return &c.Trade.StallKeeperShareBPS },
+		func(f *fileConfig) *int { return f.Trade.StallKeeperShareBPS }),
 	limitSetting("trade", "market_max_quantity",
 		func(c *Config) *int { return &c.Trade.MarketMaxQuantity },
 		func(f *fileConfig) *int { return f.Trade.MarketMaxQuantity }),
