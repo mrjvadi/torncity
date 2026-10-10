@@ -243,6 +243,9 @@ func VerifyChecks(v postgres.LedgerVerification, cfg *config.Config) []Check {
 		t := v.VillageInvariants
 		out.add(t.MealOpenedRows == t.MealOpenedKitchen && t.MealEatenShifts == t.MealEatenKitchen, fmt.Sprintf("kitchens: the points opened (%d = %d) and eaten (%d = %d) match the meal rows and the shifts that ate", t.MealOpenedRows, t.MealOpenedKitchen, t.MealEatenShifts, t.MealEatenKitchen))
 		out.add(t.MealJournalUnits == t.MealRowUnits, fmt.Sprintf("food units opened for meals in the item journal match the opening rows (%d = %d)", t.MealJournalUnits, t.MealRowUnits))
+		out.add(t.FarmSeedShifts == t.FarmSeedCycles && t.FarmShiftsWithoutCycle == 0 && t.FarmCountersBroken == 0 && t.FarmHarvestOver == 0 && t.GrindWithoutCustomer == 0,
+			fmt.Sprintf("the seed the sowing shifts took matches the crops (%d = %d), every farm shift has a crop (%d without), the crops' counters match their shifts (%d broken), no crop was harvested past its yield (%d over), every grinding shift has a citizen (%d without)",
+				t.FarmSeedShifts, t.FarmSeedCycles, t.FarmShiftsWithoutCycle, t.FarmCountersBroken, t.FarmHarvestOver, t.GrindWithoutCustomer))
 		out.add(t.ClearingLedger == t.ClearingRows && t.LandShiftsWithoutLot == 0, fmt.Sprintf("the fees citizens paid to have their lots cleared match the shifts (%d = %d), and every felling or quarrying shift left its mark on a lot (%d without)", t.ClearingLedger, t.ClearingRows, t.LandShiftsWithoutLot))
 		out.add(t.BoardJournalUnits == t.BoardShiftUnits, fmt.Sprintf("the food employers gave their hands in the item journal matches the shift rows (%d = %d)", t.BoardJournalUnits, t.BoardShiftUnits))
 		out.add(t.NPCShiftsWithoutJob == 0 && t.NPCHungry == 0 && t.CarryOutOfRange == 0, fmt.Sprintf("every NPC production shift has its job (%d without), none started unfed (%d), and every workplace's carried fraction is below one unit (%d out of range)", t.NPCShiftsWithoutJob, t.NPCHungry, t.CarryOutOfRange))
