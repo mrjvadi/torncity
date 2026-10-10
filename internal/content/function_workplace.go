@@ -29,6 +29,8 @@ type WorkplaceDef struct {
 	// inputs, outputs and gating, a yard of Yard spaces of personal storage (default 40) and no upkeep or coverage of the
 	// settlement's.
 	Private bool `yaml:"private,omitempty" json:"private,omitempty"`
+	// PrivateName is the name of the citizen twin ("workshop (own)"); empty: the row's name.
+	PrivateName string `yaml:"private_name,omitempty" json:"private_name,omitempty"`
 	Yard    int  `yaml:"yard,omitempty" json:"yard,omitempty"`
 	// Role and Tier place the building in the build menu and in the promotion ladders (settlement_buildings.yml roles).
 	Role string `yaml:"role" json:"role"`
@@ -107,7 +109,10 @@ const PrivateSuffix = "_own"
 // in, and the function row that lets a lot choose it.
 func (f BuildingFunctionDef) privateTwin(pub SettlementBuildingDef) (SettlementBuildingDef, BuildingFunctionDef) {
 	b := pub
-	b.Code, b.Name = pub.Code+PrivateSuffix, pub.Name+" (شخصی)"
+	b.Code, b.Name = pub.Code+PrivateSuffix, pub.Name
+	if f.Workplace.PrivateName != "" {
+		b.Name = f.Workplace.PrivateName
+	}
 	b.Owner, b.PermitClass, b.Home = BuildingOwnerCitizen, f.Permit, false
 	b.Upkeep, b.Tier = 0, 1 // the owner's cost is the permit and the property tax; his workplace adds no coverage to the settlement
 	yard := f.Workplace.Yard
