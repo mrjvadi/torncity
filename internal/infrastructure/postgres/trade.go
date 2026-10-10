@@ -212,9 +212,9 @@ func (r *MarketRepository) RecordTrade(ctx context.Context, t application.Market
 	}
 	if _, err := r.q.Exec(ctx,
 		`INSERT INTO market_trades (id, city_id, item_code, buy_order_id, sell_order_id, buyer_id, seller_id, quantity,
-		                            unit_price, notional, fee, keeper_cut, ledger_transaction_id, created_at)
-		 VALUES ($1::uuid, $2::uuid, $3, $4::uuid, $5::uuid, $6::uuid, $7::uuid, $8, $9, $10, $11, $12, $13::uuid, $14)`,
-		id, t.CityID, t.Item, t.BuyOrder, t.SellOrder, t.Buyer, t.Seller, t.Qty, t.Price, t.Notional, t.Fee, t.KeeperCut,
+		                            unit_price, notional, fee, keeper_cut, away, ledger_transaction_id, created_at)
+		 VALUES ($1::uuid, $2::uuid, $3, $4::uuid, $5::uuid, $6::uuid, $7::uuid, $8, $9, $10, $11, $12, $13, $14::uuid, $15)`,
+		id, t.CityID, t.Item, t.BuyOrder, t.SellOrder, t.Buyer, t.Seller, t.Qty, t.Price, t.Notional, t.Fee, t.KeeperCut, t.Away,
 		t.LedgerTransactionID, t.At.UTC()); err != nil {
 		return fmt.Errorf("postgres: recording a trade: %w", err)
 	}

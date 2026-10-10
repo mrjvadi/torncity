@@ -1806,3 +1806,7 @@ ADR 0063, no migration, no view change. The build menus (`settlement.build`, the
 ## The stall keeper's pay (2026-10-10)
 
 ADR 0062 addendum, migration 0140. `keeper_hire` takes `code` = `share` or `wage` and `name` = the number (basis points for a share, minor units for a wage; empty: the default). The `keeper` block carries `pay` (`share` or `wage` when hired), `share_bps`, `wage`, the ranges `share_min_bps`, `share_max_bps`, `wage_min`, `wage_max` (the defaults when not hired) and `left` (`wage_unpaid` for seven days after a keeper left because the owner could not pay). New refusal `lot_keeper_terms` (pay outside the range). Config `trade.stall_keeper_share_min_bps`, `_max_bps`, `stall_keeper_wage`, `_min`, `_max`.
+
+## The keeper's figures and the hidden permissions (2026-10-10)
+
+ADR 0064, migration 0141. `LotKeeperLine` has `sold_away`, `cut_total`, `sold_away_today`, `cut_today` (minor units; zero when not hired): the sales made while the owner was away since the hire (today: the settlement's local day so far) and what the keeper took of them, share and day wages together. The charter view no longer lists the permissions no act asks for: `permissions[]`, `mine[]` and `offices[].grants[]` carry only the active ones (the founder's office still holds the rest in the server).

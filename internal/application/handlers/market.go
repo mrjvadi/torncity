@@ -836,10 +836,11 @@ func (h *MarketHandler) settle(ctx context.Context, tx application.Tx, meta enve
 	}
 	// A stall whose owner is away sells through the keeper he hired, who takes his share of the proceeds (ADR 0062).
 	var keeperCut int64
+	var soldAway bool
 	if village && !s.SellerReceives.IsZero() {
-		if share, err := h.keeperShare(ctx, tx, city.ID, t.Seller); err != nil {
+		if share, away, err := h.keeperShare(ctx, tx, city.ID, t.Seller); err != nil {
 			return 0, err
-		} else if share > 0 {
+		} else if soldAway = away; share > 0 {
 			keeperCut = s.SellerReceives.Minor() * share / 10_000
 			if s.SellerReceives, err = s.SellerReceives.Sub(money.FromMinor(keeperCut)); err != nil {
 				return 0, errors.Internal(err)
@@ -918,7 +919,7 @@ func (h *MarketHandler) settle(ctx context.Context, tx application.Tx, meta enve
 	if err := tx.Market().RecordTrade(ctx, application.MarketTrade{
 		ID: tradeID, CityID: city.ID, Item: def.Code, BuyOrder: t.BuyOrderID, SellOrder: t.SellOrderID,
 		Buyer: t.Buyer, Seller: t.Seller, Qty: t.Quantity, Price: t.UnitPrice.Minor(), Notional: t.Notional.Minor(),
-		Fee: s.Fee.Minor(), KeeperCut: keeperCut, LedgerTransactionID: txID, At: now,
+		Fee: s.Fee.Minor(), KeeperCut: keeperCut, Away: soldAway, LedgerTransactionID: txID, At: now,
 	}); err != nil {
 		return 0, err
 	}

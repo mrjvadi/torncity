@@ -61,6 +61,9 @@ type StallKeeperRepository interface {
 	LastEnded(ctx context.Context, settlementID, ownerID string) (*StallKeeper, error)
 	// OpenWages lists the open hires paid by the day.
 	OpenWages(ctx context.Context, settlementID string) ([]StallKeeper, error)
+	// Takings sums what the owner's stalls sold while he was away since the instant (sold: the notional of the trades marked
+	// away; cut: the keeper's share of them plus the day wages charged in that time).
+	Takings(ctx context.Context, settlementID, ownerID string, since time.Time) (sold, cut int64, err error)
 	// ClaimWage is the fence of a day wage: it records the keeper's wage for the local day and reports true once, false
 	// when the day was already charged. The caller posts the ledger transaction it names.
 	ClaimWage(ctx context.Context, k StallKeeper, day, amount int64, ledgerTx string, at time.Time) (bool, error)

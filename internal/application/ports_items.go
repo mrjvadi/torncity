@@ -381,7 +381,9 @@ type MarketTrade struct {
 	Qty, Price          int64
 	Notional, Fee       int64
 	// KeeperCut is what a hired keeper took of the seller's proceeds (docs/adr/0062); 0 when the owner was there.
-	KeeperCut           int64
+	KeeperCut int64
+	// Away marks a sale made while the owner was away and his keeper minded the stall (migration 0141).
+	Away                bool
 	LedgerTransactionID string
 	At                  time.Time
 }

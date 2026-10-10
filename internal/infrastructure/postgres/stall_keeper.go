@@ -127,3 +127,17 @@ func (r *StallKeeperRepository) ClaimWage(ctx context.Context, k application.Sta
 	}
 	return tag.RowsAffected() == 1, nil
 }
+
+func (r *StallKeeperRepository) Takings(ctx context.Context, settlementID, ownerID string, since time.Time) (sold, cut int64, err error) {
+	var shareCut int64
+	if err = r.q.QueryRow(ctx, `SELECT COALESCE(SUM(notional), 0)::bigint, COALESCE(SUM(keeper_cut), 0)::bigint FROM market_trades
+		WHERE city_id = $1::uuid AND seller_id = $2::uuid AND away AND created_at >= $3`, settlementID, ownerID, since.UTC()).Scan(&sold, &shareCut); err != nil {
+		return 0, 0, fmt.Errorf("postgres: summing the sales made while away: %w", err)
+	}
+	var wages int64
+	if err = r.q.QueryRow(ctx, `SELECT COALESCE(SUM(amount), 0)::bigint FROM stall_keeper_wages
+		WHERE settlement_id = $1::uuid AND owner_id = $2::uuid AND at >= $3`, settlementID, ownerID, since.UTC()).Scan(&wages); err != nil {
+		return 0, 0, fmt.Errorf("postgres: summing the keeper wages: %w", err)
+	}
+	return sold, shareCut + wages, nil
+}

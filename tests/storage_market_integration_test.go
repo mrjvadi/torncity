@@ -505,6 +505,15 @@ func TestTheVillageBook(t *testing.T) {
 	if got := cashBalance(t, pool, application.AccountPlayerBank, founder.ID) - bank0; got != 437 {
 		t.Errorf("the owner received %d, want 437", got)
 	}
+	// the lot can say what the keeper sold in the owner's absence (migration 0141)
+	var soldAway, cutAway int64
+	if err := uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
+		var err error
+		soldAway, cutAway, err = tx.StallKeepers().Takings(ctx, cityID, founder.ID, time.Now().Add(-time.Hour))
+		return err
+	}); err != nil || soldAway != 500 || cutAway != 48 {
+		t.Errorf("sold while away %d, keeper took %d (%v), want 500 and 48", soldAway, cutAway, err)
+	}
 	if _, err := pool.Raw().Exec(ctx, `UPDATE stall_keepers SET ended_at = now() WHERE settlement_id = $1::uuid`, cityID); err != nil {
 		t.Fatal(err)
 	}

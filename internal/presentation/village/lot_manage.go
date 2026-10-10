@@ -204,6 +204,10 @@ type LotKeeperLine struct {
 	Pay                                string
 	ShareBPS, ShareMinBPS, ShareMaxBPS int64
 	Wage, WageMin, WageMax             int64
+	// SoldAway and CutTotal are what the owner's stalls sold while he was away since the hire (the notional of those sales)
+	// and what the keeper took of it (his share plus the day wages), minor units; SoldAwayToday and CutToday are the same for
+	// the settlement's local day so far. Zero when not hired.
+	SoldAway, CutTotal, SoldAwayToday, CutToday int64
 	// Left says why the last keeper went when it was not the owner's doing: "wage_unpaid".
 	Left string
 	// Can is true when a keeper could be hired now; Reason says why not (no_seat, no_market).
