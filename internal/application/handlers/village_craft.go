@@ -56,8 +56,9 @@ func stationsOfBuilding(snap *content.Snapshot, typeCode string, f *application.
 }
 
 // homeRecipes are the recipes a home station of those stations makes (not the waiting ones).
-func homeRecipes(snap *content.Snapshot, stations []string) []content.RecipeDef {
+func homeRecipes(snap *content.Snapshot, stations []string) ([]content.RecipeDef, map[string]string) {
 	seen := map[string]bool{}
+	at := map[string]string{} // recipe -> the first of the stations that makes it
 	var out []content.RecipeDef
 	for _, st := range stations {
 		for _, code := range snap.RecipesAt(st) {
@@ -66,11 +67,12 @@ func homeRecipes(snap *content.Snapshot, stations []string) []content.RecipeDef 
 				continue
 			}
 			seen[code] = true
+			at[code] = st
 			out = append(out, r)
 		}
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].Code < out[j].Code })
-	return out
+	return out, at
 }
 
 // craftLine is the home station of a lot: nil when the building makes nothing at home.
@@ -82,7 +84,7 @@ func (h *VillageHandler) craftLine(ctx context.Context, tx application.Tx, snap 
 		return nil, nil
 	}
 	stations := stationsOfBuilding(snap, b.TypeCode, f)
-	recipes := homeRecipes(snap, stations)
+	recipes, stationOf := homeRecipes(snap, stations)
 	if len(recipes) == 0 {
 		return nil, nil
 	}
@@ -101,7 +103,7 @@ func (h *VillageHandler) craftLine(ctx context.Context, tx application.Tx, snap 
 	line := &village.LotCraftLine{Stations: stations, MaxJobs: cd.MaxJobs, MaxBatches: cd.MaxBatches, YieldBPS: int64(cd.HomeYieldBPS)}
 	wanted := map[string]bool{}
 	for _, r := range recipes {
-		rl := village.StationRecipeLine{Code: r.Code, Name: named(r.Code, r.Name), Minutes: r.CycleMinutes(),
+		rl := village.StationRecipeLine{Code: r.Code, Name: named(r.Code, r.Name), Minutes: r.CycleMinutes(), Station: stationOf[r.Code],
 			Inputs: materialLinesOf(snap, scaleQty(r.Inputs, 1)), Outputs: materialLinesOf(snap, scaleQty(r.Outputs, 1))}
 		miss := missingKnowledge(r, owned)
 		rl.Available = len(miss) == 0

@@ -45,6 +45,8 @@ type StationRecipeLine struct {
 	Missing   []presentation.Named `json:"missing,omitempty"`
 	// Minutes is how long one batch takes at home.
 	Minutes int `json:"minutes,omitempty"`
+	// Station is the home station that makes the recipe (workbench, loom...), set on the home card only.
+	Station string `json:"station,omitempty"`
 }
 
 // ToolLine is the state of a workplace's tool: the tier it needs, the best tier the stock holds, the share of the output that
@@ -55,6 +57,8 @@ type ToolLine struct {
 	HasTool   bool  `json:"has_tool"`
 	FactorBPS int64 `json:"factor_bps"`
 	Tiers     bool  `json:"tiers"`
+	// StartsAt is when the tiers begin to count, while they do not yet (nil once they count).
+	StartsAt *time.Time `json:"starts_at,omitempty"`
 }
 
 // LotCraftLine is the home station of a lot: what the building can make at home and the jobs running.
