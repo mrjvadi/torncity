@@ -120,6 +120,10 @@ type SettlementBuildingDef struct {
 	// Generated marks a building the content loader made from a function row's workplace block (never written in
 	// settlement_buildings.yml).
 	Generated bool `yaml:"-" json:"generated,omitempty"`
+	// OutputTarget is the effect target of the knowledge that raises this workplace's output (docs/adr/0058): the settlement's
+	// owned knowledge items with this target in their effects add their value (basis points) to every shift's output. Empty:
+	// no knowledge lifts it.
+	OutputTarget string `yaml:"output_target,omitempty" json:"output_target,omitempty"`
 	// Trains is the skill (and the experience) a finished shift here gives the
 	// worker: the trade is learned by doing it. The skill is in skills.yml.
 	Trains *SkillXPDef `yaml:"trains,omitempty" json:"trains,omitempty"`

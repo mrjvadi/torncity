@@ -168,6 +168,9 @@ type ModuleKindDef struct {
 	Head   `yaml:",inline"`
 	Name   string `yaml:"name,omitempty" json:"name,omitempty"`
 	Effect string `yaml:"effect" json:"effect"`
+	// WaitsFor names the plan item whose reader the module needs (docs/adr/0060). A module without a cost (build_shifts)
+	// is not offered to build; it must say what it waits for, so that none is silently dead.
+	WaitsFor string `yaml:"waits_for,omitempty" json:"waits_for,omitempty"`
 	// Provides: what one module gives (housing_capacity: 2, a storage class's
 	// spaces, personal_storage spaces).
 	Provides map[string]int `yaml:"provides,omitempty" json:"provides,omitempty"`

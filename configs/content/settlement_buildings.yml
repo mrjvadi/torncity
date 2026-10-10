@@ -296,6 +296,7 @@ settlement_buildings:
     shift: 30m
     wage: 65
     tool_wear_bps: 150
+    output_target: papermaking_output_bps
 
   - code: manufactory
     name: "کارگاه بزرگ"

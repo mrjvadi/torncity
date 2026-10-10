@@ -219,3 +219,25 @@ func (h *EducationHandler) literacyGate(ctx context.Context, tx application.Tx, 
 	}
 	return req, true, nil
 }
+
+// knowledgeOutputBPS is the sum of the effects with the target that the settlement's owned knowledge adds (basis points):
+// the more it knows of a craft, the more a shift of that craft yields.
+func (h *VillageHandler) knowledgeOutputBPS(ctx context.Context, tx application.Tx, snap *content.Snapshot, settlementID, target string) (int64, error) {
+	owned, err := tx.SettlementKnowledge().Owned(ctx, settlementID)
+	if err != nil {
+		return 0, err
+	}
+	var sum int64
+	for _, o := range owned {
+		d, ok := snap.SettlementKnowledgeDef(o.Code)
+		if !ok {
+			continue
+		}
+		for _, e := range d.Effects {
+			if e.Target == target && e.Op == "add" {
+				sum += e.Value
+			}
+		}
+	}
+	return sum, nil
+}

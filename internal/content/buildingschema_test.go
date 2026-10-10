@@ -149,6 +149,30 @@ func TestBuildingSchemaRefusesBrokenRows(t *testing.T) {
 				}
 			}
 		},
+		"module without a cost that waits for nothing": func(p *Pack) {
+			for i := range p.ModuleKinds {
+				if p.ModuleKinds[i].BuildShifts <= 0 {
+					p.ModuleKinds[i].WaitsFor = ""
+					return
+				}
+			}
+		},
+		"module that is built and also waits": func(p *Pack) {
+			for i := range p.ModuleKinds {
+				if p.ModuleKinds[i].BuildShifts > 0 {
+					p.ModuleKinds[i].WaitsFor = "B3"
+					return
+				}
+			}
+		},
+		"module with a cost and no reader": func(p *Pack) {
+			for i := range p.ModuleKinds {
+				if p.ModuleKinds[i].BuildShifts <= 0 {
+					p.ModuleKinds[i].BuildShifts, p.ModuleKinds[i].WaitsFor = 2, ""
+					return
+				}
+			}
+		},
 		"unknown zone": func(p *Pack) { p.BuildingFunctions[0].Zones = []string{"moon"} },
 		"replaces a building that does not exist": func(p *Pack) { p.BuildingFunctions[0].Replaces = []string{"no_such_building"} },
 		"recipe at a missing station":             func(p *Pack) { p.Recipes[0].Stations = []string{"no_such_function"} },

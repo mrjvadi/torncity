@@ -103,29 +103,29 @@ module_kinds:
   # real mechanic. The ADR fixes none of those numbers: flagged, not invented.
   - {code: bedroom,   source: "ADR 0045 3.2", evidence: D, requires: {}, effect: housing_capacity, provides: {housing_capacity: 2}, cost_materials: {timber: 3}, build_shifts: 3, area: 2, needs_research: [decay_bps_per_day], note: "the legacy private_cottage gives capacity 2, private_house 4 (citizen_buildings.yml); materials, shifts and area are B1 draft numbers (the ADR names the fields, not the figures), proportioned to the cottage (3 timber, 2 hours)"}
   - {code: hearth,    source: "ADR 0045 3.2, 0041 8.3, 8.33", evidence: D, requires: {}, effect: warmth_shelter, consumes: {timber: 1}, cost_materials: {stone: 2}, build_shifts: 2, area: 1, needs_research: [decay_bps_per_day], note: "fuel: one unit of timber per warm rest from the owner's home store (0041 8.33: rest +25 percent when warm; resting works without it). The ADR burns firewood, which is not an item yet (planned in item_storage); timber stands in until it is; B1 draft numbers"}
-  - {code: kitchen,   source: "ADR 0045 3.2", evidence: adr, requires: {}, effect: cooking, needs_research: [cost_materials, build_shifts, decay_bps_per_day]}
+  - {code: kitchen,   source: "ADR 0045 3.2", evidence: adr, requires: {}, waits_for: "B3: cooking and warmth at home need the survival chain (a stove that cooks the larder)", effect: cooking, needs_research: [cost_materials, build_shifts, decay_bps_per_day]}
   - {code: storeroom, source: "ADR 0045 3.2, 0040 6", evidence: D, requires: {}, effect: personal_storage, provides: {personal_storage: 40}, cost_materials: {timber: 2}, build_shifts: 2, area: 1, needs_research: [decay_bps_per_day], note: "personal storage +40 / +100 / +60 by building in ADR 0040 6.2: the cottage's room is one storeroom; B1 draft numbers for the cost"}
-  - {code: water_barrel, source: "ADR 0045 3.2", evidence: adr, requires: {}, effect: water_supply, needs_research: [cost_materials, build_shifts, decay_bps_per_day]}
+  - {code: water_barrel, source: "ADR 0045 3.2", evidence: adr, requires: {}, waits_for: "B3: drinking water at home needs thirst and the well draw (spring_water)", effect: water_supply, needs_research: [cost_materials, build_shifts, decay_bps_per_day]}
   - {code: cellar,    source: "ADR 0045 3.2, 0040 6.2", evidence: D, requires: {knowledge: [masonry]}, effect: storeroom, provides: {personal_storage: 60}, cost_materials: {stone: 3, timber: 1}, build_shifts: 3, area: 0, needs_research: [decay_bps_per_day], note: "under the floor, so it takes no floor area; 60 spaces is what the house has over the cottage (100 less 40, ADR 0040 6.2); B1 draft numbers for the cost"}
-  - {code: workbench, source: "ADR 0045 3.2, 4.1", evidence: adr, requires: {}, effect: workbench, area: 2, needs_research: [cost_materials, build_shifts, decay_bps_per_day, crafting_effect], note: "the workshop's bench comes with the function; what it makes is personal crafting (ADR 0045 phase B2), so B1 lets nobody add another"}
+  - {code: workbench, source: "ADR 0045 3.2, 4.1", evidence: adr, requires: {}, waits_for: "B2: personal crafting at home (recipes read the bench)", effect: workbench, area: 2, needs_research: [cost_materials, build_shifts, decay_bps_per_day, crafting_effect], note: "the workshop's bench comes with the function; what it makes is personal crafting (ADR 0045 phase B2), so B1 lets nobody add another"}
   - {code: shelves,   source: "ADR 0045 3.2", evidence: D, requires: {}, effect: shelves, provides: {stall_slots: 1, personal_storage: 60}, cost_materials: {timber: 2}, build_shifts: 2, area: 2, needs_research: [decay_bps_per_day], note: "in a stall each shelf is one counter of its own on the village book (no listing fee, no common stall used); in any building it is room to keep stock (0040 6.2: a workshop +60); B1 draft numbers"}
-  - {code: staff_post, source: "ADR 0045 3.2", evidence: adr, requires: {}, effect: staff_post, needs_research: [cost_materials, build_shifts]}
-  - {code: forge,     source: "ADR 0045 3.2, 4.2", evidence: adr, requires: {knowledge: [smithing]}, effect: forge, needs_research: [cost_materials, build_shifts, decay_bps_per_day]}
-  - {code: loom,      source: "ADR 0045 3.2, 5.3", evidence: adr, requires: {knowledge: [weaving]}, effect: loom, needs_research: [cost_materials, build_shifts, decay_bps_per_day]}
-  - {code: kiln,      source: "ADR 0045 3.2", evidence: adr, requires: {knowledge: [pottery]}, effect: kiln, needs_research: [cost_materials, build_shifts, decay_bps_per_day]}
-  - {code: oven,      source: "ADR 0045 3.2, 4.3", evidence: adr, requires: {knowledge: [milling]}, effect: oven, needs_research: [cost_materials, build_shifts, decay_bps_per_day]}
-  - {code: millstone, source: "ADR 0045 4.3, 0041 8.15", evidence: adr, requires: {knowledge: [milling]}, effect: millstone, needs_research: [cost_materials, build_shifts, decay_bps_per_day]}
-  - {code: foundation, source: "ADR 0045 3.2", evidence: adr, requires: {knowledge: [masonry]}, effect: foundation, needs_research: [cost_materials, build_shifts, decay_bps_per_day], note: "required on a slope steeper than the lot's limit"}
-  - {code: field_plot, source: "ADR 0045 3.2", evidence: adr, requires: {}, effect: field_plot, needs_research: [cost_materials, build_shifts]}
-  - {code: barn,      source: "ADR 0045 3.2", evidence: adr, requires: {}, effect: barn, needs_research: [provides, cost_materials, build_shifts, decay_bps_per_day]}
-  - {code: signal_fire, source: "ADR 0042 8.3", evidence: adr, requires: {knowledge: [communal_watch]}, planned_knowledge: [signal_fires], effect: signal_fire, consumes: {firewood: 1}, needs_research: [cost_materials, build_shifts], note: "the beacon's ready stack is 10 firewood"}
-  - {code: lookout_platform, source: "ADR 0042 8.1", evidence: adr, requires: {knowledge: [communal_watch]}, effect: lookout_platform, needs_research: [cost_materials, build_shifts, decay_bps_per_day]}
-  - {code: shaft_level, source: "ADR 0045 8.3", evidence: adr, requires: {}, planned_knowledge: [prospecting, timbering], effect: shaft_level, needs_research: [cost_materials, build_shifts, decay_bps_per_day], note: "depth bands: surface pit to 3 m, timbered shaft to 30 m, ventilated and pumped to 60 m"}
-  - {code: hoist,     source: "ADR 0045 8.3", evidence: adr, requires: {}, planned_knowledge: [timbering], effect: hoist, needs_research: [cost_materials, build_shifts, decay_bps_per_day]}
-  - {code: guest_bed, source: "RESEARCH 2026-10-03 2.3, 2.5", evidence: I, requires: {}, effect: transient_bed, needs_research: [provides, cost_materials, build_shifts, decay_bps_per_day], note: "a bed for a traveller (sleep spot hostel); it counts as a transient bed and never as a resident's housing capacity"}
-  - {code: record_vault, source: "RESEARCH 2026-10-03 5.2, 5.3", evidence: I, requires: {knowledge: [masonry]}, effect: record_vault, needs_research: [cost_materials, build_shifts, decay_bps_per_day], note: "the register's stone room: documents, not goods"}
-  - {code: vault, source: "RESEARCH 2026-10-03 6.3, 6.5", evidence: I, requires: {knowledge: [masonry_ii, smithing_ii]}, effect: vault, needs_research: [vault_rating_scale, cost_materials, build_shifts, decay_bps_per_day], note: "holds cash and valuables; its vault_rating sets the theft difficulty; the door and locks need smithing_ii (E, read, S31: strongrooms in bank basements)"}
-  - {code: ore_bin,   source: "ADR 0045 8.3", evidence: adr, requires: {}, effect: ore_bin, needs_research: [provides, cost_materials, build_shifts, decay_bps_per_day]}
+  - {code: staff_post, source: "ADR 0045 3.2", evidence: adr, requires: {}, waits_for: "B1c: a hired hand at a private workshop", effect: staff_post, needs_research: [cost_materials, build_shifts]}
+  - {code: forge,     source: "ADR 0045 3.2, 4.2", evidence: adr, requires: {knowledge: [smithing]}, waits_for: "B2: personal smithing at home", effect: forge, needs_research: [cost_materials, build_shifts, decay_bps_per_day]}
+  - {code: loom,      source: "ADR 0045 3.2, 5.3", evidence: adr, requires: {knowledge: [weaving]}, waits_for: "B2: personal weaving at home", effect: loom, needs_research: [cost_materials, build_shifts, decay_bps_per_day]}
+  - {code: kiln,      source: "ADR 0045 3.2", evidence: adr, requires: {knowledge: [pottery]}, waits_for: "B2: personal firing at home", effect: kiln, needs_research: [cost_materials, build_shifts, decay_bps_per_day]}
+  - {code: oven,      source: "ADR 0045 3.2, 4.3", evidence: adr, requires: {knowledge: [milling]}, waits_for: "B2: personal baking at home", effect: oven, needs_research: [cost_materials, build_shifts, decay_bps_per_day]}
+  - {code: millstone, source: "ADR 0045 4.3, 0041 8.15", evidence: adr, requires: {knowledge: [milling]}, waits_for: "B2: personal milling at home", effect: millstone, needs_research: [cost_materials, build_shifts, decay_bps_per_day]}
+  - {code: foundation, source: "ADR 0045 3.2", evidence: adr, requires: {knowledge: [masonry]}, waits_for: "B1b: the slope rule of a lot (a steep lot asks a foundation)", effect: foundation, needs_research: [cost_materials, build_shifts, decay_bps_per_day], note: "required on a slope steeper than the lot's limit"}
+  - {code: field_plot, source: "ADR 0045 3.2", evidence: adr, requires: {}, waits_for: "B2: a plot at home that grows a crop", effect: field_plot, needs_research: [cost_materials, build_shifts]}
+  - {code: barn,      source: "ADR 0045 3.2", evidence: adr, requires: {}, waits_for: "B2: a store for crops and fodder at a farm lot", effect: barn, needs_research: [provides, cost_materials, build_shifts, decay_bps_per_day]}
+  - {code: signal_fire, source: "ADR 0042 8.3", evidence: adr, requires: {knowledge: [communal_watch]}, planned_knowledge: [signal_fires], waits_for: "A4b: the territory model (lookouts and the beacon)", effect: signal_fire, consumes: {firewood: 1}, needs_research: [cost_materials, build_shifts], note: "the beacon's ready stack is 10 firewood"}
+  - {code: lookout_platform, source: "ADR 0042 8.1", evidence: adr, requires: {knowledge: [communal_watch]}, waits_for: "A4b: the territory model (lookouts and the beacon)", effect: lookout_platform, needs_research: [cost_materials, build_shifts, decay_bps_per_day]}
+  - {code: shaft_level, source: "ADR 0045 8.3", evidence: adr, requires: {}, planned_knowledge: [prospecting, timbering], waits_for: "B6: mining depth bands", effect: shaft_level, needs_research: [cost_materials, build_shifts, decay_bps_per_day], note: "depth bands: surface pit to 3 m, timbered shaft to 30 m, ventilated and pumped to 60 m"}
+  - {code: hoist,     source: "ADR 0045 8.3", evidence: adr, requires: {}, planned_knowledge: [timbering], waits_for: "B6: mining depth bands", effect: hoist, needs_research: [cost_materials, build_shifts, decay_bps_per_day]}
+  - {code: guest_bed, source: "RESEARCH 2026-10-03 2.3, 2.5", evidence: I, requires: {}, waits_for: "C7: guest nights at an inn", effect: transient_bed, needs_research: [provides, cost_materials, build_shifts, decay_bps_per_day], note: "a bed for a traveller (sleep spot hostel); it counts as a transient bed and never as a resident's housing capacity"}
+  - {code: record_vault, source: "RESEARCH 2026-10-03 5.2, 5.3", evidence: I, requires: {knowledge: [masonry]}, waits_for: "A4b: the land registry (needs resident-to-resident land sales)", effect: record_vault, needs_research: [cost_materials, build_shifts, decay_bps_per_day], note: "the register's stone room: documents, not goods"}
+  - {code: vault, source: "RESEARCH 2026-10-03 6.3, 6.5", evidence: I, requires: {knowledge: [masonry_ii, smithing_ii]}, waits_for: "B10: theft difficulty of a vault", effect: vault, needs_research: [vault_rating_scale, cost_materials, build_shifts, decay_bps_per_day], note: "holds cash and valuables; its vault_rating sets the theft difficulty; the door and locks need smithing_ii (E, read, S31: strongrooms in bank basements)"}
+  - {code: ore_bin,   source: "ADR 0045 8.3", evidence: adr, requires: {}, waits_for: "B6: the minehead ore bin", effect: ore_bin, needs_research: [provides, cost_materials, build_shifts, decay_bps_per_day]}
 
 building_functions:
   # ---- homes and private trades (ADR 0035 3, ADR 0040 Part B, ADR 0045 3.2) ----
@@ -263,7 +263,7 @@ building_functions:
     maintenance: {decay_bps_per_day: 60, repair_materials: {timber: 1}, repair_labour: 1}
     links: {from: [woodcutter_yard], to: [bloomery, smithy]}
     replaces: [charcoal_clamp]
-    workplace: {role: craft, tier: 1, shift: 1h, upkeep: 30, effects: [{target: job_coverage_bps, op: add, value: 100}]}
+    workplace: {output_target: charcoal_output_bps, role: craft, tier: 1, shift: 1h, upkeep: 30, effects: [{target: job_coverage_bps, op: add, value: 100}]}
     note: "an 8 game hour burn of 6 firewood into 2 charcoal (a coppice clamp, watched through the night); the ADR names no role for the collier, labourer stands for him"
   - code: carpentry_workshop
     source: "ADR 0041 8.10, 0045 4.3 recipes 3, 24"
@@ -287,7 +287,7 @@ building_functions:
     maintenance: {decay_bps_per_day: 60, repair_materials: {timber: 1}, repair_labour: 1}
     links: {from: [woodcutter_yard], to: [storehouse]}
     replaces: [carpentry_workshop]
-    workplace: {role: craft, tier: 1, shift: 30m, upkeep: 60, effects: [{target: job_coverage_bps, op: add, value: 150}], trains: {skill: carpentry, xp: 20}}
+    workplace: {output_target: craft_workshop_output_bps, role: craft, tier: 1, shift: 30m, upkeep: 60, effects: [{target: job_coverage_bps, op: add, value: 150}], trains: {skill: carpentry, xp: 20}}
     note: "ADR 0041 8.10: timber 3 to plank 2 per shift, now a half-hour shift; ADR 0045 4.3 (first draft) says 1 log to 3 planks and stays a recipe of the personal crafts"
   - code: masonry_workshop
     source: "ADR 0041 8.11"
@@ -310,7 +310,7 @@ building_functions:
     maintenance: {decay_bps_per_day: 60, repair_materials: {stone: 1}, repair_labour: 1}
     links: {to: [storehouse]}
     replaces: [masonry_workshop]
-    workplace: {role: craft, tier: 1, shift: 30m, upkeep: 65, effects: [{target: job_coverage_bps, op: add, value: 150}], trains: {skill: masonry, xp: 20}}
+    workplace: {output_target: masonry_output_bps, role: craft, tier: 1, shift: 30m, upkeep: 65, effects: [{target: job_coverage_bps, op: add, value: 150}], trains: {skill: masonry, xp: 20}}
     note: "stone 3 to brick 2 per half-hour shift (the shop's bricks are a stand-in for clay bricks, which the brickworks makes); the ADR 0041 target of cut stone waits for phase W5"
   - code: kiln
     source: "ADR 0041 8.14, 0045 4.3 recipes 4, 5"
@@ -334,7 +334,7 @@ building_functions:
     maintenance: {decay_bps_per_day: 60, repair_materials: {stone: 1}, repair_labour: 1}
     links: {from: [woodcutter_yard, clay_pit], to: [granary]}
     replaces: [pottery_kiln]
-    workplace: {building: pottery_kiln, role: craft, tier: 1, shift: 30m, upkeep: 50, effects: [{target: job_coverage_bps, op: add, value: 140}], trains: {skill: pottery, xp: 20}}
+    workplace: {output_target: pottery_output_bps, building: pottery_kiln, role: craft, tier: 1, shift: 30m, upkeep: 50, effects: [{target: job_coverage_bps, op: add, value: 140}], trains: {skill: pottery, xp: 20}}
     note: "clay 3 and a firewood fired into two pots in a half-hour shift; the clay comes from the clay pit on a river lot. Bricks are the brickworks' (its own row)"
   - code: smithy
     source: "ADR 0041 8.12, 0045 4.3 recipe 16"
@@ -360,7 +360,7 @@ building_functions:
     maintenance: {decay_bps_per_day: 60, repair_materials: {stone: 1}, repair_labour: 1}
     links: {from: [bloomery, charcoal_clamp], to: [carpentry_workshop, minehead]}
     replaces: [smithy]
-    workplace: {role: craft, tier: 1, shift: 30m, upkeep: 70, effects: [{target: job_coverage_bps, op: add, value: 160}], trains: {skill: smithing, xp: 20}}
+    workplace: {output_target: smithing_output_bps, role: craft, tier: 1, shift: 30m, upkeep: 70, effects: [{target: job_coverage_bps, op: add, value: 160}], trains: {skill: smithing, xp: 20}}
     note: "a bloom is forged with charcoal heat into three tools; the tool workshop (hafted stone) makes one from timber and stone, the smithy three from iron. Tools are also bought from the central city, so a village without ore is not stuck (ADR 0041 8.12)"
   - code: iron_pit
     source: "RESEARCH 2026-10-09 A4 (Wikipedia Bog iron, Iron mining; docs/adr/0051)"
@@ -407,7 +407,7 @@ building_functions:
     maintenance: {decay_bps_per_day: 60, repair_materials: {stone: 1}, repair_labour: 1}
     links: {from: [iron_pit, minehead, charcoal_clamp], to: [smithy]}
     replaces: [bloomery]
-    workplace: {role: craft, tier: 1, shift: 30m, upkeep: 60, effects: [{target: job_coverage_bps, op: add, value: 100}], trains: {skill: smithing, xp: 20}}
+    workplace: {output_target: smelting_output_bps, role: craft, tier: 1, shift: 30m, upkeep: 60, effects: [{target: job_coverage_bps, op: add, value: 100}], trains: {skill: smithing, xp: 20}}
     note: "3 iron ore and 4 charcoal make a bloom in a 4 game hour smelt; the ADR gives the recipe but no staffing, a smith stands for the bloomer"
   - code: weaving_shed
     source: "ADR 0041 8.13, 0045 4.3 recipes 8 to 10, 12, 5.3"
@@ -432,7 +432,7 @@ building_functions:
     maintenance: {decay_bps_per_day: 60, repair_materials: {timber: 1}, repair_labour: 1}
     links: {to: [fulling_place, paper_mill, storehouse]}
     replaces: [weaving_shed]
-    workplace: {role: craft, tier: 1, shift: 30m, upkeep: 55, effects: [{target: job_coverage_bps, op: add, value: 140}], trains: {skill: weaving, xp: 20}}
+    workplace: {output_target: weaving_output_bps, role: craft, tier: 1, shift: 30m, upkeep: 55, effects: [{target: job_coverage_bps, op: add, value: 140}], trains: {skill: weaving, xp: 20}}
     note: "wool 3 spun and woven into cloth 2 and a rag of offcuts (the paper mill's fibre) per half-hour shift; ADR 0045 splits it into roving, yarn and cloth recipes (recipes.yml)"
   - code: fulling_place
     source: "ADR 0045 4.3 recipe 11, 5.3"
@@ -475,7 +475,7 @@ building_functions:
     maintenance: {decay_bps_per_day: 60, repair_materials: {timber: 1}, repair_labour: 1}
     links: {from: [pasture_range, woodcutter_yard, well], to: [storehouse]}
     replaces: [tannery]
-    workplace: {role: craft, tier: 1, shift: 30m, upkeep: 40, effects: [{target: job_coverage_bps, op: add, value: 100}]}
+    workplace: {output_target: tanning_output_bps, role: craft, tier: 1, shift: 30m, upkeep: 40, effects: [{target: job_coverage_bps, op: add, value: 100}]}
     note: "a hide, a bark of oak or other tannin wood and water soak in a pit until it is leather. Bark is stripped at the woodcutter's camp, hides come off the pasture, water from the well; leather is sold at the market day (garments come with phase B4)"
   # ---- food and water (ADR 0041 8.15, 8.16, 8.21, 8.22, 8.23) ----
   - code: brickworks
@@ -498,7 +498,7 @@ building_functions:
     maintenance: {decay_bps_per_day: 60, repair_materials: {stone: 1}, repair_labour: 1}
     links: {from: [clay_pit, woodcutter_yard], to: [bakery, bloomery, land_registry]}
     replaces: [brickworks]
-    workplace: {role: craft, tier: 1, shift: 30m, upkeep: 40, effects: [{target: job_coverage_bps, op: add, value: 100}], trains: {skill: pottery, xp: 20}}
+    workplace: {output_target: pottery_output_bps, role: craft, tier: 1, shift: 30m, upkeep: 40, effects: [{target: job_coverage_bps, op: add, value: 100}], trains: {skill: pottery, xp: 20}}
     note: "clay is moulded and fired with wood in a clamp or a kiln: clay 4 and firewood 2 give four bricks in a 3 game hour firing. The masonry shop still makes bricks from stone (a stand-in); ovens, the bloomery and the land registry are built of brick"
   - code: mill
     source: "ADR 0041 8.15, 0045 4.3 recipe 6"
@@ -521,7 +521,7 @@ building_functions:
     maintenance: {decay_bps_per_day: 50, repair_materials: {timber: 1}, repair_labour: 1}
     links: {from: [farm_canal, farm_shaft, farm_terrace], to: [bakery]}
     replaces: [mill]
-    workplace: {role: food, tier: 1, shift: 15m, upkeep: 35, effects: [{target: food_coverage_bps, op: add, value: 200}], trains: {skill: milling, xp: 20}}
+    workplace: {output_target: milling_output_bps, role: food, tier: 1, shift: 15m, upkeep: 35, effects: [{target: food_coverage_bps, op: add, value: 200}], trains: {skill: milling, xp: 20}}
     note: "a hand mill: wheat 8 to flour 8 in a game hour. The water mill (level 2: river lot, wheat 24 a shift) and the miller's toll in kind (a policy between 1/24 and 1/10) wait for the upgrade runtime"
   - code: bakery
     source: "ADR 0041 8.16, 0045 4.3 recipe 7"

@@ -113,6 +113,11 @@ func (h *VillageHandler) nodeWork(ctx context.Context, tx application.Tx, snap *
 			}
 			w.FoodShifts = total / w.MealPoints
 		}
+		if d.OutputTarget != "" {
+			if bonus, err := h.knowledgeOutputBPS(ctx, tx, snap, s.CityID, d.OutputTarget); err == nil {
+				w.KnowledgeBPS = bonus
+			}
+		}
 		if wear := d.Def().Work.ToolWearBPS; wear > 0 {
 			w.ToolWearBPS, w.ToolsHave = wear, stock.Units[ToolItem]
 			if carry, err := tx.SettlementTreasury().Carry(ctx, b.ID); err == nil && carry[ToolWearKey]+wear >= labor.BPS &&

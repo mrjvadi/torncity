@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	stderrors "errors"
 	"fmt"
+	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/budget"
 	"github.com/mrjvadi/torncity/internal/domain/vehicle"
 	"github.com/mrjvadi/torncity/internal/presentation"
@@ -154,6 +155,15 @@ type TravelHandler struct {
 	// stands on the world, not in routes.yml (travel_world.go). Nil offers
 	// content routes only.
 	world *WorldRoutes
+	// personal is the date a transport mode began to ask its rider for the licence its content row names, and the grace
+	// after it (settlement.personal_rule_at, personal_grace_days; docs/adr/0059). Zero rules ask nothing.
+	personal PersonalRules
+}
+
+// WithPersonal makes a private mode (the car) ask its rider for the certificate its availability row names.
+func (h *TravelHandler) WithPersonal(r PersonalRules) *TravelHandler {
+	h.personal = r
+	return h
 }
 
 // WithPlaces makes the handler honour city places: a departure only from the
@@ -279,6 +289,54 @@ type trip struct {
 	from, to       *application.City
 	options        []quotedOption
 	contentVersion int
+	// licence lists the modes whose licence the rider lacks: offered with a notice during the grace, left out after it.
+	licence []travelLicence
+}
+
+// travelLicence is a mode asking a certificate the rider does not hold.
+type travelLicence struct {
+	mode   string
+	course presentation.Named
+	until  time.Time // the end of the grace; zero when the mode is closed to him now
+}
+
+// licenceMissing is the certificate a private mode asks that the rider lacks (the zero Named when he needs nothing), and
+// whether the mode is closed to him now (the grace is over).
+func (h *TravelHandler) licenceMissing(ctx context.Context, tx application.Tx, playerID, mode string, now time.Time) (travelLicence, bool, error) {
+	if h.places == nil || !h.personal.enabled() {
+		return travelLicence{}, false, nil
+	}
+	snap := h.places.Current()
+	row, ok := snap.AvailabilityTag("transport_mode", mode)
+	if !ok || row.Requires == nil {
+		return travelLicence{}, false, nil
+	}
+	var held map[string]bool
+	for _, n := range row.Requires.Personal {
+		if n.Kind != content.PersonalCertificate {
+			continue
+		}
+		if held == nil {
+			certs, err := tx.Education().Certifications(ctx, playerID)
+			if err != nil {
+				return travelLicence{}, false, err
+			}
+			held = map[string]bool{}
+			for _, c := range certs {
+				held[c.CourseCode] = true
+			}
+		}
+		if held[n.Code] {
+			continue
+		}
+		l := travelLicence{mode: mode, course: courseNamed(snap, n.Code), until: h.personal.GraceUntil()}
+		if h.personal.InGrace(now) {
+			return l, false, nil
+		}
+		l.until = time.Time{}
+		return l, true, nil
+	}
+	return travelLicence{}, false, nil
 }
 
 // planTrip runs the refusals a player meets before any choice — already
@@ -396,6 +454,16 @@ func (h *TravelHandler) planTrip(ctx context.Context, tx application.Tx, p *appl
 		if !o.Mode.Public {
 			// The player's own vehicle of this mode drives it for its fuel
 			// instead of the hire's fare (docs/adr/0024).
+			lic, closed, err := h.licenceMissing(ctx, tx, p.ID, o.Mode.Code, now)
+			if err != nil {
+				return t, err
+			}
+			if lic.mode != "" {
+				t.licence = append(t.licence, lic)
+				if closed {
+					continue // no licence, no car: the screen says which licence and where to learn it
+				}
+			}
 			own, fuel, err := h.ownVehicle(ctx, tx, p.ID, o.Mode.Code, o.DistanceKM)
 			if err != nil {
 				return t, err
@@ -467,6 +535,9 @@ func optionsView(t trip, cash int64, requoted bool) life.TravelOptionsView {
 		FromCode: t.from.Code, From: t.from.Name,
 		ToCode: t.to.Code, To: t.to.Name,
 		Cash: cash, Requoted: requoted,
+	}
+	for _, l := range t.licence {
+		v.Licence = append(v.Licence, life.TravelLicence{ModeCode: l.mode, Course: l.course, Until: l.until})
 	}
 	for _, o := range t.options {
 		var own *presentation.Named

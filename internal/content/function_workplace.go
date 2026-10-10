@@ -22,6 +22,8 @@ type WorkplaceDef struct {
 	// ("30m"). Required: the staff's shift_hours of the row are the ADR's and no longer drive the runtime.
 	Shift     string `yaml:"shift,omitempty" json:"shift,omitempty"`
 	BuildTime string `yaml:"build_time,omitempty" json:"build_time,omitempty"`
+	// OutputTarget is the knowledge effect target that raises the workplace's output (settlement_buildings.yml output_target).
+	OutputTarget string `yaml:"output_target,omitempty" json:"output_target,omitempty"`
 	// Role and Tier place the building in the build menu and in the promotion ladders (settlement_buildings.yml roles).
 	Role string `yaml:"role" json:"role"`
 	Tier int    `yaml:"tier,omitempty" json:"tier,omitempty"`
@@ -81,7 +83,7 @@ func (f BuildingFunctionDef) generatedWorkplace(roleBPS map[string]int) Settleme
 		Code: w.buildingCode(f.Code), Name: f.Name, Role: w.Role, Tier: max(w.Tier, 1), Generated: true,
 		Footprint:   [2]int{max(f.Footprint[0], 1), max(f.Footprint[1], 1)},
 		TerrainTags: append([]string(nil), f.TerrainTags...), TerrainMode: f.TerrainMode,
-		Upkeep: w.Upkeep, Wage: w.Wage, Effects: append([]EffectDef(nil), w.Effects...), Trains: w.Trains,
+		OutputTarget: w.OutputTarget, Upkeep: w.Upkeep, Wage: w.Wage, Effects: append([]EffectDef(nil), w.Effects...), Trains: w.Trains,
 	}
 	if len(f.Levels) > 0 {
 		lv := f.Levels[0]

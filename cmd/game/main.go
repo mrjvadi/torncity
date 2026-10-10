@@ -359,7 +359,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			cfg.Game.IdempotencyTTL,
 			nil,
 		// A journey departs from, and lands at, the place of its mode.
-		).WithPlaces(registry).WithWorld(worldTravel),
+		).WithPlaces(registry).WithWorld(worldTravel).WithPersonal(personalRules(cfg)),
 		skills: handlers.NewSkillsHandler(uow, messages, postgres.NewSkillRepository(pool), nil).WithPlace(registry, cities, cfg.Settlement.HomeCityCode),
 		social: handlers.NewSocialHandler(
 			uow,

@@ -57,6 +57,8 @@ travel:
     🧭 سفر به {to}
     📍 مبدأ: {from}
   options_choose: "با چه وسیله‌ای می‌روید؟"
+  licence_soon: "🪪 از {date} برای رانندگی با {mode} گواهینامهٔ «{course}» لازم است. تا آن روز می‌توانید بدون آن برانید؛ آن را از بخش آموزش بگیرید."
+  licence_needed: "🪪 برای رانندگی با {mode} گواهینامهٔ «{course}» لازم است. آن را از بخش آموزش بگیرید؛ تا آن وقت با وسیلهٔ دیگری بروید."
   option: "• {mode} - {fare} - {wait} در راه - {energy} انرژی"
   option_busy: "• {mode} - {fare} (مسیر شلوغ) - {wait} در راه - {energy} انرژی"
   option_own: "• {mode} (وسیلهٔ خودتان) - سوخت {fare} - {wait} در راه - {energy} انرژی - سلامت خودرو {condition}"
