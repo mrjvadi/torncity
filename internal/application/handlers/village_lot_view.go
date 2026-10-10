@@ -284,6 +284,10 @@ func (h *VillageHandler) fillDetail(ctx context.Context, tx application.Tx, lc *
 	if v.Keeper, kerr = h.stallKeeperLine(ctx, tx, lc); kerr != nil {
 		return kerr
 	}
+	var werr error
+	if v.Workplace, werr = h.workplaceLine(ctx, tx, lc); werr != nil {
+		return werr
+	}
 
 	// what can be added
 	for _, code := range lotKeys(lc.spec.Slots) {

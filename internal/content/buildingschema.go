@@ -308,7 +308,10 @@ type FitoutDef struct {
 // settlement buildings and the citizen buildings become functions with slot
 // lists (`replaces`); none is lost.
 type BuildingFunctionDef struct {
-	Head `yaml:",inline"`
+	// Generated marks a function row the content loader made from another row's workplace block: the citizen twin of a
+	// private workplace (docs/adr/0066). Never written in the YAML.
+	Generated bool `yaml:"-" json:"generated,omitempty"`
+	Head      `yaml:",inline"`
 	Name string `yaml:"name,omitempty" json:"name,omitempty"`
 	// Kind is ADR 0041 3.1's node kind.
 	Kind string `yaml:"kind" json:"kind"`

@@ -379,7 +379,12 @@ func (h *VillageHandler) startLaborShift(ctx context.Context, tx application.Tx,
 		sh.WorkPoints = h.labor.Points(w.bps)
 	case application.LaborKindRepair:
 		if job.EmployerKind != application.LaborEmployerSettlement {
-			return refuseVillage(village.LaborNoJob, village.AddrLaborBoard)
+			// the repair of a citizen's own workplace is his job (docs/adr/0066)
+			if owner, oerr := h.privateOwnerOf(ctx, tx, b.ID); oerr != nil {
+				return oerr
+			} else if owner == "" || owner != job.EmployerID {
+				return refuseVillage(village.LaborNoJob, village.AddrLaborBoard)
+			}
 		}
 		d, ok := snap.SettlementBuildingDef(b.TypeCode)
 		if !ok || b.Status != "complete" {
@@ -403,8 +408,16 @@ func (h *VillageHandler) startLaborShift(ctx context.Context, tx application.Tx,
 	case application.LaborKindProduction:
 		// A standing workplace works for the treasury: NPCs only (a player takes it
 		// through settlement.work), and never past its posts' day.
-		if job.EmployerKind != application.LaborEmployerSettlement || !w.npc() {
+		if !w.npc() {
 			return refuseVillage(village.LaborNoJob, village.AddrLaborBoard)
+		}
+		if job.EmployerKind != application.LaborEmployerSettlement {
+			// the crew of a citizen's own workplace: only his
+			if owner, oerr := h.privateOwnerOf(ctx, tx, b.ID); oerr != nil {
+				return oerr
+			} else if owner == "" || owner != job.EmployerID {
+				return refuseVillage(village.LaborNoJob, village.AddrLaborBoard)
+			}
 		}
 		d, ok := snap.SettlementBuildingDef(b.TypeCode)
 		if !ok || b.Status != "complete" || len(d.Produces) == 0 {
@@ -1142,9 +1155,14 @@ func (h *VillageHandler) postable(ctx context.Context, tx application.Tx, s appl
 		kind, employer = application.LaborEmployerPlayer, b.EmployerPlayerID
 	}
 	if jobKind == application.LaborKindProduction {
-		// A workplace's goods enter the village stock and its wage comes from the
-		// treasury: only the head posts one.
+		// A public workplace's goods enter the village stock and its wage comes from the treasury: only the head posts
+		// one. A workplace a citizen owns is his: he is the employer (docs/adr/0066).
 		kind, employer = application.LaborEmployerSettlement, s.CityID
+		if owner, oerr := h.privateOwnerOf(ctx, tx, b.ID); oerr != nil {
+			return "", "", "", false, oerr
+		} else if owner != "" {
+			kind, employer = application.LaborEmployerPlayer, owner
+		}
 	}
 	if kind == application.LaborEmployerPlayer {
 		return kind, employer, jobKind, employer == p.ID, nil

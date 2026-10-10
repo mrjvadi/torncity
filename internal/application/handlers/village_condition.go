@@ -152,6 +152,11 @@ func (h *VillageHandler) postRepair(ctx context.Context, tx application.Tx, s ap
 		return refuseVillage(village.VillageNotAvailable, back)
 	}
 	shifts, mats := h.repairNeed(d, damage)
+	if owner, oerr := h.privateOwnerOf(ctx, tx, b.ID); oerr != nil {
+		return oerr
+	} else if owner != "" {
+		return h.postPrivateRepair(ctx, tx, s, b, d, owner, by, damage, shifts, mats, now, zone)
+	}
 	if err := tx.Items().LockOrg(ctx, application.SettlementOrg(s.CityID)); err != nil {
 		return err
 	}

@@ -57,8 +57,8 @@ func (p *Pack) auditPrerequisites(o AuditOptions, add func(check, kind, code, fo
 		daily := f.Produces != nil && f.Produces.Daily
 		for _, st := range f.Staff {
 			switch {
-			case f.Workplace != nil && !daily:
-				continue // a shift in the generated workplace: a player or an NPC of the pool
+			case f.Workplace != nil && !daily, f.Generated:
+				continue // a shift in the generated workplace or its citizen twin: a player or an NPC of the pool
 			case daily:
 				continue // a seat of the service day
 			}

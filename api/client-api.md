@@ -1810,3 +1810,25 @@ ADR 0062 addendum, migration 0140. `keeper_hire` takes `code` = `share` or `wage
 ## The keeper's figures and the hidden permissions (2026-10-10)
 
 ADR 0064, migration 0141. `LotKeeperLine` has `sold_away`, `cut_total`, `sold_away_today`, `cut_today` (minor units; zero when not hired): the sales made while the owner was away since the hire (today: the settlement's local day so far) and what the keeper took of them, share and day wages together. The charter view no longer lists the permissions no act asks for: `permissions[]`, `mine[]` and `offices[].grants[]` carry only the active ones (the founder's office still holds the rest in the server).
+
+## Private workplaces (2026-10-10)
+
+ADR 0066, no migration. Eleven workplaces (charcoal clamp, carpentry, masonry, kiln, smithy, bloomery, weaving shed, tannery, brickworks, mill, bakery) have a citizen twin, building code `<building>_own` (for the kiln `pottery_kiln_own`) and function code `<function>_own`: it appears in the private build menu and in a lot's function choices with the same research gating, zones, permit and use-change fee. The twin has the public workplace's staff, inputs, outputs, shift and wage, no upkeep, and gives the owner 40 spaces of personal storage (the yard).
+
+The owner is the employer: the job of a private production building is posted, hired for (1, 2 or 4 NPC hands), priced for player takers and closed with the existing `settlement.labor.post|hire|wage|close`, and he works it himself with `settlement.work {id}` for no wage. Inputs, tools and the board of the hands leave his home store and the goods go into it; a hand's wage is set aside from his cash when its shift starts and paid when it ends, less the employer levy. Another citizen works it only through the job on the labour board; `settlement.work` on it is refused (`labor_no_job`). Refusals of a shift: `materials` (the inputs the store lacks, as needs), `storage_full` (with `missing` spaces), `labor_no_food` (an NPC hand), `labor_employer_broke`, `labor_needs_repair`; a crew pauses with `no_input`, `storage_full`, `no_food`, `employer_broke`, `no_staff`, `needs_repair`, `budget_spent`. Repair: `settlement.labor.post {id, n: "repair"}` by the owner, materials from his store.
+
+`LotManageView.workplace` (set on a workplace twin the viewer owns):
+
+```json
+"workplace": {
+  "job": {"id": "…", "crew": 2, "working": 1, "wage": 100, "shifts_left": 40, "paused": ""},
+  "slots": 2, "shift_minutes": 30,
+  "inputs":  [{"item": {"code": "timber", "name": "…"}, "per_shift": 3, "have": 9}],
+  "outputs": [{"item": {"code": "plank",  "name": "…"}, "per_shift": 2, "have": 4}],
+  "tools_have": 1, "tool_wear_bps": 4300, "room_free": 18, "room_needed": 0,
+  "food_have": 12, "food_per_shift": 2,
+  "today": {"shifts": 5, "produced": [{"item": {…}, "qty": 7}], "wages": 500, "levy": 25, "produced_value": 700},
+  "total": {"shifts": 61, "produced": [{"item": {…}, "qty": 80}], "wages": 6100, "levy": 305, "produced_value": 8000}
+}
+```
+`job` is absent when no job is posted; `produced_value` is the goods' base price (the real takings are the stall and book sales). Item reason `board_eaten` is new in the item journal.

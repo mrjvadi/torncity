@@ -62,10 +62,11 @@ func (r *SettlementTreasuryRepository) StartShift(ctx context.Context, s applica
 	_, err = r.q.Exec(ctx, `
 		INSERT INTO settlement_shifts
 		       (id, settlement_id, building_id, player_id, status, wage, wage_paid, produced, consumed, game_action_id, started_at, finish_at, job_id, worker_kind,
-		        meal_points, fed, output_bps)
-		VALUES ($1, $2, $3, NULLIF($4, '')::uuid, 'working', $5, 0, $6::jsonb, $7::jsonb, $8, $9, $10, NULLIF($11, '')::uuid, $12, $13, $14, $15)`,
+		        meal_points, fed, output_bps, payer_kind, payer_id)
+		VALUES ($1, $2, $3, NULLIF($4, '')::uuid, 'working', $5, 0, $6::jsonb, $7::jsonb, $8, $9, $10, NULLIF($11, '')::uuid, $12, $13, $14, $15,
+		        COALESCE(NULLIF($16, ''), 'settlement'), NULLIF($17, '')::uuid)`,
 		s.ID, s.SettlementID, s.BuildingID, s.PlayerID, s.Wage, string(produced), string(consumed), s.GameActionID,
-		s.StartedAt.UTC(), s.FinishAt.UTC(), s.JobID, workerKindOf(s), s.MealPoints, s.Fed, outputBPSOf(s))
+		s.StartedAt.UTC(), s.FinishAt.UTC(), s.JobID, workerKindOf(s), s.MealPoints, s.Fed, outputBPSOf(s), s.PayerKind, s.PayerID)
 	if violates(err, sqlstateUniqueViolation, settlementShiftsOneWorkingIdx) {
 		return application.ErrAlreadyWorking
 	}
@@ -236,4 +237,51 @@ func (r *SettlementTreasuryRepository) SetCarry(ctx context.Context, buildingID 
 		return fmt.Errorf("postgres: writing a carry: %w", err)
 	}
 	return nil
+}
+
+// FinishPrivateShift ends a working shift of a privately owned workplace, exactly once.
+func (r *SettlementTreasuryRepository) FinishPrivateShift(ctx context.Context, id string, produced map[string]int64, wagePaid, fee int64, ledgerTransactionID string, at time.Time) (bool, error) {
+	var ledgerTx any
+	if ledgerTransactionID != "" {
+		ledgerTx = ledgerTransactionID
+	}
+	made, err := json.Marshal(produced)
+	if err != nil {
+		return false, err
+	}
+	tag, err := r.q.Exec(ctx, `
+		UPDATE settlement_shifts
+		   SET status = 'done', wage_paid = $2, fee = $3, ledger_transaction_id = $4::uuid, finished_at = $5, produced = $6::jsonb
+		 WHERE id = $1::uuid AND status = 'working'`,
+		id, wagePaid, fee, ledgerTx, at.UTC(), string(made))
+	if err != nil {
+		return false, fmt.Errorf("postgres: finishing a private shift: %w", err)
+	}
+	return tag.RowsAffected() == 1, nil
+}
+
+// PrivateTakings sums the finished shifts of a citizen's workplace since an instant.
+func (r *SettlementTreasuryRepository) PrivateTakings(ctx context.Context, buildingID string, since time.Time) (application.PrivateTakings, error) {
+	out := application.PrivateTakings{Produced: map[string]int64{}}
+	if err := r.q.QueryRow(ctx, `SELECT count(*), COALESCE(SUM(wage_paid), 0)::bigint, COALESCE(SUM(fee), 0)::bigint
+		FROM settlement_shifts WHERE building_id = $1::uuid AND status = 'done' AND kind = 'production' AND payer_kind = 'player' AND finished_at >= $2`,
+		buildingID, since.UTC()).Scan(&out.Shifts, &out.Wages, &out.Levy); err != nil {
+		return out, fmt.Errorf("postgres: summing a private workplace: %w", err)
+	}
+	rows, err := r.q.Query(ctx, `SELECT v.key, SUM(v.value::bigint)::bigint FROM settlement_shifts s, jsonb_each_text(s.produced) v
+		WHERE s.building_id = $1::uuid AND s.status = 'done' AND s.kind = 'production' AND s.payer_kind = 'player' AND s.finished_at >= $2 GROUP BY v.key`,
+		buildingID, since.UTC())
+	if err != nil {
+		return out, fmt.Errorf("postgres: summing what a private workplace made: %w", err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var k string
+		var n int64
+		if err := rows.Scan(&k, &n); err != nil {
+			return out, err
+		}
+		out.Produced[k] = n
+	}
+	return out, rows.Err()
 }

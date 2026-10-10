@@ -152,6 +152,9 @@ const (
 	// ItemMealEaten is an end: food units a settlement's kitchen opened for its workers'
 	// meals (ADR 0041 6.5); the movement's reference is the settlement_meals row.
 	ItemMealEaten ItemReason = "meal_eaten"
+	// ItemBoardEaten is an end: the food an employer gives the hands of his own workplace out of his home store
+	// (docs/adr/0066).
+	ItemBoardEaten ItemReason = "board_eaten"
 	// ItemRepairMaterials is an end: the materials of a repair job (ADR 0041 6.10), taken
 	// from the stock when the job is posted; the movement's reference is the job.
 	ItemRepairMaterials ItemReason = "repair_materials"
@@ -178,6 +181,7 @@ var itemReasons = map[ItemReason]bool{
 	ItemRetrofitKit:            true,
 	ItemSettlementConstruction: true,
 	ItemMealEaten:              true,
+	ItemBoardEaten:             true,
 	ItemRepairMaterials:        true,
 	ItemFitoutMaterials:        true,
 	ItemSalvage:                true,

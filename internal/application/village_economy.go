@@ -120,6 +120,12 @@ type SettlementEconomyRepository interface {
 	// whether this call did it (false: it was already done, so the caller must
 	// not produce or pay again).
 	FinishShift(ctx context.Context, id string, produced map[string]int64, wagePaid int64, ledgerTransactionID string, at time.Time) (bool, error)
+	// PrivateTakings sums the finished shifts a citizen's workplace has worked for him since an instant: how many, what they
+	// made, the wages paid and the levy (docs/adr/0066).
+	PrivateTakings(ctx context.Context, buildingID string, since time.Time) (PrivateTakings, error)
+	// FinishPrivateShift is FinishShift for a shift in a privately owned workplace: it also records the employer levy
+	// (docs/adr/0066).
+	FinishPrivateShift(ctx context.Context, id string, produced map[string]int64, wagePaid, fee int64, ledgerTransactionID string, at time.Time) (bool, error)
 	// WorkingShifts lists a settlement's shifts in progress, oldest first.
 	WorkingShifts(ctx context.Context, settlementID string) ([]SettlementShift, error)
 	// PlayerShift is the player's shift in progress, or nil.
@@ -160,3 +166,11 @@ const (
 // SettlementWorkActionType is the game_actions.action_type of a shift ending
 // (internal/workers/scheduler/routes.go carries the same literal).
 const SettlementWorkActionType = "settlement_work"
+
+// PrivateTakings is what a citizen's workplace has done over a span.
+type PrivateTakings struct {
+	Shifts   int64
+	Produced map[string]int64
+	Wages    int64
+	Levy     int64
+}

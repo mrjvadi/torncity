@@ -24,6 +24,14 @@ type WorkplaceDef struct {
 	BuildTime string `yaml:"build_time,omitempty" json:"build_time,omitempty"`
 	// OutputTarget is the knowledge effect target that raises the workplace's output (settlement_buildings.yml output_target).
 	OutputTarget string `yaml:"output_target,omitempty" json:"output_target,omitempty"`
+	// Private says a lot owner may place this workplace on his own lot and be its employer (docs/adr/0066): the loader
+	// also emits its citizen twin, the building `<building>_own` and the function row `<code>_own`, with the same staff,
+	// inputs, outputs and gating, a yard of Yard spaces of personal storage (default 40) and no upkeep or coverage of the
+	// settlement's.
+	Private bool `yaml:"private,omitempty" json:"private,omitempty"`
+	// PrivateName is the name of the citizen twin ("workshop (own)"); empty: the row's name.
+	PrivateName string `yaml:"private_name,omitempty" json:"private_name,omitempty"`
+	Yard    int  `yaml:"yard,omitempty" json:"yard,omitempty"`
 	// Role and Tier place the building in the build menu and in the promotion ladders (settlement_buildings.yml roles).
 	Role string `yaml:"role" json:"role"`
 	Tier int    `yaml:"tier,omitempty" json:"tier,omitempty"`
@@ -58,15 +66,77 @@ func (p *Pack) expandFunctionWorkplaces() {
 	for _, r := range p.StaffRoles {
 		roleBPS[r.Code] = r.WageBPS
 	}
+	fkept := p.BuildingFunctions[:0:0]
+	for _, f := range p.BuildingFunctions {
+		if !f.Generated {
+			fkept = append(fkept, f)
+		}
+	}
+	p.BuildingFunctions = fkept
+	akept := p.Availability[:0:0]
+	for _, a := range p.Availability {
+		if !a.Generated {
+			akept = append(akept, a)
+		}
+	}
+	p.Availability = akept
 	var gen []SettlementBuildingDef
+	var twins []BuildingFunctionDef
 	for _, f := range p.BuildingFunctions {
 		if f.Workplace == nil || have[f.Workplace.buildingCode(f.Code)] {
 			continue // a code in both files is refused by the building schema lint
 		}
-		gen = append(gen, f.generatedWorkplace(roleBPS))
+		pub := f.generatedWorkplace(roleBPS)
+		gen = append(gen, pub)
+		if f.Workplace.Private && f.Permit != "" && (f.Produces == nil || !f.Produces.Daily) && !have[pub.Code+PrivateSuffix] {
+			tb, tf := f.privateTwin(pub)
+			gen = append(gen, tb)
+			twins = append(twins, tf)
+			if len(p.Availability) > 0 {
+				p.Availability = append(p.Availability, AvailabilityDef{Kind: "building", Code: tb.Code, Stage: StageVillage, Generated: true})
+			}
+		}
 	}
 	sort.Slice(gen, func(i, j int) bool { return gen[i].Code < gen[j].Code })
 	p.SettlementBuildings = append(kept, gen...)
+	p.BuildingFunctions = append(p.BuildingFunctions, twins...)
+}
+
+// PrivateSuffix ends the code of the citizen twin of a workplace (docs/adr/0066).
+const PrivateSuffix = "_own"
+
+// privateTwin is the citizen twin of a public workplace: a building a lot owner places on his own lot and employs workers
+// in, and the function row that lets a lot choose it.
+func (f BuildingFunctionDef) privateTwin(pub SettlementBuildingDef) (SettlementBuildingDef, BuildingFunctionDef) {
+	b := pub
+	b.Code, b.Name = pub.Code+PrivateSuffix, pub.Name
+	if f.Workplace.PrivateName != "" {
+		b.Name = f.Workplace.PrivateName
+	}
+	b.Owner, b.PermitClass, b.Home = BuildingOwnerCitizen, f.Permit, false
+	b.Upkeep, b.Tier = 0, 1 // the owner's cost is the permit and the property tax; his workplace adds no coverage to the settlement
+	yard := f.Workplace.Yard
+	if yard == 0 {
+		yard = 40
+	}
+	b.Effects = []EffectDef{{Target: "personal_storage", Op: "add", Value: int64(yard)}}
+	b.CostMaterials, b.Produces, b.Consumes = copyQuantities(pub.CostMaterials), copyQuantities(pub.Produces), copyQuantities(pub.Consumes)
+	b.RequiresKnowledge = append([]string(nil), pub.RequiresKnowledge...)
+	fn := BuildingFunctionDef{
+		Generated: true,
+		Head: Head{Code: f.Code + PrivateSuffix, Source: f.Source, Evidence: f.Evidence, Requires: f.Requires,
+			PlannedKnowledge: append([]string(nil), f.PlannedKnowledge...)},
+		Name: b.Name, Kind: f.Kind, Family: f.Family, Permit: f.Permit, Zones: append([]string(nil), f.Zones...),
+		TerrainTags: append([]string(nil), f.TerrainTags...), TerrainMode: f.TerrainMode, Footprint: f.Footprint,
+		Owners: []string{"player"}, Replaces: []string{b.Code}, Staff: append([]StaffSlotDef(nil), f.Staff...), IfUnstaffed: f.IfUnstaffed,
+		Consumes: f.Consumes, Produces: f.Produces, Maintenance: f.Maintenance,
+	}
+	if len(f.Levels) > 0 {
+		lv := f.Levels[0]
+		lv.Level, lv.Building, lv.Adds = 1, b.Code, nil // the modules of a lot (a bench, a forge) wait for their own models
+		fn.Levels = []FunctionLevelDef{lv}
+	}
+	return b, fn
 }
 
 func (w *WorkplaceDef) buildingCode(row string) string {

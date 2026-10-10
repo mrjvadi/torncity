@@ -3366,6 +3366,15 @@ export interface LotGridView {
   win_y: number
 }
 
+export interface LotJobLine {
+  id: string
+  crew: number
+  working: number
+  wage: number
+  shifts_left: number
+  paused: string
+}
+
 export interface LotKeeperLine {
   hired: boolean
   pay: string
@@ -3435,6 +3444,7 @@ export interface LotManageView {
   functions: LotFunctionChoice[] | null
   work: LotWorkLine | null
   staff: LotStaffLine[] | null
+  workplace: LotWorkplaceLine | null
   keeper: LotKeeperLine | null
   housing_capacity: number
   personal_storage: number
@@ -3520,12 +3530,26 @@ export interface LotStaffLine {
   slots: number
 }
 
+export interface LotStockLine {
+  item: Named
+  per_shift: number
+  have: number
+}
+
 export interface LotStoreyLine {
   to: number
   materials: WorkItemLine[] | null
   shifts: number
   can: boolean
   reason: string
+}
+
+export interface LotTakings {
+  shifts: number
+  produced: WorkItemLine[] | null
+  wages: number
+  levy: number
+  produced_value: number
 }
 
 export interface LotTemplateLine {
@@ -3571,6 +3595,22 @@ export interface LotWorkLine {
   job_open: boolean
   paused: string
   status: string
+}
+
+export interface LotWorkplaceLine {
+  job: LotJobLine | null
+  slots: number
+  shift_minutes: number
+  inputs: LotStockLine[] | null
+  outputs: LotStockLine[] | null
+  tools_have: number
+  tool_wear_bps: number
+  room_free: number
+  room_needed: number
+  food_have: number
+  food_per_shift: number
+  today: LotTakings
+  total: LotTakings
 }
 
 export interface MapCity {
