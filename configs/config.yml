@@ -1406,6 +1406,10 @@ settlement:
   land_fell_radius: 4
   land_quarry_radius: 3
   land_rock_shifts: 2
+  # the farm cycle (ADR 0067): sowing, tending, harvest. The rule date and the grace of the farms that stood before it, which keep
+  # their flat shift of 12 wheat until the grace is over
+  farm_rule_at: "2026-10-10T00:00:00Z"
+  farm_grace_days: 14
   # The teacher's skill in the literacy tick (docs/adr/0057): a class a player with the teaching skill gives moves literacy at
   # teacher_base_bps plus teacher_per_level_bps for each level of the skill (never above 10000); with no player teacher it moves at
   # teacher_base_bps. A finished class teaches its player teacher teacher_xp_per_class points of the skill.

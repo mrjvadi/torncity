@@ -35,15 +35,27 @@ func localDayIndex(t time.Time, zone time.Duration) int64 {
 // decayOf is the daily wear of a building type: the function's own maintenance decay, else
 // the configured default; none for a building that produces nothing.
 func (h *VillageHandler) decayOf(snap *content.Snapshot, d content.SettlementBuildingDef) int64 {
-	if len(d.Produces) == 0 {
-		return 0
-	}
 	if code, ok := snap.FunctionReplacing(d.Code); ok {
 		if f, ok := snap.BuildingFunction(code); ok && f.Maintenance != nil && f.Maintenance.DecayBPSPerDay > 0 {
+			// a building that makes nothing wears only when its function row says it decays: a water work silts up and
+			// slumps (docs/adr/0067)
 			return int64(f.Maintenance.DecayBPSPerDay)
 		}
 	}
+	if len(d.Produces) == 0 {
+		return 0
+	}
 	return h.labor.DecayBPSPerDay
+}
+
+// repairWage is what a repair shift of the building pays: its own wage, else the base hourly wage for the length of a
+// repair shift (a water work declares no wage of its own, it makes nothing).
+func (h *VillageHandler) repairWage(d content.SettlementBuildingDef) int64 {
+	if d.Wage > 0 {
+		return d.Wage
+	}
+	hours := h.shiftWait().Hours()
+	return max(int64(float64(content.WorkplaceBaseHourlyWage)*hours+0.5), 1)
 }
 
 // damageNow is the building's damage today: what is stored plus the wear of the local days
@@ -189,7 +201,7 @@ func (h *VillageHandler) postRepair(ctx context.Context, tx application.Tx, s ap
 	}
 	return repo.PostJob(ctx, application.LaborJob{
 		ID: jobID, SettlementID: s.CityID, BuildingID: b.ID, Kind: application.LaborKindRepair,
-		EmployerKind: application.LaborEmployerSettlement, EmployerID: s.CityID, Wage: d.Wage,
+		EmployerKind: application.LaborEmployerSettlement, EmployerID: s.CityID, Wage: h.repairWage(d),
 		ShiftsTotal: shifts, CreatedBy: by, CreatedAt: now,
 	})
 }

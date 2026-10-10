@@ -114,9 +114,32 @@ func (v *LandView) Forest() (bps, generated, left int) {
 	return min(left*10_000/generated, 10_000), generated, left
 }
 
+// LandSite is a building's footprint on the land.
+type LandSite struct{ X, Y, W, H int }
+
+// GrazedLots are the lots within radius lots of the sites: a herd grazes them and they do not regrow trees (docs/adr/0067).
+func GrazedLots(sites []LandSite, radius int) map[land.Pos]bool {
+	out := map[land.Pos]bool{}
+	for _, s := range sites {
+		for y := s.Y - radius; y < s.Y+s.H+radius; y++ {
+			for x := s.X - radius; x < s.X+s.W+radius; x++ {
+				out[land.Pos{X: x, Y: y}] = true
+			}
+		}
+	}
+	return out
+}
+
 // BuildLand computes the land of a settlement. side is the claimed grid's side; open are the lots its roads opened; occupied are
 // the lots a building or a road holds (they carry nothing).
 func BuildLand(w *worldgen.World, s FoundedSettlement, side int, open []OpenLotRow, occupied map[land.Pos]bool, def content.LandDef, rules LandRules,
+	deltas []land.Delta, saplings []land.Sapling, now time.Time,
+) *LandView {
+	return BuildLandWith(w, s, side, open, occupied, nil, def, rules, deltas, saplings, now)
+}
+
+// BuildLandWith is BuildLand with the lots a herd grazes, which do not regrow trees.
+func BuildLandWith(w *worldgen.World, s FoundedSettlement, side int, open []OpenLotRow, occupied, grazed map[land.Pos]bool, def content.LandDef, rules LandRules,
 	deltas []land.Delta, saplings []land.Sapling, now time.Time,
 ) *LandView {
 	view := &LandView{Rules: rules, Side: side, Now: now, Lots: map[land.Pos]*LandLot{}}
@@ -208,7 +231,7 @@ func BuildLand(w *worldgen.World, s FoundedSettlement, side int, open []OpenLotR
 				}
 			}
 		}
-		l.Trees = l.Lot.Trees(now, dyn, maxTrees, wooded && r > 0)
+		l.Trees = l.Lot.Trees(now, dyn, maxTrees, wooded && r > 0 && !grazed[p])
 		l.Rocks, l.Stumps, l.Growing = l.Lot.Rocks(), l.Lot.Stumps(), l.Lot.Growing(now)
 		l.Obstructed = l.Trees > 0 || l.Rocks > 0
 		view.Lots[p] = l

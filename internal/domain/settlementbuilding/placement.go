@@ -31,6 +31,12 @@ type Lot struct {
 	TerrainTags []string
 }
 
+// Placed is a standing (complete) building on the land, for the proximity rules.
+type Placed struct {
+	Code       string
+	X, Y, W, H int
+}
+
 // Grid is a settlement's own local lot grid, addressed [y][x], 0-based,
 // origin at the grid's own corner (ADR 0028 section 6.1).
 type Grid [][]Lot
@@ -68,6 +74,8 @@ type Standing struct {
 	// LiteracyShareBPS is the settlement's own current literacy_share (ADR
 	// 0031 section 4.4), 0-10000.
 	LiteracyShareBPS int
+	// Placed lists the complete buildings, for a building that must stand near another (docs/adr/0067).
+	Placed []Placed
 	// SettlementTier is the settlement's own tier ("village", "town",
 	// "city"); empty skips the tier rule (a caller that has none).
 	SettlementTier string
@@ -122,6 +130,9 @@ func CanPlace(def Def, grid Grid, x, y int, s Standing) error {
 	if !terrainOK {
 		return ErrTerrainRequired
 	}
+	if def.Near != nil && !nearHolds(def, grid, x, y, s) {
+		return ErrNeedsNear
+	}
 	for _, code := range def.RequiresKnowledge {
 		if !s.Knowledge.Has(code) {
 			return ErrKnowledgeMissing
@@ -174,4 +185,38 @@ func FirstFreeLot(def Def, grid Grid) (x, y int, ok bool) {
 		}
 	}
 	return 0, 0, false
+}
+
+// nearHolds reports whether a lot with one of the near tags lies within the radius of the footprint (on the grid given), or
+// a standing building with one of the near codes does.
+func nearHolds(def Def, grid Grid, x, y int, s Standing) bool {
+	n := def.Near
+	if n == nil {
+		return true
+	}
+	for j := y - n.Radius; j < y+def.FootprintH+n.Radius; j++ {
+		for i := x - n.Radius; i < x+def.FootprintW+n.Radius; i++ {
+			if j < 0 || i < 0 || j >= grid.Height() || i >= grid.Width() {
+				continue
+			}
+			for _, tag := range n.Tags {
+				if hasTag(grid[j][i].TerrainTags, tag) {
+					return true
+				}
+			}
+		}
+	}
+	for _, p := range s.Placed {
+		for _, code := range n.Codes {
+			if p.Code != code {
+				continue
+			}
+			dx := max(0, x-(p.X+p.W-1), p.X-(x+def.FootprintW-1))
+			dy := max(0, y-(p.Y+p.H-1), p.Y-(y+def.FootprintH-1))
+			if max(dx, dy) <= n.Radius {
+				return true
+			}
+		}
+	}
+	return false
 }

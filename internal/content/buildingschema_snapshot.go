@@ -15,6 +15,7 @@ type buildingSchemaIndex struct {
 	itemStorage map[string]ItemStorageDef
 	climate     *ClimateDef
 	land        *LandDef
+	farming     *FarmingDef
 	raid        *SettlementRaidDef
 	detectors   []SettlementRaidDetectorDef
 	roads       map[string]RoadClassDef
@@ -58,6 +59,10 @@ func (s *Snapshot) buildBuildingSchema(p *Pack) {
 	if len(p.Land) > 0 {
 		d := p.Land[0]
 		ix.land = &d
+	}
+	if len(p.Farming) > 0 {
+		d := p.Farming[0]
+		ix.farming = &d
 	}
 	if len(p.SettlementRaids) > 0 {
 		r := p.SettlementRaids[0]
@@ -227,6 +232,14 @@ func (s *Snapshot) Land() (LandDef, bool) {
 		return LandDef{}, false
 	}
 	return *s.schema.land, true
+}
+
+// Farming is farming.yml's block.
+func (s *Snapshot) Farming() (FarmingDef, bool) {
+	if s.schema == nil || s.schema.farming == nil {
+		return FarmingDef{}, false
+	}
+	return *s.schema.farming, true
 }
 
 // SettlementRaid is settlement_raids.yml's tuning block.

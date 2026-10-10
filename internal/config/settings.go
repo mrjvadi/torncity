@@ -473,6 +473,8 @@ type settlementSettings struct {
 	LandRegrowHours                  *int64  `yaml:"land_regrow_hours"`
 	LandWoodlandRing                 *int64  `yaml:"land_woodland_ring"`
 	LandGraceDays                    *int64  `yaml:"land_grace_days"`
+	FarmRuleAt                       *string `yaml:"farm_rule_at"`
+	FarmGraceDays                    *int64  `yaml:"farm_grace_days"`
 	TeacherBaseBPS                   *int64  `yaml:"teacher_base_bps"`
 	TeacherPerLevelBPS               *int64  `yaml:"teacher_per_level_bps"`
 	TeacherXPPerClass                *int64  `yaml:"teacher_xp_per_class"`
@@ -1631,6 +1633,12 @@ var coreSettings = []setting{
 	moneySetting("settlement", "land_rock_shifts",
 		func(c *Config) *int64 { return &c.Settlement.LandRockShifts },
 		func(f *fileConfig) *int64 { return f.Settlement.LandRockShifts }),
+	stringSetting("settlement", "farm_rule_at",
+		func(c *Config) *string { return &c.Settlement.FarmRuleAt },
+		func(f *fileConfig) *string { return f.Settlement.FarmRuleAt }),
+	moneySetting("settlement", "farm_grace_days",
+		func(c *Config) *int64 { return &c.Settlement.FarmGraceDays },
+		func(f *fileConfig) *int64 { return f.Settlement.FarmGraceDays }),
 	stringSetting("settlement", "personal_rule_at",
 		func(c *Config) *string { return &c.Settlement.PersonalRuleAt },
 		func(f *fileConfig) *string { return f.Settlement.PersonalRuleAt }),

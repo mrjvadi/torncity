@@ -356,6 +356,12 @@ func (p *landPicture) canPlaceOn(def settlementbuilding.Def, x, y int, st settle
 	if x >= 0 && y >= 0 && x+def.FootprintW <= p.side && y+def.FootprintH <= p.side {
 		return settlementbuilding.CanPlace(def, p.grid, x, y, st)
 	}
+	if def.Near != nil && def.Near.Radius > 0 {
+		// a proximity rule reads the lots around the footprint: the window reaches that far
+		r := def.Near.Radius
+		win := p.window(x-r, y-r, def.FootprintW+2*r, def.FootprintH+2*r)
+		return settlementbuilding.CanPlace(def, win, r, r, st)
+	}
 	win := p.window(x, y, def.FootprintW, def.FootprintH)
 	return settlementbuilding.CanPlace(def, win, 0, 0, st)
 }

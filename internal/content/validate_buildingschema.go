@@ -41,6 +41,7 @@ func (p *Pack) validateBuildingSchema(problems *[]error) {
 	l.recipes()
 	l.climate()
 	l.land()
+	l.farming()
 	l.raids()
 	l.roads()
 	l.rail()
@@ -1169,4 +1170,69 @@ func (l *schemaLint) land() {
 			codes[b.Biome] = true
 		}
 	}
+}
+
+func (l *schemaLint) farming() {
+	if len(l.p.Farming) > 1 {
+		l.bad("farming: at most one farming block")
+	}
+	seen := map[string]bool{}
+	for _, d := range l.p.Farming {
+		l.head("farming", Head{Code: "farming", Source: d.Source, Evidence: d.Evidence, Requires: d.Requires, PlannedKnowledge: d.PlannedKnowledge, Deferred: d.Deferred, NeedsResearch: d.NeedsResearch}, seen)
+		if d.SowShifts < 1 || d.HarvestShifts < 1 || d.TendMax < 0 || d.TendBPS < 0 {
+			l.bad("farming: the sowing and the harvest each take at least one shift, tending is not negative")
+		}
+		for name, v := range map[string]string{"grow": d.Grow, "window": d.Window, "rot_step": d.RotStep} {
+			if dur, err := optionalDuration(v); err != nil || dur <= 0 {
+				l.bad("farming: %s %q is not a duration", name, v)
+			}
+		}
+		for _, bps := range []int{d.RotStepBPS, d.Water.ServedBPS, d.Water.UnservedBPS, d.Water.MinConditionBPS, d.SoilDefaultBPS, d.SteepPenaltyBPS,
+			d.Toll.MinBPS, d.Toll.MaxBPS, d.Toll.DefaultBPS} {
+			if bps < 0 || bps > 10_000 {
+				l.bad("farming: a basis point value is out of 0..10000")
+			}
+		}
+		if d.Toll.MinBPS > d.Toll.DefaultBPS || d.Toll.DefaultBPS > d.Toll.MaxBPS {
+			l.bad("farming: the toll default lies between its minimum and its maximum")
+		}
+		if d.Water.Reach < 1 || d.Water.Serves < 1 || d.Seed.Irrigated < 1 || d.Seed.Rainfed < 1 || d.Base.Irrigated < 1 || d.Base.Rainfed < 1 {
+			l.bad("farming: reach, serves, seed and base are positive")
+		}
+		if d.Pasture.GrazingLots < 1 || d.Pasture.Radius < 1 {
+			l.bad("farming: the pasture needs at least one grazing lot within a radius of at least one")
+		}
+		farms := map[string]bool{}
+		for _, b := range d.Branches {
+			if b.Farm == "" || farms[b.Farm] || (b.Work == "") != b.Rainfed {
+				l.bad("farming: branch %q is empty, twice, or has a water work exactly when it is not rain-fed", b.Farm)
+			}
+			farms[b.Farm] = true
+			if _, ok := l.buildingByCode(b.Farm); !ok {
+				l.bad("farming: branch farm %q is not a building", b.Farm)
+			}
+			if b.Work != "" {
+				if _, ok := l.buildingByCode(b.Work); !ok {
+					l.bad("farming: branch work %q is not a building", b.Work)
+				}
+			}
+		}
+		biomes := map[string]bool{}
+		for _, s := range d.Soil {
+			if s.Biome == "" || biomes[s.Biome] || s.BPS < 1000 || s.BPS > 20_000 {
+				l.bad("farming: soil biome %q is empty, twice, or out of 1000..20000", s.Biome)
+			}
+			biomes[s.Biome] = true
+		}
+	}
+}
+
+// buildingByCode finds a settlement building of the pack (the generated workplaces are already in it).
+func (l *schemaLint) buildingByCode(code string) (SettlementBuildingDef, bool) {
+	for _, b := range l.p.SettlementBuildings {
+		if b.Code == code {
+			return b, true
+		}
+	}
+	return SettlementBuildingDef{}, false
 }

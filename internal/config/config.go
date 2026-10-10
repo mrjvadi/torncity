@@ -1036,6 +1036,10 @@ type Settlement struct {
 	LandFellRadius   int64  // settlement.land_fell_radius: how many lots from a woodcutter's camp or a forester's lodge its crew works
 	LandQuarryRadius int64  // settlement.land_quarry_radius: how many lots from a pit its crew breaks field rocks
 	LandRockShifts   int64  // settlement.land_rock_shifts: shifts a field rock takes to break
+	// The farm cycle (docs/adr/0067): FarmRuleAt (RFC 3339) is when the farms began to work in cycles, FarmGraceDays the real days after
+	// it that a farm which stood before keeps its flat shift.
+	FarmRuleAt    string // settlement.farm_rule_at
+	FarmGraceDays int64  // settlement.farm_grace_days
 	// The teacher's skill in the literacy tick (docs/adr/0057): a class taught by a player with the teaching skill moves
 	// literacy at TeacherBaseBPS plus TeacherPerLevelBPS for each level (never above 10000); a class with no player teacher
 	// at TeacherBaseBPS. A finished class teaches its player teacher TeacherXPPerClass of the teaching skill.
@@ -1894,6 +1898,8 @@ func Defaults() *Config {
 			LandFellRadius:                   4,
 			LandQuarryRadius:                 3,
 			LandRockShifts:                   2,
+			FarmRuleAt:                       "2026-10-10T00:00:00Z",
+			FarmGraceDays:                    14,
 			TeacherBaseBPS:                   6000,
 			TeacherPerLevelBPS:               150,
 			TeacherXPPerClass:                20,

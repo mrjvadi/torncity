@@ -39,7 +39,8 @@ func (h *VillageHandler) landViewOf(ctx context.Context, tx application.Tx, w *w
 	if err != nil {
 		return nil, err
 	}
-	return application.BuildLand(w, s, h.gridSide(s), open, h.occupiedLots(buildings), def, h.landRules, deltas, saplings, h.now()), nil
+	return application.BuildLandWith(w, s, h.gridSide(s), open, h.occupiedLots(buildings), h.grazedLots(h.content.Current(), buildings), def, h.landRules,
+		deltas, saplings, h.now()), nil
 }
 
 // occupiedLots are the lots the buildings hold (a building holds its whole footprint, turned as it was placed).

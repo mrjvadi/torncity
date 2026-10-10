@@ -309,6 +309,7 @@ func renderVillageWork(c Context, v WorkView) *presenter.Response {
 			"consumes": materialsText(c, p.Consumes), "wage": FormatMoney(c, p.Wage),
 			"shift": FormatDuration(c, p.Shift), "busy": p.Busy, "workers": p.Workers,
 		}))
+		lines = append(lines, workPlaceExtras(c, p, kb)...)
 		if len(p.Personal) > 0 {
 			lines = append(lines, c.T("village.work.personal_warn", map[string]any{"needs": personalList(c, p.Personal), "until": FormatDate(c, v.PersonalUntil)}))
 		}

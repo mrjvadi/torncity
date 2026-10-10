@@ -157,6 +157,7 @@ type file struct {
 	Recipes                 []RecipeDef                 `yaml:"recipes"`
 	Climate                 *ClimateDef                 `yaml:"climate"`
 	Land                    *LandDef                    `yaml:"land"`
+	Farming                 *FarmingDef                 `yaml:"farming"`
 	SettlementRaid          *SettlementRaidDef          `yaml:"settlement_raid"`
 	SettlementRaidDetectors []SettlementRaidDetectorDef `yaml:"settlement_raid_detectors"`
 	RoadClasses             []RoadClassDef              `yaml:"road_classes"`
@@ -343,6 +344,9 @@ func Load(dir string) (*Pack, error) {
 		}
 		if doc.Land != nil {
 			pack.Land = append(pack.Land, *doc.Land)
+		}
+		if doc.Farming != nil {
+			pack.Farming = append(pack.Farming, *doc.Farming)
 		}
 		if doc.SettlementRaid != nil {
 			pack.SettlementRaids = append(pack.SettlementRaids, *doc.SettlementRaid)

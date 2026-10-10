@@ -673,6 +673,8 @@ settlement:
   land_fell_radius: 105
   land_quarry_radius: 104
   land_rock_shifts: 103
+  farm_rule_at: "2026-11-06T00:00:00Z"
+  farm_grace_days: 109
   teacher_base_bps: 6100
   teacher_per_level_bps: 151
   teacher_xp_per_class: 21
@@ -1261,6 +1263,8 @@ var envOverrides = map[string]string{
 	"TORN_SETTLEMENT_LAND_FELL_RADIUS":                     "205",
 	"TORN_SETTLEMENT_LAND_QUARRY_RADIUS":                   "204",
 	"TORN_SETTLEMENT_LAND_ROCK_SHIFTS":                     "203",
+	"TORN_SETTLEMENT_FARM_RULE_AT":                         "2026-12-05T00:00:00Z",
+	"TORN_SETTLEMENT_FARM_GRACE_DAYS":                      "209",
 	"TORN_SETTLEMENT_TEACHER_BASE_BPS":                     "6200",
 	"TORN_SETTLEMENT_TEACHER_PER_LEVEL_BPS":                "152",
 	"TORN_SETTLEMENT_TEACHER_XP_PER_CLASS":                 "22",

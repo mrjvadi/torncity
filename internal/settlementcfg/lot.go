@@ -40,3 +40,9 @@ func Land(s config.Settlement) application.LandRules {
 		RegrowEvery: time.Duration(s.LandRegrowHours) * time.Hour, SaplingFor: time.Duration(s.LandSaplingHours) * time.Hour,
 		FellRadius: int(s.LandFellRadius), QuarryRadius: int(s.LandQuarryRadius), RockShifts: int(s.LandRockShifts)}
 }
+
+// Farm turns the farm settings (settlement.farm_*, docs/adr/0067) into the rules of the farm cycle.
+func Farm(s config.Settlement) application.FarmRules {
+	from, _ := time.Parse(time.RFC3339, s.FarmRuleAt) // not an instant: every farm keeps its flat shift
+	return application.FarmRules{RuleAt: from, GraceDays: s.FarmGraceDays}
+}

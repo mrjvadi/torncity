@@ -294,6 +294,7 @@ func workBlock(c Context, v BuildingView) []string {
 			out = append(out, c.T("building.work.repair_need", map[string]any{"shifts": cd.RepairShifts, "items": mats}))
 		}
 	}
+	out = append(out, extraLines(c, w)...)
 	if w.MealPoints > 0 {
 		out = append(out, c.T("building.work.food", map[string]any{"points": w.MealPoints, "shifts": w.FoodShifts}))
 	}

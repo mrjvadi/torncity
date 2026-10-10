@@ -329,7 +329,6 @@ knowledge:
     generation: 2
     cost: 2800
     time: 22h
-    effects: [{target: milling_output_bps, op: add, value: 300}]
 
   # ---------------------------------------------------------------------
   # arable_farming — four rival branches, each terrain-required, each
@@ -344,6 +343,12 @@ knowledge:
     provides: [arable_farming]
     cost: 3000
     time: 24h
+  - code: dryland_farming
+    field: food
+    name: "کشت دیم"
+    provides: [arable_farming]
+    cost: 1500
+    time: 18h
   - code: shaft_irrigation
     field: water_infra
     name: "آبیاری قناتی"

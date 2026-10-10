@@ -56,6 +56,8 @@ func init() {
 	Register(village.ScreenCurrencyReserve, screens.CurrencyReserve)
 	Register(village.ScreenLotManage, screens.LotManage)
 	Register(village.ScreenClearOrder, screens.ClearOrder)
+	Register(village.ScreenFarmSow, screens.FarmSow)
+	Register(village.ScreenMillToll, screens.MillToll)
 	Register(village.ScreenVillageWork, screens.VillageWork)
 	Register(village.ScreenVillageWorkStarted, screens.VillageWork)
 	Register(village.ScreenBuildingView, screens.BuildingPanel)

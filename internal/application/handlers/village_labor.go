@@ -537,6 +537,12 @@ func pauseReason(err error, started int) string {
 		return "employer_broke"
 	case village.LaborBudgetSpent:
 		return "budget_spent"
+	case village.FarmIdle:
+		return "no_crop"
+	case village.FarmWaiting:
+		return "crop_growing"
+	case village.PastureNoGrazing:
+		return "no_grazing"
 	case village.LandNoTrees:
 		return "no_trees"
 	case village.LandNoPlot:
@@ -782,7 +788,7 @@ func (h *VillageHandler) boardView(ctx context.Context, tx application.Tx, p *ap
 				view.Sites = append(view.Sites, village.LaborSiteRef{ID: b.ID, Building: named(d.Code, d.Name),
 					ProgressBPS: labor.ProgressBPS(b.WorkDone, b.WorkRequired)})
 			}
-		case b.Status == "complete" && len(d.Produces) > 0 && head:
+		case b.Status == "complete" && (len(d.Produces) > 0 || h.decayOf(snap, d) > 0) && head:
 			// a standing workplace with no posting: its job is always the treasury's (postable), so the head may post it here
 			view.Sites = append(view.Sites, village.LaborSiteRef{ID: b.ID, Building: named(d.Code, d.Name), Standing: true})
 		}
@@ -1132,6 +1138,9 @@ func (h *VillageHandler) postable(ctx context.Context, tx application.Tx, s appl
 	case b.Status == "complete":
 		if d, found := snap.SettlementBuildingDef(b.TypeCode); found && len(d.Produces) > 0 {
 			jobKind = application.LaborKindProduction
+		} else if found && h.decayOf(snap, d) > 0 {
+			// a water work makes nothing but wears: the only job to post there is its repair (docs/adr/0067)
+			jobKind = application.LaborKindRepair
 		}
 		// an order of the lot's owner waiting for builders (ADR 0045 B1): its employer is the one who ordered
 		if wk, werr := tx.SettlementBuildings().OpenWork(ctx, b.ID); werr != nil {
@@ -1213,7 +1222,7 @@ func (h *VillageHandler) LaborPost(ctx context.Context, meta envelope.Metadata, 
 			}
 			return b.ID, "posted", nil
 		}
-		if strings.TrimSpace(req.N) == "repair" && jobKind == application.LaborKindProduction {
+		if (strings.TrimSpace(req.N) == "repair" && jobKind == application.LaborKindProduction) || jobKind == application.LaborKindRepair {
 			if err := h.postRepair(ctx, tx, s, *b, p.ID); err != nil {
 				return "", "", err
 			}

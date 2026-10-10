@@ -67,6 +67,9 @@ staff_roles:
   - {code: weaver, skill: weaving, wage_bps: 13000, support_npc: true, note: "ADR 0041 5.1"}
   - {code: potter, skill: pottery, wage_bps: 13000, support_npc: true, note: "ADR 0041 5.1"}
   - {code: miller, skill: milling, wage_bps: 13000, support_npc: true, note: "ADR 0041 5.1"}
+  - {code: mill_hand, skill: milling, wage_bps: 10000, support_npc: true, note: "ADR 0067: the helper at a water mill, who clears the race and carries the sacks"}
+  - {code: farmer, skill: farming, wage_bps: 10000, support_npc: true, note: "ADR 0041 8.17: sows, tends and harvests; the work comes in peaks, so a crew of four"}
+  - {code: water_master, skill: "", wage_bps: 12500, support_npc: true, note: "ADR 0067: allocates the turns of the water on a fixed rota and keeps the works clear; the same office is the acequia mayordomo of Spain, the pekaseh of a Balinese subak, the Andean water regidor and the Iranian mirab. Paid by the users: here the treasury pays a day's wage"}
   - {code: baker, skill: baking, wage_bps: 13000, support_npc: true, note: "ADR 0041 5.1"}
   - {code: storekeeper, skill: trade, wage_bps: 11000, personal: [{kind: literacy}], support_npc: true, note: "ADR 0041 5.1"}
   - {code: beacon_keeper, skill: vigilance, wage_bps: 10000, personal: [{kind: level, min: 1}], support_npc: true, note: "ADR 0042 8.9"}
@@ -144,6 +147,8 @@ availability:
   - {kind: building, code: farm_shaft, stage: village}
   - {kind: building, code: farm_terrace, stage: village}
   - {kind: building, code: farm_paddy, stage: village}
+  - {kind: building, code: farm_dry, stage: village}
+  - {kind: building, code: water_mill, requires: {knowledge: [milling_ii]}, elsewhere: [{where: support}]}
   - {kind: building, code: pasture_range, stage: village}
   - {kind: building, code: health_house, stage: village, growth: {open: true, founding: true, row: 34}, elsewhere: [{where: support}]}
   - {kind: building, code: clinic, stage: town, elsewhere: [{where: support}]}
@@ -195,6 +200,7 @@ availability:
   - {kind: knowledge, code: shaft_irrigation, stage: village, growth: {open: true, founding: true, row: 70}, elsewhere: [{where: support}]}
   - {kind: knowledge, code: terrace_irrigation, stage: village, growth: {open: true, founding: true, row: 71}, elsewhere: [{where: support}]}
   - {kind: knowledge, code: paddy_cultivation, stage: village, growth: {open: true, founding: true, row: 72}, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: dryland_farming, stage: village, growth: {open: true, founding: true, row: 76}, elsewhere: [{where: support}]}
   - {kind: knowledge, code: open_range_herding, stage: village, growth: {open: true, founding: true, row: 73}, elsewhere: [{where: support}]}
   - {kind: knowledge, code: coastal_fishing, stage: village, growth: {open: true, founding: true, row: 74}, elsewhere: [{where: support}]}
   - {kind: knowledge, code: pondfield_aquaculture, stage: village, growth: {open: true, founding: true, row: 75}, elsewhere: [{where: support}]}

@@ -102,6 +102,14 @@ func (h *VillageHandler) startPrivateProduction(ctx context.Context, tx applicat
 	if p != nil && p.ID != owner && jobID == "" {
 		return refuseVillage(village.LaborNoJob, village.AddrLaborBoard)
 	}
+	// the farm cycle decides what a shift at a farm is: sow, tend or harvest (docs/adr/0067)
+	farmWork, err := h.farmShape(ctx, tx, snap, s, b, d, owner, h.now())
+	if err != nil {
+		return err
+	}
+	if farmWork != nil {
+		d = farmWork.def
+	}
 	st, err := h.loadHomeStock(ctx, tx, snap, s, owner)
 	if err != nil {
 		return err
@@ -275,6 +283,9 @@ func (h *VillageHandler) startPrivateProduction(ctx context.Context, tx applicat
 		PayerKind: application.LaborEmployerPlayer, PayerID: owner,
 		Produced: copyQty(d.Produces), Consumed: copyQty(consumes), Board: eaten, GameActionID: actionID, StartedAt: now, FinishAt: finish,
 	}
+	if farmWork != nil {
+		sh.FarmCycle, sh.FarmPhase = farmWork.cycle.ID, farmWork.phase
+	}
 	playerID := ""
 	if p != nil {
 		sh.PlayerID, sh.WorkerKind, playerID = p.ID, application.LaborWorkerPlayer, p.ID
@@ -289,6 +300,9 @@ func (h *VillageHandler) startPrivateProduction(ctx context.Context, tx applicat
 		return err
 	}
 	if err := h.persistWear(ctx, tx, b, damage, now, zone); err != nil {
+		return err
+	}
+	if err := h.applyFarm(ctx, tx, farmWork); err != nil {
 		return err
 	}
 	if !fed && p != nil {

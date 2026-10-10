@@ -470,6 +470,9 @@ commands:
   settlement.lot.manage: {channel: both, client: true}
   settlement.clear.order: {channel: both, client: true}
   settlement.clear.cancel: {channel: both, client: true}
+  settlement.farm.sow: {channel: both, client: true}
+  settlement.mill.toll: {channel: both, client: true}
+  settlement.mill.grind: {channel: both, client: true}
   settlement.charter.election.open: {channel: group, client: true}
   settlement.charter.stand: {channel: group, client: true}
   settlement.charter.vote: {channel: group, client: true}

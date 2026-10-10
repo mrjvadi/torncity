@@ -84,6 +84,8 @@ func buildingRefusal(err error) *villageRefusal {
 		return refuseVillage(village.VillageOccupied)
 	case stderrors.Is(err, settlementbuilding.ErrObstructed):
 		return refuseVillage(village.VillageObstructed)
+	case stderrors.Is(err, settlementbuilding.ErrNeedsNear):
+		return refuseVillage(village.VillageNeedsNear)
 	case stderrors.Is(err, settlementbuilding.ErrReservedLot):
 		return refuseVillage(village.VillageReserved)
 	case stderrors.Is(err, settlementbuilding.ErrTerrainRequired):
@@ -160,7 +162,7 @@ func (h *VillageHandler) buildPlacementContext(ctx context.Context, tx applicati
 	standing = settlementbuilding.Standing{
 		Knowledge: st.Owned, KnowledgeCapabilities: capabilities, Built: built,
 		RunningBuilds: running, ConcurrentCap: capNow, LiteracyShareBPS: st.LiteracyShareBPS,
-		SettlementTier: s.Tier,
+		SettlementTier: s.Tier, Placed: placedOf(snap, rows),
 	}
 	return
 }

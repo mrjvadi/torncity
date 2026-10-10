@@ -1149,6 +1149,9 @@ type WorkplaceLine struct {
 	// Personal is what the viewer lacks for a shift here (the personal prerequisites of the staff role); the shift is
 	// refused for it from WorkView.PersonalUntil on, until then it only warns.
 	Personal []PersonalNeed `json:"personal,omitempty"`
+	// Farm is the crop of a farm of the cycle (docs/adr/0067); Mill the toll and the grain of a mill. Nil for any other place.
+	Farm *FarmLine `json:"farm,omitempty"`
+	Mill *MillLine `json:"mill,omitempty"`
 }
 
 // WorkShiftLine is a shift in progress.

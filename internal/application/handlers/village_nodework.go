@@ -188,6 +188,9 @@ func (h *VillageHandler) nodeWork(ctx context.Context, tx application.Tx, snap *
 			w.Reasons = append([]village.WorkReason{{Code: village.NodeReasonNeedsRepair}}, w.Reasons...)
 		}
 	}
+	if err := h.nodeExtras(ctx, tx, snap, s, b, d, buildings, "", w); err != nil {
+		return nil, err
+	}
 	switch {
 	case w.Condition != nil && w.Condition.Closed:
 		w.Status = village.NodeIdle

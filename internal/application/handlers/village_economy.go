@@ -590,6 +590,9 @@ func (h *VillageHandler) workView(ctx context.Context, tx application.Tx, p *app
 				view.PersonalUntil = h.personal.GraceUntil()
 			}
 		}
+		if err := h.decorateWorkplace(ctx, tx, snap, s, b, d, buildings, p.ID, &line); err != nil {
+			return village.WorkView{}, err
+		}
 		view.Places = append(view.Places, line)
 	}
 	if mine, err := tx.SettlementTreasury().PlayerShift(ctx, p.ID); err != nil {
@@ -739,6 +742,18 @@ func (h *VillageHandler) startProduction(ctx context.Context, tx application.Tx,
 		return err
 	} else if owner != "" {
 		return h.startPrivateProduction(ctx, tx, meta, snap, s, b, d, p, owner, wageOverride, jobID)
+	}
+	// the farm cycle decides what a shift at a farm is: sow, tend or harvest (docs/adr/0067)
+	farmWork, err := h.farmShape(ctx, tx, snap, s, b, d, "", h.now())
+	if err != nil {
+		return err
+	}
+	if farmWork != nil {
+		d = farmWork.def
+	}
+	// the herd needs open land to graze (docs/adr/0067)
+	if err := h.grazingGate(ctx, tx, snap, s, b, d); err != nil {
+		return err
 	}
 	if err := tx.Items().LockOrg(ctx, application.SettlementOrg(s.CityID)); err != nil {
 		return err
@@ -904,6 +919,9 @@ func (h *VillageHandler) startProduction(ctx context.Context, tx application.Tx,
 	if landWork != nil && !landWork.abstract {
 		sh.LandKind, sh.LandX, sh.LandY, sh.LandOwner = landWork.kind, landWork.pos.X, landWork.pos.Y, landWork.owner
 	}
+	if farmWork != nil {
+		sh.FarmCycle, sh.FarmPhase = farmWork.cycle.ID, farmWork.phase
+	}
 	if err := tx.SettlementTreasury().StartShift(ctx, sh, d.Workers); err != nil {
 		switch {
 		case stderrors.Is(err, application.ErrWorkplaceFull):
@@ -914,6 +932,9 @@ func (h *VillageHandler) startProduction(ctx context.Context, tx application.Tx,
 		return err
 	}
 	if err := h.applyLand(ctx, tx, meta, s, landWork, shiftID, wage, now); err != nil {
+		return err
+	}
+	if err := h.applyFarm(ctx, tx, farmWork); err != nil {
 		return err
 	}
 	if err := h.persistWear(ctx, tx, b, damage, now, zone); err != nil {
@@ -976,6 +997,9 @@ func (h *VillageHandler) Worked(ctx context.Context, meta envelope.Metadata, req
 		}
 		if sh.Kind == application.LaborKindConstruction || sh.Kind == application.LaborKindRepair || sh.Kind == application.LaborKindFitout {
 			return h.workedSite(ctx, tx, meta, snap, sh, now)
+		}
+		if sh.FarmPhase == application.FarmPhaseGrind {
+			return h.workedGrind(ctx, tx, meta, snap, sh, now)
 		}
 		if owner, err := h.privateOwnerOf(ctx, tx, sh.BuildingID); err != nil {
 			return err

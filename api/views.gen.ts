@@ -2074,6 +2074,48 @@ export interface FactionRequestView {
   player: Person
 }
 
+export interface FarmFactor {
+  soil: number
+  water: number
+  tending: number
+  loss: number
+}
+
+export interface FarmLine {
+  stage: string
+  rainfed: boolean
+  legacy: boolean
+  legacy_until: string | null | null
+  sow_done: number
+  sow_need: number
+  tended: number
+  tend_max: number
+  harvest_done: number
+  harvest_need: number
+  ripe_at: string | null | null
+  spoil_at: string | null | null
+  seed: number
+  seed_have: number
+  expected: number
+  factors: FarmFactor
+  water: FarmWater | null
+  can_sow: boolean
+}
+
+export interface FarmSowView {
+  village: string
+  farm: Named
+  line: FarmLine
+}
+
+export interface FarmWater {
+  work: Named | null
+  served: boolean
+  open: boolean
+  condition_bps: number
+  reason: string
+}
+
 export interface FinanceHubView {
   country: GovPlace
   credit: CreditView
@@ -2404,6 +2446,12 @@ export interface GovSection {
   place: GovPlace
   offices: GovOffice[] | null
   levers: GovLever[] | null
+}
+
+export interface GrazingLine {
+  open: number
+  need: number
+  radius: number
 }
 
 export interface HealthFacility {
@@ -3761,6 +3809,23 @@ export interface MilitaryRefusalView {
   have: number
   max: number
   back: Ref
+}
+
+export interface MillLine {
+  toll_bps: number
+  min_bps: number
+  max_bps: number
+  can_set: boolean
+  batch: number
+  have: number
+  toll_units: number
+}
+
+export interface MillTollView {
+  village: string
+  toll_bps: number
+  min_bps: number
+  max_bps: number
 }
 
 export interface MineLot {
@@ -6453,6 +6518,12 @@ export interface WarehouseView {
   next: NextStep | null
 }
 
+export interface WaterWork {
+  open: boolean
+  condition_bps: number
+  serves: Named[] | null
+}
+
 export interface Way {
   place: Named
   walk_seconds: number
@@ -6541,6 +6612,10 @@ export interface WorkNode {
   bare_hands: boolean
   bare_hands_bps: number
   if_unstaffed: string
+  farm: FarmLine | null
+  mill: MillLine | null
+  water: WaterWork | null
+  grazing: GrazingLine | null
 }
 
 export interface WorkReason {
@@ -6588,6 +6663,8 @@ export interface WorkplaceLine {
   busy: number
   ready: boolean
   personal: PersonalNeed[] | null
+  farm: FarmLine | null
+  mill: MillLine | null
 }
 
 export interface WornBagLine {
@@ -6720,6 +6797,7 @@ export interface ScreenViews {
   faction_page: FactionPageView
   faction_refusal: FactionRefusalView
   faction_request_notice: FactionRequestView
+  farm_sow: FarmSowView
   finance_hub: FinanceHubView
   finance_notice: FinanceView
   finance_refusal: FinanceRefusalView
@@ -6792,6 +6870,7 @@ export interface ScreenViews {
   market_filled_notice: MarketFilledView
   market_refusal: MarketRefusalView
   military_refusal: MilitaryRefusalView
+  mill_toll: MillTollView
   ministry: MinistryView
   mission: MissionView
   mission_board: MissionBoardView

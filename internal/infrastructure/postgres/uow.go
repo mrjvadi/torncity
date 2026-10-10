@@ -246,6 +246,9 @@ func (t *tx) Trade() application.TradeRepository { return &TradeRepository{q: t.
 
 func (t *tx) ServiceDays() application.ServiceDayRepository { return &ServiceDayRepository{q: t.q} }
 
+// Farm returns the crops and the mill statute (migration 0144).
+func (t *tx) Farm() application.FarmRepository { return &FarmRepository{q: t.q} }
+
 // Land returns the land deltas and saplings (migration 0143).
 func (t *tx) Land() application.LandRepository { return &LandRepository{q: t.q} }
 

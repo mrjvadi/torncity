@@ -52,6 +52,8 @@ import (
 type VillageHandler struct {
 	// landRules are the settings of the land model: trees and rocks as land (config settlement.land_*, ADR 0065).
 	landRules application.LandRules
+	// farmRules are the settings of the farm cycle (config settlement.farm_*, ADR 0067).
+	farmRules application.FarmRules
 	// keeperTerms are the pay a hired stall keeper can be given (config trade.stall_keeper_*, ADR 0062).
 	keeperTerms StallKeeperTerms
 	uow     application.UnitOfWork

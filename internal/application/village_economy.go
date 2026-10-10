@@ -86,6 +86,9 @@ type SettlementShift struct {
 	LandKind     string
 	LandX, LandY int
 	LandOwner    string
+	// FarmCycle and FarmPhase say which crop and which work a farm shift did (sow, tend, harvest; docs/adr/0067); CustomFor is
+	// the citizen whose own grain a mill shift ground (FarmPhase grind).
+	FarmCycle, FarmPhase, CustomFor string
 	// Board is the food the hands of a citizen's own workplace ate out of the owner's home store (item reason board_eaten).
 	Board        map[string]int64
 	GameActionID string

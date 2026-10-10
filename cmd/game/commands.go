@@ -580,6 +580,27 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 			}
 			return h.village.ClearOrder(ctx, env.Metadata, req)
 		},
+		"settlement.farm.sow": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageFarmRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.FarmSow(ctx, env.Metadata, req)
+		},
+		"settlement.mill.toll": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageMillRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.MillToll(ctx, env.Metadata, req)
+		},
+		"settlement.mill.grind": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageMillRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.MillGrind(ctx, env.Metadata, req)
+		},
 		"settlement.clear.cancel": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			var req handlers.VillageClearRequest
 			if err := decode(env, &req); err != nil {

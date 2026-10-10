@@ -97,6 +97,9 @@ type VillageService struct {
 	// Land and LandRules add the trees and rocks of the land to the layout (docs/adr/0065); nil Land leaves them out.
 	Land      application.LandReader
 	LandRules application.LandRules
+	// Farm and FarmRules add the stage of the farms' crops to the layout (docs/adr/0067); nil Farm leaves them out.
+	Farm      application.FarmReader
+	FarmRules application.FarmRules
 }
 
 // Place is a point on the planet with the base-LOD chunk holding it.
@@ -223,6 +226,10 @@ type VillageLayout struct {
 	// model is off.
 	Ring  *LayoutRing  `json:"ring,omitempty"`
 	Woods *LayoutWoods `json:"woods,omitempty"`
+	// Farms are the crops of the farms that work in cycles, for the client to draw the stage of their fields (docs/adr/0067).
+	Farms []LayoutFarm `json:"farms,omitempty"`
+
+	farmMark string // changes with any crop; part of the ETag, not of Version
 	// Land is the land the roads opened beyond the first grid, for a member
 	// only: the drawn road cells and the lots along them, in absolute lot
 	// coordinates (negative west and south of the grid). A laid road is also in
@@ -513,8 +520,11 @@ func (v *VillageService) Layout(ctx context.Context, viewerID, settlementID stri
 			return VillageLayout{}, err
 		}
 	}
-	woodsMark, err := v.addWoods(ctx, &out, w, s, lots, open, occupiedBy(rows, footprint))
+	woodsMark, err := v.addWoods(ctx, &out, w, s, lots, open, occupiedBy(rows, footprint), rows)
 	if err != nil {
+		return VillageLayout{}, err
+	}
+	if err := v.addFarms(ctx, &out, s, rows); err != nil {
 		return VillageLayout{}, err
 	}
 	if viewer.Member && v.Citizens != nil {
@@ -624,10 +634,14 @@ func (v *VillageService) addTenure(ctx context.Context, out *VillageLayout, view
 
 // ETag is the layout's entity tag: its version and the detail it shows.
 func (l VillageLayout) ETag() string {
+	tag := l.Version + "." + l.Detail
 	if l.Woods != nil && l.Woods.Mark != "" {
-		return `"` + l.Version + "." + l.Detail + "." + l.Woods.Mark + `"`
+		tag += "." + l.Woods.Mark
 	}
-	return `"` + l.Version + "." + l.Detail + `"`
+	if l.farmMark != "" {
+		tag += ".f" + l.farmMark
+	}
+	return `"` + tag + `"`
 }
 
 func waterOf(l settlement.LotTerrain) string {
@@ -704,7 +718,7 @@ func (v *VillageService) LayoutVersions(ctx context.Context, settlementID string
 }
 
 // landViewOf is the land of a settlement now, from the stored deltas; nil while the model is off.
-func (v *VillageService) landViewOf(ctx context.Context, w *worldgen.World, s application.FoundedSettlement, side int, open []application.OpenLotRow, occupied map[land.Pos]bool) (*application.LandView, error) {
+func (v *VillageService) landViewOf(ctx context.Context, w *worldgen.World, s application.FoundedSettlement, side int, open []application.OpenLotRow, occupied map[land.Pos]bool, rows []application.SettlementBuildingInstance) (*application.LandView, error) {
 	if v.Land == nil || !v.LandRules.Enabled() {
 		return nil, nil
 	}
@@ -724,13 +738,13 @@ func (v *VillageService) landViewOf(ctx context.Context, w *worldgen.World, s ap
 	if v.Now != nil {
 		now = v.Now().UTC()
 	}
-	return application.BuildLand(w, s, side, open, occupied, def, v.LandRules, deltas, saplings, now), nil
+	return application.BuildLandWith(w, s, side, open, occupied, v.grazedBy(rows), def, v.LandRules, deltas, saplings, now), nil
 }
 
 // addWoods adds the trees and rocks to the lots, the ring of commons and the state of the wood, and returns the mark the
 // version folds in.
-func (v *VillageService) addWoods(ctx context.Context, out *VillageLayout, w *worldgen.World, s application.FoundedSettlement, side int, open []application.OpenLotRow, occupied map[land.Pos]bool) (string, error) {
-	lv, err := v.landViewOf(ctx, w, s, side, open, occupied)
+func (v *VillageService) addWoods(ctx context.Context, out *VillageLayout, w *worldgen.World, s application.FoundedSettlement, side int, open []application.OpenLotRow, occupied map[land.Pos]bool, rows []application.SettlementBuildingInstance) (string, error) {
+	lv, err := v.landViewOf(ctx, w, s, side, open, occupied, rows)
 	if err != nil || lv == nil || len(lv.Lots) == 0 {
 		return "", err
 	}
