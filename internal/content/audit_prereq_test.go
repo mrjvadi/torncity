@@ -28,3 +28,30 @@ func TestPrerequisiteAuditFindsWhatNobodyFills(t *testing.T) {
 		t.Error("a role or a building whose filler or runtime is named is no finding")
 	}
 }
+
+// A building that waits for its mechanic is gated out of the menus (ADR 0063): the snapshot says so, the reachability
+// lint does not call it a dead end, and the audit lists it with what it waits for instead of calling it a stand-in.
+func TestAGatedBuildingIsOutOfTheMenusAndNamed(t *testing.T) {
+	p := shippedPack(t)
+	snap, err := BuildSnapshot(1, p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	d, ok := snap.SettlementBuildingDef("home_workshop")
+	if !ok || !d.Gated() {
+		t.Fatalf("the home workshop waits for personal crafting: %+v", d)
+	}
+	o := AuditOptions{FoundingGrant: 10_000, EarnPerDay: 840, HorizonDays: 30, WalkKm: 40, CartKm: 150}
+	var named bool
+	for _, f := range p.Audit(o) {
+		if f.Check == AuditPrereq && f.Kind == "settlement_building" && f.Code == "home_workshop" {
+			named = true
+		}
+		if f.Check == AuditPrereq && f.Code == "home_workshop/labourer" {
+			t.Error("a gated building's staff are not a finding: nobody can place it")
+		}
+	}
+	if !named {
+		t.Error("the audit lists the gated building with what it waits for")
+	}
+}

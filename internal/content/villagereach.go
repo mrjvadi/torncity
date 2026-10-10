@@ -171,7 +171,7 @@ func (p *Pack) VillageReachability() VillageReach {
 		}
 	}
 	for _, b := range p.SettlementBuildings {
-		if _, ok := r.Buildings[b.Code]; !ok {
+		if _, ok := r.Buildings[b.Code]; !ok && !b.Gated() {
 			r.UnreachableBuildings = append(r.UnreachableBuildings, b.Code)
 		}
 	}

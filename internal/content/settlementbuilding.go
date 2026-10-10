@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"strings"
 
 	"github.com/mrjvadi/torncity/internal/domain/item"
 	"github.com/mrjvadi/torncity/internal/domain/settlementbuilding"
@@ -56,6 +57,10 @@ type SettlementBuildingDef struct {
 	BuildCategory string `yaml:"build_category,omitempty" json:"build_category,omitempty"`
 	// Footprint is [width, height] in lots.
 	Footprint [2]int `yaml:"footprint" json:"footprint"`
+	// WaitsFor gates the building out of every menu until the plan item that gives it its people, inputs or outputs is
+	// built (docs/adr/0063): a building a player can place must be a working mechanic, so one that is not yet one is not
+	// offered. Buildings that already stand keep standing. The text names the plan item.
+	WaitsFor string `yaml:"waits_for,omitempty" json:"waits_for,omitempty"`
 	// RequiresKnowledge are settlement_knowledge codes the settlement must
 	// hold (AND).
 	RequiresKnowledge []string `yaml:"requires_knowledge,omitempty" json:"requires_knowledge,omitempty"`
@@ -138,6 +143,9 @@ const (
 // Private reports whether a resident, not the village, raises the building.
 func (d SettlementBuildingDef) Private() bool { return d.Owner == BuildingOwnerCitizen }
 
+// Gated reports whether the building is kept out of the menus until its mechanic is built (WaitsFor).
+func (d SettlementBuildingDef) Gated() bool { return d.WaitsFor != "" }
+
 // BuildingEffects converts the building's effects.
 func (d SettlementBuildingDef) BuildingEffects() []item.Effect {
 	out := make([]item.Effect, 0, len(d.Effects))
@@ -204,6 +212,11 @@ func copyQuantities(in map[string]int64) map[string]int64 {
 func (p *Pack) validateSettlementBuildings(problems *[]error) {
 	bad := func(format string, args ...any) {
 		*problems = append(*problems, fmt.Errorf("%w: %s", ErrInvalidSettlementBuildingContent, fmt.Sprintf(format, args...)))
+	}
+	for _, b := range p.SettlementBuildings {
+		if b.WaitsFor != "" && len(strings.TrimSpace(b.WaitsFor)) < 8 {
+			bad("%q: waits_for must name the plan item that gives the building its mechanic", b.Code)
+		}
 	}
 	knowledge := map[string]bool{}
 	knowledgeCapabilities := map[string]bool{}

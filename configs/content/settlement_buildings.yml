@@ -127,6 +127,7 @@ settlement_buildings:
 
   - code: bank
     name: "بانک"
+    waits_for: "C6: deposits, loans and the bank licence (tellers, loan officer, the charter permission bank.licence); a bank that only costs upkeep is not offered"
     role: finance
     tier: 3
     footprint: [3, 3]
@@ -136,6 +137,7 @@ settlement_buildings:
 
   - code: barracks
     name: "پادگان"
+    waits_for: "B12: armies belong to countries (every military action refuses a settlement without a country); a barracks that only opens an empty hub is not offered"
     role: military
     tier: 2
     footprint: [4, 4]
@@ -145,6 +147,7 @@ settlement_buildings:
 
   - code: port
     name: "بندر"
+    waits_for: "C2: ships between settlements (a quay, a harbour master, a crew, a timetable); a port that only adds a percentage is not offered"
     role: transport
     tier: 3
     footprint: [4, 4]
@@ -156,6 +159,7 @@ settlement_buildings:
 
   - code: airport
     name: "فرودگاه"
+    waits_for: "C2: flights between settlements (a runway, a flight crew, fuel, a timetable); an airport that only adds a percentage is not offered"
     role: transport
     tier: 3
     footprint: [5, 5]
@@ -188,6 +192,7 @@ settlement_buildings:
 
   - code: militia_camp
     name: اردوگاه سواران محلی
+    waits_for: "B12: the security forces (a roster, drill, patrols, arms, the head of security); a camp that only adds a percentage is not offered"
     role: security
     tier: 1
     footprint: [2, 1]
@@ -199,6 +204,7 @@ settlement_buildings:
 
   - code: retainer_hall
     name: تالار محافظان
+    waits_for: "B12: the security forces (retainers sworn to a lord, arms, upkeep); a hall that only adds a percentage is not offered"
     role: security
     tier: 1
     footprint: [2, 1]
@@ -210,6 +216,7 @@ settlement_buildings:
 
   - code: constable_post
     name: "پاسگاه ژاندارمری"
+    waits_for: "B12: the security forces (a constable and his deputies, patrols, arrests, a lock-up); a post that only adds a percentage is not offered"
     role: security
     tier: 1
     footprint: [1, 1]
@@ -221,6 +228,7 @@ settlement_buildings:
 
   - code: police_post
     name: "کلانتری"
+    waits_for: "B12: the police (officers, patrols, investigation, a station with cells and a prosecutor); a post that only adds a percentage is not offered"
     role: security
     tier: 2
     footprint: [2, 2]
@@ -300,6 +308,7 @@ settlement_buildings:
 
   - code: manufactory
     name: "کارگاه بزرگ"
+    waits_for: "C5: the manufactory chain (benches, workers, inputs, outputs); a manufactory that only adds a percentage is not offered"
     role: craft
     tier: 3
     footprint: [3, 3]
@@ -312,6 +321,7 @@ settlement_buildings:
 
   - code: factory
     name: "کارخانه"
+    waits_for: "C5: the factory chain (a production line, workers, inputs, outputs); a factory that only adds a percentage is not offered"
     role: craft
     tier: 4
     footprint: [4, 4]
@@ -342,6 +352,7 @@ settlement_buildings:
 
   - code: mine
     name: "معدن"
+    waits_for: "B6: mining (shafts, a crew, timbering, hauling, ore); the legacy mine only adds a percentage and is not offered"
     role: extraction
     tier: 2
     footprint: [3, 3]
@@ -358,6 +369,7 @@ settlement_buildings:
   # ---------------------------------------------------------------------
   - code: canal_channel
     name: "کانال آبرسانی"
+    waits_for: "B2: irrigation of fields (water reaches the farm, a dry season costs the crop); a channel that only costs upkeep is not offered"
     role: water_infra
     tier: 1
     footprint: [1, 1]
@@ -368,6 +380,7 @@ settlement_buildings:
 
   - code: shaft_well
     name: چاه قنات
+    waits_for: "B2: irrigation of fields (water reaches the farm, a dry season costs the crop); a qanat shaft that only costs upkeep is not offered"
     role: water_infra
     tier: 1
     footprint: [1, 1]
@@ -378,6 +391,7 @@ settlement_buildings:
 
   - code: terrace_works
     name: دیوارهای پلکانی
+    waits_for: "B2: irrigation of fields (water reaches the farm, a dry season costs the crop); terraces that only cost upkeep are not offered"
     role: water_infra
     tier: 1
     footprint: [1, 1]
@@ -388,6 +402,7 @@ settlement_buildings:
 
   - code: paddy_banks
     name: پشته‌های شالیزار
+    waits_for: "B2: irrigation of fields (water reaches the farm, a dry season costs the crop); paddy banks that only cost upkeep are not offered"
     role: water_infra
     tier: 1
     footprint: [1, 1]
@@ -499,6 +514,7 @@ settlement_buildings:
 
   - code: clinic
     name: "درمانگاه"
+    waits_for: "C4: the care and medicine chain (a doctor, medicine, treatment of injuries); a clinic that only adds a percentage is not offered"
     role: health
     tier: 2
     footprint: [3, 3]

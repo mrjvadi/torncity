@@ -644,7 +644,7 @@ func (h *VillageHandler) PrivateLots(ctx context.Context, meta envelope.Metadata
 			return err
 		}
 		d, ok := snap.SettlementBuildingDef(strings.TrimSpace(req.Code))
-		if !ok || !d.Private() {
+		if !ok || !d.Private() || d.Gated() {
 			return refuseVillage(village.VillageNotFound, village.AddrPrivateMenu)
 		}
 		def := d.Def()
@@ -728,7 +728,7 @@ func (h *VillageHandler) PrivatePlace(ctx context.Context, meta envelope.Metadat
 			return err
 		}
 		d, ok := snap.SettlementBuildingDef(strings.TrimSpace(req.Code))
-		if !ok || !d.Private() {
+		if !ok || !d.Private() || d.Gated() {
 			return refuseVillage(village.VillageNotFound, village.AddrPrivateMenu)
 		}
 		x, y, rotated, ok := village.ParseLotTokenAny(req.Lot)

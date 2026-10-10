@@ -1798,3 +1798,7 @@ ADR 0059, no migration. `TravelOptionsView` has `licence`: a list of `{mode_code
 ## The stall keeper (2026-10-10)
 
 ADR 0062, migration 0139. `settlement.lot.manage` on a stall the viewer owns carries `keeper` ({hired, share_bps, can, reason, seats_free}); the acts `keeper_hire` and `keeper_end` (ask, then confirm like the others). Refusals `lot_no_keeper` (the building has no keeper) and `lot_keeper_none` (already hired, or nobody free). While a keeper is hired the owner's asks stay on the village book when he is away; the config is `trade.stall_keeper_share_bps`.
+
+## Buildings that wait for their mechanic (2026-10-10)
+
+ADR 0063, no migration, no view change. The build menus (`settlement.build`, the citizen build menu, the lot's function choices) no longer list home_workshop, bank, clinic, airport, port, factory, manufactory, mine, militia_camp, retainer_hall, constable_post, police_post, canal_channel, shaft_well, terrace_works, paddy_banks and barracks; asking for one by code is refused as not found. Buildings of these types that already stand keep standing.
