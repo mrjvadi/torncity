@@ -96,7 +96,7 @@ func netGrowth(snap *content.Snapshot, made, used map[string]int64) int64 {
 // employer; every refusal precedes the first write.
 func (h *VillageHandler) startPrivateProduction(ctx context.Context, tx application.Tx, meta envelope.Metadata, snap *content.Snapshot,
 	s application.FoundedSettlement, b application.SettlementBuildingInstance, d content.SettlementBuildingDef,
-	p *application.Player, owner string, wageOverride int64, jobID string,
+	p *application.Player, owner string, wageOverride int64, jobID, recipe string,
 ) error {
 	// nobody works another citizen's workplace without his job: a stranger needs the job on the board
 	if p != nil && p.ID != owner && jobID == "" {
@@ -109,6 +109,13 @@ func (h *VillageHandler) startPrivateProduction(ctx context.Context, tx applicat
 	}
 	if farmWork != nil {
 		d = farmWork.def
+	}
+	var recipeUsed string
+	if farmWork == nil {
+		var rerr error
+		if d, recipeUsed, rerr = h.recipeShape(ctx, tx, snap, s, b, d, recipe); rerr != nil {
+			return rerr
+		}
 	}
 	st, err := h.loadHomeStock(ctx, tx, snap, s, owner)
 	if err != nil {
@@ -136,6 +143,7 @@ func (h *VillageHandler) startPrivateProduction(ctx context.Context, tx applicat
 	consumes := copyQty(d.Consumes)
 	toolUsed, bare := false, false
 	carry := map[string]int64{}
+	toolFactor := int64(labor.BPS)
 	if wear := d.Def().Work.ToolWearBPS; wear > 0 {
 		c, cerr := tx.SettlementTreasury().Carry(ctx, b.ID)
 		if cerr != nil && !stderrors.Is(cerr, application.ErrBuildingNotFound) {
@@ -144,16 +152,15 @@ func (h *VillageHandler) startPrivateProduction(ctx context.Context, tx applicat
 		if c != nil {
 			carry = c
 		}
-		carry[ToolWearKey] += wear
-		if carry[ToolWearKey] >= labor.BPS {
-			if st.units[ToolItem]-consumes[ToolItem] >= 1 {
-				toolUsed = true
-				consumes[ToolItem]++
-				carry[ToolWearKey] -= labor.BPS
-			} else {
-				carry[ToolWearKey] = labor.BPS
-				bare = h.realItems.BareHandsBPS > 0 && !h.realItems.InGrace(now)
-			}
+		avail := map[string]int64{}
+		for k, v := range st.units {
+			avail[k] = v - consumes[k]
+		}
+		step := h.toolStepOf(snap, avail, d, carry[ToolWearKey], now)
+		carry[ToolWearKey], bare, toolFactor = step.Carry, step.Bare, step.FactorBPS
+		if step.Item != "" {
+			toolUsed = true
+			consumes[step.Item]++
 		}
 	}
 	// the inputs
@@ -208,6 +215,7 @@ func (h *VillageHandler) startPrivateProduction(ctx context.Context, tx applicat
 	if rules {
 		outputBPS = outputBPS * condFactor / labor.BPS
 	}
+	outputBPS = outputBPS * toolFactor / labor.BPS
 	if bare {
 		outputBPS = outputBPS * h.realItems.BareHandsBPS / labor.BPS
 	}
@@ -286,6 +294,7 @@ func (h *VillageHandler) startPrivateProduction(ctx context.Context, tx applicat
 	if farmWork != nil {
 		sh.FarmCycle, sh.FarmPhase = farmWork.cycle.ID, farmWork.phase
 	}
+	sh.Recipe = recipeUsed
 	playerID := ""
 	if p != nil {
 		sh.PlayerID, sh.WorkerKind, playerID = p.ID, application.LaborWorkerPlayer, p.ID

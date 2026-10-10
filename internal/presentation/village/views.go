@@ -1152,6 +1152,9 @@ type WorkplaceLine struct {
 	// Farm is the crop of a farm of the cycle (docs/adr/0067); Mill the toll and the grain of a mill. Nil for any other place.
 	Farm *FarmLine `json:"farm,omitempty"`
 	Mill *MillLine `json:"mill,omitempty"`
+	// Recipes are the recipes the workshop offers, its standard shift first (docs/adr/0068); Tool the state of its tool.
+	Recipes []RecipeLine `json:"recipes,omitempty"`
+	Tool    *ToolLine    `json:"tool,omitempty"`
 }
 
 // WorkShiftLine is a shift in progress.

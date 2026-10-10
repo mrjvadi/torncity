@@ -40,6 +40,8 @@ type VillageLaborRequest struct {
 	ID string `json:"id,omitempty"`
 	// N is a crew size (hire) or a percentage of the market wage (wage).
 	N string `json:"n,omitempty"`
+	// Recipe is the recipe a posted production job's crew makes ("" the standard shift; docs/adr/0068).
+	Recipe string `json:"recipe,omitempty"`
 }
 
 // productionJobShifts is the budget of shifts a job posted on a standing
@@ -431,7 +433,7 @@ func (h *VillageHandler) startLaborShift(ctx context.Context, tx application.Tx,
 				return refuseVillage(village.LaborBudgetSpent, village.AddrLaborBoard)
 			}
 		}
-		if err := h.startProduction(ctx, tx, meta, snap, s, *b, d, nil, wage, job.ID); err != nil {
+		if err := h.startProduction(ctx, tx, meta, snap, s, *b, d, nil, wage, job.ID, ""); err != nil {
 			return err
 		}
 		return repo.CountStarted(ctx, job.ID)
@@ -537,6 +539,8 @@ func pauseReason(err error, started int) string {
 		return "employer_broke"
 	case village.LaborBudgetSpent:
 		return "budget_spent"
+	case village.RecipeNotHere, village.VillagePrerequisite:
+		return "no_recipe"
 	case village.FarmIdle:
 		return "no_crop"
 	case village.FarmWaiting:
@@ -982,7 +986,7 @@ func (h *VillageHandler) LaborTake(ctx context.Context, meta envelope.Metadata, 
 			if locked.Left() <= 0 {
 				return "", "", refuseVillage(village.LaborBudgetSpent, village.AddrLaborBoard)
 			}
-			if err := h.startShiftAt(ctx, tx, meta, snap, p, s, locked.BuildingID, locked.Wage, locked.ID); err != nil {
+			if err := h.startShiftAt(ctx, tx, meta, snap, p, s, locked.BuildingID, locked.Wage, locked.ID, ""); err != nil {
 				return "", "", err
 			}
 			return job.BuildingID, "worked", nil
@@ -1232,12 +1236,24 @@ func (h *VillageHandler) LaborPost(ctx context.Context, meta envelope.Metadata, 
 			err = h.openSiteJob(ctx, tx, h.content.Current(), s, *b, kind, employer, p.ID, h.now())
 		} else {
 			d, _ := h.content.Current().SettlementBuildingDef(b.TypeCode)
+			recipe := strings.TrimSpace(req.Recipe)
+			if recipe != "" {
+				// the recipe must be one the workshop makes (its research may still come: the crew pauses until then)
+				if r, ok := h.content.Current().Recipe(recipe); !ok || r.WaitsFor != "" || r.HomeOnly || !recipeAt(r, stationOf(h.content.Current(), b.TypeCode)) {
+					return "", "", refuseVillage(village.RecipeNotHere, village.AddrLaborBoard)
+				}
+			}
 			err = tx.SettlementTreasury().PostJob(ctx, application.LaborJob{
 				ID: h.ids.NewID(), SettlementID: s.CityID, BuildingID: b.ID, Kind: jobKind, EmployerKind: kind, EmployerID: employer,
-				Wage: d.Wage, ShiftsTotal: productionJobShifts, CreatedBy: p.ID, CreatedAt: h.now(),
+				Wage: d.Wage, ShiftsTotal: productionJobShifts, CreatedBy: p.ID, CreatedAt: h.now(), Recipe: recipe,
 			})
 			if stderrors.Is(err, application.ErrJobExists) {
-				err = nil
+				// the job is open: posting again with a recipe changes what its crew makes
+				if open, jerr := tx.SettlementTreasury().JobOfBuilding(ctx, b.ID); jerr == nil && open != nil && open.Kind == jobKind {
+					err = tx.SettlementTreasury().SetJobRecipe(ctx, open.ID, recipe)
+				} else {
+					err = nil
+				}
 			}
 		}
 		if err != nil {

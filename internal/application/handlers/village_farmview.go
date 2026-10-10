@@ -18,6 +18,13 @@ func (h *VillageHandler) nodeExtras(ctx context.Context, tx application.Tx, snap
 	viewer string, w *village.WorkNode,
 ) error {
 	var err error
+	if w.Recipes, err = h.recipeLines(ctx, tx, snap, s, b, d, ""); err != nil {
+		return err
+	}
+	if len(w.Recipes) < 2 {
+		w.Recipes = nil
+	}
+	w.Tool = h.toolLine(ctx, tx, snap, s, d)
 	if w.Farm, err = h.farmLine(ctx, tx, snap, s, b, buildings, viewer); err != nil {
 		return err
 	}
@@ -92,6 +99,12 @@ func (h *VillageHandler) decorateWorkplace(ctx context.Context, tx application.T
 	}
 	if line.Mill, err = h.millLine(ctx, tx, snap, s, d, viewer); err != nil {
 		return err
+	}
+	if line.Recipes, err = h.recipeLines(ctx, tx, snap, s, b, d, ""); err != nil {
+		return err
+	}
+	if len(line.Recipes) < 2 {
+		line.Recipes = nil // a workshop with one way to work has nothing to choose
 	}
 	if line.Farm != nil && !line.Farm.Legacy {
 		switch farm.Stage(line.Farm.Stage) {

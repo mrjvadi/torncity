@@ -78,8 +78,10 @@ type LaborJob struct {
 	// numbers are filled first. Paused is the reason the crew stopped (a shift could not
 	// start: no_staff, no_input, storage_full, employer_broke, budget_spent); empty when
 	// it is running. A refilled crew clears it.
-	Priority  int
-	Paused    string
+	Priority int
+	Paused   string
+	// Recipe is the recipe the crew makes ("" the station's standard shift; docs/adr/0068).
+	Recipe    string
 	Status    string
 	CreatedBy string
 	CreatedAt time.Time
@@ -101,6 +103,8 @@ type LaborWorker struct {
 type LaborRepository interface {
 	// PostJob writes an open job; ErrJobExists when the building has one.
 	PostJob(ctx context.Context, j LaborJob) error
+	// SetJobRecipe changes the recipe an open job's crew makes (docs/adr/0068).
+	SetJobRecipe(ctx context.Context, jobID, recipe string) error
 	// LockJob reads a job under a row lock: shifts of one job queue here, no
 	// other row is contended. ErrJobNotFound when it does not exist.
 	LockJob(ctx context.Context, id string) (*LaborJob, error)

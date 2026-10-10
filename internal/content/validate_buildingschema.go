@@ -1327,6 +1327,9 @@ func (l *schemaLint) crafting() {
 		if d.ShortBPS < 1 || d.ShortBPS > 10_000 || d.HomeYieldBPS < 1 || d.HomeYieldBPS > 10_000 || d.WearDivisor < 1 || d.HomeToolWearBPS < 0 || d.HomeToolWearBPS > 10_000 {
 			l.bad("crafting: a share is out of 1..10000 or the wear divisor is under one")
 		}
+		if d.XPPerBatch < 0 {
+			l.bad("crafting: experience is not negative")
+		}
 		if d.MaxBatches < 1 || d.MaxJobs < 1 {
 			l.bad("crafting: a job has at least one batch and a player at least one job")
 		}

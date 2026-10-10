@@ -54,6 +54,8 @@ type VillageHandler struct {
 	landRules application.LandRules
 	// farmRules are the settings of the farm cycle (config settlement.farm_*, ADR 0067).
 	farmRules application.FarmRules
+	// craftRules are the settings of the tool tiers (config settlement.crafting_*, ADR 0068).
+	craftRules application.CraftRules
 	// keeperTerms are the pay a hired stall keeper can be given (config trade.stall_keeper_*, ADR 0062).
 	keeperTerms StallKeeperTerms
 	uow     application.UnitOfWork

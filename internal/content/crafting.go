@@ -18,6 +18,8 @@ type CraftingDef struct {
 	MaxBatches      int `yaml:"max_batches" json:"max_batches"`
 	MaxJobs         int `yaml:"max_jobs" json:"max_jobs"`
 	HomeToolWearBPS int `yaml:"home_tool_wear_bps" json:"home_tool_wear_bps"`
+	// XPPerBatch is the experience of the recipe's trade a batch made at home gives.
+	XPPerBatch int `yaml:"xp_per_batch" json:"xp_per_batch"`
 }
 
 // CraftingToolDef is one rung of the ladder.

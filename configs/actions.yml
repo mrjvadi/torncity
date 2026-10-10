@@ -343,6 +343,7 @@ commands:
   settlement.clear.order: {kind: primary, icon: "action:build"}
   settlement.clear.cancel: {kind: secondary, icon: "action:cancel_build"}
   settlement.farm.sow: {kind: primary, icon: "action:build"}
+  settlement.craft: {kind: primary, icon: "action:build"}
   settlement.mill.toll: {kind: secondary, icon: "action:build"}
   settlement.mill.grind: {kind: primary, icon: "action:build"}
   settlement.charter.election.open: {kind: primary, icon: "action:vote"}

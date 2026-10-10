@@ -243,6 +243,9 @@ func VerifyChecks(v postgres.LedgerVerification, cfg *config.Config) []Check {
 		t := v.VillageInvariants
 		out.add(t.MealOpenedRows == t.MealOpenedKitchen && t.MealEatenShifts == t.MealEatenKitchen, fmt.Sprintf("kitchens: the points opened (%d = %d) and eaten (%d = %d) match the meal rows and the shifts that ate", t.MealOpenedRows, t.MealOpenedKitchen, t.MealEatenShifts, t.MealEatenKitchen))
 		out.add(t.MealJournalUnits == t.MealRowUnits, fmt.Sprintf("food units opened for meals in the item journal match the opening rows (%d = %d)", t.MealJournalUnits, t.MealRowUnits))
+		out.add(t.CraftInputsJournal == t.CraftInputsRows && t.CraftMadeJournal == t.CraftMadeRows && t.CraftOverPlanned == 0,
+			fmt.Sprintf("the goods that left home stores for crafts match the jobs (%d = %d), the goods that came in match the finished jobs (%d = %d), no job made more than it planned (%d over)",
+				t.CraftInputsJournal, t.CraftInputsRows, t.CraftMadeJournal, t.CraftMadeRows, t.CraftOverPlanned))
 		out.add(t.FarmSeedShifts == t.FarmSeedCycles && t.FarmShiftsWithoutCycle == 0 && t.FarmCountersBroken == 0 && t.FarmHarvestOver == 0 && t.GrindWithoutCustomer == 0,
 			fmt.Sprintf("the seed the sowing shifts took matches the crops (%d = %d), every farm shift has a crop (%d without), the crops' counters match their shifts (%d broken), no crop was harvested past its yield (%d over), every grinding shift has a citizen (%d without)",
 				t.FarmSeedShifts, t.FarmSeedCycles, t.FarmShiftsWithoutCycle, t.FarmCountersBroken, t.FarmHarvestOver, t.GrindWithoutCustomer))

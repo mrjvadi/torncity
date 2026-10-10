@@ -371,6 +371,8 @@ type LotManageView struct {
 	Work                              *LotWorkLine
 	Staff                             []LotStaffLine
 	// Workplace is set on a workplace the viewer owns.
+	// Craft is the home station of the building: what its owner can make at home and the crafts running (docs/adr/0068).
+	Craft     *LotCraftLine `json:"craft,omitempty"`
 	Workplace *LotWorkplaceLine
 	// Keeper is set on a stall the viewer owns.
 	Keeper *LotKeeperLine

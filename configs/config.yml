@@ -1410,6 +1410,9 @@ settlement:
   # their flat shift of 12 wheat until the grace is over
   farm_rule_at: "2026-10-10T00:00:00Z"
   farm_grace_days: 14
+  # the tool tiers (ADR 0068): from the rule date plus the grace a worker's best tool tier lifts or lowers his output
+  crafting_rule_at: "2026-10-10T00:00:00Z"
+  crafting_grace_days: 14
   # The teacher's skill in the literacy tick (docs/adr/0057): a class a player with the teaching skill gives moves literacy at
   # teacher_base_bps plus teacher_per_level_bps for each level of the skill (never above 10000); with no player teacher it moves at
   # teacher_base_bps. A finished class teaches its player teacher teacher_xp_per_class points of the skill.

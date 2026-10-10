@@ -20,3 +20,4 @@ crafting:
   max_batches: 4
   max_jobs: 2
   home_tool_wear_bps: 100
+  xp_per_batch: 10

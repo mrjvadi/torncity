@@ -20,12 +20,12 @@ const laborJobsOneOpenIdx = "labor_jobs_one_open_idx"
 var _ application.LaborRepository = (*SettlementTreasuryRepository)(nil)
 
 const laborJobColumns = `id::text, settlement_id::text, building_id::text, kind, employer_kind, employer_id::text, wage,
-	shifts_total, shifts_started, npc_crew, priority, COALESCE(paused, ''), status, created_by::text, created_at, closed_at`
+	shifts_total, shifts_started, npc_crew, priority, COALESCE(paused, ''), status, created_by::text, created_at, closed_at, recipe`
 
 func scanLaborJob(row pgx.Row) (application.LaborJob, error) {
 	var j application.LaborJob
 	err := row.Scan(&j.ID, &j.SettlementID, &j.BuildingID, &j.Kind, &j.EmployerKind, &j.EmployerID, &j.Wage,
-		&j.ShiftsTotal, &j.ShiftsStarted, &j.NPCCrew, &j.Priority, &j.Paused, &j.Status, &j.CreatedBy, &j.CreatedAt, &j.ClosedAt)
+		&j.ShiftsTotal, &j.ShiftsStarted, &j.NPCCrew, &j.Priority, &j.Paused, &j.Status, &j.CreatedBy, &j.CreatedAt, &j.ClosedAt, &j.Recipe)
 	return j, err
 }
 
@@ -33,9 +33,9 @@ func scanLaborJob(row pgx.Row) (application.LaborJob, error) {
 func (r *SettlementTreasuryRepository) PostJob(ctx context.Context, j application.LaborJob) error {
 	_, err := r.q.Exec(ctx, `
 		INSERT INTO labor_jobs (id, settlement_id, building_id, kind, employer_kind, employer_id, wage, shifts_total,
-		       shifts_started, npc_crew, status, created_by, created_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 0, $9, 'open', $10, $11)`,
-		j.ID, j.SettlementID, j.BuildingID, j.Kind, j.EmployerKind, j.EmployerID, j.Wage, j.ShiftsTotal, j.NPCCrew, j.CreatedBy, j.CreatedAt.UTC())
+		       shifts_started, npc_crew, status, created_by, created_at, recipe)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 0, $9, 'open', $10, $11, $12)`,
+		j.ID, j.SettlementID, j.BuildingID, j.Kind, j.EmployerKind, j.EmployerID, j.Wage, j.ShiftsTotal, j.NPCCrew, j.CreatedBy, j.CreatedAt.UTC(), j.Recipe)
 	if violates(err, sqlstateUniqueViolation, laborJobsOneOpenIdx) {
 		return application.ErrJobExists
 	}
@@ -54,6 +54,14 @@ func (r *SettlementTreasuryRepository) readJob(ctx context.Context, sql, id stri
 		return nil, fmt.Errorf("postgres: reading a job: %w", err)
 	}
 	return &j, nil
+}
+
+// SetJobRecipe changes the recipe an open job's crew makes.
+func (r *SettlementTreasuryRepository) SetJobRecipe(ctx context.Context, jobID, recipe string) error {
+	if _, err := r.q.Exec(ctx, `UPDATE labor_jobs SET recipe = $2 WHERE id = $1::uuid AND status = 'open'`, jobID, recipe); err != nil {
+		return fmt.Errorf("postgres: changing a job's recipe: %w", err)
+	}
+	return nil
 }
 
 // LockJob reads a job under a row lock.
