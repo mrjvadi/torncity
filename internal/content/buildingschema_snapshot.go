@@ -16,6 +16,7 @@ type buildingSchemaIndex struct {
 	climate     *ClimateDef
 	land        *LandDef
 	farming     *FarmingDef
+	crafting    *CraftingDef
 	raid        *SettlementRaidDef
 	detectors   []SettlementRaidDetectorDef
 	roads       map[string]RoadClassDef
@@ -63,6 +64,10 @@ func (s *Snapshot) buildBuildingSchema(p *Pack) {
 	if len(p.Farming) > 0 {
 		d := p.Farming[0]
 		ix.farming = &d
+	}
+	if len(p.Crafting) > 0 {
+		d := p.Crafting[0]
+		ix.crafting = &d
 	}
 	if len(p.SettlementRaids) > 0 {
 		r := p.SettlementRaids[0]
@@ -232,6 +237,14 @@ func (s *Snapshot) Land() (LandDef, bool) {
 		return LandDef{}, false
 	}
 	return *s.schema.land, true
+}
+
+// Crafting is crafting.yml's block.
+func (s *Snapshot) Crafting() (CraftingDef, bool) {
+	if s.schema == nil || s.schema.crafting == nil {
+		return CraftingDef{}, false
+	}
+	return *s.schema.crafting, true
 }
 
 // Farming is farming.yml's block.

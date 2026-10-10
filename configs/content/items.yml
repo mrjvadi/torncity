@@ -190,6 +190,8 @@ components:
   - {code: rag, shelf: materials.fibre, weight_g: 300, name: Rags, category: fibre, base_price: 2, attributes: {quality: 40}}
   - {code: paper, shelf: materials.fibre, weight_g: 200, name: Paper, category: fibre, base_price: 18, attributes: {quality: 50}, village_buy: true, village_sell: true, stand_in: wool}
   - {code: tools, shelf: tools.work, weight_g: 1500, name: Tools, category: tool, base_price: 30, attributes: {quality: 50}, village_buy: true}
+  - {code: stone_tools, shelf: tools.work, weight_g: 1800, name: Stone tools, category: tool, base_price: 12, attributes: {quality: 40}, village_buy: true}
+  - {code: forged_tools, shelf: tools.work, weight_g: 1500, name: Forged tools, category: tool, base_price: 70, attributes: {quality: 65}, village_buy: true}
   - {code: bark, shelf: materials.wood, weight_g: 1500, name: Bark, category: wood, base_price: 3, attributes: {quality: 50}}
   - {code: leather, shelf: materials.fibre, weight_g: 2500, name: Leather, category: fibre, base_price: 40, attributes: {quality: 50}, village_sell: true}
   - {code: flour_sack, shelf: food.grain, weight_g: 5000, name: Flour sack, category: grain, base_price: 4, attributes: {quality: 50}}

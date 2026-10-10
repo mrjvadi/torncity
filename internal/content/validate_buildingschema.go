@@ -42,6 +42,7 @@ func (p *Pack) validateBuildingSchema(problems *[]error) {
 	l.climate()
 	l.land()
 	l.farming()
+	l.crafting()
 	l.nears()
 	l.raids()
 	l.roads()
@@ -420,7 +421,7 @@ func (l *schemaLint) moduleKinds() {
 			l.bad("%s: a module without build_shifts is not offered to build; waits_for must say which plan item gives it a reader", key)
 		case m.BuildShifts > 0 && m.WaitsFor != "":
 			l.bad("%s: a module that is built does not wait for anything: remove waits_for", key)
-		case m.BuildShifts > 0 && len(m.Provides) == 0 && m.Effect != "warmth_shelter":
+		case m.BuildShifts > 0 && len(m.Provides) == 0 && len(m.StandsFor) == 0 && m.Effect != "warmth_shelter":
 			l.bad("%s: a module with a cost needs a reader (provides, or an effect the rules read): a cost without one is decoration", key)
 		}
 		l.needs(key, m.Requires)
@@ -739,13 +740,62 @@ func hasResearch(list []string, name string) bool {
 
 func (l *schemaLint) recipes() {
 	seen := map[string]bool{}
+	waiting := map[string]bool{}
 	for _, r := range l.p.Recipes {
+		if r.WaitsFor != "" {
+			for it := range r.Outputs {
+				waiting[it] = true
+			}
+			continue // a recipe that waits for its source goods or its reader is not read, so it makes nothing yet
+		}
 		for it := range r.Outputs {
 			l.producers[it] = true
 		}
 	}
+	// the goods a recipe may take: made by a station or another recipe, made by a legacy building, or bought from the neutral city
+	sourced := map[string]bool{}
+	for it := range l.producers {
+		sourced[it] = true
+	}
+	for _, b := range l.p.SettlementBuildings {
+		for it := range b.Produces {
+			sourced[it] = true
+		}
+	}
+	for _, c := range l.p.Components {
+		if c.VillageBuy {
+			sourced[c.Code] = true
+		}
+	}
+	for _, it := range l.p.ItemStorage {
+		if it.Raw && !it.Planned {
+			sourced[it.Code] = true
+		}
+	}
 	for _, r := range l.p.Recipes {
 		key := l.head("recipe", r.Head, seen)
+		if r.WaitsFor == "" {
+			for it := range r.Inputs {
+				if l.itemKnown(it) && !sourced[it] {
+					l.bad("%s: input %q is made by nothing: write the source, or say what the recipe waits for (waits_for)", key, it)
+				}
+			}
+		}
+		if r.Batch < 0 || r.Batch > 20 || r.CraftMinutes < 0 || r.CraftMinutes > 600 {
+			l.bad("%s: batch or craft minutes out of range", key)
+		}
+		for _, d := range r.DefaultAt {
+			in := false
+			for _, st := range r.Stations {
+				in = in || st == d
+			}
+			if !in {
+				l.bad("%s: default_at %q is not one of its stations", key, d)
+			}
+		}
+		if r.HomeOnly && len(r.DefaultAt) > 0 {
+			l.bad("%s: a home-only recipe has no station whose standard shift it is", key)
+		}
 		if len(r.Stations) == 0 {
 			l.bad("%s: no station", key)
 		}
@@ -781,7 +831,7 @@ func (l *schemaLint) recipes() {
 	}
 	// every planned item must be made by something or marked raw
 	for _, it := range l.p.ItemStorage {
-		if it.Planned && !it.Raw && !l.producers[it.Code] {
+		if it.Planned && !it.Raw && !l.producers[it.Code] && !waiting[it.Code] {
 			l.bad("item_storage/%s: a planned item nothing makes: a function or recipe must produce it, or mark it raw: true (gathered from the land)", it.Code)
 		}
 	}
@@ -1255,4 +1305,30 @@ func (l *schemaLint) buildingByCode(code string) (SettlementBuildingDef, bool) {
 		}
 	}
 	return SettlementBuildingDef{}, false
+}
+
+func (l *schemaLint) crafting() {
+	if len(l.p.Crafting) > 1 {
+		l.bad("crafting: at most one crafting block")
+	}
+	seen := map[string]bool{}
+	for _, d := range l.p.Crafting {
+		l.head("crafting", Head{Code: "crafting", Source: d.Source, Evidence: d.Evidence, Requires: d.Requires, PlannedKnowledge: d.PlannedKnowledge, Deferred: d.Deferred, NeedsResearch: d.NeedsResearch}, seen)
+		tiers := map[int]bool{}
+		for _, t := range d.Tools {
+			if t.Tier < 0 || t.Tier > 3 || tiers[t.Tier] || !l.itemKnown(t.Item) {
+				l.bad("crafting: tool tier %d (%q) is out of 0..3, twice, or not an item", t.Tier, t.Item)
+			}
+			tiers[t.Tier] = true
+		}
+		if !tiers[1] {
+			l.bad("crafting: tier 1 is the iron tool every village has; it must be on the ladder")
+		}
+		if d.ShortBPS < 1 || d.ShortBPS > 10_000 || d.HomeYieldBPS < 1 || d.HomeYieldBPS > 10_000 || d.WearDivisor < 1 || d.HomeToolWearBPS < 0 || d.HomeToolWearBPS > 10_000 {
+			l.bad("crafting: a share is out of 1..10000 or the wear divisor is under one")
+		}
+		if d.MaxBatches < 1 || d.MaxJobs < 1 {
+			l.bad("crafting: a job has at least one batch and a player at least one job")
+		}
+	}
 }
