@@ -1339,7 +1339,7 @@ settlement:
   # office, permissions per office, and the length of an office title in characters.
   charter_max_offices: 24
   charter_max_seats: 15
-  charter_max_permissions: 40
+  charter_max_permissions: 64
   charter_title_min: 2
   charter_title_max: 32
   # Charter phase 2 (docs/adr/0044 6.5, 6.6): elections, recall, amendments, the acting head.

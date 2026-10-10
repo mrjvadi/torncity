@@ -17,6 +17,7 @@ import (
 // levy to the treasury, and the books verify.
 func TestAPlayerEmploysWorkersInHisOwnWorkplace(t *testing.T) {
 	e := newLotEnv(t)
+	e.alignToLocalMorning() // the shifts and "today" must not straddle the village's midnight
 	owner := e.owner
 	ctx := testCtx(t)
 	id := e.house(owner, "carpentry_workshop_own", 2000)
