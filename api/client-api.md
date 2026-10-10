@@ -1832,3 +1832,7 @@ The owner is the employer: the job of a private production building is posted, h
 }
 ```
 `job` is absent when no job is posted; `produced_value` is the goods' base price (the real takings are the stall and book sales). Item reason `board_eaten` is new in the item journal.
+
+
+## Trees and rocks as land (ADR 0065)
+Layout: lots (grid and `ring.lots`) carry `trees`, `rocks`, `stumps`, `saplings[] {stage, ready_at}`, `ordered {trees, rocks}`, `obstructed`; block `woods {mark, forest_remaining_bps}`; the ETag includes `woods.mark`. Commands: `settlement.clear.order {x, y, what}`, `settlement.clear.cancel {x, y}` (screen `clear_order`). Refusals: `obstructed` (with `obstacles {x, y, trees, rocks, can_order}`), `no_trees_in_reach`, `no_plot_in_reach`. Event `land_changed {settlement_id, kind, x, y}`.
