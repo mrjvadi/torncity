@@ -236,6 +236,10 @@ func (h *VillageHandler) farmShape(ctx context.Context, tx application.Tx, snap 
 		if cy.SowStarted >= kit.cfg.SowShifts {
 			gf := finish
 			cy.GrowFrom = &gf
+			// the crews that wait for the crop start again when it is ripe
+			if _, err := h.schedule(ctx, tx, application.FarmRipeActionType, application.FarmReference, cy.ID, s.CityID, now, cy.RipeAt(kit.cfg)); err != nil {
+				return nil, err
+			}
 		}
 		cy.WaterSum += water.factor
 		cy.WaterN++
@@ -465,4 +469,24 @@ func (h *VillageHandler) FarmSow(ctx context.Context, meta envelope.Metadata, re
 		return resp, ferr
 	}
 	return village.FarmSow(h.screen(meta, lang), view), nil
+}
+
+// FarmRipe handles settlement.farm.ripe from the SCHEDULER: a crop has ripened, so the crews that waited for it start again.
+// Starting the crews again is idempotent, a redelivery changes nothing.
+func (h *VillageHandler) FarmRipe(ctx context.Context, meta envelope.Metadata, req CrimeScheduledRequest) (*presentation.Response, error) {
+	in, err := villagePayload(meta, req)
+	if err != nil {
+		return nil, err
+	}
+	snap := h.content.Current()
+	return nil, h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
+		s, err := tx.Settlements().ByID(ctx, in.SettlementID)
+		if isSentinel(err, application.ErrCityNotFound) {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		return h.refillCrews(ctx, tx, meta, snap, s)
+	})
 }

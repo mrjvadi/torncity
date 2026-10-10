@@ -52,6 +52,12 @@ CREATE TABLE settlement_mill_policy (
     CONSTRAINT settlement_mill_policy_check CHECK (toll_bps >= 0 AND toll_bps <= 10000)
 );
 
+-- A crew that cannot start for want of a sowing, of a crop to wait for, or of land to graze is paused with that reason.
+ALTER TABLE labor_jobs DROP CONSTRAINT labor_jobs_paused_check;
+ALTER TABLE labor_jobs ADD CONSTRAINT labor_jobs_paused_check CHECK (paused IS NULL OR paused IN
+    ('no_staff', 'no_food', 'no_input', 'storage_full', 'employer_broke', 'budget_spent', 'needs_repair', 'no_trees', 'no_plot',
+     'no_crop', 'crop_growing', 'no_grazing'));
+
 -- The new charter permissions farm.sow (order the sowing of the treasury's farms) and mill.toll (set the statute of the miller's
 -- toll): the head office of a stored charter that may draw roads gets them with the same hand. Offices created later get them from
 -- the code.

@@ -140,6 +140,8 @@ const (
 	ActionTypeSettlementWork = "settlement_work"
 	// A charter ballot reaching its closing time (docs/adr/0044 6.5).
 	ActionTypeCharterBallot = "charter_ballot"
+	// A crop reaching its ripeness: the crews waiting for it start again (docs/adr/0067).
+	ActionTypeFarmRipe = "farm_ripe"
 )
 
 // routes maps an action type to the command it is published as.
@@ -203,6 +205,7 @@ var routes = map[string]Route{
 	ActionTypeSettlementBuild:    {Domain: "settlement", Action: "built"},
 	ActionTypeSettlementWork:     {Domain: "settlement", Action: "worked"},
 	ActionTypeCharterBallot:      {Domain: "settlement", Action: "charter.ballot.close"},
+	ActionTypeFarmRipe:           {Domain: "settlement", Action: "farm.ripe"},
 }
 
 // RouteFor returns the route for an action type, and whether there is one.

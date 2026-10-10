@@ -626,5 +626,26 @@ func TestACrewSowsTheFieldAndWaitsForTheCrop(t *testing.T) {
 	if paused != "crop_growing" {
 		t.Errorf("the crew waits for the crop and says so: %q", paused)
 	}
+	// the ripening is on the clock: the scheduler wakes the crew, which starts the harvest by itself
+	var cycleID string
+	if err := e.pool.Raw().QueryRow(ctx, `SELECT id::text FROM farm_cycles WHERE building_id = $1::uuid AND closed_at IS NULL`, farm).Scan(&cycleID); err != nil {
+		t.Fatal(err)
+	}
+	if e.scalar(`SELECT count(*) FROM game_actions WHERE action_type = 'farm_ripe' AND reference_id = $1::uuid`, cycleID) != 1 {
+		t.Fatal("the ripening is scheduled once")
+	}
+	e.clock.Advance(7 * time.Hour)
+	payload := []byte(`{"id":"` + cycleID + `","settlement_id":"` + e.cityID + `"}`)
+	for i := 0; i < 2; i++ { // twice: a redelivery changes nothing more
+		if _, err := e.village.FarmRipe(ctx, e.as(e.head, "settlement.farm.ripe", "farm.ripe"), handlers.CrimeScheduledRequest{ReferenceID: cycleID, Payload: payload}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if e.cycle(farm).harvest == 0 {
+		t.Error("the crew started the harvest when the crop ripened")
+	}
+	t.Cleanup(func() {
+		_, _ = e.pool.Raw().Exec(testCtx(t), `DELETE FROM game_actions WHERE action_type = 'farm_ripe' AND reference_id = $1::uuid`, cycleID)
+	})
 	e.verify()
 }

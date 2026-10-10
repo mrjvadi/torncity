@@ -72,6 +72,12 @@ type FarmReader interface {
 	OpenIn(ctx context.Context, settlementID string) ([]farm.Cycle, error)
 }
 
+// FarmRipeActionType is the game action that wakes the crews waiting for a crop when it ripens; its reference is the crop.
+const (
+	FarmRipeActionType = "farm_ripe"
+	FarmReference      = "farm_cycle"
+)
+
 // What a farm shift did (settlement_shifts.farm_phase).
 const (
 	FarmPhaseSow     = "sow"
