@@ -180,6 +180,8 @@ type Tx interface {
 	Land() LandRepository
 	// Farm is the crops of the farms and the settlements' statute of the miller's toll (migration 0144, ADR 0067).
 	Farm() FarmRepository
+	// Craft is the citizens' timed crafts at their home stations (migration 0145, ADR 0068).
+	Craft() CraftRepository
 	// StallKeepers is the keepers stall owners hire (migration 0139, ADR 0062).
 	StallKeepers() StallKeeperRepository
 	// Charters holds each settlement's offices, seats and audit (ADR 0044

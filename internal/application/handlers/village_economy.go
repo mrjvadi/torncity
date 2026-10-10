@@ -53,6 +53,8 @@ func (r VillageMaterialRequest) confirmed() bool {
 // VillageWorkRequest names the workplace to start a shift at; empty lists them.
 type VillageWorkRequest struct {
 	ID string `json:"id,omitempty"`
+	// Recipe is the recipe the shift makes at a workshop that offers several ("" the standard shift; docs/adr/0068).
+	Recipe string `json:"recipe,omitempty"`
 }
 
 // standingCodes is the set of building codes that stand (complete).
@@ -651,7 +653,7 @@ func (h *VillageHandler) Work(ctx context.Context, meta envelope.Metadata, req V
 		}
 		id := strings.TrimSpace(req.ID)
 		if id != "" {
-			if err := h.startShift(ctx, tx, meta, snap, p, s, id); err != nil {
+			if err := h.startShift(ctx, tx, meta, snap, p, s, id, strings.TrimSpace(req.Recipe)); err != nil {
 				return err
 			}
 			started = true
@@ -667,15 +669,15 @@ func (h *VillageHandler) Work(ctx context.Context, meta envelope.Metadata, req V
 }
 
 func (h *VillageHandler) startShift(ctx context.Context, tx application.Tx, meta envelope.Metadata, snap *content.Snapshot,
-	p *application.Player, s application.FoundedSettlement, buildingID string,
+	p *application.Player, s application.FoundedSettlement, buildingID, recipe string,
 ) error {
-	return h.startShiftAt(ctx, tx, meta, snap, p, s, buildingID, -1, "")
+	return h.startShiftAt(ctx, tx, meta, snap, p, s, buildingID, -1, "", recipe)
 }
 
 // startShiftAt is startShift at a wage the hiring board's job sets (a negative
 // wage is the building's own) and, when it has one, under that job's budget.
 func (h *VillageHandler) startShiftAt(ctx context.Context, tx application.Tx, meta envelope.Metadata, snap *content.Snapshot,
-	p *application.Player, s application.FoundedSettlement, buildingID string, wageOverride int64, jobID string,
+	p *application.Player, s application.FoundedSettlement, buildingID string, wageOverride int64, jobID, recipe string,
 ) error {
 	if on, err := h.travelling(ctx, tx, p.ID); err != nil {
 		return err
@@ -726,7 +728,7 @@ func (h *VillageHandler) startShiftAt(ctx context.Context, tx application.Tx, me
 			return err
 		}
 	}
-	return h.startProduction(ctx, tx, meta, snap, s, *b, d, p, wageOverride, jobID)
+	return h.startProduction(ctx, tx, meta, snap, s, *b, d, p, wageOverride, jobID, recipe)
 }
 
 // startProduction is the start of a production shift for a player or an NPC (p nil): the
@@ -735,13 +737,19 @@ func (h *VillageHandler) startShiftAt(ctx context.Context, tx application.Tx, me
 // It is the one start every worker takes (roadmap 2.2, ADR 0041 section 4).
 func (h *VillageHandler) startProduction(ctx context.Context, tx application.Tx, meta envelope.Metadata, snap *content.Snapshot,
 	s application.FoundedSettlement, b application.SettlementBuildingInstance, d content.SettlementBuildingDef,
-	p *application.Player, wageOverride int64, jobID string,
+	p *application.Player, wageOverride int64, jobID, recipe string,
 ) error {
+	// the recipe the crew's job names, unless the worker chose one (docs/adr/0068)
+	if recipe == "" && jobID != "" {
+		if job, err := tx.SettlementTreasury().Job(ctx, jobID); err == nil && job != nil {
+			recipe = job.Recipe
+		}
+	}
 	// a workplace a citizen owns runs on its owner's store and money (docs/adr/0066)
 	if owner, err := h.privateOwnerOf(ctx, tx, b.ID); err != nil {
 		return err
 	} else if owner != "" {
-		return h.startPrivateProduction(ctx, tx, meta, snap, s, b, d, p, owner, wageOverride, jobID)
+		return h.startPrivateProduction(ctx, tx, meta, snap, s, b, d, p, owner, wageOverride, jobID, recipe)
 	}
 	// the farm cycle decides what a shift at a farm is: sow, tend or harvest (docs/adr/0067)
 	farmWork, err := h.farmShape(ctx, tx, snap, s, b, d, "", h.now())
@@ -750,6 +758,14 @@ func (h *VillageHandler) startProduction(ctx context.Context, tx application.Tx,
 	}
 	if farmWork != nil {
 		d = farmWork.def
+	}
+	// the recipe the shift makes at a workshop with several (docs/adr/0068)
+	var recipeUsed string
+	if farmWork == nil {
+		var rerr error
+		if d, recipeUsed, rerr = h.recipeShape(ctx, tx, snap, s, b, d, recipe); rerr != nil {
+			return rerr
+		}
 	}
 	// the herd needs open land to graze (docs/adr/0067)
 	if err := h.grazingGate(ctx, tx, snap, s, b, d); err != nil {
@@ -849,6 +865,7 @@ func (h *VillageHandler) startProduction(ctx context.Context, tx application.Tx,
 	// share of its output once the grace of the real goods is over.
 	consumes := copyQty(d.Consumes)
 	toolUsed, bare := false, false
+	toolFactor := int64(labor.BPS)
 	if wear := d.Def().Work.ToolWearBPS; wear > 0 {
 		carry, err := tx.SettlementTreasury().Carry(ctx, b.ID)
 		if err != nil && !stderrors.Is(err, application.ErrBuildingNotFound) {
@@ -857,21 +874,17 @@ func (h *VillageHandler) startProduction(ctx context.Context, tx application.Tx,
 		if carry == nil {
 			carry = map[string]int64{}
 		}
-		carry[ToolWearKey] += wear
-		if carry[ToolWearKey] >= labor.BPS {
-			if stock.Units[ToolItem] >= 1 {
-				toolUsed = true
-				consumes[ToolItem]++
-				carry[ToolWearKey] -= labor.BPS
-			} else {
-				carry[ToolWearKey] = labor.BPS // a drought never piles up more than the one tool that is due
-				bare = h.realItems.BareHandsBPS > 0 && !h.realItems.InGrace(now)
-			}
+		step := h.toolStepOf(snap, stock.Units, d, carry[ToolWearKey], now)
+		carry[ToolWearKey], bare, toolFactor = step.Carry, step.Bare, step.FactorBPS
+		if step.Item != "" {
+			toolUsed = true
+			consumes[step.Item]++
 		}
 		if err := tx.SettlementTreasury().SetCarry(ctx, b.ID, carry); err != nil && !stderrors.Is(err, application.ErrBuildingNotFound) {
 			return err
 		}
 	}
+	outputBPS = outputBPS * toolFactor / labor.BPS
 	if bare {
 		outputBPS = outputBPS * h.realItems.BareHandsBPS / labor.BPS
 	}
@@ -922,6 +935,7 @@ func (h *VillageHandler) startProduction(ctx context.Context, tx application.Tx,
 	if farmWork != nil {
 		sh.FarmCycle, sh.FarmPhase = farmWork.cycle.ID, farmWork.phase
 	}
+	sh.Recipe = recipeUsed
 	if err := tx.SettlementTreasury().StartShift(ctx, sh, d.Workers); err != nil {
 		switch {
 		case stderrors.Is(err, application.ErrWorkplaceFull):

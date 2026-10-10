@@ -774,6 +774,20 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 			}
 			return h.village.LaborPost(ctx, env.Metadata, req)
 		},
+		"settlement.craft": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageCraftRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.Craft(ctx, env.Metadata, req)
+		},
+		"settlement.craft.done": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.CrimeScheduledRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.CraftDone(ctx, env.Metadata, req)
+		},
 		"settlement.farm.ripe": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			var req handlers.CrimeScheduledRequest
 			if err := decode(env, &req); err != nil {

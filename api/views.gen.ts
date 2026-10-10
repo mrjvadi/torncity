@@ -1171,6 +1171,21 @@ export interface CourseRef {
   name: string
 }
 
+export interface CraftJobLine {
+  id: string
+  building: Named
+  recipe: Named
+  batches: number
+  finish_at: string | null
+  left_seconds: number
+  planned: MaterialLine[] | null
+}
+
+export interface CraftStartedView {
+  village: string
+  job: CraftJobLine
+}
+
 export interface CreditView {
   score: number
   min: number
@@ -3387,6 +3402,16 @@ export interface LotConfirmView {
   auto_roads: number
 }
 
+export interface LotCraftLine {
+  stations: string[] | null
+  recipes: StationRecipeLine[] | null
+  jobs: CraftJobLine[] | null
+  max_jobs: number
+  max_batches: number
+  yield_bps: number
+  have: MaterialLine[] | null
+}
+
 export interface LotFunctionChoice {
   function: Named
   family: string
@@ -3504,6 +3529,7 @@ export interface LotManageView {
   functions: LotFunctionChoice[] | null
   work: LotWorkLine | null
   staff: LotStaffLine[] | null
+  craft: LotCraftLine | null
   workplace: LotWorkplaceLine | null
   keeper: LotKeeperLine | null
   housing_capacity: number
@@ -5666,6 +5692,18 @@ export interface StateRetrofitView {
   started: boolean
 }
 
+export interface StationRecipeLine {
+  code: string
+  name: Named
+  default: boolean
+  selected: boolean
+  inputs: MaterialLine[] | null
+  outputs: MaterialLine[] | null
+  available: boolean
+  missing: Named[] | null
+  minutes: number
+}
+
 export interface StationView {
   country: GovPlace
   branch: Named
@@ -5934,6 +5972,14 @@ export interface TierView {
   xp: number
   next: Named
   next_xp: number
+}
+
+export interface ToolLine {
+  need: number
+  have: number
+  has_tool: boolean
+  factor_bps: number
+  tiers: boolean
 }
 
 export interface TradeClerkLine {
@@ -6612,6 +6658,8 @@ export interface WorkNode {
   bare_hands: boolean
   bare_hands_bps: number
   if_unstaffed: string
+  recipes: StationRecipeLine[] | null
+  tool: ToolLine | null
   farm: FarmLine | null
   mill: MillLine | null
   water: WaterWork | null
@@ -6665,6 +6713,8 @@ export interface WorkplaceLine {
   personal: PersonalNeed[] | null
   farm: FarmLine | null
   mill: MillLine | null
+  recipes: StationRecipeLine[] | null
+  tool: ToolLine | null
 }
 
 export interface WornBagLine {
@@ -6753,6 +6803,7 @@ export interface ScreenViews {
   convicted_notice: CaseOutcomeView
   course_completed: CourseCompletedView
   course_detail: CourseDetailView
+  craft_started: CraftStartedView
   crime_detail: CrimeDetailView
   crime_hub: CrimeHubView
   crime_list: CrimeListView

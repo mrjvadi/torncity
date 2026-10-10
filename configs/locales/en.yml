@@ -901,6 +901,8 @@ company_type:
 # Components and materials, by content code (configs/content/items.yml).
 component:
   tools: "Tools"
+  stone_tools: "Stone tools"
+  forged_tools: "Forged tools"
   firewood: "Firewood"
   cut_stone: "Cut stone"
   clay: "Clay"
@@ -1578,6 +1580,9 @@ building_function:
   exchange_house: "Exchange house"
   bank: "Bank"
 recipe:
+  stone_tools: "Stone tools"
+  iron_tools: "Iron tools"
+  forged_tools: "Forged tools"
   firewood: "Firewood"
   charcoal: "Charcoal"
   planks: "Planks"

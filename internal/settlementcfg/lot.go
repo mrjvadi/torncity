@@ -46,3 +46,9 @@ func Farm(s config.Settlement) application.FarmRules {
 	from, _ := time.Parse(time.RFC3339, s.FarmRuleAt) // not an instant: every farm keeps its flat shift
 	return application.FarmRules{RuleAt: from, GraceDays: s.FarmGraceDays}
 }
+
+// Craft turns the crafting settings (settlement.crafting_*, docs/adr/0068) into the rules of the tool tiers.
+func Craft(s config.Settlement) application.CraftRules {
+	from, _ := time.Parse(time.RFC3339, s.CraftingRuleAt) // not an instant: the tiers are off
+	return application.CraftRules{RuleAt: from, GraceDays: s.CraftingGraceDays}
+}

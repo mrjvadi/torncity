@@ -136,6 +136,8 @@ type SettlementBuildingDef struct {
 	// tool in about thirty-three shifts. With none in the stock the shift works bare-handed at a share of its output
 	// (settlement.tool_bare_hands_bps). 0: the work needs no tools.
 	ToolWearBPS int64 `yaml:"tool_wear_bps,omitempty" json:"tool_wear_bps,omitempty"`
+	// ToolTier is the tier of tool the work needs for its full output; nil: 1 (docs/adr/0068).
+	ToolTier *int `yaml:"tool_tier,omitempty" json:"tool_tier,omitempty"`
 	// Generated marks a building the content loader made from a function row's workplace block (never written in
 	// settlement_buildings.yml).
 	Generated bool `yaml:"-" json:"generated,omitempty"`
@@ -161,6 +163,14 @@ const (
 	BuildingOwnerSettlement = "settlement"
 	BuildingOwnerCitizen    = "citizen"
 )
+
+// ToolTierNeeded is the tier of tool the work needs for its full output: 1 unless the content says otherwise.
+func (d SettlementBuildingDef) ToolTierNeeded() int {
+	if d.ToolTier == nil {
+		return 1
+	}
+	return *d.ToolTier
+}
 
 // Private reports whether a resident, not the village, raises the building.
 func (d SettlementBuildingDef) Private() bool { return d.Owner == BuildingOwnerCitizen }
@@ -202,7 +212,7 @@ func (d SettlementBuildingDef) Def() settlementbuilding.Def {
 		shift, _ := optionalDuration(d.Shift)
 		out.Work = settlementbuilding.Work{
 			Produces: copyQuantities(d.Produces), Consumes: copyQuantities(d.Consumes),
-			Workers: d.Workers, Shift: shift, Wage: d.Wage, ToolWearBPS: d.ToolWearBPS,
+			Workers: d.Workers, Shift: shift, Wage: d.Wage, ToolWearBPS: d.ToolWearBPS, ToolTier: d.ToolTierNeeded(),
 		}
 	}
 	if d.Near != nil {

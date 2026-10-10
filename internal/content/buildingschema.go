@@ -181,6 +181,9 @@ type ModuleKindDef struct {
 	BuildShifts int `yaml:"build_shifts,omitempty" json:"build_shifts,omitempty"`
 	// DecayBPSPerDay is the daily condition decay (ADR 0041 6.10).
 	DecayBPSPerDay int `yaml:"decay_bps_per_day,omitempty" json:"decay_bps_per_day,omitempty"`
+	// StandsFor lists the station functions a home module stands for: the owner makes the recipes of those stations at it
+	// (docs/adr/0068). It is the module's reader.
+	StandsFor []string `yaml:"stands_for,omitempty" json:"stands_for,omitempty"`
 	// Area is the floor area the module takes in a building (ADR 0045 3.2: "usable module area follows from the
 	// footprint and the storeys"); a cellar, under the floor, takes none. The area a footprint cell gives per
 	// storey is config building.area_per_cell.
@@ -234,6 +237,8 @@ type ConsumesDef struct {
 	Water bool `yaml:"water,omitempty" json:"water,omitempty"`
 	// ToolWearBPS per cycle.
 	ToolWearBPS int `yaml:"tool_wear_bps,omitempty" json:"tool_wear_bps,omitempty"`
+	// ToolTier is the tier of tool the work needs for its full output (docs/adr/0068); omitted: 1 (iron-tipped).
+	ToolTier *int `yaml:"tool_tier,omitempty" json:"tool_tier,omitempty"`
 }
 
 // FuelOf is the fuel a cycle burns (nil-safe).
@@ -435,6 +440,34 @@ type RecipeDef struct {
 	NeedsWater bool `yaml:"needs_water,omitempty" json:"needs_water,omitempty"`
 	// ToolTier is the least tool tier T0..T3 (ADR 0045 4.2).
 	ToolTier int `yaml:"tool_tier,omitempty" json:"tool_tier,omitempty"`
+	// Batch is how many cycles of the recipe one shift of a workplace makes (omitted: 1); the inputs and outputs above are
+	// per cycle (docs/adr/0068).
+	Batch int `yaml:"batch,omitempty" json:"batch,omitempty"`
+	// CraftMinutes is how long one cycle takes a citizen at his home station (omitted: 30).
+	CraftMinutes int `yaml:"craft_minutes,omitempty" json:"craft_minutes,omitempty"`
+	// HomeOnly says the recipe is made at a home station only: the workshop already has its own standard shift for it.
+	HomeOnly bool `yaml:"home_only,omitempty" json:"home_only,omitempty"`
+	// DefaultAt lists the stations whose standard shift IS this recipe (they list it, they do not shape anything).
+	DefaultAt []string `yaml:"default_at,omitempty" json:"default_at,omitempty"`
+	// WaitsFor names the plan item that gives the recipe its source goods or its reader; such a recipe is not read
+	// (docs/adr/0068). A recipe that waits for nothing must have a source for every input.
+	WaitsFor string `yaml:"waits_for,omitempty" json:"waits_for,omitempty"`
+}
+
+// BatchOf is the cycles of one shift.
+func (r RecipeDef) BatchOf() int {
+	if r.Batch < 1 {
+		return 1
+	}
+	return r.Batch
+}
+
+// CycleMinutes is the minutes one cycle takes at home.
+func (r RecipeDef) CycleMinutes() int {
+	if r.CraftMinutes < 1 {
+		return 30
+	}
+	return r.CraftMinutes
 }
 
 // ClimateBandDef is one temperature band (ADR 0045 5.2): from MinTempC up to

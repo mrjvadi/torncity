@@ -5,29 +5,39 @@ version: 1
 # explosive recipe is written here (ADR 0045 4.3 leaves them to the ADR 0036
 # items and the defence industry).
 #
-# Left out because the ADR fixes no quantity and none is invented (needs
-# research, owner): 14 garments (cloth per piece), 17 iron tools (bars per
-# tool), 18 nails, hinges and lock, 20 barrel, crate and sack, 21 timber props,
-# 22 lamp and oil, 25 wagon and mine cart, 27 bucket and waterskin, 28 gravel,
-# 29 locomotive and boiler (steam_power, later).
+# ADR 0068 (B4): the recipe runtime reads these. A recipe is made at its stations (a workshop crew
+# makes it as an alternative to the standard shift, `batch` cycles a shift) and at a home station (a
+# lot module that stands for the station, `craft_minutes` a cycle); `home_only` marks a recipe the
+# workshop already has as its standard shift; `default_at` lists the stations whose standard shift IS
+# the recipe. A recipe with `waits_for` is not read: its source goods or its reader come with the plan
+# item it names (the lint refuses a recipe with an input nobody makes unless it waits).
+#
+# Left out because the ADR fixes no quantity and no mechanic reads the goods yet (deferred to the plan
+# item that gives them a reader, ADR 0068 3.6): 14 garments (survival, B6), 17 iron tools are written
+# here, 18 nails, hinges and lock and 20 barrel, crate and sack (a construction or storage reader),
+# 21 timber props, 25 wagon and mine cart, 28 gravel, 29 locomotive and boiler, 23 rail, 24 sleeper
+# (mining and rail, B11), 22 lamp and oil, 27 bucket and waterskin (night work and thirst, B6).
 #
 # The first number in a name is the ADR table row. Where the ADR 0041 building
 # spec and this table disagree the row says so in `note` and the owner settles it.
 recipes:
-  - {code: firewood, name: "هیزم", source: "ADR 0045 4.3 #1", evidence: adr, requires: {}, stations: [woodcutter_yard], inputs: {timber: 1}, outputs: {firewood: 4}, note: "the ADR says 1 log; the existing item is timber"}
-  - {code: charcoal, name: "زغال", source: "ADR 0045 4.3 #2", evidence: adr, requires: {knowledge: [charcoal_burning]}, stations: [charcoal_clamp], inputs: {firewood: 6}, outputs: {charcoal: 2}, cycle_game_hours: 8}
-  - {code: planks, name: "الوار", source: "ADR 0045 4.3 #3", evidence: adr, requires: {knowledge: [carpentry]}, stations: [carpentry_workshop], inputs: {timber: 1}, outputs: {plank: 3}, skill: carpentry, note: "ADR 0041 8.10 says timber 3 gives plank 2: to settle"}
-  - {code: bricks, name: "آجر", source: "ADR 0045 4.3 #4", evidence: adr, requires: {knowledge: [pottery]}, stations: [kiln], inputs: {clay: 4, firewood: 1}, outputs: {brick: 4}, skill: pottery, note: "ADR 0041 8.14 says 6 bricks per shift from clay plus firewood 3: to settle"}
-  - {code: lime, name: "آهک", source: "ADR 0045 4.3 #5", evidence: adr, requires: {knowledge: [masonry]}, stations: [kiln], inputs: {limestone: 3, firewood: 2}, outputs: {lime: 2}, skill: masonry}
-  - {code: flour, name: "آرد", source: "ADR 0045 4.3 #6", evidence: adr, requires: {knowledge: [milling]}, stations: [mill], inputs: {wheat: 1}, outputs: {flour_sack: 1}, skill: milling, note: "ADR 0041 8.15 makes 8 flour from 8 wheat per shift: the same ratio"}
-  - {code: bread, name: "نان", source: "ADR 0045 4.3 #7", evidence: adr, requires: {knowledge: [milling]}, stations: [bakery], inputs: {flour_sack: 1, firewood: 1}, outputs: {bread: 1}, skill: baking, needs_water: true, note: "ADR 0045 names the research baking, ADR 0041 8.16 milling: milling is kept"}
-  - {code: roving, name: "نخ‌ریسی اولیه", source: "ADR 0045 4.3 #8", evidence: adr, requires: {knowledge: [weaving]}, stations: [weaving_shed, dwelling], inputs: {fleece: 1}, outputs: {roving: 1}, skill: weaving}
-  - {code: yarn, name: "ریسندگی", source: "ADR 0045 4.3 #9", evidence: adr, requires: {knowledge: [weaving]}, stations: [weaving_shed, dwelling], inputs: {roving: 1}, outputs: {yarn: 1}, skill: weaving}
-  - {code: woollen_cloth, name: "پارچهٔ پشمی", source: "ADR 0045 4.3 #10", evidence: adr, requires: {knowledge: [weaving]}, stations: [weaving_shed], inputs: {yarn: 3}, outputs: {cloth: 1}, skill: weaving}
-  - {code: fulled_cloth, name: "نمد", source: "ADR 0045 4.3 #11", evidence: adr, requires: {knowledge: [weaving_ii]}, stations: [fulling_place], inputs: {cloth: 1, fullers_clay: 1}, outputs: {fulled_cloth: 1}, skill: weaving, needs_water: true}
-  - {code: linen, name: "کتان", source: "ADR 0045 4.3 #12", evidence: adr, requires: {knowledge: [weaving]}, stations: [weaving_shed, dwelling], inputs: {flax: 1}, outputs: {linen: 1}, skill: weaving}
-  - {code: leather, name: "چرم", source: "ADR 0045 4.3 #13", evidence: adr, requires: {knowledge: [tanning]}, stations: [tannery], inputs: {hide: 1, bark: 1}, outputs: {leather: 1}, needs_water: true}
-  - {code: bloom, name: "آهن خام", source: "ADR 0045 4.3 #15, S68", evidence: adr, requires: {knowledge: [bloomery]}, stations: [bloomery], inputs: {iron_ore: 3, charcoal: 4}, outputs: {bloom: 1}, skill: smithing, tool_tier: 1}
-  - {code: bar_iron, name: "شمش آهن", source: "ADR 0045 4.3 #16", evidence: adr, requires: {knowledge: [smithing]}, stations: [smithy], inputs: {bloom: 1, charcoal: 1}, outputs: {bar_iron: 1}, skill: smithing, tool_tier: 1}
-  - {code: rope, name: "طناب", source: "ADR 0045 4.3 #19", evidence: adr, requires: {}, stations: [dwelling], inputs: {fibre: 2}, outputs: {rope: 1}, note: "the ADR also allows linen as input"}
-  - {code: bandage, name: "باند", source: "ADR 0045 4.3 #26", evidence: adr, requires: {knowledge: [basic_medicine]}, stations: [dwelling], inputs: {cloth: 1}, outputs: {bandage: 1}}
+  - {code: firewood, name: "هیزم", source: "ADR 0045 4.3 #1", evidence: adr, requires: {}, stations: [woodcutter_yard], inputs: {timber: 1}, outputs: {firewood: 4}, batch: 3, craft_minutes: 15, note: "splitting logs from the store; felling is the camp's standard shift"}
+  - {code: charcoal, name: "زغال", source: "ADR 0045 4.3 #2", evidence: adr, requires: {knowledge: [charcoal_burning]}, stations: [charcoal_clamp], default_at: [charcoal_clamp], inputs: {firewood: 6}, outputs: {charcoal: 2}, cycle_game_hours: 8}
+  - {code: planks, name: "الوار", source: "ADR 0045 4.3 #3", evidence: adr, requires: {knowledge: [carpentry]}, stations: [carpentry_workshop], home_only: true, inputs: {timber: 1}, outputs: {plank: 3}, skill: carpentry, batch: 2, craft_minutes: 20, note: "sawn at a home bench; the carpentry shop's standard shift is timber 3 to plank 2"}
+  - {code: bricks, name: "آجر", source: "ADR 0045 4.3 #4", evidence: adr, requires: {knowledge: [pottery]}, stations: [kiln], inputs: {clay: 4, firewood: 1}, outputs: {brick: 4}, skill: pottery, craft_minutes: 40}
+  - {code: flour, name: "آرد", source: "ADR 0045 4.3 #6", evidence: adr, requires: {knowledge: [milling]}, stations: [mill], home_only: true, inputs: {wheat: 1}, outputs: {flour_sack: 1}, skill: milling, batch: 4, craft_minutes: 20, note: "ground on a quern at home; the mill's standard shift is wheat 8 to flour 8"}
+  - {code: bread, name: "نان", source: "ADR 0045 4.3 #7", evidence: adr, requires: {knowledge: [milling]}, stations: [bakery], home_only: true, inputs: {flour_sack: 1, firewood: 1}, outputs: {bread: 1}, skill: baking, batch: 4, craft_minutes: 30, note: "baked in a home oven; the bakery's standard shift is flour 8 to bread 8"}
+  - {code: roving, name: "نخ‌ریسی اولیه", source: "ADR 0045 4.3 #8", evidence: adr, requires: {knowledge: [weaving]}, stations: [weaving_shed, dwelling], inputs: {wool: 1}, outputs: {roving: 1}, skill: weaving, batch: 4, craft_minutes: 15, note: "the draft's fleece is the game's wool"}
+  - {code: yarn, name: "ریسندگی", source: "ADR 0045 4.3 #9", evidence: adr, requires: {knowledge: [weaving]}, stations: [weaving_shed, dwelling], inputs: {roving: 1}, outputs: {yarn: 1}, skill: weaving, batch: 4, craft_minutes: 25}
+  - {code: woollen_cloth, name: "پارچهٔ پشمی", source: "ADR 0045 4.3 #10", evidence: adr, requires: {knowledge: [weaving]}, stations: [weaving_shed], inputs: {yarn: 3}, outputs: {cloth: 1}, skill: weaving, batch: 2, craft_minutes: 50, note: "the shed's standard shift (wool 3 to cloth 2) is faster; this is the chain a home loom follows"}
+  - {code: leather, name: "چرم", source: "ADR 0045 4.3 #13", evidence: adr, requires: {knowledge: [tanning]}, stations: [tannery], default_at: [tannery], inputs: {hide: 1, bark: 1, spring_water: 2}, outputs: {leather: 1}}
+  - {code: bloom, name: "آهن خام", source: "ADR 0045 4.3 #15, S68", evidence: adr, requires: {knowledge: [bloomery]}, stations: [bloomery], default_at: [bloomery], inputs: {iron_ore: 3, charcoal: 4}, outputs: {bloom: 1}, skill: smithing, tool_tier: 1}
+  - {code: bar_iron, name: "شمش آهن", source: "ADR 0045 4.3 #16", evidence: adr, requires: {knowledge: [smithing]}, stations: [smithy], inputs: {bloom: 1, charcoal: 1}, outputs: {bar_iron: 1}, skill: smithing, tool_tier: 1, craft_minutes: 40}
+  - {code: stone_tools, name: "ابزار سنگی", source: "ADR 0045 4.2, 0068", evidence: adr, requires: {knowledge: [carpentry]}, stations: [carpentry_workshop], inputs: {timber: 1, stone: 1}, outputs: {stone_tools: 2}, skill: carpentry, tool_tier: 0, craft_minutes: 20, note: "tier 0 of the tool ladder: a hafted stone head"}
+  - {code: iron_tools, name: "ابزار آهنی", source: "ADR 0045 4.3 #17", evidence: adr, requires: {knowledge: [smithing]}, stations: [smithy], inputs: {bar_iron: 1, plank: 1}, outputs: {tools: 4}, skill: smithing, tool_tier: 1, craft_minutes: 40, note: "tier 1: refined iron gives four tools where the smithy's standard shift (a bloom) gives three"}
+  - {code: forged_tools, name: "ابزار آهنگری‌شده", source: "ADR 0045 4.2, 4.3 #17", evidence: adr, requires: {knowledge: [smithing_ii]}, stations: [smithy], inputs: {bar_iron: 2, plank: 1}, outputs: {forged_tools: 2}, skill: smithing, tool_tier: 1, craft_minutes: 50, note: "tier 2 of the tool ladder: saw, hammer, pick, drill"}
+  - {code: bandage, name: "باند", source: "ADR 0045 4.3 #26", evidence: adr, requires: {knowledge: [basic_medicine]}, stations: [dwelling], inputs: {cloth: 1}, outputs: {bandage: 1}, craft_minutes: 10}
+  - {code: lime, name: "آهک", source: "ADR 0045 4.3 #5", evidence: adr, requires: {knowledge: [masonry]}, stations: [kiln], inputs: {limestone: 3, firewood: 2}, outputs: {lime: 2}, skill: masonry, waits_for: "B11: limestone as a quarried good and a mortar that reads lime"}
+  - {code: fulled_cloth, name: "نمد", source: "ADR 0045 4.3 #11", evidence: adr, requires: {knowledge: [weaving_ii]}, stations: [fulling_place], inputs: {cloth: 1, fullers_clay: 1}, outputs: {fulled_cloth: 1}, skill: weaving, waits_for: "B6: fuller's clay as a gathered good and the garments that read fulled cloth"}
+  - {code: linen, name: "کتان", source: "ADR 0045 4.3 #12", evidence: adr, requires: {knowledge: [weaving]}, stations: [weaving_shed, dwelling], inputs: {flax: 1}, outputs: {linen: 1}, skill: weaving, waits_for: "crops.yml: flax as a field crop (ADR 0035 17.3)"}
+  - {code: rope, name: "طناب", source: "ADR 0045 4.3 #19", evidence: adr, requires: {}, stations: [dwelling], inputs: {fibre: 2}, outputs: {rope: 1}, waits_for: "crops.yml: hemp and flax fibre (ADR 0035 17.3) and a reader of rope (the hoist, B11)", note: "the ADR also allows linen as input"}

@@ -999,6 +999,8 @@ company_type:
 # نام قطعه‌ها و مواد، به کد محتوا (configs/content/items.yml).
 component:
   tools: "ابزار"
+  stone_tools: "ابزار سنگی"
+  forged_tools: "ابزار آهنگری‌شده"
   firewood: "هیزم"
   cut_stone: "سنگ تراشیده"
   clay: "گِل رس"
@@ -1683,6 +1685,9 @@ building_function:
   exchange_house: "صرافی"
   bank: "بانک"
 recipe:
+  stone_tools: "ابزار سنگی"
+  iron_tools: "ابزار آهنی"
+  forged_tools: "ابزار آهنگری‌شده"
   firewood: "هیزم"
   charcoal: "زغال"
   planks: "الوار"

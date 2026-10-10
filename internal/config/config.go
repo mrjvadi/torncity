@@ -1040,6 +1040,10 @@ type Settlement struct {
 	// it that a farm which stood before keeps its flat shift.
 	FarmRuleAt    string // settlement.farm_rule_at
 	FarmGraceDays int64  // settlement.farm_grace_days
+	// The tool tiers (docs/adr/0068): CraftingRuleAt (RFC 3339) is when the tiers began to count, CraftingGraceDays the real days after it
+	// before they lift or lower anyone's output.
+	CraftingRuleAt    string // settlement.crafting_rule_at
+	CraftingGraceDays int64  // settlement.crafting_grace_days
 	// The teacher's skill in the literacy tick (docs/adr/0057): a class taught by a player with the teaching skill moves
 	// literacy at TeacherBaseBPS plus TeacherPerLevelBPS for each level (never above 10000); a class with no player teacher
 	// at TeacherBaseBPS. A finished class teaches its player teacher TeacherXPPerClass of the teaching skill.
@@ -1900,6 +1904,8 @@ func Defaults() *Config {
 			LandRockShifts:                   2,
 			FarmRuleAt:                       "2026-10-10T17:00:00Z",
 			FarmGraceDays:                    14,
+			CraftingRuleAt:                   "2026-10-10T00:00:00Z",
+			CraftingGraceDays:                14,
 			TeacherBaseBPS:                   6000,
 			TeacherPerLevelBPS:               150,
 			TeacherXPPerClass:                20,

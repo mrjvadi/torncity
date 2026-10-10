@@ -40,6 +40,26 @@ func villageFarmSnapshots(c Context, who people, add func(string, *presenter.Res
 				Mill: &village.MillLine{TollBPS: 500, MinBPS: 333, MaxBPS: 1000, Batch: 8, Have: 20, TollUnits: 1}},
 		},
 	}))
+	wool := sampleNamed(c.Lang, "wool", "پشم", "Wool")
+	roving := sampleNamed(c.Lang, "roving", "نخ اولیه", "Roving")
+	yarn := sampleNamed(c.Lang, "yarn", "نخ", "Yarn")
+	shed := sampleNamed(c.Lang, "weaving_shed", "کارگاه بافندگی", "Weaving shed")
+	add("Work · a weaving shed with recipes, one locked", VillageWork(g, WorkView{
+		Village: villageNameFor(c), Resident: true, Used: 14, Capacity: 60,
+		Places: []WorkplaceLine{{ID: "w1", Building: shed, Wage: 30, Shift: 30 * time.Minute, Workers: 2, Ready: true,
+			Produces: []MaterialLine{{Component: wheat, Quantity: 2}},
+			Recipes: []village.StationRecipeLine{
+				{Default: true, Available: true, Selected: true},
+				{Code: "roving", Name: sampleNamed(c.Lang, "roving", "نخ‌ریسی اولیه", "Roving"), Available: true,
+					Inputs: []MaterialLine{{Component: wool, Quantity: 4}}, Outputs: []MaterialLine{{Component: roving, Quantity: 4}}},
+				{Code: "yarn", Name: sampleNamed(c.Lang, "yarn", "ریسندگی", "Yarn"), Available: false,
+					Missing: []Named{sampleNamed(c.Lang, "weaving_ii", "بافندگی درجه دو", "Weaving II")},
+					Inputs:  []MaterialLine{{Component: roving, Quantity: 4}}, Outputs: []MaterialLine{{Component: yarn, Quantity: 4}}},
+			}}},
+	}))
+	add("Craft started", CraftStarted(g, village.CraftStartedView{Village: villageNameFor(c), Job: village.CraftJobLine{ID: "j1",
+		Building: shed, Recipe: sampleNamed(c.Lang, "yarn", "ریسندگی", "Yarn"), Batches: 2, FinishAt: snapshotNow.Add(50 * time.Minute),
+		Left: 50 * time.Minute, Planned: []MaterialLine{{Component: yarn, Quantity: 2}}}}))
 	add("Sowing ordered", FarmSow(g, village.FarmSowView{Village: villageNameFor(c), Farm: farm, Line: *idle}))
 	add("Toll set", MillToll(g, village.MillTollView{Village: villageNameFor(c), TollBPS: 833, MinBPS: 333, MaxBPS: 1000}))
 	add("Building panel · a canal, its master on duty", BuildingPanel(g, BuildingView{

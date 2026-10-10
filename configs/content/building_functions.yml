@@ -55,6 +55,8 @@ item_storage:
   - {code: cloth,    source: "ADR 0041 6.4", evidence: adr, requires: {}, class: goods, bulk: 1}
   - {code: wool,     source: "ADR 0041 6.4", evidence: adr, requires: {}, class: goods, bulk: 1}
   - {code: tools,     source: "ADR 0041 6.4, 8.12", evidence: adr, requires: {}, class: goods, bulk: 1, note: "the village tool kit; the existing `tool` is an archetype of company goods, not a component"}
+  - {code: stone_tools,  source: "ADR 0068", evidence: adr, requires: {}, class: goods, bulk: 1, note: "tier 0 of the tool ladder: a hafted stone head, made at a carpentry bench from timber and stone"}
+  - {code: forged_tools, source: "ADR 0068", evidence: adr, requires: {}, class: goods, bulk: 1, note: "tier 2 of the tool ladder: forged iron (a saw, a hammer, a pick), made at a smithy from bar iron and a plank"}
   - {code: bandage,  source: "ADR 0041 6.4", evidence: adr, requires: {}, class: goods, bulk: 1}
   - {code: brick,    source: "ADR 0045 4.3", evidence: adr, requires: {}, class: bulk, bulk: 2, note: "a brick is a bulk good of two spaces like stone (owner default 2026-10-10; ADR 0041 6.4 does not list bricks)"}
   # planned: new village goods
@@ -107,14 +109,14 @@ module_kinds:
   - {code: storeroom, source: "ADR 0045 3.2, 0040 6", evidence: D, requires: {}, effect: personal_storage, provides: {personal_storage: 40}, cost_materials: {timber: 2}, build_shifts: 2, area: 1, needs_research: [decay_bps_per_day], note: "personal storage +40 / +100 / +60 by building in ADR 0040 6.2: the cottage's room is one storeroom; B1 draft numbers for the cost"}
   - {code: water_barrel, source: "ADR 0045 3.2", evidence: adr, requires: {}, waits_for: "B6: drinking water at home needs thirst and the well draw (spring_water)", effect: water_supply, needs_research: [cost_materials, build_shifts, decay_bps_per_day]}
   - {code: cellar,    source: "ADR 0045 3.2, 0040 6.2", evidence: D, requires: {knowledge: [masonry]}, effect: storeroom, provides: {personal_storage: 60}, cost_materials: {stone: 3, timber: 1}, build_shifts: 3, area: 0, needs_research: [decay_bps_per_day], note: "under the floor, so it takes no floor area; 60 spaces is what the house has over the cottage (100 less 40, ADR 0040 6.2); B1 draft numbers for the cost"}
-  - {code: workbench, source: "ADR 0045 3.2, 4.1", evidence: adr, requires: {}, waits_for: "B4: personal crafting at home (recipes read the bench)", effect: workbench, area: 2, needs_research: [cost_materials, build_shifts, decay_bps_per_day, crafting_effect], note: "the workshop's bench comes with the function; what it makes is personal crafting (ADR 0045 phase B2), so B1 lets nobody add another"}
+  - {code: workbench, source: "ADR 0045 3.2, 4.1, ADR 0068", evidence: adr, requires: {}, effect: workbench, area: 2, cost_materials: {timber: 4}, build_shifts: 2, decay_bps_per_day: 40, stands_for: [carpentry_workshop], note: "a bench at home: the owner saws planks and hafts stone tools from his own timber (docs/adr/0068)"}
   - {code: shelves,   source: "ADR 0045 3.2", evidence: D, requires: {}, effect: shelves, provides: {stall_slots: 1, personal_storage: 60}, cost_materials: {timber: 2}, build_shifts: 2, area: 2, needs_research: [decay_bps_per_day], note: "in a stall each shelf is one counter of its own on the village book (no listing fee, no common stall used); in any building it is room to keep stock (0040 6.2: a workshop +60); B1 draft numbers"}
   - {code: staff_post, source: "ADR 0045 3.2", evidence: adr, requires: {}, waits_for: "B1c: a hired hand at a private workshop", effect: staff_post, needs_research: [cost_materials, build_shifts]}
-  - {code: forge,     source: "ADR 0045 3.2, 4.2", evidence: adr, requires: {knowledge: [smithing]}, waits_for: "B4: personal smithing at home", effect: forge, needs_research: [cost_materials, build_shifts, decay_bps_per_day]}
-  - {code: loom,      source: "ADR 0045 3.2, 5.3", evidence: adr, requires: {knowledge: [weaving]}, waits_for: "B4: personal weaving at home", effect: loom, needs_research: [cost_materials, build_shifts, decay_bps_per_day]}
-  - {code: kiln,      source: "ADR 0045 3.2", evidence: adr, requires: {knowledge: [pottery]}, waits_for: "B4: personal firing at home", effect: kiln, needs_research: [cost_materials, build_shifts, decay_bps_per_day]}
-  - {code: oven,      source: "ADR 0045 3.2, 4.3", evidence: adr, requires: {knowledge: [milling]}, waits_for: "B4: personal baking at home", effect: oven, needs_research: [cost_materials, build_shifts, decay_bps_per_day]}
-  - {code: millstone, source: "ADR 0045 4.3, 0041 8.15", evidence: adr, requires: {knowledge: [milling]}, waits_for: "B4: personal milling at home", effect: millstone, needs_research: [cost_materials, build_shifts, decay_bps_per_day]}
+  - {code: forge, source: "ADR 0045 3.2, 4.1, ADR 0068", evidence: adr, requires: {knowledge: [smithing]}, effect: forge, area: 2, cost_materials: {stone: 6, brick: 4}, build_shifts: 4, decay_bps_per_day: 40, stands_for: [smithy], note: "a small forge at home: bar iron and tools from his own bloom and charcoal (docs/adr/0068)"}
+  - {code: loom, source: "ADR 0045 3.2, 4.1, ADR 0068", evidence: adr, requires: {knowledge: [weaving]}, effect: loom, area: 2, cost_materials: {timber: 6}, build_shifts: 3, decay_bps_per_day: 40, stands_for: [weaving_shed], note: "a loom at home: cloth from his own yarn (docs/adr/0068)"}
+  - {code: kiln, source: "ADR 0045 3.2, 4.1, ADR 0068", evidence: adr, requires: {knowledge: [pottery]}, effect: kiln, area: 2, cost_materials: {brick: 8}, build_shifts: 3, decay_bps_per_day: 40, stands_for: [kiln], note: "a small kiln at home: bricks from his own clay (docs/adr/0068)"}
+  - {code: oven, source: "ADR 0045 3.2, 4.1, ADR 0068", evidence: adr, requires: {knowledge: [milling]}, effect: oven, area: 2, cost_materials: {brick: 6}, build_shifts: 3, decay_bps_per_day: 40, stands_for: [bakery], note: "a baker oven at home: bread from his own flour (docs/adr/0068)"}
+  - {code: millstone, source: "ADR 0045 3.2, 4.1, ADR 0068", evidence: adr, requires: {knowledge: [milling]}, effect: millstone, area: 1, cost_materials: {stone: 6}, build_shifts: 2, decay_bps_per_day: 40, stands_for: [mill], note: "a quern at home: flour from his own wheat (docs/adr/0068)"}
   - {code: foundation, source: "ADR 0045 3.2", evidence: adr, requires: {knowledge: [masonry]}, waits_for: "B1b: the slope rule of a lot (a steep lot asks a foundation)", effect: foundation, needs_research: [cost_materials, build_shifts, decay_bps_per_day], note: "required on a slope steeper than the lot's limit"}
   - {code: field_plot, source: "ADR 0045 3.2", evidence: adr, requires: {}, waits_for: "B2: a plot at home that grows a crop", effect: field_plot, needs_research: [cost_materials, build_shifts]}
   - {code: barn,      source: "ADR 0045 3.2", evidence: adr, requires: {}, waits_for: "B2: a store for crops and fodder at a farm lot", effect: barn, needs_research: [provides, cost_materials, build_shifts, decay_bps_per_day]}
@@ -305,7 +307,7 @@ building_functions:
       - {level: 1, adds: [workbench], requires: {knowledge: [carpentry]}, cost_money: 1200, cost_materials: {timber: 5}, build_hours: 3}
     staff: [{role: carpenter, slots: 2, shift_hours: 2}]
     if_unstaffed: idle
-    consumes: {inputs: {timber: 3}, food_points: 2, tool_wear_bps: 80}
+    consumes: {inputs: {timber: 3}, food_points: 2, tool_wear_bps: 80, tool_tier: 2}
     produces: {outputs: {plank: 2}, store: goods}
     storage: {needs: {goods: 4}}
     maintenance: {decay_bps_per_day: 60, repair_materials: {timber: 1}, repair_labour: 1}
@@ -328,7 +330,7 @@ building_functions:
       - {level: 1, requires: {knowledge: [masonry]}, cost_money: 1400, cost_materials: {stone: 4}, build_hours: 3}
     staff: [{role: mason, slots: 2, shift_hours: 2}]
     if_unstaffed: idle
-    consumes: {inputs: {stone: 3}, food_points: 2, tool_wear_bps: 120}
+    consumes: {inputs: {stone: 3}, food_points: 2, tool_wear_bps: 120, tool_tier: 2}
     produces: {outputs: {brick: 2}, store: bulk}
     storage: {needs: {bulk: 4}}
     maintenance: {decay_bps_per_day: 60, repair_materials: {stone: 1}, repair_labour: 1}

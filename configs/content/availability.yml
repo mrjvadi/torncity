@@ -397,6 +397,8 @@ availability:
   - {kind: component, code: rag, requires: {buildings: [{code: weaving_shed}]}, note: "ADR 0050: the offcuts of the weaving shed"}
   - {kind: component, code: paper, requires: {buildings: [{code: paper_mill}]}, elsewhere: [{where: support}], note: "ADR 0050: from rags at a paper mill; bought from Support by a village (village_buy)"}
   - {kind: component, code: tools, requires: {buildings: [{code: tool_workshop}]}, elsewhere: [{where: support}], note: "ADR 0050: wooden-hafted stone tools; bought from Support by a village (village_buy)"}
+  - {kind: component, code: stone_tools, requires: {knowledge: [carpentry]}, elsewhere: [{where: support}], note: "ADR 0068: tier 0 of the tool ladder, a recipe of the carpentry bench"}
+  - {kind: component, code: forged_tools, requires: {knowledge: [smithing_ii]}, elsewhere: [{where: support}], note: "ADR 0068: tier 2 of the tool ladder, a recipe of the smithy"}
   - {kind: component, code: pots, requires: {buildings: [{code: pottery_kiln}]}, note: "ADR 0050: fired from clay with firewood"}
   - {kind: component, code: tool_steel, stage: town, requires: {knowledge: [smithing], buildings: [{code: smithy}]}}
   - {kind: component, code: plastic_case, stage: city, requires: {buildings: [{role: craft, tier: 3}]}}

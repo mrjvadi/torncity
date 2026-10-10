@@ -194,6 +194,7 @@ func (f BuildingFunctionDef) generatedWorkplace(roleBPS map[string]int) Settleme
 	}
 	if f.Consumes != nil {
 		d.ToolWearBPS = int64(f.Consumes.ToolWearBPS)
+		d.ToolTier = f.Consumes.ToolTier
 		if len(f.Consumes.Inputs)+len(f.Consumes.Fuel) > 0 {
 			d.Consumes = map[string]int64{}
 			for it, q := range f.Consumes.Inputs {

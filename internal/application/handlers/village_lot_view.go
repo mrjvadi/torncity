@@ -288,6 +288,12 @@ func (h *VillageHandler) fillDetail(ctx context.Context, tx application.Tx, lc *
 	if v.Workplace, werr = h.workplaceLine(ctx, tx, lc); werr != nil {
 		return werr
 	}
+	if lc.owner.mine && v.Built {
+		var cerr error
+		if v.Craft, cerr = h.craftLine(ctx, tx, k.snap, lc.s, lc.b, lc.f, lc.p.ID); cerr != nil {
+			return cerr
+		}
+	}
 
 	// what can be added
 	for _, code := range lotKeys(lc.spec.Slots) {

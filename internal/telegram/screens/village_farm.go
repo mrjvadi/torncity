@@ -120,12 +120,22 @@ func extraLines(c Context, w *village.WorkNode) []string {
 	if g := w.Grazing; g != nil {
 		out = append(out, c.T("building.work.grazing", map[string]any{"open": FormatNumber(c, int64(g.Open)), "need": FormatNumber(c, int64(g.Need))}))
 	}
+	if t := toolText(c, w.Tool); t != "" {
+		out = append(out, t)
+	}
+	if rs := recipeLinesOf(c, w.Recipes); len(rs) > 0 {
+		out = append(out, c.T("village.recipe.head", nil)+"\n"+body(rs...))
+	}
 	return out
 }
 
 // workPlaceExtras are the farm and the mill on a line of the work screen, with the buttons of the sowing and the grinding.
 func workPlaceExtras(c Context, p village.WorkplaceLine, kb *keyboards.Builder) []string {
 	var out []string
+	if rs := recipeLinesOf(c, p.Recipes); len(rs) > 0 {
+		out = append(out, c.T("village.recipe.head", nil)+"\n"+body(rs...))
+		workRecipeButtons(c, p, kb)
+	}
 	if f := p.Farm; f != nil {
 		if f.Legacy {
 			until := time.Time{}

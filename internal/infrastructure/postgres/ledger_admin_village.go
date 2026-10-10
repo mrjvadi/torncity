@@ -101,6 +101,10 @@ type VillageInvariants struct {
 	// that were started for them; FarmHarvestOver the crops harvested past their fixed yield; GrindWithoutCustomer the grinding
 	// shifts of no citizen (migration 0144, ADR 0067).
 	FarmSeedShifts, FarmSeedCycles, FarmShiftsWithoutCycle, FarmCountersBroken, FarmHarvestOver, GrindWithoutCustomer int64
+	// CraftInputsJournal and CraftInputsRows: the goods that left home stores for craft jobs, in the item journal and as the jobs'
+	// consumed goods; CraftMadeJournal and CraftMadeRows the goods that came in, in the journal and as the finished jobs' made
+	// goods; CraftOverPlanned counts finished jobs that made more of a good than they planned (migration 0145, ADR 0068).
+	CraftInputsJournal, CraftInputsRows, CraftMadeJournal, CraftMadeRows, CraftOverPlanned int64
 	NPCShiftsWithoutJob, NPCHungry, CarryOutOfRange    int64
 	// Condition (migration 0126): Repairs is whether the columns exist; RepairWithoutJob counts
 	// repair shifts no repair job posted or that restore nothing; DamageOutOfRange buildings
@@ -217,6 +221,7 @@ type VillageInvariants struct {
 func (v VillageInvariants) WorkNodesOK() bool {
 	return !v.WorkNodes || (v.MealOpenedRows == v.MealOpenedKitchen && v.MealEatenShifts == v.MealEatenKitchen &&
 		v.MealJournalUnits == v.MealRowUnits && v.BoardJournalUnits == v.BoardShiftUnits && v.ClearingLedger == v.ClearingRows && v.LandShiftsWithoutLot == 0 &&
+		v.CraftInputsJournal == v.CraftInputsRows && v.CraftMadeJournal == v.CraftMadeRows && v.CraftOverPlanned == 0 &&
 		v.FarmSeedShifts == v.FarmSeedCycles && v.FarmShiftsWithoutCycle == 0 && v.FarmCountersBroken == 0 && v.FarmHarvestOver == 0 && v.GrindWithoutCustomer == 0 && v.NPCShiftsWithoutJob == 0 && v.NPCHungry == 0 && v.CarryOutOfRange == 0 &&
 		(!v.Repairs || (v.RepairWithoutJob == 0 && v.DamageOutOfRange == 0))) &&
 		(!v.Currencies || (v.PotMismatched == 0 && v.SupplyMismatched == 0 && v.IssuanceMismatched == 0 && v.StrayHoldings == 0)) &&
@@ -434,6 +439,12 @@ func (a *EconomyAdmin) verifyWorkNodes(ctx context.Context, v *LedgerVerificatio
 		{&s.ClearingRows, "clearing fees in the shift rows", `SELECT COALESCE(SUM(wage), 0)::bigint FROM settlement_shifts WHERE land_owner IS NOT NULL`},
 		{&s.LandShiftsWithoutLot, "land shifts whose lot has no delta", `SELECT count(*) FROM settlement_shifts s WHERE s.land_kind IN ('tree', 'rock')
 			AND NOT EXISTS (SELECT 1 FROM settlement_land l WHERE l.settlement_id = s.settlement_id AND l.lot_x = s.land_x AND l.lot_y = s.land_y)`},
+		{&s.CraftInputsJournal, "craft inputs in the item journal", `SELECT COALESCE(SUM(quantity), 0)::bigint FROM item_movements WHERE reason = 'production_input' AND reference_type = 'craft_job'`},
+		{&s.CraftInputsRows, "craft inputs in the job rows", `SELECT COALESCE(SUM(v.value::bigint), 0)::bigint FROM craft_jobs c, jsonb_each_text(c.consumed) v`},
+		{&s.CraftMadeJournal, "craft goods in the item journal", `SELECT COALESCE(SUM(quantity), 0)::bigint FROM item_movements WHERE reason = 'produced' AND reference_type = 'craft_job'`},
+		{&s.CraftMadeRows, "craft goods in the job rows", `SELECT COALESCE(SUM(v.value::bigint), 0)::bigint FROM craft_jobs c, jsonb_each_text(c.made) v WHERE c.status = 'done'`},
+		{&s.CraftOverPlanned, "craft jobs that made more than planned", `SELECT count(*) FROM craft_jobs c WHERE c.status = 'done' AND EXISTS (
+			SELECT 1 FROM jsonb_each_text(c.made) m WHERE m.value::bigint > COALESCE((c.planned->>m.key)::bigint, 0))`},
 		{&s.FarmSeedShifts, "seed the sowing shifts took", `SELECT COALESCE(SUM((consumed->>'wheat')::bigint), 0)::bigint FROM settlement_shifts WHERE farm_phase = 'sow'`},
 		{&s.FarmSeedCycles, "seed the crops record", `SELECT COALESCE(SUM(seed_spent), 0)::bigint FROM farm_cycles`},
 		{&s.FarmShiftsWithoutCycle, "farm shifts of no crop", `SELECT count(*) FROM settlement_shifts s WHERE s.farm_phase IN ('sow', 'tend', 'harvest')

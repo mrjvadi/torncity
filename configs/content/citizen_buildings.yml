@@ -58,7 +58,6 @@ settlement_buildings:
     role: craft
     tier: 1
     name: "کارگاه خانگی"
-    waits_for: "B4: personal crafting at home (the recipes read the bench); standing workshops keep standing"
     owner: citizen
     permit_class: craft
     footprint: [2, 1]

@@ -1,0 +1,23 @@
+version: 1
+# The tool tiers and crafting at home (ADR 0068, ADR 0045 4.2).
+#
+# T0 is the hafted stone tool, T1 the iron-tipped tool (the existing item `tools`, so nothing live changes), T2 the forged iron
+# tool; steel (T3) waits for the mining ADR. A tier is an output multiplier, not a gate: a worker with a lesser tool keeps
+# short_bps of his output for each tier short, with none he works bare-handed as before. A better tool wears wear_divisor
+# times slower for each tier above what the work needs. Home stations make a batch at home_yield_bps (a small bench loses
+# a tenth); a job is up to max_batches batches, a player has up to max_jobs jobs running.
+crafting:
+  source: "ADR 0068"
+  evidence: D
+  requires: {}
+  tools:
+    - {tier: 0, item: stone_tools}
+    - {tier: 1, item: tools}
+    - {tier: 2, item: forged_tools}
+  short_bps: 6000
+  wear_divisor: 2
+  home_yield_bps: 9000
+  max_batches: 4
+  max_jobs: 2
+  home_tool_wear_bps: 100
+  xp_per_batch: 10

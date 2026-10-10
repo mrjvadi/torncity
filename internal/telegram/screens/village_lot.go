@@ -129,6 +129,9 @@ func renderLotDetail(c Context, v village.LotManageView, kb *keyboards.Builder) 
 		lines = append(lines, c.T("village.lot.look", map[string]any{"material": c.T("village.lot.material."+l.Material, nil),
 			"roof": c.T("village.lot.roof."+l.Roof, nil), "windows": FormatNumber(c, int64(l.Windows)), "storeys": FormatNumber(c, int64(l.Storeys))}))
 	}
+	if cb := craftBlock(c, v, kb); len(cb) > 0 {
+		lines = append(lines, body(cb...))
+	}
 	lines = append(lines, c.T("village.lot.cash", map[string]any{"cash": FormatMoney(c, v.Cash)}))
 
 	if v.CanManage && v.Work == nil {

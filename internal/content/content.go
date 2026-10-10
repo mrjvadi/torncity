@@ -330,6 +330,7 @@ type Pack struct {
 	Climate                 []ClimateDef
 	Land                    []LandDef
 	Farming                 []FarmingDef
+	Crafting                []CraftingDef
 	SettlementRaids         []SettlementRaidDef
 	SettlementRaidDetectors []SettlementRaidDetectorDef
 	RoadClasses             []RoadClassDef

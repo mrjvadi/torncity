@@ -223,6 +223,8 @@ type Work struct {
 	Wage int64
 	// ToolWearBPS is the tool wear of one shift, ten-thousandths of a `tools` unit (0 = needs none).
 	ToolWearBPS int64
+	// ToolTier is the tier of tool the work needs for its full output (docs/adr/0068).
+	ToolTier int
 }
 
 // Workplace reports whether the building can be worked in at all.
