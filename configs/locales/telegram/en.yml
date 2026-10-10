@@ -535,6 +535,7 @@ village:
     lot_invalid: "🏠 The request is malformed."
     lot_keep_one: "🏠 At least one part has to stay."
     lot_no_keeper: "🏠 You cannot hire a keeper for this."
+    lot_keeper_terms: "🧺 The keeper's pay has to be within the allowed range."
     lot_keeper_none: "🧺 You cannot hire a keeper now: you already have one, or nobody in town is free."
     desk_empty: "🏦 The treasury has no more units of the town money at the desk; the head must issue more (that takes a deposit)."
     desk_no_sup: "🏦 The treasury does not hold enough SUP to buy that much back."

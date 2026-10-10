@@ -77,6 +77,8 @@ type ShopInvariants struct {
 	// KeeperLedger and KeeperRows: what the stall keepers were paid in the ledger and the keeper_cut column of the trades
 	// (migration 0139, ADR 0062).
 	KeeperLedger, KeeperRows int64
+	// KeeperDayLedger and KeeperDayRows: the day wages in the ledger and in stall_keeper_wages (migration 0140).
+	KeeperDayLedger, KeeperDayRows int64
 }
 
 func (s ShopInvariants) ok() bool {
@@ -85,7 +87,7 @@ func (s ShopInvariants) ok() bool {
 		s.WageLedger == s.WageRows && s.WageMismatched == 0 && s.PlayerDayBroken == 0 &&
 		s.GrantsUnjournalled == 0 && s.GrantsDuplicated == 0 && s.BagsWornNotCarried == 0 &&
 		s.StoreWageLedger == s.StoreWageRows && s.StoreWageMismatched == 0 && s.SpoilJournal == s.SpoilRows &&
-		s.MarketDuesLedger == s.MarketDuesRows && s.ListingLedger == s.ListingRows && s.KeeperLedger == s.KeeperRows &&
+		s.MarketDuesLedger == s.MarketDuesRows && s.ListingLedger == s.ListingRows && s.KeeperLedger == s.KeeperRows && s.KeeperDayLedger == s.KeeperDayRows &&
 		s.MixedCurrency == 0 && s.NilMovements == 0 && (s.MaxMarkupBPS == 0 || s.MinMarkupBPS >= 10_000)
 }
 
@@ -154,6 +156,9 @@ func (a *EconomyAdmin) verifyShop(ctx context.Context, v *LedgerVerification) er
 		{&s.KeeperLedger, "stall keeper wages in the ledger", `SELECT COALESCE(SUM(amount), 0)::bigint FROM ledger_entries
 			WHERE reason = 'stall_keeper_wage' AND amount > 0
 			  AND reference_id IN (SELECT id FROM market_trades)`},
+		{&s.KeeperDayLedger, "stall keeper day wages in the ledger", `SELECT COALESCE(SUM(amount), 0)::bigint FROM ledger_entries
+			WHERE reason = 'stall_keeper_day_wage' AND amount > 0 AND reference_id IN (SELECT keeper_id FROM stall_keeper_wages)`},
+		{&s.KeeperDayRows, "stall keeper day wages in the rows", `SELECT COALESCE(SUM(amount), 0)::bigint FROM stall_keeper_wages`},
 		{&s.KeeperRows, "stall keeper wages on the trades", `SELECT COALESCE(SUM(keeper_cut), 0)::bigint FROM market_trades`},
 		{&s.ListingLedger, "village market listing fees in the ledger", `SELECT COALESCE(SUM(amount), 0)::bigint FROM ledger_entries
 			WHERE reason = 'village_market_listing_fee' AND amount > 0

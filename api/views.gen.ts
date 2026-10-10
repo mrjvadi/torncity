@@ -3368,7 +3368,14 @@ export interface LotGridView {
 
 export interface LotKeeperLine {
   hired: boolean
+  pay: string
   share_bps: number
+  share_min_bps: number
+  share_max_bps: number
+  wage: number
+  wage_min: number
+  wage_max: number
+  left: string
   can: boolean
   reason: string
   seats_free: number

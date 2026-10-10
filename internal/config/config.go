@@ -1190,6 +1190,11 @@ type Trade struct {
 	MarketDayEveryDays int // trade.market_day_every_days
 	// StallKeeperShareBPS is the share of a sale a hired stall keeper takes while the owner is away (docs/adr/0062).
 	StallKeeperShareBPS int // trade.stall_keeper_share_bps
+	// The owner chooses within these when he hires (ADR 0062 addendum): a share of sales, StallKeeperShareMinBPS to
+	// StallKeeperShareMaxBPS (the default is StallKeeperShareBPS), or a fixed day wage, StallKeeperWageMin to StallKeeperWageMax
+	// minor units (the default is StallKeeperWage).
+	StallKeeperShareMinBPS, StallKeeperShareMaxBPS          int // trade.stall_keeper_share_min_bps, .stall_keeper_share_max_bps
+	StallKeeperWage, StallKeeperWageMin, StallKeeperWageMax int // trade.stall_keeper_wage, .stall_keeper_wage_min, .stall_keeper_wage_max
 	// MarketMaxQuantity and MarketMaxPrice bound one order.
 	MarketMaxQuantity int   // trade.market_max_quantity
 	MarketMaxPrice    int64 // trade.market_max_price
@@ -2030,7 +2035,8 @@ func Defaults() *Config {
 			MarketMaxOpenOrders: 20,
 			VillageStallsPost:   6, VillageStallsHall: 20,
 			VillageStallsPerPlayerPost: 3, VillageStallsPerPlayerHall: 6,
-			MarketDayEveryDays: 7, StallKeeperShareBPS: 1000,
+			MarketDayEveryDays: 7, StallKeeperShareBPS: 1000, StallKeeperShareMinBPS: 500, StallKeeperShareMaxBPS: 2000,
+			StallKeeperWage: 600, StallKeeperWageMin: 300, StallKeeperWageMax: 1500,
 			MarketMaxQuantity:  10000,
 			MarketMaxPrice:     100_000_000,
 			AuctionDurations:   []time.Duration{time.Hour, 6 * time.Hour, 24 * time.Hour},
