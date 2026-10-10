@@ -542,6 +542,8 @@ func (s *Server) cors(next http.Handler) http.Handler {
 		if origin != "" && s.cfg.AllowedOrigin != "" && origin == s.cfg.AllowedOrigin {
 			w.Header().Set("Access-Control-Allow-Origin", origin)
 			w.Header().Set("Vary", "Origin")
+			// the page reads a layout's entity tag to ask for it again with If-None-Match (docs/adr/0065)
+			w.Header().Set("Access-Control-Expose-Headers", "ETag")
 			if r.Method == http.MethodOptions {
 				w.Header().Set("Access-Control-Allow-Methods", "GET, POST")
 				// A browser engine may ask for more than these two (Godot's
