@@ -64,7 +64,7 @@ func TestClientVillageCommandsAndLayout(t *testing.T) {
 	head := insertPlayer(t, pool)
 	stranger := insertPlayer(t, pool)
 	uow := postgres.NewUnitOfWork(pool, testDefaultLanguage)
-	snap := loadTestContent(t)
+	snap := loadTestContentOpen(t, "militia_camp") // a 2x1 building, to turn: the fixture of the rotation rules
 	source := staticContentSource{snap: snap}
 	clk := &testClock{now: time.Date(2027, 3, 1, 0, 0, 0, 0, time.UTC)}
 	catalog, err := i18n.Load(filepath.Join("..", "configs", "locales"))
