@@ -1243,15 +1243,20 @@ func (h *VillageHandler) LaborPost(ctx context.Context, meta envelope.Metadata, 
 					return "", "", refuseVillage(village.RecipeNotHere, village.AddrLaborBoard)
 				}
 			}
-			err = tx.SettlementTreasury().PostJob(ctx, application.LaborJob{
-				ID: h.ids.NewID(), SettlementID: s.CityID, BuildingID: b.ID, Kind: jobKind, EmployerKind: kind, EmployerID: employer,
-				Wage: d.Wage, ShiftsTotal: productionJobShifts, CreatedBy: p.ID, CreatedAt: h.now(), Recipe: recipe,
-			})
-			if stderrors.Is(err, application.ErrJobExists) {
-				// the job is open: posting again with a recipe changes what its crew makes
-				if open, jerr := tx.SettlementTreasury().JobOfBuilding(ctx, b.ID); jerr == nil && open != nil && open.Kind == jobKind {
+			// the job is open: posting again with a recipe changes what its crew makes (checked first: a duplicate insert
+			// would abort the transaction)
+			if open, jerr := tx.SettlementTreasury().JobOfBuilding(ctx, b.ID); jerr != nil {
+				err = jerr
+			} else if open != nil {
+				if open.Kind == jobKind && recipe != "" {
 					err = tx.SettlementTreasury().SetJobRecipe(ctx, open.ID, recipe)
-				} else {
+				}
+			} else {
+				err = tx.SettlementTreasury().PostJob(ctx, application.LaborJob{
+					ID: h.ids.NewID(), SettlementID: s.CityID, BuildingID: b.ID, Kind: jobKind, EmployerKind: kind, EmployerID: employer,
+					Wage: d.Wage, ShiftsTotal: productionJobShifts, CreatedBy: p.ID, CreatedAt: h.now(), Recipe: recipe,
+				})
+				if stderrors.Is(err, application.ErrJobExists) {
 					err = nil
 				}
 			}

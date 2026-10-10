@@ -103,8 +103,7 @@ type VillageInvariants struct {
 	FarmSeedShifts, FarmSeedCycles, FarmShiftsWithoutCycle, FarmCountersBroken, FarmHarvestOver, GrindWithoutCustomer int64
 	// CraftInputsJournal and CraftInputsRows: the goods that left home stores for craft jobs, in the item journal and as the jobs'
 	// consumed goods; CraftMadeJournal and CraftMadeRows the goods that came in, in the journal and as the finished jobs' made
-	// goods; CraftOverPlanned counts finished jobs that made more of a good than they planned; ShiftRecipeUnknown counts workshop
-	// shifts of a recipe with no output recorded while the shift is done (migration 0145, ADR 0068).
+	// goods; CraftOverPlanned counts finished jobs that made more of a good than they planned (migration 0145, ADR 0068).
 	CraftInputsJournal, CraftInputsRows, CraftMadeJournal, CraftMadeRows, CraftOverPlanned int64
 	NPCShiftsWithoutJob, NPCHungry, CarryOutOfRange    int64
 	// Condition (migration 0126): Repairs is whether the columns exist; RepairWithoutJob counts
