@@ -41,16 +41,24 @@ func (c Context) injuryLines(v *InjuryView) string {
 }
 
 func treatAddress(o TreatOption) string {
-	if o.Provider == application.ProviderClinic {
+	switch o.Provider {
+	case application.ProviderClinic:
 		return o.Clinic.Code
+	case application.ProviderHouse, application.ProviderVillageClinic:
+		return o.Provider
 	}
 	return TreatCity
 }
 
 // providerName names who treats.
 func (c Context) providerName(o TreatOption) string {
-	if o.Provider == application.ProviderClinic {
+	switch o.Provider {
+	case application.ProviderClinic:
 		return c.T("health.clinic_name", map[string]any{"name": o.Clinic.Name, "code": o.Clinic.Code})
+	case application.ProviderHouse:
+		return c.T("health.house_name", nil)
+	case application.ProviderVillageClinic:
+		return c.T("health.village_clinic_name", nil)
 	}
 	return c.T("health.city_hospital", nil)
 }
@@ -67,8 +75,12 @@ func renderHospital(c Context, v HospitalView) *presenter.Response {
 	var state string
 	switch {
 	case v.InHospital:
+		in := "health.in_hospital"
+		if v.Founded {
+			in = "health.in_village" // a settlement's own care, not a hospital nobody built
+		}
 		state = body(
-			c.T("health.in_hospital", map[string]any{"city": c.CityName(v.CityCode, v.City)}),
+			c.T(in, map[string]any{"city": c.CityName(v.CityCode, v.City)}),
 			c.T("health.cause."+v.Cause, nil),
 			c.T("health.remaining", map[string]any{"remaining": FormatDuration(c, v.Remaining)}),
 			clockLine(c, "health.discharge_at", v.EndsAt),
@@ -85,14 +97,18 @@ func renderHospital(c Context, v HospitalView) *presenter.Response {
 		care = c.T("health.treated_by", map[string]any{"provider": c.providerName(v.TreatedBy)})
 	case v.InHospital:
 		lines := []string{c.T("health.treat_title", nil)}
-		options := make([]TreatOption, 0, len(v.Clinics)+1)
+		if v.Care != nil && v.CityHospital == nil && len(v.Village) == 0 && len(v.Clinics) == 0 {
+			lines = []string{c.T("health.care.nobody", nil)} // nobody in the settlement can treat the stay: rest does
+		}
+		options := make([]TreatOption, 0, len(v.Clinics)+len(v.Village)+1)
 		if v.CityHospital != nil {
 			options = append(options, *v.CityHospital)
 		}
+		options = append(options, v.Village...)
 		options = append(options, v.Clinics...)
 		for _, o := range options {
 			lines = append(lines, c.treatLine(o))
-			if !o.CanTreat && o.Provider == application.ProviderClinic {
+			if !o.CanTreat && o.Provider != application.ProviderCity {
 				continue
 			}
 			label := c.T("health.button.treat", map[string]any{"provider": c.providerName(o),
@@ -101,6 +117,7 @@ func renderHospital(c Context, v HospitalView) *presenter.Response {
 				kb.Row(btn)
 			}
 		}
+		lines = append(lines, c.careLines(v.Care)...)
 		care = body(lines...)
 	case len(v.Clinics) > 0:
 		lines := []string{c.T("health.clinics_title", map[string]any{"city": c.CityName(v.CityCode, v.City)})}
@@ -119,15 +136,49 @@ func renderHospital(c Context, v HospitalView) *presenter.Response {
 func (c Context) treatLine(o TreatOption) string {
 	args := map[string]any{"provider": c.providerName(o), "price": FormatMoney(c, o.Price),
 		"saves": FormatDuration(c, o.Saves), "doctor": FormatNumber(c, int64(o.Doctor))}
+	village := o.Provider == application.ProviderHouse || o.Provider == application.ProviderVillageClinic
 	switch {
 	case o.Provider == application.ProviderCity:
 		return c.T("health.offer.city", args)
+	case !o.Open && village && o.Idle != "":
+		args["why"] = c.T("health.idle."+o.Idle, nil)
+		return c.T("health.offer.closed_why", args)
 	case !o.Open:
 		return c.T("health.offer.closed", args)
+	case !o.CanTreat && village:
+		return c.T("health.offer.village_no_medicine", args)
 	case !o.CanTreat:
 		return c.T("health.offer.no_medicine", args)
+	case o.Provider == application.ProviderHouse:
+		return c.T("health.offer.house", args)
+	case o.Provider == application.ProviderVillageClinic:
+		return c.T("health.offer.village_clinic", args)
 	}
 	return c.T("health.offer.clinic", args)
+}
+
+// careLines say what a founded settlement lacks for its hurt, and what its head can build.
+func (c Context) careLines(v *CareView) []string {
+	if v == nil {
+		return nil
+	}
+	var out []string
+	if v.CityHospitalGone {
+		out = append(out, c.T("health.care.no_city_hospital", nil))
+	}
+	if !v.House.Present && v.House.Building.Name != "" {
+		out = append(out, c.T("health.care.build_house", map[string]any{"building": v.House.Building.Name}))
+	}
+	if v.House.Present && !v.Clinic.Present && v.Clinic.Building.Name != "" {
+		out = append(out, c.T("health.care.build_clinic", map[string]any{"building": v.Clinic.Building.Name}))
+	}
+	if v.NoMedicine && (v.House.Present || v.Clinic.Present) {
+		out = append(out, c.T("health.care.no_medicine", map[string]any{"building": v.Apothecary.Name}))
+	}
+	if v.CityHospitalGone && v.Refer.Code != "" {
+		out = append(out, c.T("health.care.refer", map[string]any{"city": c.CityName(v.Refer.Code, v.Refer.Name)}))
+	}
+	return out
 }
 
 // clinicLine is one clinic, for someone not in hospital.
@@ -146,8 +197,12 @@ func TreatConfirm(c Context, v TreatConfirmView) *presenter.Response {
 }
 
 func renderTreatConfirm(c Context, v TreatConfirmView) *presenter.Response {
+	confirm := "health.confirm"
+	if v.Option.Price == 0 {
+		confirm = "health.confirm_free"
+	}
 	text := body(
-		c.T("health.confirm", map[string]any{"provider": c.providerName(v.Option), "price": FormatMoney(c, v.Option.Price),
+		c.T(confirm, map[string]any{"provider": c.providerName(v.Option), "price": FormatMoney(c, v.Option.Price),
 			"saves": FormatDuration(c, v.Option.Saves), "remaining": FormatDuration(c, v.Remaining)}),
 		clockLine(c, "health.discharge_new", v.EndsAt),
 	)

@@ -40,6 +40,37 @@ func healthSnapshots(c Context, who people, add func(string, *presenter.Response
 		Remaining: 90 * time.Second, EndsAt: snapshotNow.Add(90 * time.Second), Treated: true, TreatedBy: good}))
 	add("Hospital · full health, nowhere", Hospital(c, HospitalView{Health: 100, Max: 100}))
 
+	// a founded settlement (docs/adr/0069): the care it built, not a hospital it never had
+	house := TreatOption{Provider: application.ProviderHouse, Saves: 54 * time.Second, Open: true, CanTreat: true, Medicine: "bandage", Stock: 4}
+	houseClosed := TreatOption{Provider: application.ProviderHouse, Idle: "no_staff"}
+	houseEmpty := TreatOption{Provider: application.ProviderHouse, Open: true}
+	vclinic := TreatOption{Provider: application.ProviderVillageClinic, Price: 3200, Saves: 2*time.Minute + 6*time.Second, Open: true, CanTreat: true,
+		Medicine: "painkillers", Stock: 3}
+	vclinicEmpty := TreatOption{Provider: application.ProviderVillageClinic, Price: 3200, Open: true}
+	site := func(code, name string, present, open bool) CareSiteView {
+		return CareSiteView{Building: Named{Code: code, Name: name}, Present: present, Open: open}
+	}
+	hnames := map[string][4]string{"fa": {"خانهٔ بهداشت", "درمانگاه", "عطاری", "شهر مرکزی"}, "en": {"Health house", "Clinic", "Apothecary", "Central city"}}[c.Lang]
+	add("Hospital · a settlement with a health house and a clinic", Hospital(c, HospitalView{Health: 23, Max: 100,
+		CityCode: "ostmarch", City: "Ostmarch", InHospital: true, Cause: application.CauseWork, Founded: true,
+		Remaining: 6 * time.Minute, EndsAt: snapshotNow.Add(6 * time.Minute), Village: []TreatOption{house, vclinic},
+		Care: &CareView{CityHospitalGone: true, House: site("health_house", hnames[0], true, true), Clinic: site("clinic", hnames[1], true, true)}}))
+	add("Hospital · a settlement with a closed house and no medicine", Hospital(c, HospitalView{Health: 23, Max: 100,
+		CityCode: "ostmarch", City: "Ostmarch", InHospital: true, Cause: application.CauseCrime, Founded: true,
+		Remaining: 6 * time.Minute, EndsAt: snapshotNow.Add(6 * time.Minute), Village: []TreatOption{houseClosed, vclinicEmpty, houseEmpty},
+		Care: &CareView{CityHospitalGone: true, NoMedicine: true, House: site("health_house", hnames[0], true, false),
+			Clinic: site("clinic", hnames[1], true, true), Apothecary: Named{Code: "apothecary", Name: hnames[2]},
+			Refer: Named{Code: "support", Name: hnames[3]}}}))
+	add("Hospital · a settlement with no care built", Hospital(c, HospitalView{Health: 23, Max: 100,
+		CityCode: "ostmarch", City: "Ostmarch", InHospital: true, Cause: application.CauseCrime, Founded: true,
+		Remaining: 6 * time.Minute, EndsAt: snapshotNow.Add(6 * time.Minute),
+		Care: &CareView{CityHospitalGone: true, House: site("health_house", hnames[0], false, false), Clinic: site("clinic", hnames[1], false, false),
+			Refer: Named{Code: "support", Name: hnames[3]}}}))
+	add("Treat · confirm, first aid at the health house", TreatConfirm(c, TreatConfirmView{Option: house, Remaining: 6 * time.Minute,
+		EndsAt: snapshotNow.Add(5*time.Minute + 6*time.Second)}))
+	add("Treat · treated at the town clinic", Treated(c, TreatedView{Option: vclinic, Paid: 3200, Method: MethodCash,
+		Saved: 2*time.Minute + 6*time.Second, Remaining: 4 * time.Minute, EndsAt: snapshotNow.Add(4 * time.Minute)}))
+
 	add("Treat · confirm at a clinic", TreatConfirm(c, TreatConfirmView{Option: good, Remaining: 6 * time.Minute,
 		EndsAt: snapshotNow.Add(90 * time.Second),
 		Payment: &PaymentChoice{Amount: 1200, Accepted: []string{MethodCash, MethodCard}, Usable: []string{MethodCash, MethodCard},

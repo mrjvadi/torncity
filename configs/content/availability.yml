@@ -52,7 +52,7 @@ staff_roles:
   - {code: teacher, building: {role: education, tier: 1}, personal: [{kind: literacy}], support_npc: true, note: "a qualified citizen or the building's staff; ADR 0038 owner decision 6 point 3"}
   - {code: trainer, building: {code: training_ground}, skill: strength, wage_bps: 11000, personal: [{kind: level, min: 2}], support_npc: true, note: "2026-10-03: the trainer of the training ground; upkeep pays the wage, the session fee goes to the treasury"}
   - {code: health_worker, wage_bps: 11000, building: {role: health, tier: 1}, personal: [{kind: certificate, code: first_aid}], support_npc: true, note: "village health worker (Iran: behvarz), ADR 0038 section 2"}
-  - {code: nurse, building: {role: health, tier: 2}, personal: [{kind: certificate, code: nursing}], support_npc: true}
+  - {code: nurse, wage_bps: 13000, building: {role: health, tier: 2}, personal: [{kind: certificate, code: nursing}], support_npc: true}
   - {code: watchman, wage_bps: 10000, building: {role: security, tier: 1}, personal: [{kind: level, min: 2}], support_npc: true, note: "village watch warden, ADR 0036 section 9.4"}
   # Roles of the working buildings (roadmap step 0.5; ADR 0041 5.1, ADR 0042 8.9, ADR 0045 8.3):
   # `skill` is the trade the shifts train (a planned skill until the skill set in code
@@ -64,6 +64,8 @@ staff_roles:
   - {code: carpenter, crew: true, skill: carpentry, wage_bps: 14000, support_npc: true, note: "ADR 0041 5.1; owner 2026-10-10: no level is asked, anyone may work the trade to learn it"}
   - {code: mason, crew: true, skill: masonry, wage_bps: 14000, support_npc: true, note: "ADR 0041 5.1; owner 2026-10-10: no level is asked, anyone may work the trade to learn it"}
   - {code: smith, skill: smithing, wage_bps: 15000, personal: [{kind: level, min: 3}], support_npc: true, note: "ADR 0041 5.1"}
+  - {code: herbalist, skill: herbalism, wage_bps: 11000, support_npc: true, note: "ADR 0069: tends the beds of the herb garden; an NPC of the pool or a player"}
+  - {code: apothecary, skill: herbalism, wage_bps: 13000, support_npc: true, note: "ADR 0069: prepares the remedies; an NPC of the pool or a player"}
   - {code: weaver, skill: weaving, wage_bps: 13000, support_npc: true, note: "ADR 0041 5.1"}
   - {code: potter, skill: pottery, wage_bps: 13000, support_npc: true, note: "ADR 0041 5.1"}
   - {code: miller, skill: milling, wage_bps: 13000, support_npc: true, note: "ADR 0041 5.1"}
@@ -110,6 +112,8 @@ availability:
   - {kind: building, code: barracks, stage: town, growth: {requires: {knowledge: [military_drill, masonry_ii], buildings: [{role: security, tier: 1}, {role: storage, tier: 1}]}, note: "2026-10-03 audit: drilled men need a watch to recruit from and a granary to feed them"}, elsewhere: [{where: support}]}
   - {kind: building, code: port, stage: city, growth: {requires: {knowledge: [trading_post, masonry_iii, carpentry_iii], buildings: [{role: market, tier: 2}, {code: road}]}, note: "2026-10-03 audit: a trading post for the harbour trade, quay masonry, ship carpentry, a market and a road to carry cargo"}, elsewhere: [{where: support}]}
   - {kind: building, code: airport, stage: city, growth: {requires: {knowledge: [electricity, masonry_iii], buildings: [{code: road}, {role: craft, tier: 3}, {role: extraction, tier: 2}]}, note: "2026-10-03 audit: lighting and radio need electricity, fuel needs a mine, aircraft need a large workshop, the runway needs a road and dressed stone"}, elsewhere: [{where: support}]}
+  - {kind: building, code: herb_garden, stage: village, requires: {knowledge: [herbalism]}}
+  - {kind: building, code: apothecary, stage: village, requires: {knowledge: [herbalism]}}
   - {kind: building, code: forester_lodge, stage: village, requires: {knowledge: [forestry]}}
   - {kind: building, code: woodcutter_camp, stage: village, growth: {open: true, founding: true, row: 10}}
   - {kind: building, code: watch_hut, stage: village}
@@ -176,6 +180,7 @@ availability:
   - {kind: knowledge, code: basic_literacy, stage: village, growth: {open: true, founding: true, row: 49}, elsewhere: [{where: support}]}
   - {kind: knowledge, code: record_keeping, stage: village, growth: {open: true, founding: true, row: 50}, elsewhere: [{where: support}]}
   - {kind: knowledge, code: basic_medicine, stage: village, growth: {open: true, founding: true, row: 51}, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: herbalism, requires: {knowledge: [basic_medicine]}, elsewhere: [{where: support}]}
   - {kind: knowledge, code: basic_medicine_ii, stage: town, elsewhere: [{where: support}]}
   - {kind: knowledge, code: carpentry, stage: village, growth: {open: true, founding: true, row: 53}, elsewhere: [{where: support}]}
   - {kind: knowledge, code: forestry, requires: {knowledge: [carpentry]}, elsewhere: [{where: support}]}
@@ -394,6 +399,7 @@ availability:
   - {kind: component, code: firewood, requires: {buildings: [{code: woodcutter_camp}]}, note: "ADR 0050: cut with the timber at the woodcutter's camp"}
   - {kind: component, code: clay, requires: {buildings: [{code: clay_pit}]}, elsewhere: [{where: support}], note: "ADR 0050: dug on a riverside lot; bought from Support by a village (village_buy)"}
   - {kind: component, code: hide, requires: {buildings: [{code: pasture_range}]}, note: "ADR 0050: the herd's culled animals' hides; the tannery is a later link"}
+  - {kind: component, code: herbs, requires: {buildings: [{code: herb_garden}]}, note: "ADR 0069: grown in the beds of the herb garden"}
   - {kind: component, code: rag, requires: {buildings: [{code: weaving_shed}]}, note: "ADR 0050: the offcuts of the weaving shed"}
   - {kind: component, code: paper, requires: {buildings: [{code: paper_mill}]}, elsewhere: [{where: support}], note: "ADR 0050: from rags at a paper mill; bought from Support by a village (village_buy)"}
   - {kind: component, code: tools, requires: {buildings: [{code: tool_workshop}]}, elsewhere: [{where: support}], note: "ADR 0050: wooden-hafted stone tools; bought from Support by a village (village_buy)"}

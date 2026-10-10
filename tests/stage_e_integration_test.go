@@ -65,6 +65,7 @@ func purgeStageE(t *testing.T, pool *postgres.Pool, players ...string) {
 	}{
 		{`ALTER TABLE ledger_entries DISABLE TRIGGER ledger_entries_append_only`, false},
 		{`ALTER TABLE hospital_treatments DISABLE TRIGGER hospital_treatments_append_only`, false},
+		{`ALTER TABLE village_treatments DISABLE TRIGGER village_treatments_append_only`, false},
 		{`CREATE TEMP TABLE purge_efac ON COMMIT DROP AS
 		   SELECT id FROM factions WHERE leader_id = ANY($1::uuid[])
 		   UNION SELECT faction_id FROM faction_members WHERE player_id = ANY($1::uuid[])`, true},
@@ -89,6 +90,7 @@ func purgeStageE(t *testing.T, pool *postgres.Pool, players ...string) {
 		     AND payload->>'faction_code' IN (SELECT code FROM factions WHERE id IN (SELECT id FROM purge_efac))`, false},
 		{`DELETE FROM factions WHERE id IN (SELECT id FROM purge_efac)`, false},
 		{`CREATE TEMP TABLE purge_eco ON COMMIT DROP AS SELECT id FROM companies WHERE owner_player_id = ANY($1::uuid[])`, true},
+		{`DELETE FROM village_treatments WHERE treatment_id IN (SELECT id FROM hospital_treatments WHERE player_id = ANY($1::uuid[]))`, true},
 		{`DELETE FROM hospital_treatments WHERE player_id = ANY($1::uuid[]) OR company_id IN (SELECT id FROM purge_eco)`, true},
 		{`CREATE TEMP TABLE purge_estay ON COMMIT DROP AS
 		   SELECT id, game_action_id FROM hospital_stays WHERE player_id = ANY($1::uuid[])`, true},
@@ -104,6 +106,7 @@ func purgeStageE(t *testing.T, pool *postgres.Pool, players ...string) {
 		     OR subject LIKE 'game.event.mission.%') AND EXISTS (SELECT 1 FROM unnest($1::text[]) p WHERE payload::text LIKE '%' || p || '%')`, true},
 		{`ALTER TABLE ledger_entries ENABLE TRIGGER ledger_entries_append_only`, false},
 		{`ALTER TABLE hospital_treatments ENABLE TRIGGER hospital_treatments_append_only`, false},
+		{`ALTER TABLE village_treatments ENABLE TRIGGER village_treatments_append_only`, false},
 	} {
 		var args []any
 		if step.arg {

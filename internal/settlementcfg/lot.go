@@ -47,6 +47,12 @@ func Farm(s config.Settlement) application.FarmRules {
 	return application.FarmRules{RuleAt: from, GraceDays: s.FarmGraceDays}
 }
 
+// Care turns the care settings (settlement.care_*, docs/adr/0069) into the rules of care in a founded settlement.
+func Care(s config.Settlement) application.CareRules {
+	from, _ := time.Parse(time.RFC3339, s.CareRuleAt) // not an instant: the city hospital stays
+	return application.CareRules{RuleAt: from, GraceDays: s.CareGraceDays}
+}
+
 // Craft turns the crafting settings (settlement.crafting_*, docs/adr/0068) into the rules of the tool tiers.
 func Craft(s config.Settlement) application.CraftRules {
 	from, _ := time.Parse(time.RFC3339, s.CraftingRuleAt) // not an instant: the tiers are off

@@ -2,6 +2,8 @@ package life
 
 import (
 	"time"
+
+	"github.com/mrjvadi/torncity/internal/presentation"
 )
 
 // InjuryView is an injury as a screen reports it: what it took, where it
@@ -27,6 +29,10 @@ type TreatOption struct {
 	Stock    int64
 	Open     bool
 	CanTreat bool
+	// Medicine is the good a treatment of a settlement's health house or clinic would take from the stock ("" when the stock
+	// holds none); Idle is why its post is closed (no_staff, no_wage, no_supplies), "" when open (docs/adr/0069).
+	Medicine string
+	Idle     string
 }
 
 // HospitalView is the hospital screen.
@@ -47,6 +53,32 @@ type HospitalView struct {
 	// make (not in hospital, or treated).
 	CityHospital *TreatOption
 	Clinics      []TreatOption
+	// Village is what a founded settlement offers: its health house and clinic, the ones that stand; Care says what is
+	// missing. Both are empty in a city with a hospital of its own (docs/adr/0069).
+	Village []TreatOption
+	Care    *CareView
+	// Founded says the stay is in a founded settlement, whose care is what it built, not a hospital (docs/adr/0069).
+	Founded bool
+}
+
+// CareView is what a founded settlement lacks for its hurt, with what the head can build.
+type CareView struct {
+	// CityHospitalGone says the settlement is no longer offered a city hospital it never built.
+	CityHospitalGone bool
+	House, Clinic    CareSiteView
+	// Apothecary is where the medicine is made, named when the stock holds none a post would use.
+	Apothecary presentation.Named
+	NoMedicine bool
+	// Refer is the city with a hospital a discharged patient can go to; Code is empty when none is known.
+	Refer presentation.Named
+}
+
+// CareSiteView is a health house or a clinic: the building to build, and whether one stands and is open today.
+type CareSiteView struct {
+	Building      presentation.Named
+	Present, Open bool
+	// Idle is why the post is closed today (no_staff, no_wage, no_supplies).
+	Idle string
 }
 
 // TreatConfirmView is a treatment's price, before it is paid.

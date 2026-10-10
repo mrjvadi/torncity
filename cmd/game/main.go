@@ -586,7 +586,8 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	// Stage E (docs/adr/0023): health and hospitals on the game clock; what
 	// a hospital charges and how well it treats are content.
 	h.stageE.health = handlers.NewHealthHandler(uow, uuidGenerator{}, messages, registry, cities,
-		gametime.Scale(cfg.Game.TimeScale), bankLimits, cfg.Game.IdempotencyTTL, nil)
+		gametime.Scale(cfg.Game.TimeScale), bankLimits, cfg.Game.IdempotencyTTL, nil).
+		WithVillageCare(h.village, settlementcfg.Care(cfg.Settlement)) // ADR 0069: a founded settlement has the care it built
 	h.profile.WithHealth(gametime.Scale(cfg.Game.TimeScale))
 	h.profile.WithHungerAlert(cfg.Notifications.HungerAlertCooldown)
 	// Factions: what founding one costs and the organised crimes are

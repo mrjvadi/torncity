@@ -73,8 +73,8 @@ func TestShippedCraftingIsCoherent(t *testing.T) {
 			read++
 		}
 	}
-	if read != 16 {
-		t.Errorf("16 recipes are read (14 rows of the ADR, row 17 as three): %d", read)
+	if read != 19 {
+		t.Errorf("19 recipes are read (14 rows of the ADR, row 17 as three, and three remedies of ADR 0069): %d", read)
 	}
 }
 

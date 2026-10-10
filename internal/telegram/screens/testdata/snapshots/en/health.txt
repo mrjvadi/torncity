@@ -59,6 +59,83 @@ Discharged at 14:36
   ───
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → health:hospital
 
+━━━ Hospital · a settlement with a health house and a clinic ━━━
+(edits message 42) (private in groups)
+<b>🏥 Hospital</b>
+
+❤️ Health: 23 of 100
+
+🛏 You are laid up in Ostmarch and must rest.
+Cause: an accident at work
+⏳ 6m until you are discharged
+Discharged at 14:41
+
+🩺 Who should treat you? A stay is treated once:
+• The health house: free - 54s sooner out (one bandage from the settlement stock)
+• The town clinic: 3,200 SUP - 3m sooner out (one medicine from the settlement stock)
+🏘 This settlement has built no hospital; care here is what its people built and staffed.
+  ───
+  [🩺 The health house - 0 SUP] → health:treat:health_house
+  [🩺 The town clinic - 3,200 SUP] → health:treat:village_clinic
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → health:hospital
+
+━━━ Hospital · a settlement with a closed house and no medicine ━━━
+(edits message 42) (private in groups)
+<b>🏥 Hospital</b>
+
+❤️ Health: 23 of 100
+
+🛏 You are laid up in Ostmarch and must rest.
+Cause: hurt on a job
+⏳ 6m until you are discharged
+Discharged at 14:41
+
+🩺 Who should treat you? A stay is treated once:
+• The health house: closed today - nobody is on duty
+• The town clinic: open, but the settlement stock holds no medicine
+• The health house: open, but the settlement stock holds no medicine
+🏘 This settlement has built no hospital; care here is what its people built and staffed.
+💊 The settlement stock holds no medicine. The "Apothecary" makes it from medicinal herbs; people can also donate bandages and medicine to the stock.
+🧭 A full hospital is in Central City; you can go there once you are discharged.
+  ───
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → health:hospital
+
+━━━ Hospital · a settlement with no care built ━━━
+(edits message 42) (private in groups)
+<b>🏥 Hospital</b>
+
+❤️ Health: 23 of 100
+
+🛏 You are laid up in Ostmarch and must rest.
+Cause: hurt on a job
+⏳ 6m until you are discharged
+Discharged at 14:41
+
+🛏 Nobody in the settlement can treat you right now; rest until you are well again.
+🏘 This settlement has built no hospital; care here is what its people built and staffed.
+🔧 The settlement has no health house. Its head can build a "Health house".
+🧭 A full hospital is in Central City; you can go there once you are discharged.
+  ───
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → health:hospital
+
+━━━ Treat · confirm, first aid at the health house ━━━
+(edits message 42) (private in groups)
+🩺 Treatment at The health house: free. It takes 54s off the 6m left of your stay.
+Discharged after treatment at 14:40
+  ───
+  [✅ Free treatment] → health:treat:health_house:free
+  [🔙 Back] → health:hospital
+
+━━━ Treat · treated at the town clinic ━━━
+(edits message 42) (private in groups)
+🩺 Treated at The town clinic: you are out 3m sooner.
+💸 Treatment: 3,200 SUP
+💵 Paid from your cash.
+⏳ 4m until you are discharged
+Discharged at 14:39
+  ───
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → health:hospital
+
 ━━━ Treat · confirm at a clinic ━━━
 (edits message 42) (private in groups)
 🩺 Treatment at Shefa clinic (C1N1C2A): 1,200 SUP. It takes 5m off the 6m left of your stay.
@@ -83,7 +160,7 @@ Discharged after treatment at 14:39
 
 ━━━ Treat · confirm, a free clinic ━━━
 (edits message 42) (private in groups)
-🩺 Treatment at Shefa clinic (C1N1C2A): 0 SUP. It takes 5m off the 6m left of your stay.
+🩺 Treatment at Shefa clinic (C1N1C2A): free. It takes 5m off the 6m left of your stay.
 Discharged after treatment at 14:36
   ───
   [✅ Free treatment] → health:treat:C1N1C2A:free

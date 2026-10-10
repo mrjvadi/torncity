@@ -58,6 +58,10 @@ item_storage:
   - {code: stone_tools,  source: "ADR 0068", evidence: adr, requires: {}, class: goods, bulk: 1, note: "tier 0 of the tool ladder: a hafted stone head, made at a carpentry bench from timber and stone"}
   - {code: forged_tools, source: "ADR 0068", evidence: adr, requires: {}, class: goods, bulk: 1, note: "tier 2 of the tool ladder: forged iron (a saw, a hammer, a pick), made at a smithy from bar iron and a plank"}
   - {code: bandage,  source: "ADR 0041 6.4", evidence: adr, requires: {}, class: goods, bulk: 1}
+  - {code: herbs,         source: "ADR 0069", evidence: adr, requires: {}, class: goods, bulk: 1, note: "a leaf, a root, a flower dried at the herb garden; raw, grown in beds"}
+  - {code: herb_extract,  source: "ADR 0069", evidence: adr, requires: {}, class: goods, bulk: 1}
+  - {code: painkillers,   source: "ADR 0069", evidence: adr, requires: {}, class: goods, bulk: 1}
+  - {code: first_aid_kit, source: "ADR 0069", evidence: adr, requires: {}, class: goods, bulk: 1}
   - {code: brick,    source: "ADR 0045 4.3", evidence: adr, requires: {}, class: bulk, bulk: 2, note: "a brick is a bulk good of two spaces like stone (owner default 2026-10-10; ADR 0041 6.4 does not list bricks)"}
   # planned: new village goods
   - {code: firewood,     source: "ADR 0041 6.4, 6.6", evidence: adr, requires: {}, class: bulk, bulk: 1}
@@ -503,6 +507,52 @@ building_functions:
     replaces: [tannery]
     workplace: {private: true, private_name: "دباغ‌خانه (شخصی)", output_target: tanning_output_bps, role: craft, tier: 1, shift: 30m, upkeep: 40, effects: [{target: job_coverage_bps, op: add, value: 100}]}
     note: "a hide, a bark of oak or other tannin wood and water soak in a pit until it is leather. Bark is stripped at the woodcutter's camp, hides come off the pasture, water from the well; leather is sold at the market day (garments come with phase B4)"
+  - code: herb_garden
+    source: "ADR 0069; Plan of St Gall (the physic garden beside the infirmary); Walahfrid Strabo, Hortulus; Banished wiki, Herbalist"
+    evidence: adr
+    name: "باغچهٔ گیاهان دارویی"
+    requires: {knowledge: [herbalism]}
+    kind: production
+    family: health
+    permit: craft
+    zones: [core, residential, farm]
+    footprint: [2, 2, 2, 2]
+    owners: [treasury, player]
+    levels:
+      - {level: 1, requires: {knowledge: [herbalism]}, cost_money: 500, cost_materials: {timber: 3}, build_hours: 1}
+    staff: [{role: herbalist, slots: 1, shift_hours: 2}]
+    if_unstaffed: idle
+    consumes: {inputs: {spring_water: 1}, food_points: 2, tool_wear_bps: 100, tool_tier: 0}
+    produces: {outputs: {herbs: 6}, store: goods}
+    storage: {needs: {goods: 6}}
+    maintenance: {decay_bps_per_day: 50, repair_materials: {timber: 1}, repair_labour: 1}
+    links: {from: [well], to: [apothecary]}
+    replaces: [herb_garden]
+    workplace: {private: true, private_name: "باغچهٔ گیاهان دارویی (شخصی)", role: food, tier: 1, shift: 30m, build_time: 1h, upkeep: 20, trains: {skill: herbalism, xp: 15}}
+    note: "a herbalist tends the beds: water for the plants, a hoe, and every shift the leaves, roots and flowers worth drying: herbs 6 into the goods store; with nobody to tend it, or no water, it makes nothing. The herbs feed the apothecary"
+  - code: apothecary
+    source: "ADR 0069; Plan of St Gall (the infirmary's herbarium and the physician's house); Banished wiki, Herbalist"
+    evidence: adr
+    name: "عطاری"
+    requires: {knowledge: [herbalism]}
+    kind: production
+    family: health
+    permit: craft
+    zones: [core, residential, industry]
+    footprint: [2, 2, 2, 2]
+    owners: [treasury, player]
+    levels:
+      - {level: 1, requires: {knowledge: [herbalism]}, cost_money: 1200, cost_materials: {timber: 4, stone: 2}, build_hours: 2}
+    staff: [{role: apothecary, slots: 1, shift_hours: 2}]
+    if_unstaffed: idle
+    consumes: {inputs: {herbs: 4, spring_water: 1}, fuel: {firewood: 1}, food_points: 2}
+    produces: {outputs: {herb_extract: 2}, store: goods}
+    storage: {needs: {goods: 4}}
+    maintenance: {decay_bps_per_day: 50, repair_materials: {timber: 1}, repair_labour: 1}
+    links: {from: [herb_garden, well, woodcutter_yard, weaving_shed], to: [health_house, clinic, storehouse]}
+    replaces: [apothecary]
+    workplace: {private: true, private_name: "عطاری (شخصی)", role: craft, tier: 1, shift: 30m, build_time: 2h, upkeep: 40, trains: {skill: herbalism, xp: 20}}
+    note: "the apothecary prepares the garden's herbs over a fire: herbs 4, water and a firewood make herb extract 2 (the standard shift); the other remedies are recipes at the same bench: painkillers from the extract and a cloth, a first aid kit from bandages, painkillers and a pot, and bandages from cloth. Without herbs, water or fire it stands idle and says which link is missing"
   # ---- food and water (ADR 0041 8.15, 8.16, 8.21, 8.22, 8.23) ----
   - code: brickworks
     source: "RESEARCH 2026-10-09 A4b (Wikipedia Brick, Brickworks); ADR 0041 8.14 and 0045 4.3 recipe 4: bricks are an alternative recipe of the kiln"
@@ -892,6 +942,26 @@ building_functions:
     ledger_reasons: [service_wage]
     replaces: [health_house]
     note: "a village health worker keeps the house: clean water and cloth for dressings every day it is open, a wage from the treasury. A day it was open counts its service coverage and is practice in health; closed it counts nothing. Medicine and treatment of the sick are phase B5/C4"
+  - code: clinic
+    source: "ADR 0069; WHO Primary health care (referral level); RESEARCH 2026-10-10 B5 (RimWorld wiki Treatment, Banished wiki Herbalist)"
+    evidence: adr
+    name: "درمانگاه"
+    requires: {knowledge: [basic_medicine_ii]}
+    kind: service
+    family: health
+    zones: [core, residential]
+    footprint: [3, 3, 3, 3]
+    owners: [treasury]
+    levels:
+      - {level: 1, requires: {knowledge: [basic_medicine_ii]}, cost_money: 7000, build_hours: 5}
+    staff: [{role: nurse, slots: 1, shift_hours: 6}, {role: health_worker, slots: 1, shift_hours: 6}]
+    if_unstaffed: idle
+    consumes: {inputs: {cloth: 1, spring_water: 2}, food_points: 4}
+    produces: {service: clinical_care, daily: true, field: health}
+    links: {from: [weaving_shed, well, apothecary, health_house]}
+    ledger_reasons: [service_wage, hospital_fee]
+    replaces: [clinic]
+    note: "a nurse and a health worker keep the clinic on a day it is open (clean water and cloth, a wage from the treasury); a patient of the settlement is treated with one painkiller or first aid kit from the settlement stock, for a fee into the treasury (hospital_fee). It needs a standing health house. A day it was open counts its coverage and is practice in health"
   - code: lookout_post
     source: "ADR 0042 8.1, 4.4"
     evidence: adr

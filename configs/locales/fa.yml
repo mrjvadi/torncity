@@ -998,6 +998,7 @@ company_type:
 
 # نام قطعه‌ها و مواد، به کد محتوا (configs/content/items.yml).
 component:
+  herbs: "گیاه دارویی"
   tools: "ابزار"
   stone_tools: "ابزار سنگی"
   forged_tools: "ابزار آهنگری‌شده"
@@ -1581,6 +1582,8 @@ climate_band:
   cold: "سرد"
   severe: "سرمای سخت"
 staff_role:
+  herbalist: "گیاه‌کار"
+  apothecary: "عطار"
   teacher: "معلم"
   trainer: "مربی"
   health_worker: "بهورز"
@@ -1621,6 +1624,11 @@ staff_role:
   loan_officer: "کارشناس وام"
   bank_manager: "مدیر شعبهٔ بانک"
 building_function:
+  herb_garden: "باغچهٔ گیاهان دارویی"
+  herb_garden_own: "باغچهٔ گیاهان دارویی (شخصی)"
+  apothecary: "عطاری"
+  apothecary_own: "عطاری (شخصی)"
+  clinic: "درمانگاه"
   forester_lodge: "نهالستان"
   charcoal_clamp_own: "کورهٔ زغال (شخصی)"
   carpentry_workshop_own: "کارگاه نجاری (شخصی)"
@@ -1685,6 +1693,9 @@ building_function:
   exchange_house: "صرافی"
   bank: "بانک"
 recipe:
+  herb_extract: "عصارهٔ گیاهی"
+  painkillers: "مسکن"
+  first_aid_kit: "جعبهٔ کمک‌های اولیه"
   stone_tools: "ابزار سنگی"
   iron_tools: "ابزار آهنی"
   forged_tools: "ابزار آهنگری‌شده"

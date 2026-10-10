@@ -281,8 +281,11 @@ func CrimeRefusal(c presentation.Ctx, v CrimeRefusalView) *presentation.Response
 
 // treatAddress is who treats, as the treat command names it.
 func treatAddress(o TreatOption) string {
-	if o.Provider == application.ProviderClinic {
+	switch o.Provider {
+	case application.ProviderClinic:
 		return o.Clinic.Code
+	case application.ProviderHouse, application.ProviderVillageClinic:
+		return o.Provider
 	}
 	return application.ProviderCity
 }
@@ -291,13 +294,14 @@ func treatAddress(o TreatOption) string {
 func Hospital(c presentation.Ctx, v HospitalView) *presentation.Response {
 	var a []presentation.Action
 	if v.InHospital && !v.Treated {
-		options := make([]TreatOption, 0, len(v.Clinics)+1)
+		options := make([]TreatOption, 0, len(v.Clinics)+len(v.Village)+1)
 		if v.CityHospital != nil {
 			options = append(options, *v.CityHospital)
 		}
+		options = append(options, v.Village...)
 		options = append(options, v.Clinics...)
 		for _, o := range options {
-			if !o.CanTreat && o.Provider == application.ProviderClinic {
+			if !o.CanTreat && o.Provider != application.ProviderCity {
 				continue
 			}
 			a = append(a, act(AddrTreat, treatAddress(o)).Named("health.treat").About(treatAddress(o)))

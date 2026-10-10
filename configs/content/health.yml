@@ -71,6 +71,19 @@ health:
     base_price: 300
     per_hour: 5400
     care: {reduction_bps: 3500}
+  # The care of a FOUNDED settlement (ADR 0069), instead of the city hospital it never built: the health house on a day it is
+  # open (a health worker on duty) gives first aid, one `house.medicine` from the settlement stock, reduction_bps off the
+  # stay left, free to the patient; the clinic on a day it is open (a nurse and a health worker) treats with the first of
+  # `clinic.medicines` the stock holds (the better first) and charges base_price plus per_hour for every GAME hour of the
+  # stay left, paid into the treasury (hospital_fee). One treatment per stay, as everywhere.
+  village_care:
+    house: {medicine: bandage, reduction_bps: 1500}
+    clinic:
+      base_price: 200
+      per_hour: 3000
+      medicines:
+        - {item: first_aid_kit, reduction_bps: 3500}
+        - {item: painkillers,   reduction_bps: 2500}
   injuries:
     war_strike: {chance_bps: 1500, min: 15, max: 60}
     work:
