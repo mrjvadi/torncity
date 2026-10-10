@@ -4,7 +4,9 @@ package tests
 
 import (
 	"github.com/mrjvadi/torncity/internal/settlementcfg"
+	"fmt"
 	"math"
+	"strings"
 	"sync"
 	"testing"
 
@@ -172,9 +174,7 @@ func TestConcurrentFoundingsNeverShareACellOrOverfillACircle(t *testing.T) {
 		i := i
 		go func() {
 			defer wg.Done()
-			meta := metas[i]
-			req := validFoundingRequest(t, openDraftID(t, e.pool, chats[i]))
-			if _, err := e.h.Submit(testCtx(t), clientMeta(meta, "settlement.found.submit", "found.submit"), req); err != nil {
+			if err := submitUntilFounded(t, e, metas[i], chats[i]); err != nil {
 				errs <- err.Error()
 			}
 		}()
@@ -238,5 +238,81 @@ func TestSpawnCirclesWorkAsTheServiceBuildsThemFromConfig(t *testing.T) {
 	}
 	if cs[0].rad != cfg.Settlement.SpawnCircleRadiusKm || cs[0].capacity != cfg.Settlement.SpawnCircleCapacity {
 		t.Errorf("the circle is %+v, the config says radius %v capacity %d", cs[0], cfg.Settlement.SpawnCircleRadiusKm, cfg.Settlement.SpawnCircleCapacity)
+	}
+}
+
+// submitUntilFounded is what a player does when the form is refused for a currency code or a name another village took in
+// the same moment: it asks again with a new form (the draft stays open). Anything else that leaves the group without a
+// village is an error, whatever the call returned (a refusal is a response, not an error).
+func submitUntilFounded(t *testing.T, e *foundingEnv, meta envelope.Metadata, chat int64) error {
+	t.Helper()
+	for attempt := 0; attempt < 8; attempt++ {
+		req := validFoundingRequest(t, openDraftID(t, e.pool, chat))
+		resp, err := e.h.Submit(testCtx(t), clientMeta(meta, "settlement.found.submit", "found.submit"), req)
+		if err != nil {
+			return err
+		}
+		var n int
+		if err := e.pool.Raw().QueryRow(testCtx(t), `SELECT count(*) FROM cities WHERE founded_by_group_id = $1`, chat).Scan(&n); err != nil {
+			return err
+		}
+		if n > 0 {
+			return nil
+		}
+		if resp == nil || !strings.Contains(string(resp.View), "taken") {
+			return fmt.Errorf("the founding was refused for a reason other than a taken name or code: %+v", resp)
+		}
+	}
+	return fmt.Errorf("the founding was refused eight times for a taken name or code")
+}
+
+// Many foundings at once, more than one call's retry budget: the spawn cursor is locked FOR UPDATE, so the foundings queue
+// and none of them runs out of attempts or shares a cell or overfills a circle.
+func TestManyMoreFoundingsThanTheRetryBudgetAllSucceed(t *testing.T) {
+	e := newFoundingEnv(t)
+	e.h.WithSpawnCircles(testCircleRules())
+	const n = 20
+	var wg sync.WaitGroup
+	metas := make([]envelope.Metadata, n)
+	chats := make([]int64, n)
+	errs := make(chan string, n)
+	for i := 0; i < n; i++ {
+		meta, _ := e.group(t)
+		metas[i], chats[i] = meta, meta.TelegramChatID
+		if _, err := e.h.Found(testCtx(t), meta); err != nil {
+			t.Fatal(err)
+		}
+	}
+	for i := 0; i < n; i++ {
+		wg.Add(1)
+		i := i
+		go func() {
+			defer wg.Done()
+			if err := submitUntilFounded(t, e, metas[i], chats[i]); err != nil {
+				errs <- err.Error()
+			}
+		}()
+	}
+	wg.Wait()
+	close(errs)
+	for msg := range errs {
+		t.Errorf("a founding failed: %s", msg)
+	}
+	_, worldID := e.world(t)
+	var founded int
+	if err := e.pool.Raw().QueryRow(testCtx(t), `SELECT count(*) FROM cities WHERE world_id = $1::uuid AND origin = 'founded'`, worldID).Scan(&founded); err != nil {
+		t.Fatal(err)
+	}
+	if founded != n {
+		t.Fatalf("%d villages founded of %d", founded, n)
+	}
+	var distinct int
+	if err := e.pool.Raw().QueryRow(testCtx(t), `SELECT count(DISTINCT world_cell_id) FROM cities WHERE world_id = $1::uuid AND origin = 'founded'`, worldID).Scan(&distinct); err != nil || distinct != n {
+		t.Errorf("%d distinct cells for %d villages (%v)", distinct, n, err)
+	}
+	for _, c := range e.circles(t, worldID) {
+		if c.took > c.capacity {
+			t.Errorf("circle %d over capacity: %d of %d", c.idx, c.took, c.capacity)
+		}
 	}
 }
