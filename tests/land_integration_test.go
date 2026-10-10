@@ -337,3 +337,34 @@ func TestAClearOrderRepeatedOrCancelledTwiceChangesNothing(t *testing.T) {
 		t.Error("a second cancel is a no-op")
 	}
 }
+
+// A hired crew at a camp with no tree in reach is paused with that reason (the pause reason is one the database accepts).
+func TestACrewAtACampWithoutTreesPausesWithTheReason(t *testing.T) {
+	e := newLandEnv(t)
+	ctx := testCtx(t)
+	for y := -4; y <= 8; y++ {
+		for x := -4; x <= 10; x++ {
+			if _, err := e.pool.Raw().Exec(ctx, `INSERT INTO settlement_land (settlement_id, lot_x, lot_y, trees_cut, regrow_anchor, updated_at) VALUES ($1::uuid, $2, $3, 99, now(), now())
+				ON CONFLICT (settlement_id, lot_x, lot_y) DO UPDATE SET trees_cut = 99`, e.cityID, x, y); err != nil {
+				t.Fatal(err)
+			}
+		}
+	}
+	if _, err := rrc(e.village.LaborPost(ctx, e.as(e.head, "settlement.labor.post", "labor.post"), handlers.VillageLaborRequest{ID: e.camp})); err != nil {
+		t.Fatal(err)
+	}
+	var jobID string
+	if err := e.pool.Raw().QueryRow(ctx, `SELECT id::text FROM labor_jobs WHERE building_id = $1::uuid AND kind = 'production' AND status = 'open'`, e.camp).Scan(&jobID); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := rrc(e.village.LaborHire(ctx, e.as(e.head, "settlement.labor.hire", "labor.hire"), handlers.VillageLaborRequest{ID: jobID, N: "2"})); err != nil {
+		t.Fatal(err)
+	}
+	var paused string
+	if err := e.pool.Raw().QueryRow(ctx, `SELECT COALESCE(paused, '') FROM labor_jobs WHERE id = $1::uuid`, jobID).Scan(&paused); err != nil {
+		t.Fatal(err)
+	}
+	if paused != "no_trees" {
+		t.Errorf("the crew waits for trees and says so: %q", paused)
+	}
+}

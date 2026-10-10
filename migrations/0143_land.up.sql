@@ -48,6 +48,11 @@ ALTER TABLE settlement_shifts ADD COLUMN land_kind text NOT NULL DEFAULT '';
 ALTER TABLE settlement_shifts ADD COLUMN land_owner uuid NULL;
 ALTER TABLE settlement_shifts ADD CONSTRAINT settlement_shifts_land_check CHECK (land_kind IN ('', 'tree', 'rock', 'sapling'));
 
+-- A crew that cannot start for want of a tree, or of a lot to plant, is paused with that reason.
+ALTER TABLE labor_jobs DROP CONSTRAINT labor_jobs_paused_check;
+ALTER TABLE labor_jobs ADD CONSTRAINT labor_jobs_paused_check CHECK (paused IS NULL OR paused IN
+    ('no_staff', 'no_food', 'no_input', 'storage_full', 'employer_broke', 'budget_spent', 'needs_repair', 'no_trees', 'no_plot'));
+
 -- The new charter permission land.clear (order the clearing of commons and treasury lots): the head office of a stored charter
 -- that may draw roads gets it with the same hand (the founder's office holds every power). Offices created later get it from
 -- the code.
