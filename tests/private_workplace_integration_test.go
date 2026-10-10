@@ -121,6 +121,9 @@ func TestAPlayerEmploysWorkersInHisOwnWorkplace(t *testing.T) {
 		i.WageLedger != i.WageRows || i.WageMismatched != 0 || i.ShiftItems != i.ShiftItemRows {
 		t.Errorf("the books do not agree: %+v", i)
 	}
+	if i.BoardJournalUnits != i.BoardShiftUnits || i.BoardJournalUnits == 0 {
+		t.Errorf("the board eaten must match the shifts: journal %d, rows %d", i.BoardJournalUnits, i.BoardShiftUnits)
+	}
 	e.verify2b()
 }
 

@@ -80,6 +80,8 @@ type SettlementShift struct {
 	// Produced and Consumed are the goods the shift moved, component code ->
 	// quantity, fixed when it starts.
 	Produced, Consumed map[string]int64
+	// Board is the food the hands of a citizen's own workplace ate out of the owner's home store (item reason board_eaten).
+	Board map[string]int64
 	GameActionID       string
 	// Kind is "production" (the workplace loop) or "construction" (ADR 0037);
 	// WorkerKind "player" or "npc" (then PlayerID is empty); JobID the hiring-

@@ -86,10 +86,12 @@ type VillageInvariants struct {
 	// NPCShiftsWithoutJob counts NPC production shifts no job posted; NPCHungry NPC shifts
 	// that started unfed (an NPC never does); CarryOutOfRange workplaces whose carried
 	// fraction is not within [0, 10000).
-	WorkNodes                                       bool
-	MealOpenedRows, MealOpenedKitchen               int64
-	MealEatenShifts, MealEatenKitchen               int64
-	MealJournalUnits, MealRowUnits                  int64
+	WorkNodes                         bool
+	MealOpenedRows, MealOpenedKitchen int64
+	MealEatenShifts, MealEatenKitchen int64
+	MealJournalUnits, MealRowUnits    int64
+	// BoardJournalUnits and BoardShiftUnits: the food employers gave their hands, in the item journal and in the shift rows (migration 0142).
+	BoardJournalUnits, BoardShiftUnits              int64
 	NPCShiftsWithoutJob, NPCHungry, CarryOutOfRange int64
 	// Condition (migration 0126): Repairs is whether the columns exist; RepairWithoutJob counts
 	// repair shifts no repair job posted or that restore nothing; DamageOutOfRange buildings
@@ -205,7 +207,7 @@ type VillageInvariants struct {
 // WorkNodesOK reports whether the working-node checks hold.
 func (v VillageInvariants) WorkNodesOK() bool {
 	return !v.WorkNodes || (v.MealOpenedRows == v.MealOpenedKitchen && v.MealEatenShifts == v.MealEatenKitchen &&
-		v.MealJournalUnits == v.MealRowUnits && v.NPCShiftsWithoutJob == 0 && v.NPCHungry == 0 && v.CarryOutOfRange == 0 &&
+		v.MealJournalUnits == v.MealRowUnits && v.BoardJournalUnits == v.BoardShiftUnits && v.NPCShiftsWithoutJob == 0 && v.NPCHungry == 0 && v.CarryOutOfRange == 0 &&
 		(!v.Repairs || (v.RepairWithoutJob == 0 && v.DamageOutOfRange == 0))) &&
 		(!v.Currencies || (v.PotMismatched == 0 && v.SupplyMismatched == 0 && v.IssuanceMismatched == 0 && v.StrayHoldings == 0)) &&
 		(!v.LocalObligations || (v.LocalLedgerPay == v.LocalRowsPay && v.LocalLedgerCollect == v.LocalRowsCollect && v.LocalLedgerTransfer == v.LocalRowsTransfer &&
@@ -418,6 +420,8 @@ func (a *EconomyAdmin) verifyWorkNodes(ctx context.Context, v *LedgerVerificatio
 		{&s.MealOpenedKitchen, "kitchen opened points", `SELECT COALESCE(SUM(opened_points), 0)::bigint FROM settlement_kitchen`},
 		{&s.MealEatenShifts, "points the shifts ate", `SELECT COALESCE(SUM(meal_points), 0)::bigint FROM settlement_shifts`},
 		{&s.MealEatenKitchen, "kitchen eaten points", `SELECT COALESCE(SUM(eaten_points), 0)::bigint FROM settlement_kitchen`},
+		{&s.BoardJournalUnits, "board units in the item journal", `SELECT COALESCE(SUM(quantity), 0)::bigint FROM item_movements WHERE reason = 'board_eaten'`},
+		{&s.BoardShiftUnits, "board units in the shift rows", `SELECT COALESCE(SUM(v.value::bigint), 0)::bigint FROM settlement_shifts s, jsonb_each_text(s.board) v`},
 		{&s.MealJournalUnits, "meal units in the item journal", `SELECT COALESCE(SUM(quantity), 0)::bigint FROM item_movements WHERE reason = 'meal_eaten'`},
 		{&s.MealRowUnits, "meal units in the opening rows", `SELECT COALESCE(SUM(units), 0)::bigint FROM settlement_meals`},
 		{&s.NPCShiftsWithoutJob, "NPC production shifts without a job", `

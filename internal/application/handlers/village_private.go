@@ -273,7 +273,7 @@ func (h *VillageHandler) startPrivateProduction(ctx context.Context, tx applicat
 		MealPoints: 0, Fed: fed, OutputBPS: outputBPS,
 		ID: shiftID, SettlementID: s.CityID, BuildingID: b.ID, Wage: wage, JobID: jobID, WorkerKind: application.LaborWorkerNPC,
 		PayerKind: application.LaborEmployerPlayer, PayerID: owner,
-		Produced: copyQty(d.Produces), Consumed: mergeQty(consumes, eaten), GameActionID: actionID, StartedAt: now, FinishAt: finish,
+		Produced: copyQty(d.Produces), Consumed: copyQty(consumes), Board: eaten, GameActionID: actionID, StartedAt: now, FinishAt: finish,
 	}
 	playerID := ""
 	if p != nil {

@@ -59,14 +59,21 @@ func (r *SettlementTreasuryRepository) StartShift(ctx context.Context, s applica
 	if err != nil {
 		return err
 	}
+	if s.Board == nil {
+		s.Board = map[string]int64{}
+	}
+	board, err := json.Marshal(s.Board)
+	if err != nil {
+		return err
+	}
 	_, err = r.q.Exec(ctx, `
 		INSERT INTO settlement_shifts
 		       (id, settlement_id, building_id, player_id, status, wage, wage_paid, produced, consumed, game_action_id, started_at, finish_at, job_id, worker_kind,
-		        meal_points, fed, output_bps, payer_kind, payer_id)
+		        meal_points, fed, output_bps, payer_kind, payer_id, board)
 		VALUES ($1, $2, $3, NULLIF($4, '')::uuid, 'working', $5, 0, $6::jsonb, $7::jsonb, $8, $9, $10, NULLIF($11, '')::uuid, $12, $13, $14, $15,
-		        COALESCE(NULLIF($16, ''), 'settlement'), NULLIF($17, '')::uuid)`,
+		        COALESCE(NULLIF($16, ''), 'settlement'), NULLIF($17, '')::uuid, $18::jsonb)`,
 		s.ID, s.SettlementID, s.BuildingID, s.PlayerID, s.Wage, string(produced), string(consumed), s.GameActionID,
-		s.StartedAt.UTC(), s.FinishAt.UTC(), s.JobID, workerKindOf(s), s.MealPoints, s.Fed, outputBPSOf(s), s.PayerKind, s.PayerID)
+		s.StartedAt.UTC(), s.FinishAt.UTC(), s.JobID, workerKindOf(s), s.MealPoints, s.Fed, outputBPSOf(s), s.PayerKind, s.PayerID, string(board))
 	if violates(err, sqlstateUniqueViolation, settlementShiftsOneWorkingIdx) {
 		return application.ErrAlreadyWorking
 	}
