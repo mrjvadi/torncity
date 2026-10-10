@@ -217,6 +217,53 @@ type LotKeeperLine struct {
 	SeatsFree int64
 }
 
+// LotWorkplaceLine is the owner's view of a workplace he employs workers in (docs/adr/0066).
+type LotWorkplaceLine struct {
+	Job *LotJobLine
+	// Slots is how many hands work at once, ShiftMinutes how long a shift is (real time).
+	Slots        int
+	ShiftMinutes int
+	Inputs       []LotStockLine
+	Outputs      []LotStockLine
+	// Tools is the tools in the owner's store and the wear of the one in use, basis points.
+	ToolsHave   int64
+	ToolWearBPS int64
+	// RoomFree and RoomNeeded are the spaces of the owner's store free and what one shift's net growth takes.
+	RoomFree, RoomNeeded int64
+	// FoodHave is the food points in the owner's store, FoodPerShift what a hand's shift eats.
+	FoodHave, FoodPerShift int64
+	Today, Total           LotTakings
+}
+
+// LotJobLine is the workplace's job on the labour board; absent when none is posted.
+type LotJobLine struct {
+	ID      string
+	Crew    int
+	Working int
+	Wage    int64
+	// ShiftsLeft is the budget of shifts the job still pays for.
+	ShiftsLeft int
+	// Paused is why the crew stopped: no_staff, no_food, no_input, storage_full, employer_broke, budget_spent, needs_repair.
+	Paused string
+}
+
+// LotStockLine is an input or an output of one shift and how much of it the owner's store holds.
+type LotStockLine struct {
+	Item     presentation.Named
+	PerShift int64
+	Have     int64
+}
+
+// LotTakings is what the workplace has done over a span.
+type LotTakings struct {
+	Shifts   int64
+	Produced []WorkItemLine
+	Wages    int64
+	Levy     int64
+	// ProducedValue is the goods' base price, not what they sold for (the sales are in the stall and the book).
+	ProducedValue int64
+}
+
 // LotStaffLine is a post at the function.
 type LotStaffLine struct {
 	Role  string
@@ -323,6 +370,8 @@ type LotManageView struct {
 	Functions                         []LotFunctionChoice
 	Work                              *LotWorkLine
 	Staff                             []LotStaffLine
+	// Workplace is set on a workplace the viewer owns.
+	Workplace *LotWorkplaceLine
 	// Keeper is set on a stall the viewer owns.
 	Keeper *LotKeeperLine
 	// What the lot gives: the sums of its modules beyond the level, shown with the legacy base the building has.

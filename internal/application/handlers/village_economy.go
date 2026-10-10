@@ -566,6 +566,14 @@ func (h *VillageHandler) workView(ctx context.Context, tx application.Tx, p *app
 		if !ok || len(d.Produces) == 0 {
 			continue
 		}
+		// a citizen's own workplace is his to work, or a hired hand's through the labour board
+		if d.Private() {
+			if owner, oerr := h.privateOwnerOf(ctx, tx, b.ID); oerr != nil {
+				return village.WorkView{}, oerr
+			} else if owner != p.ID {
+				continue
+			}
+		}
 		ready := true
 		for c, q := range d.Consumes {
 			if stock.Units[c] < q {
@@ -726,6 +734,12 @@ func (h *VillageHandler) startProduction(ctx context.Context, tx application.Tx,
 	s application.FoundedSettlement, b application.SettlementBuildingInstance, d content.SettlementBuildingDef,
 	p *application.Player, wageOverride int64, jobID string,
 ) error {
+	// a workplace a citizen owns runs on its owner's store and money (docs/adr/0066)
+	if owner, err := h.privateOwnerOf(ctx, tx, b.ID); err != nil {
+		return err
+	} else if owner != "" {
+		return h.startPrivateProduction(ctx, tx, meta, snap, s, b, d, p, owner, wageOverride, jobID)
+	}
 	if err := tx.Items().LockOrg(ctx, application.SettlementOrg(s.CityID)); err != nil {
 		return err
 	}
@@ -951,6 +965,11 @@ func (h *VillageHandler) Worked(ctx context.Context, meta envelope.Metadata, req
 		}
 		if sh.Kind == application.LaborKindConstruction || sh.Kind == application.LaborKindRepair || sh.Kind == application.LaborKindFitout {
 			return h.workedSite(ctx, tx, meta, snap, sh, now)
+		}
+		if owner, err := h.privateOwnerOf(ctx, tx, sh.BuildingID); err != nil {
+			return err
+		} else if owner != "" {
+			return h.workedPrivate(ctx, tx, meta, snap, sh, owner, now)
 		}
 		org := application.SettlementOrg(sh.SettlementID)
 		if err := tx.Items().LockOrg(ctx, org); err != nil {

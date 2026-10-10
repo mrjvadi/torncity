@@ -149,6 +149,8 @@ type AvailabilityDef struct {
 	// Question is the owner question that makes a stage undecided.
 	Question string `yaml:"question,omitempty" json:"question,omitempty"`
 	Note     string `yaml:"note,omitempty" json:"note,omitempty"`
+	// Generated marks the row of a citizen twin the loader made (docs/adr/0066); never written in the YAML.
+	Generated bool `yaml:"-" json:"generated,omitempty"`
 }
 
 // StaffRoleDef is a role someone must fill for a service to run: the staff

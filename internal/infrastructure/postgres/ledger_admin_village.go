@@ -300,11 +300,11 @@ func (a *EconomyAdmin) verifyVillage(ctx context.Context, v *LedgerVerification)
 			 WHERE reason = 'supplied' AND reference_type = 'settlement_material_purchase'`, nil},
 		{&s.MaterialItemRows, "village material units in the purchase rows", `SELECT COALESCE(SUM(quantity), 0)::bigint FROM settlement_material_purchases`, nil},
 		{&s.WageLedger, "village shift wages", credited, []any{"settlement_wage"}},
-		{&s.WageRows, "village shift wage rows", `SELECT COALESCE(SUM(wage_paid), 0)::bigint FROM settlement_shifts s WHERE s.status = 'done' AND s.kind = 'production'
+		{&s.WageRows, "village shift wage rows", `SELECT COALESCE(SUM(wage_paid), 0)::bigint FROM settlement_shifts s WHERE s.status = 'done' AND s.kind = 'production' AND s.payer_kind <> 'player'
 			AND NOT EXISTS (SELECT 1 FROM local_payments lp WHERE lp.reference_id = s.id)`, nil},
 		{&s.WageMismatched, "village shift wage transactions", `
 			SELECT count(*) FROM settlement_shifts s
-			 WHERE s.status = 'done' AND s.kind = 'production'
+			 WHERE s.status = 'done' AND s.kind = 'production' AND s.payer_kind <> 'player'
 			   AND NOT EXISTS (SELECT 1 FROM local_payments lp WHERE lp.reference_id = s.id)
 			   AND ((s.wage_paid > 0
 			         AND ((SELECT count(*) FROM ledger_entries e
@@ -322,11 +322,11 @@ func (a *EconomyAdmin) verifyVillage(ctx context.Context, v *LedgerVerification)
 		{&s.LaborWageLedger, "labour wages", `
 			SELECT COALESCE(SUM(amount), 0)::bigint FROM ledger_entries WHERE reason IN ('labor_wage', 'labor_wage_npc') AND amount > 0`, nil},
 		{&s.LaborWageRows, "labour wage rows", `
-			SELECT COALESCE(SUM(wage_paid), 0)::bigint FROM settlement_shifts s WHERE s.status = 'done' AND s.kind IN ('construction', 'repair', 'fitout')
+			SELECT COALESCE(SUM(wage_paid), 0)::bigint FROM settlement_shifts s WHERE s.status = 'done' AND (s.kind IN ('construction', 'repair', 'fitout') OR (s.kind = 'production' AND s.payer_kind = 'player'))
 			   AND NOT EXISTS (SELECT 1 FROM local_payments lp WHERE lp.reference_id = s.id)`, nil},
 		{&s.LaborMismatched, "labour wage transactions", `
 			SELECT count(*) FROM settlement_shifts s
-			 WHERE s.status = 'done' AND s.kind IN ('construction', 'repair', 'fitout')
+			 WHERE s.status = 'done' AND (s.kind IN ('construction', 'repair', 'fitout') OR (s.kind = 'production' AND s.payer_kind = 'player'))
 			   AND NOT EXISTS (SELECT 1 FROM local_payments lp WHERE lp.reference_id = s.id)
 			   AND ((s.wage_paid > 0
 			         AND ((SELECT count(*) FROM ledger_entries e
@@ -337,7 +337,7 @@ func (a *EconomyAdmin) verifyVillage(ctx context.Context, v *LedgerVerification)
 			     OR (s.wage_paid = 0 AND s.ledger_transaction_id IS NOT NULL))`, nil},
 		{&s.LaborEscrowLedger, "labour escrow", credited, []any{"labor_escrow"}},
 		{&s.LaborEscrowRows, "labour escrow rows", `
-			SELECT COALESCE(SUM(wage), 0)::bigint FROM settlement_shifts WHERE kind IN ('construction', 'fitout') AND payer_kind = 'player'`, nil},
+			SELECT COALESCE(SUM(wage), 0)::bigint FROM settlement_shifts WHERE (kind IN ('construction', 'fitout') OR kind = 'production') AND payer_kind = 'player'`, nil},
 		{&s.ServiceMisrouted, "training and repair routes", `
 			SELECT count(*) FROM ledger_entries e JOIN accounts a ON a.id = e.account_id
 			 WHERE (e.reason = 'training_fee' AND ((e.amount > 0 AND a.kind <> 'city_treasury') OR (e.amount < 0 AND a.kind <> 'player_cash')))
