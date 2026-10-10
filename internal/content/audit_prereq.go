@@ -11,7 +11,7 @@ import (
 const AuditPrereq = "prereq"
 
 // notWritten are the words a note uses to admit a gap.
-var notWritten = []string{"not built", "waits for", "stand-in", "stands in", "needs research", "not written", "deferred", "not yet"}
+var notWritten = []string{"not built", "waits for", "stand-in", "stands in", "needs research", "not written", "deferred", "not yet", "wait for", "waiting for"}
 
 // reachable is what a player can reach today: the codes of the building functions and settlement buildings that a
 // settlement can place, build or choose.
@@ -23,7 +23,9 @@ type reachable struct {
 func (p *Pack) reachableNow() reachable {
 	r := reachable{functions: map[string]bool{}, buildings: map[string]bool{}}
 	for _, b := range p.SettlementBuildings {
-		r.buildings[b.Code] = true
+		if !b.Gated() {
+			r.buildings[b.Code] = true
+		}
 	}
 	for _, f := range p.BuildingFunctions {
 		if f.Workplace != nil {
@@ -86,6 +88,10 @@ func (p *Pack) auditPrerequisites(o AuditOptions, add func(check, kind, code, fo
 		add(AuditPrereq, "building_function", f.Code, "has staff, inputs or outputs and no runtime reads them: it only stands there")
 	}
 	for _, b := range p.SettlementBuildings {
+		if b.Gated() {
+			add(AuditPrereq, "settlement_building", b.Code, "is gated out of every menu until: %s", b.WaitsFor)
+			continue
+		}
 		if b.Generated || o.Runtimes[b.Code] != "" || b.Workers > 0 && b.Shift != "" && len(b.Produces) > 0 {
 			continue
 		}

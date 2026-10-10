@@ -131,7 +131,7 @@ func TestVillageEconomyLoop(t *testing.T) {
 	}
 	// Asking for a city building by code is refused, neutrally.
 	if r, err := rrcm(mk("settlement.build.lots", "build.lots"))(village.Lots(ctx, mk("settlement.build.lots", "build.lots"), handlers.VillageLotsRequest{Code: "airport"})); err != nil ||
-		!strings.Contains(r.Text, "قابل") {
+		!strings.Contains(r.Text, "پیدا نشد") {
 		t.Errorf("Lots(airport) = %+v %v, want a neutral refusal", r, err)
 	}
 

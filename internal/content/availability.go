@@ -647,6 +647,12 @@ func (p *Pack) availabilityReachability(tags map[string]AvailabilityDef, staff m
 		}
 		return personalOK(n.Personal)
 	}
+	gatedBuildings := map[string]bool{}
+	for _, b := range p.SettlementBuildings {
+		if b.Gated() {
+			gatedBuildings[b.Code] = true
+		}
+	}
 	reach = func(key string) bool {
 		if s := state[key]; s != 0 {
 			return s == 2
@@ -654,6 +660,9 @@ func (p *Pack) availabilityReachability(tags map[string]AvailabilityDef, staff m
 		t, ok := tags[key]
 		if !ok || t.Stage == StageUndecided {
 			return true // undecided is the owner's open question, not a dead end
+		}
+		if t.Kind == "building" && gatedBuildings[t.Code] {
+			return true // gated out of the menus on purpose until its mechanic is built (waits_for, ADR 0063)
 		}
 		state[key] = 1
 		ok = false

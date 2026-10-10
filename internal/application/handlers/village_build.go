@@ -113,7 +113,7 @@ func (h *VillageHandler) buildPlacementContext(ctx context.Context, tx applicati
 	}
 	var ok bool
 	d, ok = snap.SettlementBuildingDef(code)
-	if !ok {
+	if !ok || d.Gated() {
 		err = refuseVillage(village.VillageNotFound)
 		return
 	}

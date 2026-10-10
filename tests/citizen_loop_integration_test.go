@@ -225,6 +225,25 @@ func TestCitizenLoop(t *testing.T) {
 		t.Fatalf("the citizen catalogue offers %v: the carpentry buildings need the knowledge first", codes)
 	}
 
+	// ---- a building that waits for its mechanic is never offered (ADR 0063) --
+	if _, err := pool.Raw().Exec(ctx, `INSERT INTO settlement_knowledge_owned (id, settlement_id, code, acquired_via, acquired_at) VALUES (gen_random_uuid(), $1::uuid, 'carpentry', 'researched', now())`, cityID); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		_, _ = pool.Raw().Exec(context.Background(), `DELETE FROM settlement_knowledge_owned WHERE settlement_id = $1::uuid AND code = 'carpentry'`, cityID)
+	})
+	menu, err = rrm(client(resident, "settlement.private"))(village.PrivateMenu(ctx, client(resident, "settlement.private")))
+	if err != nil {
+		t.Fatal(err)
+	}
+	codes = map[string]bool{}
+	for _, l := range viewOf(t, menu)["lines"].([]any) {
+		codes[l.(map[string]any)["building"].(map[string]any)["code"].(string)] = true
+	}
+	if !codes["private_house"] || codes["home_workshop"] {
+		t.Fatalf("with carpentry the house is offered and the home workshop, which waits for personal crafting, is not: %v", codes)
+	}
+
 	// ---- cannot build on another's lot ------------------------------------
 	place := func(p *application.Player, code, lot, confirm string) (*presenter.Response, error) {
 		return rrm(client(p, "settlement.private.place"))(village.PrivatePlace(ctx, client(p, "settlement.private.place"), handlers.VillagePrivateRequest{Code: code, Lot: lot, Confirm: confirm}))

@@ -24,6 +24,13 @@ func (s staticContentSource) Current() *content.Snapshot { return s.snap }
 // handlers.ContentSource rather than a fake.
 func loadTestContent(t *testing.T) *content.Snapshot {
 	t.Helper()
+	return loadTestContentOpen(t)
+}
+
+// loadTestContentOpen is loadTestContent with the named buildings offered although they wait for their mechanic
+// (waits_for, ADR 0063): a fixture for the tests of placement rules that need a building of a given shape.
+func loadTestContentOpen(t *testing.T, open ...string) *content.Snapshot {
+	t.Helper()
 	pack, err := content.Load("../configs/content")
 	if err != nil {
 		t.Fatalf("loading content: %v", err)
@@ -31,6 +38,13 @@ func loadTestContent(t *testing.T) *content.Snapshot {
 	// The shipped world has one city; the integration database carries the
 	// multi-city test world (main_integration_test.go), so the snapshot the
 	// tests build must match it.
+	for i := range pack.SettlementBuildings {
+		for _, code := range open {
+			if pack.SettlementBuildings[i].Code == code {
+				pack.SettlementBuildings[i].WaitsFor = ""
+			}
+		}
+	}
 	pack = testworld.Extend(pack)
 	if err := pack.Validate(); err != nil {
 		t.Fatalf("validating content: %v", err)

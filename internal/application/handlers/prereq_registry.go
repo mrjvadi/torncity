@@ -36,6 +36,7 @@ var FunctionRuntimes = map[string]string{
 	"school":          "a class building of the education handler (education.go)",
 	"health_house":    "the health service day (village_service.go)",
 	"watch_hut":       "the watch post's service day (village_service.go)",
+	"park":            "the bench, a place to sleep outdoors (life.go sleep_spot)",
+	"market":          "the stalls of a market hall (market_village.go)",
 	"training_ground": "the training ground of the settlement gym (training.go)",
-	"barracks":        "the military base (military_base.go)",
 }

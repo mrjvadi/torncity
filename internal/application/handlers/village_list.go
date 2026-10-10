@@ -331,9 +331,12 @@ func sortedKnowledgeCodes(snap *content.Snapshot) []string {
 
 func sortedBuildingCodes(snap *content.Snapshot) []string {
 	defs := snap.SettlementBuildingDefs()
-	out := make([]string, len(defs))
-	for i, d := range defs {
-		out[i] = d.Code
+	out := make([]string, 0, len(defs))
+	for _, d := range defs {
+		if d.Gated() {
+			continue // kept out of every menu until its mechanic is built (ADR 0063)
+		}
+		out = append(out, d.Code)
 	}
 	sort.Strings(out)
 	return out
