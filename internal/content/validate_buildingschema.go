@@ -42,6 +42,7 @@ func (p *Pack) validateBuildingSchema(problems *[]error) {
 	l.climate()
 	l.land()
 	l.farming()
+	l.nears()
 	l.raids()
 	l.roads()
 	l.rail()
@@ -1168,6 +1169,29 @@ func (l *schemaLint) land() {
 				l.bad("land: biome %q is empty, twice, or its density is out of 0..10000", b.Biome)
 			}
 			codes[b.Biome] = true
+		}
+	}
+}
+
+// nears checks the proximity rules of the buildings (docs/adr/0067): a radius of a few lots, and something to be near that exists.
+func (l *schemaLint) nears() {
+	for _, b := range l.p.SettlementBuildings {
+		n := b.Near
+		if n == nil {
+			continue
+		}
+		if n.Radius < 1 || n.Radius > 10 || len(n.Tags)+len(n.Codes) == 0 {
+			l.bad("settlement_building/%s: near needs a radius of 1 to 10 and a tag or a building", b.Code)
+		}
+		for _, tg := range n.Tags {
+			if !l.tags[tg] && (len(l.p.Biomes) > 0 || len(l.p.TerrainTags) > 0) {
+				l.bad("settlement_building/%s: near tag %q is neither a biome nor a terrain_tags row", b.Code, tg)
+			}
+		}
+		for _, c := range n.Codes {
+			if _, ok := l.buildingByCode(c); !ok {
+				l.bad("settlement_building/%s: near building %q does not exist", b.Code, c)
+			}
 		}
 	}
 }

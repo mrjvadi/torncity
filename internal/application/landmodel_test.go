@@ -178,3 +178,33 @@ func TestTheLandFollowsWhatWasDoneToIt(t *testing.T) {
 		t.Errorf("a cut forest is less than whole: %d", bps)
 	}
 }
+
+// The lots a herd grazes do not regrow trees (docs/adr/0067); the same lots left alone do.
+func TestGrazedLotsDoNotRegrowTrees(t *testing.T) {
+	w, root := testLandWorld(t)
+	def := testLandDef(t, root)
+	cell := aWoodedCell(t, w)
+	now := time.Date(2026, 10, 20, 12, 0, 0, 0, time.UTC)
+	s := FoundedSettlement{WorldCellID: cell, FoundedAt: time.Date(2026, 10, 10, 6, 0, 0, 0, time.UTC)}
+	base := BuildLand(w, s, 5, nil, nil, def, landRules(), nil, nil, now)
+	var target land.Pos
+	for _, p := range base.Order() {
+		if l := base.Lots[p]; l.Ring > 0 && l.Trees >= 2 {
+			target = p
+			break
+		}
+	}
+	if base.Lots[target] == nil {
+		t.Skip("no ring lot with two trees in this world")
+	}
+	anchor := now.Add(-300 * time.Hour) // two and a half regrowth periods ago
+	cut := []land.Delta{{Pos: target, TreesCut: 2, RegrowAnchor: &anchor}}
+	free := BuildLand(w, s, 5, nil, nil, def, landRules(), cut, nil, now)
+	grazed := BuildLandWith(w, s, 5, nil, nil, GrazedLots([]LandSite{{X: target.X, Y: target.Y, W: 1, H: 1}}, 1), def, landRules(), cut, nil, now)
+	if free.Lots[target].Trees != base.Lots[target].Trees {
+		t.Errorf("left alone the lot grew its trees back: %d of %d", free.Lots[target].Trees, base.Lots[target].Trees)
+	}
+	if got := grazed.Lots[target].Trees; got != base.Lots[target].Trees-2 {
+		t.Errorf("a grazed lot grows no tree back: %d, want %d", got, base.Lots[target].Trees-2)
+	}
+}
