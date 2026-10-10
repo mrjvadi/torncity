@@ -56,6 +56,7 @@ const (
 	LotKeepOne     = "lot_keep_one"
 	LotNoKeeper    = "lot_no_keeper"
 	LotKeeperNone  = "lot_keeper_none"
+	LotKeeperTerms = "lot_keeper_terms"
 )
 
 // Reasons an act cannot be confirmed (view.Reason).
@@ -198,8 +199,13 @@ type LotWorkAdd struct {
 // LotKeeperLine is the stall keeper of a stall's owner (docs/adr/0062): hired, what he takes, or why none can be hired now.
 type LotKeeperLine struct {
 	Hired bool
-	// ShareBPS is the share of a sale he takes while the owner is away.
-	ShareBPS int64
+	// Pay is how a hired keeper is paid: "share" (ShareBPS of each sale made while the owner is away) or "wage" (Wage a local
+	// day, minor units). Unhired: ShareBPS and Wage are the defaults, the Min/Max the range the owner chooses within.
+	Pay                                string
+	ShareBPS, ShareMinBPS, ShareMaxBPS int64
+	Wage, WageMin, WageMax             int64
+	// Left says why the last keeper went when it was not the owner's doing: "wage_unpaid".
+	Left string
 	// Can is true when a keeper could be hired now; Reason says why not (no_seat, no_market).
 	Can    bool
 	Reason string

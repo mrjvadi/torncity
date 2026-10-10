@@ -230,8 +230,8 @@ func (h *MarketHandler) keeperShare(ctx context.Context, tx application.Tx, city
 	if err != nil {
 		return 0, err
 	}
-	if facts[sellerID].CityID == cityID {
-		return 0, nil
+	if facts[sellerID].CityID == cityID || k.Pay != application.KeeperPayShare {
+		return 0, nil // a keeper paid by the day takes no share
 	}
 	return k.ShareBPS, nil
 }

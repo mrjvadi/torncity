@@ -344,6 +344,11 @@ trade:
   village_stalls_per_player_hall: 7
   market_day_every_days: 8
   stall_keeper_share_bps: 1100
+  stall_keeper_share_min_bps: 510
+  stall_keeper_share_max_bps: 2100
+  stall_keeper_wage: 610
+  stall_keeper_wage_min: 310
+  stall_keeper_wage_max: 1510
   market_max_quantity: 10001
   market_max_price: 100000001
   auction_durations: [2h, 7h]
@@ -951,6 +956,11 @@ var envOverrides = map[string]string{
 	"TORN_TRADE_VILLAGE_STALLS_PER_PLAYER_HALL": "8",
 	"TORN_TRADE_MARKET_DAY_EVERY_DAYS":          "9",
 	"TORN_TRADE_STALL_KEEPER_SHARE_BPS":         "1200",
+	"TORN_TRADE_STALL_KEEPER_SHARE_MIN_BPS":     "520",
+	"TORN_TRADE_STALL_KEEPER_SHARE_MAX_BPS":     "2200",
+	"TORN_TRADE_STALL_KEEPER_WAGE":              "620",
+	"TORN_TRADE_STALL_KEEPER_WAGE_MIN":          "320",
+	"TORN_TRADE_STALL_KEEPER_WAGE_MAX":          "1520",
 	"TORN_TRADE_MARKET_MAX_QUANTITY":            "10002",
 	"TORN_TRADE_MARKET_MAX_PRICE":               "100000002",
 	"TORN_TRADE_AUCTION_DURATIONS":              "3h,8h",

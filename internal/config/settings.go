@@ -550,6 +550,11 @@ type tradeSettings struct {
 	VillageStallsPerPlayerHall *int     `yaml:"village_stalls_per_player_hall"`
 	MarketDayEveryDays         *int     `yaml:"market_day_every_days"`
 	StallKeeperShareBPS        *int     `yaml:"stall_keeper_share_bps"`
+	StallKeeperShareMinBPS     *int     `yaml:"stall_keeper_share_min_bps"`
+	StallKeeperShareMaxBPS     *int     `yaml:"stall_keeper_share_max_bps"`
+	StallKeeperWage            *int     `yaml:"stall_keeper_wage"`
+	StallKeeperWageMin         *int     `yaml:"stall_keeper_wage_min"`
+	StallKeeperWageMax         *int     `yaml:"stall_keeper_wage_max"`
 	MarketMaxQuantity          *int     `yaml:"market_max_quantity"`
 	MarketMaxPrice             *int64   `yaml:"market_max_price"`
 	AuctionDurations           []string `yaml:"auction_durations"`
@@ -2115,6 +2120,21 @@ var coreSettings = []setting{
 	limitSetting("trade", "stall_keeper_share_bps",
 		func(c *Config) *int { return &c.Trade.StallKeeperShareBPS },
 		func(f *fileConfig) *int { return f.Trade.StallKeeperShareBPS }),
+	limitSetting("trade", "stall_keeper_share_min_bps",
+		func(c *Config) *int { return &c.Trade.StallKeeperShareMinBPS },
+		func(f *fileConfig) *int { return f.Trade.StallKeeperShareMinBPS }),
+	limitSetting("trade", "stall_keeper_share_max_bps",
+		func(c *Config) *int { return &c.Trade.StallKeeperShareMaxBPS },
+		func(f *fileConfig) *int { return f.Trade.StallKeeperShareMaxBPS }),
+	limitSetting("trade", "stall_keeper_wage",
+		func(c *Config) *int { return &c.Trade.StallKeeperWage },
+		func(f *fileConfig) *int { return f.Trade.StallKeeperWage }),
+	limitSetting("trade", "stall_keeper_wage_min",
+		func(c *Config) *int { return &c.Trade.StallKeeperWageMin },
+		func(f *fileConfig) *int { return f.Trade.StallKeeperWageMin }),
+	limitSetting("trade", "stall_keeper_wage_max",
+		func(c *Config) *int { return &c.Trade.StallKeeperWageMax },
+		func(f *fileConfig) *int { return f.Trade.StallKeeperWageMax }),
 	limitSetting("trade", "market_max_quantity",
 		func(c *Config) *int { return &c.Trade.MarketMaxQuantity },
 		func(f *fileConfig) *int { return f.Trade.MarketMaxQuantity }),

@@ -210,6 +210,10 @@ func (h *VillageHandler) Taught(ctx context.Context, meta envelope.Metadata, req
 			if _, err := h.SettleServiceDay(ctx, tx, snap, s, buildings); err != nil {
 				return err
 			}
+			// and the day wage of the stall keepers hired by the day (stall_keeper_wages)
+			if err := h.SettleKeeperWages(ctx, tx, s, now, meta); err != nil {
+				return err
+			}
 		}
 		if next == int64(shareBPS) {
 			return nil // no visible change (no school yet); nothing worth announcing

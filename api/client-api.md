@@ -1802,3 +1802,7 @@ ADR 0062, migration 0139. `settlement.lot.manage` on a stall the viewer owns car
 ## Buildings that wait for their mechanic (2026-10-10)
 
 ADR 0063, no migration, no view change. The build menus (`settlement.build`, the citizen build menu, the lot's function choices) no longer list home_workshop, bank, clinic, airport, port, factory, manufactory, mine, militia_camp, retainer_hall, constable_post, police_post, canal_channel, shaft_well, terrace_works, paddy_banks and barracks; asking for one by code is refused as not found. Buildings of these types that already stand keep standing.
+
+## The stall keeper's pay (2026-10-10)
+
+ADR 0062 addendum, migration 0140. `keeper_hire` takes `code` = `share` or `wage` and `name` = the number (basis points for a share, minor units for a wage; empty: the default). The `keeper` block carries `pay` (`share` or `wage` when hired), `share_bps`, `wage`, the ranges `share_min_bps`, `share_max_bps`, `wage_min`, `wage_max` (the defaults when not hired) and `left` (`wage_unpaid` for seven days after a keeper left because the owner could not pay). New refusal `lot_keeper_terms` (pay outside the range). Config `trade.stall_keeper_share_min_bps`, `_max_bps`, `stall_keeper_wage`, `_min`, `_max`.

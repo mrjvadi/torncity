@@ -537,6 +537,13 @@ trade:
   market_day_every_days: 7
   # the share of a sale a hired stall keeper takes while the owner is away, basis points (ADR 0062)
   stall_keeper_share_bps: 1000
+  stall_keeper_share_min_bps: 500
+  stall_keeper_share_max_bps: 2000
+  # the other way to pay a keeper: a fixed day wage the owner pays from his cash each local day the keeper holds the seat,
+  # minor units (default and the range the owner chooses within)
+  stall_keeper_wage: 600
+  stall_keeper_wage_min: 300
+  stall_keeper_wage_max: 1500
   market_max_quantity: 10000
   market_max_price: 100000000
 

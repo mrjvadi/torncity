@@ -125,3 +125,10 @@ func currencyRules(cfg *config.Config, policy application.PolicyReader) applicat
 func teacherRules(cfg *config.Config) handlers.TeacherRules {
 	return handlers.TeacherRules{BaseBPS: cfg.Settlement.TeacherBaseBPS, PerLevelBPS: cfg.Settlement.TeacherPerLevelBPS, XPPerClass: cfg.Settlement.TeacherXPPerClass}
 }
+
+// stallKeeperTerms reads the pay a stall owner can give his keeper (trade.stall_keeper_*, docs/adr/0062).
+func stallKeeperTerms(cfg *config.Config) handlers.StallKeeperTerms {
+	t := cfg.Trade
+	return handlers.StallKeeperTerms{ShareBPS: int64(t.StallKeeperShareBPS), ShareMinBPS: int64(t.StallKeeperShareMinBPS), ShareMaxBPS: int64(t.StallKeeperShareMaxBPS),
+		Wage: int64(t.StallKeeperWage), WageMin: int64(t.StallKeeperWageMin), WageMax: int64(t.StallKeeperWageMax)}
+}
