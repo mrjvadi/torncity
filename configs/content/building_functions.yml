@@ -528,7 +528,7 @@ building_functions:
     maintenance: {decay_bps_per_day: 50, repair_materials: {timber: 1}, repair_labour: 1}
     links: {from: [well], to: [apothecary]}
     replaces: [herb_garden]
-    workplace: {private: true, private_name: "باغچهٔ گیاهان دارویی (شخصی)", role: food, tier: 1, shift: 30m, build_time: 1h, upkeep: 20, trains: {skill: herbalism, xp: 15}}
+    workplace: {private: true, private_name: "باغچهٔ گیاهان دارویی (شخصی)", role: craft, tier: 1, shift: 30m, build_time: 1h, upkeep: 20, trains: {skill: herbalism, xp: 15}}
     note: "a herbalist tends the beds: water for the plants, a hoe, and every shift the leaves, roots and flowers worth drying: herbs 6 into the goods store; with nobody to tend it, or no water, it makes nothing. The herbs feed the apothecary"
   - code: apothecary
     source: "ADR 0069; Plan of St Gall (the infirmary's herbarium and the physician's house); Banished wiki, Herbalist"
