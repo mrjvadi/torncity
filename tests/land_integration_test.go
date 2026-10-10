@@ -4,6 +4,7 @@ package tests
 
 import (
 	"context"
+	"strings"
 	"testing"
 	"time"
 
@@ -36,7 +37,18 @@ func newLandEnv(t *testing.T) *landEnv {
 		ctx := testCtx(t)
 		_, _ = l.pool.Raw().Exec(ctx, `DELETE FROM settlement_land WHERE settlement_id = $1::uuid`, l.cityID)
 		_, _ = l.pool.Raw().Exec(ctx, `DELETE FROM settlement_saplings WHERE settlement_id = $1::uuid`, l.cityID)
-		_, _ = l.pool.Raw().Exec(ctx, `DELETE FROM game_actions WHERE reference_type = 'settlement_shift'`)
+		for _, stmt := range []string{
+			`ALTER TABLE item_movements DISABLE TRIGGER item_movements_append_only`,
+			`DELETE FROM item_movements WHERE to_org = $1::uuid OR from_org = $1::uuid`,
+			`ALTER TABLE item_movements ENABLE TRIGGER item_movements_append_only`,
+			`DELETE FROM org_stacks WHERE org_kind = 'settlement' AND org_id = $1::uuid`,
+		} {
+			if strings.Contains(stmt, "$1") {
+				_, _ = l.pool.Raw().Exec(ctx, stmt, l.cityID)
+			} else {
+				_, _ = l.pool.Raw().Exec(ctx, stmt)
+			}
+		}
 	})
 	e.camp = e.insertBuilding("woodcutter_camp", 6, 2)
 	e.lodge = e.insertBuilding("forester_lodge", 6, 3)
