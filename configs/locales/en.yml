@@ -331,6 +331,8 @@ settlement_building:
   farm_shaft: Shaft-well farm
   farm_terrace: Terrace farm
   farm_paddy: Paddy field
+  farm_dry: Rain-fed farm
+  water_mill: Water mill
   pasture_range: Pasture
   carpentry_workshop: Carpentry workshop
   masonry_workshop: Masonry workshop
@@ -1482,12 +1484,16 @@ staff_role:
   tanner: "Tanner"
   labourer: "Labourer"
   woodcutter: "Woodcutter"
+  forester: "Forester"
   carpenter: "Carpenter"
   mason: "Mason"
   smith: "Smith"
   weaver: "Weaver"
   potter: "Potter"
   miller: "Miller"
+  mill_hand: "Mill hand"
+  farmer: "Farmer"
+  water_master: "Water master"
   baker: "Baker"
   storekeeper: "Storekeeper"
   beacon_keeper: "Beacon keeper"
@@ -1508,6 +1514,7 @@ staff_role:
   loan_officer: "Loan officer"
   bank_manager: "Bank manager"
 building_function:
+  forester_lodge: "Forester's lodge"
   charcoal_clamp_own: "Charcoal clamp (own)"
   carpentry_workshop_own: "Carpentry workshop (own)"
   masonry_workshop_own: "Masonry workshop (own)"
@@ -1518,6 +1525,22 @@ building_function:
   tannery_own: "Tannery (own)"
   brickworks_own: "Brickworks (own)"
   mill_own: "Mill (own)"
+  farm_canal: "Canal farm"
+  farm_shaft: "Qanat farm"
+  farm_terrace: "Terrace farm"
+  farm_paddy: "Paddy field"
+  farm_dry: "Rain-fed farm"
+  water_mill: "Water mill"
+  canal_channel: "Irrigation canal"
+  shaft_well: "Qanat shaft"
+  terrace_works: "Terrace walls"
+  paddy_banks: "Paddy banks"
+  farm_canal_own: "Canal farm (own)"
+  farm_shaft_own: "Qanat farm (own)"
+  farm_terrace_own: "Terrace farm (own)"
+  farm_paddy_own: "Paddy field (own)"
+  farm_dry_own: "Rain-fed farm (own)"
+  water_mill_own: "Water mill (own)"
   bakery_own: "Bakery (own)"
   health_house: "Health house"
   dwelling: "House"

@@ -1,0 +1,55 @@
+version: 1
+# The farm cycle, the soil, the water and the miller's toll (ADR 0067, ADR 0041 7.6, 8.17 to 8.20).
+#
+# A farm is sown, grows, ripens and is harvested; the harvest is base x soil x water x tending, in basis points. Everything
+# here is the ADR's first draft and is tuning: the figures are game units, not a survey of real yields. Needs research: the
+# FAO yield response of wheat to water (Doorenbos and Kassam 1979, Paper 33) to calibrate the water factor, and real seed
+# to harvest ratios per soil (medieval English wheat gave 4:1 to 8:1, Campbell et al.).
+#
+# The game clock is the real clock (UTC), so the durations are real time; ADR 0041 7.6 was written at a game scale of 60
+# (12 game days = 4.8 hours), and the same pace is kept: the crop grows 6 hours, stays ripe 12 hours, and loses a tenth of
+# its yield every 3 hours past that.
+farming:
+  source: "ADR 0067"
+  evidence: D
+  requires: {}
+  # The work of each stage, in shifts of the farm (a shift is 30 minutes, 4 farmers work at once).
+  sow_shifts: 8
+  tend_max: 6
+  tend_bps: 200
+  harvest_shifts: 12
+  grow: 6h
+  window: 12h
+  rot_step: 3h
+  rot_step_bps: 1000
+  # Wheat per cycle.
+  seed: {irrigated: 50, rainfed: 25}
+  base: {irrigated: 400, rainfed: 200}
+  # A water work of the farm's branch within `reach` lots, with its water master on duty today and in condition
+  # `min_condition_bps` or better, gives the served factor; otherwise the unserved one. A work serves `serves` farms.
+  water: {served_bps: 10000, unserved_bps: 6000, reach: 5, serves: 2, min_condition_bps: 5000}
+  # The soil of a farm is the mean of its lots by biome, less steep_penalty_bps for each steep lot (as a mean).
+  soil_default_bps: 9000
+  steep_penalty_bps: 1500
+  soil:
+    - {biome: temperate_grassland,  bps: 11000}
+    - {biome: temperate_forest,     bps: 10000}
+    - {biome: temperate_rainforest, bps: 9500}
+    - {biome: tropical_rainforest,  bps: 9000}
+    - {biome: tropical_savanna,     bps: 9000}
+    - {biome: boreal_forest,        bps: 7000}
+    - {biome: tundra,               bps: 4000}
+    - {biome: desert,               bps: 4500}
+    - {biome: polar_ice,            bps: 1000}
+  # Which water work each farm draws from; a rain-fed farm has none.
+  branches:
+    - {farm: farm_canal,   work: canal_channel}
+    - {farm: farm_shaft,   work: shaft_well}
+    - {farm: farm_terrace, work: terrace_works}
+    - {farm: farm_paddy,   work: paddy_banks}
+    - {farm: farm_dry,     rainfed: true}
+  # The miller's toll is a statute of the settlement, between a thirtieth and a tenth of the grain (Gristmill, Thirlage,
+  # Banalites: 1/30 to 1/10, by statute 1/20 to 1/24); the default is a twentieth.
+  toll: {min_bps: 333, max_bps: 1000, default_bps: 500}
+  # A grazing farm needs open lots (no tree, no rock, no building) within `radius` of it; grazed lots do not regrow trees.
+  pasture: {grazing_lots: 6, radius: 4}

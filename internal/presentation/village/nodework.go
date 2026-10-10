@@ -139,4 +139,10 @@ type WorkNode struct {
 	BareHandsBPS int64 `json:"bare_hands_bps,omitempty"`
 	// IfUnstaffed is what the content says stands without staff: idle, base_room, decays.
 	IfUnstaffed string `json:"if_unstaffed,omitempty"`
+	// Farm is the crop of a farm of the cycle, Mill the toll of a mill, Water the water work's state, Grazing the open lots
+	// a pasture has round it (docs/adr/0067); nil for any other building.
+	Farm    *FarmLine    `json:"farm,omitempty"`
+	Mill    *MillLine    `json:"mill,omitempty"`
+	Water   *WaterWork   `json:"water,omitempty"`
+	Grazing *GrazingLine `json:"grazing,omitempty"`
 }

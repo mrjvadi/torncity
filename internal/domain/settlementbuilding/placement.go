@@ -22,11 +22,19 @@ type Lot struct {
 	Occupied bool
 	// Reserved is right-of-way (docs/adr/0043): only a road may be placed on it.
 	Reserved bool
+	// Obstructed is true while trees or rocks stand on the lot: it has to be cleared first (docs/adr/0065).
+	Obstructed bool
 	// TerrainTags are this lot's own terrain flags (coastal_lot, river_lot,
 	// sloped_lot, a biome code, or a synthetic tag such as ore_deposit —
 	// the identical open vocabulary settlementknowledge.Tech.TerrainTags
 	// uses) for a building whose TerrainMode is TerrainRequired.
 	TerrainTags []string
+}
+
+// Placed is a standing (complete) building on the land, for the proximity rules.
+type Placed struct {
+	Code       string
+	X, Y, W, H int
 }
 
 // Grid is a settlement's own local lot grid, addressed [y][x], 0-based,
@@ -66,6 +74,8 @@ type Standing struct {
 	// LiteracyShareBPS is the settlement's own current literacy_share (ADR
 	// 0031 section 4.4), 0-10000.
 	LiteracyShareBPS int
+	// Placed lists the complete buildings, for a building that must stand near another (docs/adr/0067).
+	Placed []Placed
 	// SettlementTier is the settlement's own tier ("village", "town",
 	// "city"); empty skips the tier rule (a caller that has none).
 	SettlementTier string
@@ -105,6 +115,9 @@ func CanPlace(def Def, grid Grid, x, y int, s Standing) error {
 		if lot.Reserved && def.Code != "road" {
 			return ErrReservedLot
 		}
+		if lot.Obstructed {
+			return ErrObstructed
+		}
 		if !terrainOK {
 			for _, tag := range def.TerrainTags {
 				if hasTag(lot.TerrainTags, tag) {
@@ -116,6 +129,9 @@ func CanPlace(def Def, grid Grid, x, y int, s Standing) error {
 	}
 	if !terrainOK {
 		return ErrTerrainRequired
+	}
+	if def.Near != nil && !nearHolds(def, grid, x, y, s) {
+		return ErrNeedsNear
 	}
 	for _, code := range def.RequiresKnowledge {
 		if !s.Knowledge.Has(code) {
@@ -169,4 +185,38 @@ func FirstFreeLot(def Def, grid Grid) (x, y int, ok bool) {
 		}
 	}
 	return 0, 0, false
+}
+
+// nearHolds reports whether a lot with one of the near tags lies within the radius of the footprint (on the grid given), or
+// a standing building with one of the near codes does.
+func nearHolds(def Def, grid Grid, x, y int, s Standing) bool {
+	n := def.Near
+	if n == nil {
+		return true
+	}
+	for j := y - n.Radius; j < y+def.FootprintH+n.Radius; j++ {
+		for i := x - n.Radius; i < x+def.FootprintW+n.Radius; i++ {
+			if j < 0 || i < 0 || j >= grid.Height() || i >= grid.Width() {
+				continue
+			}
+			for _, tag := range n.Tags {
+				if hasTag(grid[j][i].TerrainTags, tag) {
+					return true
+				}
+			}
+		}
+	}
+	for _, p := range s.Placed {
+		for _, code := range n.Codes {
+			if p.Code != code {
+				continue
+			}
+			dx := max(0, x-(p.X+p.W-1), p.X-(x+def.FootprintW-1))
+			dy := max(0, y-(p.Y+p.H-1), p.Y-(y+def.FootprintH-1))
+			if max(dx, dy) <= n.Radius {
+				return true
+			}
+		}
+	}
+	return false
 }

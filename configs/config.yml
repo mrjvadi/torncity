@@ -1339,7 +1339,7 @@ settlement:
   # office, permissions per office, and the length of an office title in characters.
   charter_max_offices: 24
   charter_max_seats: 15
-  charter_max_permissions: 40
+  charter_max_permissions: 64
   charter_title_min: 2
   charter_title_max: 32
   # Charter phase 2 (docs/adr/0044 6.5, 6.6): elections, recall, amendments, the acting head.
@@ -1397,6 +1397,19 @@ settlement:
   # refused, naming what is missing; for this many real days after it he may still work, with a notice.
   personal_rule_at: "2026-10-10T00:00:00Z"
   personal_grace_days: 7
+  # the land model (ADR 0065): trees and rocks as land. The rule date and the grace of the woodcutter's stop
+  land_rule_at: "2026-10-10T00:00:00Z"
+  land_grace_days: 7
+  land_woodland_ring: 3
+  land_regrow_hours: 120
+  land_sapling_hours: 24
+  land_fell_radius: 4
+  land_quarry_radius: 3
+  land_rock_shifts: 2
+  # the farm cycle (ADR 0067): sowing, tending, harvest. The rule date and the grace of the farms that stood before it, which keep
+  # their flat shift of 12 wheat until the grace is over
+  farm_rule_at: "2026-10-10T00:00:00Z"
+  farm_grace_days: 14
   # The teacher's skill in the literacy tick (docs/adr/0057): a class a player with the teaching skill gives moves literacy at
   # teacher_base_bps plus teacher_per_level_bps for each level of the skill (never above 10000); with no player teacher it moves at
   # teacher_base_bps. A finished class teaches its player teacher teacher_xp_per_class points of the skill.

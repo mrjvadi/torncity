@@ -328,6 +328,8 @@ type Pack struct {
 	PlannedSkills           []PlannedSkillDef
 	Recipes                 []RecipeDef
 	Climate                 []ClimateDef
+	Land                    []LandDef
+	Farming                 []FarmingDef
 	SettlementRaids         []SettlementRaidDef
 	SettlementRaidDetectors []SettlementRaidDetectorDef
 	RoadClasses             []RoadClassDef

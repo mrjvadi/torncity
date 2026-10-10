@@ -456,9 +456,13 @@ func (h *VillageHandler) citizenStanding(ctx context.Context, tx application.Tx,
 	if err != nil {
 		return settlementbuilding.Standing{}, err
 	}
+	rows, err := tx.SettlementBuildings().List(ctx, s.CityID)
+	if err != nil {
+		return settlementbuilding.Standing{}, err
+	}
 	return settlementbuilding.Standing{
 		Knowledge: st.Owned, KnowledgeCapabilities: capabilities, Built: built,
-		RunningBuilds: 0, ConcurrentCap: 1, LiteracyShareBPS: st.LiteracyShareBPS,
+		RunningBuilds: 0, ConcurrentCap: 1, LiteracyShareBPS: st.LiteracyShareBPS, Placed: placedOf(snap, rows),
 	}, nil
 }
 
@@ -759,7 +763,7 @@ func (h *VillageHandler) PrivatePlace(ctx context.Context, meta envelope.Metadat
 			if r, ok := cerr.(*villageRefusal); ok {
 				return r
 			}
-			return buildingRefusalTo(cerr, village.AddrPrivateMenu)
+			return h.withObstacles(ctx, tx, sc.s, def, x, y, sc.p.ID, buildingRefusalTo(cerr, village.AddrPrivateMenu), cerr)
 		}
 		if !footprintFitsOwn(sc, def, x, y) {
 			return refuseVillage(village.CitizenNotOwner, village.AddrPrivateMenu)

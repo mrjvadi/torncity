@@ -464,6 +464,37 @@ type ClimateDef struct {
 	Seasons      int `yaml:"seasons" json:"seasons"`
 }
 
+// LandBiomeDef is the density of trees and rocks on the lots of one biome, basis points of the lot's draws.
+type LandBiomeDef struct {
+	Biome   string `yaml:"biome" json:"biome"`
+	TreeBPS int    `yaml:"tree_bps" json:"tree_bps"`
+	RockBPS int    `yaml:"rock_bps" json:"rock_bps"`
+}
+
+// LandDef is obstacles.yml (ADR 0033 8.2, ADR 0041 7.1, ADR 0065): what stands on a lot of the land before anyone clears it.
+// The function Obstacles(seed, gen_version, cell, x, y, biome, slope, water, ring) is pure; these are its numbers.
+type LandDef struct {
+	Head `yaml:",inline"`
+	// GenVersion is the version of the generator a settlement founded under this content pins.
+	GenVersion int `yaml:"gen_version" json:"gen_version"`
+	// MaxTreesGrid and MaxTreesRing are the trees at most on a lot inside the claimed grid and on a woodland ring lot;
+	// MaxRocks the rocks at most on any lot.
+	MaxTreesGrid int `yaml:"max_trees_grid" json:"max_trees_grid"`
+	MaxTreesRing int `yaml:"max_trees_ring" json:"max_trees_ring"`
+	MaxRocks     int `yaml:"max_rocks" json:"max_rocks"`
+	// CoreDensityBPS is the density forced on the lots within one lot of the grid's centre; OuterFactorBPS the share of
+	// the biome's density kept on the rest of the founding 5x5.
+	CoreDensityBPS int `yaml:"core_density_bps" json:"core_density_bps"`
+	OuterFactorBPS int `yaml:"outer_factor_bps" json:"outer_factor_bps"`
+	// SlopeRockBonusBPS is added to the rock density of a steep lot.
+	SlopeRockBonusBPS int `yaml:"slope_rock_bonus_bps" json:"slope_rock_bonus_bps"`
+	// CoreClearShareBPS and CoreClearBlock are the guarantee: at least this share of the founding 5x5 is clear and a clear
+	// square of CoreClearBlock lots exists, so a new group builds at once.
+	CoreClearShareBPS int            `yaml:"core_clear_share_bps" json:"core_clear_share_bps"`
+	CoreClearBlock    int            `yaml:"core_clear_block" json:"core_clear_block"`
+	Biomes            []LandBiomeDef `yaml:"biomes" json:"biomes"`
+}
+
 // SettlementRaidDef is settlement_raids.yml's tuning (ADR 0045 7): lead time,
 // loot caps, frequency and grace, all `raid.*` config in the ADR's draft
 // values. The tables it feeds are `settlement_raids*`.

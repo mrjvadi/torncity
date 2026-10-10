@@ -335,10 +335,11 @@ settlement_buildings:
   # ---------------------------------------------------------------------
   - code: small_pit
     name: گودال معدن
+    quarries: true
     role: extraction
     tier: 1
     footprint: [1, 1]
-    terrain_tags: [ore_deposit]
+    terrain_tags: [ore_deposit, sloped_lot, rocky_lot]
     terrain_mode: required
     cost_money: 400
     build_time: 1h
@@ -365,124 +366,60 @@ settlement_buildings:
     effects: [{target: job_coverage_bps, op: add, value: 300}]
 
   # ---------------------------------------------------------------------
-  # water_infra — one per arable_farming branch held (tier 1 only, v1).
+  # water_infra — one per arable_farming branch held (tier 1 only, v1). Each is a daily service: a water master is on duty
+  # (building_functions.yml, kind service), the work decays and is repaired by labour (ADR 0067). `near` says where it may
+  # stand: a canal beside a river, a qanat shaft in dry country, terraces on a slope, paddy banks by water or in the wet tropics.
   # ---------------------------------------------------------------------
   - code: canal_channel
     name: "کانال آبرسانی"
-    waits_for: "B2: irrigation of fields (water reaches the farm, a dry season costs the crop); a channel that only costs upkeep is not offered"
     role: water_infra
     tier: 1
     footprint: [1, 1]
     requires_knowledge: [canal_irrigation]
+    near: {radius: 3, tags: [river_lot]}
     cost_money: 500
     build_time: 1h
     upkeep: 20
 
   - code: shaft_well
     name: چاه قنات
-    waits_for: "B2: irrigation of fields (water reaches the farm, a dry season costs the crop); a qanat shaft that only costs upkeep is not offered"
     role: water_infra
     tier: 1
     footprint: [1, 1]
     requires_knowledge: [shaft_irrigation]
+    near: {radius: 3, tags: [desert]}
     cost_money: 800
     build_time: 1h30m
     upkeep: 25
 
   - code: terrace_works
     name: دیوارهای پلکانی
-    waits_for: "B2: irrigation of fields (water reaches the farm, a dry season costs the crop); terraces that only cost upkeep are not offered"
     role: water_infra
     tier: 1
     footprint: [1, 1]
     requires_knowledge: [terrace_irrigation]
+    terrain_tags: [sloped_lot]
+    terrain_mode: required
     cost_money: 700
+    cost_materials: {stone: 8}
     build_time: 1h20m
     upkeep: 22
 
   - code: paddy_banks
     name: پشته‌های شالیزار
-    waits_for: "B2: irrigation of fields (water reaches the farm, a dry season costs the crop); paddy banks that only cost upkeep are not offered"
     role: water_infra
     tier: 1
     footprint: [1, 1]
     requires_knowledge: [paddy_cultivation]
+    near: {radius: 3, tags: [river_lot, tropical_rainforest, tropical_savanna]}
     cost_money: 750
     build_time: 1h25m
     upkeep: 24
 
   # ---------------------------------------------------------------------
-  # food — one per branch held, matching the water_infra it sits on
-  # (tier 1 only, v1).
+  # food — the farms are working buildings written once, in building_functions.yml (farm_canal, farm_shaft, farm_terrace,
+  # farm_paddy, farm_dry; ADR 0067); the herd stays here.
   # ---------------------------------------------------------------------
-  - code: farm_canal
-    name: "مزرعهٔ نهری"
-    role: food
-    tier: 1
-    footprint: [3, 3]
-    requires_knowledge: [canal_irrigation]
-    cost_money: 2000
-    build_time: 4h
-    upkeep: 40
-    effects: [{target: food_coverage_bps, op: add, value: 600}]
-    produces: {wheat: 12}
-    workers: 4
-    shift: 30m
-    wage: 50
-    tool_wear_bps: 100
-    trains: {skill: farming, xp: 15}
-
-  - code: farm_shaft
-    name: "مزرعهٔ قناتی"
-    role: food
-    tier: 1
-    footprint: [3, 3]
-    requires_knowledge: [shaft_irrigation]
-    cost_money: 2500
-    build_time: 4h30m
-    upkeep: 45
-    effects: [{target: food_coverage_bps, op: add, value: 600}]
-    produces: {wheat: 12}
-    workers: 4
-    shift: 30m
-    wage: 50
-    tool_wear_bps: 100
-    trains: {skill: farming, xp: 15}
-
-  - code: farm_terrace
-    name: مزرعهٔ پلکانی
-    role: food
-    tier: 1
-    footprint: [3, 3]
-    requires_knowledge: [terrace_irrigation]
-    cost_money: 2300
-    build_time: 4h15m
-    upkeep: 42
-    effects: [{target: food_coverage_bps, op: add, value: 600}]
-    produces: {wheat: 12}
-    workers: 4
-    shift: 30m
-    wage: 50
-    tool_wear_bps: 100
-    trains: {skill: farming, xp: 15}
-
-  - code: farm_paddy
-    name: "شالیزار"
-    role: food
-    tier: 1
-    footprint: [3, 3]
-    requires_knowledge: [paddy_cultivation]
-    cost_money: 2400
-    build_time: 4h20m
-    upkeep: 44
-    effects: [{target: food_coverage_bps, op: add, value: 600}]
-    produces: {wheat: 12}
-    workers: 4
-    shift: 30m
-    wage: 50
-    tool_wear_bps: 100
-    trains: {skill: farming, xp: 15}
-
   - code: pasture_range
     name: "چراگاه"
     role: food
@@ -493,6 +430,7 @@ settlement_buildings:
     build_time: 3h30m
     upkeep: 38
     effects: [{target: food_coverage_bps, op: add, value: 550}]
+    grazes: true
     produces: {wool: 4, hide: 1}
     workers: 3
     shift: 30m

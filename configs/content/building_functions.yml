@@ -240,8 +240,32 @@ building_functions:
     ledger_reasons: [stumpage_fee, wages]
     links: {to: [carpentry_workshop, charcoal_clamp, bakery, smithy, kiln, tannery, storehouse]}
     replaces: [woodcutter_camp]
-    workplace: {building: woodcutter_camp, role: forestry, tier: 1, shift: 30m, build_time: 30m, upkeep: 20, trains: {skill: forestry, xp: 15}}
+    workplace: {building: woodcutter_camp, fells: true, role: forestry, tier: 1, shift: 30m, build_time: 30m, upkeep: 20, trains: {skill: forestry, xp: 15}}
     note: "a half-hour of felling: timber 6, the tops as firewood 3 and a bark; a camp with no worker cuts nothing; trees in reach are the land model of ADR 0041 7"
+  - code: forester_lodge
+    source: "ADR 0065, ADR 0041 7.3 and 8.5; Banished wiki, Forester lodge"
+    evidence: D
+    name: "نهالستان"
+    requires: {knowledge: [forestry]}
+    kind: production
+    family: forestry
+    permit: craft
+    zones: [farm, industry]
+    footprint: [2, 2, 2, 2]
+    owners: [treasury]
+    levels:
+      - {level: 1, requires: {knowledge: [forestry]}, cost_money: 400, cost_materials: {timber: 6}, build_hours: 1}
+    staff: [{role: forester, slots: 2, shift_hours: 2}]
+    if_unstaffed: idle
+    consumes: {inputs: {}, food_points: 2, tool_wear_bps: 100}
+    produces: {outputs: {firewood: 1}, store: bulk}
+    storage: {needs: {bulk: 4}}
+    maintenance: {decay_bps_per_day: 50, repair_materials: {timber: 1}, repair_labour: 1}
+    ledger_reasons: [wages]
+    links: {to: [woodcutter_yard]}
+    replaces: [forester_lodge]
+    workplace: {building: forester_lodge, plants: true, role: forestry, tier: 1, shift: 30m, build_time: 30m, upkeep: 30, trains: {skill: forestry, xp: 15}}
+    note: "a forester plants one sapling on a cut lot of the commons within reach each shift and keeps the thinnings as firewood; a sapling is a tree after a day; a lodge with nobody to staff it plants nothing"
   - code: charcoal_clamp
     source: "ADR 0045 4.3 recipe 2, S70, S72; Wikipedia Charcoal, Charcoal burner"
     evidence: adr
@@ -519,10 +543,222 @@ building_functions:
     consumes: {inputs: {wheat: 8}, food_points: 1, tool_wear_bps: 50}
     produces: {outputs: {flour_sack: 8}, store: food}
     maintenance: {decay_bps_per_day: 50, repair_materials: {timber: 1}, repair_labour: 1}
-    links: {from: [farm_canal, farm_shaft, farm_terrace], to: [bakery]}
+    links: {from: [farm_canal, farm_shaft, farm_terrace, farm_paddy, farm_dry], to: [bakery]}
     replaces: [mill]
-    workplace: {private: true, private_name: "آسیاب (شخصی)", output_target: milling_output_bps, role: food, tier: 1, shift: 15m, upkeep: 35, effects: [{target: food_coverage_bps, op: add, value: 200}], trains: {skill: milling, xp: 20}}
-    note: "a hand mill: wheat 8 to flour 8 in a game hour. The water mill (level 2: river lot, wheat 24 a shift) and the miller's toll in kind (a policy between 1/24 and 1/10) wait for the upgrade runtime"
+    workplace: {private: true, grinds: true, private_name: "آسیاب (شخصی)", output_target: milling_output_bps, role: food, tier: 1, shift: 15m, upkeep: 35, effects: [{target: food_coverage_bps, op: add, value: 200}], trains: {skill: milling, xp: 20}}
+    note: "a hand mill: wheat 8 to flour 8 in a game hour. The water mill (wheat 24 a shift, on a river lot or beside a qanat shaft) is its own building, water_mill, and the miller's toll is a statute of the settlement (ADR 0067)"
+  - code: farm_canal
+    source: "ADR 0041 8.17, ADR 0067"
+    evidence: adr
+    name: "مزرعهٔ نهری"
+    requires: {knowledge: [canal_irrigation]}
+    kind: production
+    family: food
+    permit: food
+    zones: [farm]
+    footprint: [3, 3, 3, 3]
+    owners: [treasury, player]
+    levels:
+      - {level: 1, requires: {knowledge: [canal_irrigation]}, cost_money: 2000, build_hours: 4}
+    staff: [{role: farmer, slots: 4, shift_hours: 1}]
+    if_unstaffed: idle
+    consumes: {food_points: 1, tool_wear_bps: 100}
+    produces: {outputs: {wheat: 12}, store: food}
+    maintenance: {decay_bps_per_day: 50, repair_materials: {timber: 1}, repair_labour: 1}
+    links: {from: [canal_channel], to: [mill, granary]}
+    replaces: [farm_canal]
+    workplace: {private: true, private_name: "مزرعهٔ نهری (شخصی)", role: food, tier: 1, shift: 30m, build_time: 4h, wage: 50, upkeep: 40, effects: [{target: food_coverage_bps, op: add, value: 600}], trains: {skill: farming, xp: 15}, near: {radius: 5, codes: [canal_channel]}}
+    note: "a field watered from a canal (ADR 0067): sown, tended, harvested in a cycle; the flat 12 wheat a shift is only the legacy shift of a farm that stood before the rule date"
+  - code: farm_shaft
+    source: "ADR 0041 8.17, ADR 0067"
+    evidence: adr
+    name: "مزرعهٔ قناتی"
+    requires: {knowledge: [shaft_irrigation]}
+    kind: production
+    family: food
+    permit: food
+    zones: [farm]
+    footprint: [3, 3, 3, 3]
+    owners: [treasury, player]
+    levels:
+      - {level: 1, requires: {knowledge: [shaft_irrigation]}, cost_money: 2500, build_hours: 5}
+    staff: [{role: farmer, slots: 4, shift_hours: 1}]
+    if_unstaffed: idle
+    consumes: {food_points: 1, tool_wear_bps: 100}
+    produces: {outputs: {wheat: 12}, store: food}
+    maintenance: {decay_bps_per_day: 50, repair_materials: {timber: 1}, repair_labour: 1}
+    links: {from: [shaft_well], to: [mill, granary]}
+    replaces: [farm_shaft]
+    workplace: {private: true, private_name: "مزرعهٔ قناتی (شخصی)", role: food, tier: 1, shift: 30m, build_time: 4h30m, wage: 50, upkeep: 45, effects: [{target: food_coverage_bps, op: add, value: 600}], trains: {skill: farming, xp: 15}, near: {radius: 5, codes: [shaft_well]}}
+    note: "a field watered from a qanat shaft (ADR 0067); the cycle as the canal farm"
+  - code: farm_terrace
+    source: "ADR 0041 8.17, ADR 0067"
+    evidence: adr
+    name: "مزرعهٔ پلکانی"
+    requires: {knowledge: [terrace_irrigation]}
+    kind: production
+    family: food
+    permit: food
+    zones: [farm]
+    footprint: [3, 3, 3, 3]
+    owners: [treasury, player]
+    levels:
+      - {level: 1, requires: {knowledge: [terrace_irrigation]}, cost_money: 2300, build_hours: 4}
+    staff: [{role: farmer, slots: 4, shift_hours: 1}]
+    if_unstaffed: idle
+    consumes: {food_points: 1, tool_wear_bps: 100}
+    produces: {outputs: {wheat: 12}, store: food}
+    maintenance: {decay_bps_per_day: 50, repair_materials: {timber: 1}, repair_labour: 1}
+    links: {from: [terrace_works], to: [mill, granary]}
+    replaces: [farm_terrace]
+    workplace: {private: true, private_name: "مزرعهٔ پلکانی (شخصی)", role: food, tier: 1, shift: 30m, build_time: 4h15m, wage: 50, upkeep: 42, effects: [{target: food_coverage_bps, op: add, value: 600}], trains: {skill: farming, xp: 15}, near: {radius: 5, codes: [terrace_works]}}
+    note: "a terraced field (ADR 0067); the cycle as the canal farm"
+  - code: farm_paddy
+    source: "ADR 0041 8.17, ADR 0067"
+    evidence: adr
+    name: "شالیزار"
+    requires: {knowledge: [paddy_cultivation]}
+    kind: production
+    family: food
+    permit: food
+    zones: [farm]
+    footprint: [3, 3, 3, 3]
+    owners: [treasury, player]
+    levels:
+      - {level: 1, requires: {knowledge: [paddy_cultivation]}, cost_money: 2400, build_hours: 4}
+    staff: [{role: farmer, slots: 4, shift_hours: 1}]
+    if_unstaffed: idle
+    consumes: {food_points: 1, tool_wear_bps: 100}
+    produces: {outputs: {wheat: 12}, store: food}
+    maintenance: {decay_bps_per_day: 50, repair_materials: {timber: 1}, repair_labour: 1}
+    links: {from: [paddy_banks], to: [mill, granary]}
+    replaces: [farm_paddy]
+    workplace: {private: true, private_name: "شالیزار (شخصی)", role: food, tier: 1, shift: 30m, build_time: 4h20m, wage: 50, upkeep: 44, effects: [{target: food_coverage_bps, op: add, value: 600}], trains: {skill: farming, xp: 15}, near: {radius: 5, codes: [paddy_banks]}}
+    note: "a flooded rice field, grown as wheat in this version (ADR 0067); the cycle as the canal farm"
+  - code: farm_dry
+    source: "ADR 0041 8.17, ADR 0067"
+    evidence: adr
+    name: "مزرعهٔ دیم"
+    requires: {knowledge: [dryland_farming]}
+    kind: production
+    family: food
+    permit: food
+    zones: [farm]
+    footprint: [3, 3, 3, 3]
+    owners: [treasury, player]
+    levels:
+      - {level: 1, requires: {knowledge: [dryland_farming]}, cost_money: 1500, build_hours: 3}
+    staff: [{role: farmer, slots: 4, shift_hours: 1}]
+    if_unstaffed: idle
+    consumes: {food_points: 1, tool_wear_bps: 100}
+    produces: {outputs: {wheat: 12}, store: food}
+    maintenance: {decay_bps_per_day: 50, repair_materials: {timber: 1}, repair_labour: 1}
+    links: {from: [], to: [mill, granary]}
+    replaces: [farm_dry]
+    workplace: {private: true, private_name: "مزرعهٔ دیم (شخصی)", role: food, tier: 1, shift: 30m, build_time: 3h, wage: 50, upkeep: 30, effects: [{target: food_coverage_bps, op: add, value: 600}], trains: {skill: farming, xp: 15}}
+    note: "a rain-fed field with no water work: half the base yield of an irrigated one, half the seed, and no dead end for a village whose land has no water branch (ADR 0067)"
+  - code: canal_channel
+    source: "ADR 0041 8.20, ADR 0067"
+    evidence: adr
+    name: "کانال آبرسانی"
+    requires: {knowledge: [canal_irrigation]}
+    kind: service
+    family: water
+    zones: [farm]
+    footprint: [1, 1, 1, 1]
+    owners: [treasury]
+    levels:
+      - {level: 1, requires: {knowledge: [canal_irrigation]}, cost_money: 500, build_hours: 1}
+    staff: [{role: water_master, slots: 1, shift_hours: 4}]
+    if_unstaffed: idle
+    consumes: {inputs: {wheat: 1}, food_points: 1}
+    produces: {service: irrigation, daily: true, field: water_infra}
+    maintenance: {decay_bps_per_day: 200, repair_materials: {timber: 1}, repair_labour: 1}
+    links: {to: [farm_canal]}
+    replaces: [canal_channel]
+    note: "a water master allocates the turns of the canal each day (the acequia mayordomo, the subak head, the mirab); silt takes 2 percent of its condition a day and the users clean it"
+  - code: shaft_well
+    source: "ADR 0041 8.20, ADR 0067"
+    evidence: adr
+    name: "چاه قنات"
+    requires: {knowledge: [shaft_irrigation]}
+    kind: service
+    family: water
+    zones: [farm]
+    footprint: [1, 1, 1, 1]
+    owners: [treasury]
+    levels:
+      - {level: 1, requires: {knowledge: [shaft_irrigation]}, cost_money: 800, build_hours: 2}
+    staff: [{role: water_master, slots: 1, shift_hours: 4}]
+    if_unstaffed: idle
+    consumes: {inputs: {wheat: 1}, food_points: 1}
+    produces: {service: irrigation, daily: true, field: water_infra}
+    maintenance: {decay_bps_per_day: 100, repair_materials: {timber: 1}, repair_labour: 1}
+    links: {to: [farm_shaft]}
+    replaces: [shaft_well]
+    note: "a qanat shaft: the water master keeps the turns, qanat diggers repair the tunnel; one irrigation work among several, not the only one"
+  - code: terrace_works
+    source: "ADR 0041 8.20, ADR 0067"
+    evidence: adr
+    name: "دیوارهای پلکانی"
+    requires: {knowledge: [terrace_irrigation]}
+    kind: service
+    family: water
+    zones: [farm]
+    footprint: [1, 1, 1, 1]
+    owners: [treasury]
+    levels:
+      - {level: 1, requires: {knowledge: [terrace_irrigation]}, cost_money: 700, build_hours: 2}
+    staff: [{role: water_master, slots: 1, shift_hours: 4}]
+    if_unstaffed: idle
+    consumes: {inputs: {wheat: 1}, food_points: 1}
+    produces: {service: irrigation, daily: true, field: water_infra}
+    maintenance: {decay_bps_per_day: 80, repair_materials: {stone: 1}, repair_labour: 1}
+    links: {to: [farm_terrace]}
+    replaces: [terrace_works]
+    note: "terrace walls and their water turns; a slumped wall is rebuilt in stone"
+  - code: paddy_banks
+    source: "ADR 0041 8.20, ADR 0067"
+    evidence: adr
+    name: "پشته‌های شالیزار"
+    requires: {knowledge: [paddy_cultivation]}
+    kind: service
+    family: water
+    zones: [farm]
+    footprint: [1, 1, 1, 1]
+    owners: [treasury]
+    levels:
+      - {level: 1, requires: {knowledge: [paddy_cultivation]}, cost_money: 750, build_hours: 2}
+    staff: [{role: water_master, slots: 1, shift_hours: 4}]
+    if_unstaffed: idle
+    consumes: {inputs: {wheat: 1}, food_points: 1}
+    produces: {service: irrigation, daily: true, field: water_infra}
+    maintenance: {decay_bps_per_day: 100, repair_materials: {timber: 1}, repair_labour: 1}
+    links: {to: [farm_paddy]}
+    replaces: [paddy_banks]
+    note: "the banks that hold the flood water, kept by the subak's labour"
+  - code: water_mill
+    source: "ADR 0041 8.15, ADR 0067"
+    evidence: adr
+    name: "آسیاب آبی"
+    requires: {knowledge: [milling_ii]}
+    kind: production
+    family: food
+    permit: food
+    zones: [farm]
+    footprint: [2, 2, 2, 2]
+    owners: [treasury, player]
+    levels:
+      - {level: 1, requires: {knowledge: [milling_ii]}, cost_money: 1800, cost_materials: {timber: 8, stone: 8}, build_hours: 4}
+    staff: [{role: miller, slots: 1, shift_hours: 1}, {role: mill_hand, slots: 1, shift_hours: 1}]
+    if_unstaffed: idle
+    consumes: {inputs: {wheat: 24}, food_points: 1, tool_wear_bps: 50}
+    produces: {outputs: {flour_sack: 24}, store: food}
+    maintenance: {decay_bps_per_day: 80, repair_materials: {timber: 1}, repair_labour: 1}
+    links: {from: [farm_canal, farm_shaft, farm_terrace, farm_paddy, farm_dry], to: [bakery]}
+    replaces: [water_mill]
+    workplace: {private: true, grinds: true, private_name: "آسیاب آبی (شخصی)", output_target: milling_output_bps, role: food, tier: 1, shift: 15m, upkeep: 60, effects: [{target: food_coverage_bps, op: add, value: 300}], trains: {skill: milling, xp: 20}, near: {radius: 3, tags: [river_lot], codes: [shaft_well]}}
+    note: "the water mill, level 2 of the mill (ADR 0067): a wheel in a leat from a river or a qanat grinds wheat 24 a shift, three times the hand mill, with a miller and a mill hand. It is its own building because a hand mill cannot be turned into a water mill in place; it needs milling_ii and a river lot or a qanat shaft within 3 lots"
   - code: bakery
     source: "ADR 0041 8.16, 0045 4.3 recipe 7"
     evidence: adr

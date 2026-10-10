@@ -49,6 +49,11 @@ var (
 	// ErrUnbuildableLot means some lot of the footprint is not buildable
 	// terrain (water, a river/stream channel, too steep).
 	ErrUnbuildableLot = errors.New("settlementbuilding: a lot in the footprint is not buildable")
+	// ErrObstructed means trees or rocks stand on a lot of the footprint: clear it first (docs/adr/0065).
+	ErrObstructed = errors.New("settlementbuilding: trees or rocks stand on a lot in the footprint")
+	// ErrNeedsNear means the building must stand near a terrain tag or a standing building it does not have in reach
+	// (a canal channel near a river, a farm near its water work; docs/adr/0067).
+	ErrNeedsNear = errors.New("settlementbuilding: the building needs something near it that is not there")
 	// ErrReservedLot means a lot of the footprint is road right-of-way: only a
 	// road may stand on it (docs/adr/0043).
 	ErrReservedLot = errors.New("settlementbuilding: a lot in the footprint is reserved for a road")
@@ -113,6 +118,14 @@ const (
 	TerrainRequired TerrainMode = "required"
 )
 
+// Near is a proximity rule (docs/adr/0067): within Radius lots of the footprint there is a lot with one of Tags or a
+// standing building with one of Codes.
+type Near struct {
+	Radius int
+	Tags   []string
+	Codes  []string
+}
+
 // Def is one building type of the catalogue. It is content.
 type Def struct {
 	Code string
@@ -152,6 +165,9 @@ type Def struct {
 	// these as a terrain tag the same way settlementknowledge does).
 	TerrainTags []string
 	TerrainMode TerrainMode
+	// Near is what must lie within Radius lots of the footprint: a lot with one of the tags, or a standing building with
+	// one of the codes (either satisfies it). Nil: nothing is needed near.
+	Near *Near
 
 	CostMoney int64
 	// CostMaterials is finished-goods component code -> quantity (ADR

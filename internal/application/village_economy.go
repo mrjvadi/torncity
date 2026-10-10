@@ -80,7 +80,18 @@ type SettlementShift struct {
 	// Produced and Consumed are the goods the shift moved, component code ->
 	// quantity, fixed when it starts.
 	Produced, Consumed map[string]int64
-	GameActionID       string
+	// LandKind is what the shift did to the land (docs/adr/0065): "tree" (felled one), "rock" (worked a rock), "sapling" (planted
+	// one) or "" (nothing); LandX and LandY name the lot and LandOwner the citizen whose lot it was (the yield goes to him and he
+	// paid the wage).
+	LandKind     string
+	LandX, LandY int
+	LandOwner    string
+	// FarmCycle and FarmPhase say which crop and which work a farm shift did (sow, tend, harvest; docs/adr/0067); CustomFor is
+	// the citizen whose own grain a mill shift ground (FarmPhase grind).
+	FarmCycle, FarmPhase, CustomFor string
+	// Board is the food the hands of a citizen's own workplace ate out of the owner's home store (item reason board_eaten).
+	Board        map[string]int64
+	GameActionID string
 	// Kind is "production" (the workplace loop) or "construction" (ADR 0037);
 	// WorkerKind "player" or "npc" (then PlayerID is empty); JobID the hiring-
 	// board job it was taken from; WorkPoints the work a construction shift

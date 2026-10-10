@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
+	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/application/handlers"
 	"github.com/mrjvadi/torncity/internal/config"
 	"github.com/mrjvadi/torncity/internal/domain/lotbuild"
@@ -28,4 +30,19 @@ func LotRules(s config.Settlement) (handlers.LotRules, error) {
 		StoreyKnowledge: support, SalvageBPS: int64(s.BuildingSalvageBPS), UseChangeFeeBPS: int64(s.UseChangeFeeBPS),
 		LookRerolls: s.BuildingLookRerolls, TemplatesMax: s.BuildingTemplatesMax, HearthFuel: "firewood",
 	}, nil
+}
+
+// Land turns the land settings (settlement.land_*, docs/adr/0065) into the rules of the land model. The game service, the client
+// API and the state sync all build them from here.
+func Land(s config.Settlement) application.LandRules {
+	from, _ := time.Parse(time.RFC3339, s.LandRuleAt) // not an instant: the land model is off
+	return application.LandRules{RuleAt: from, GraceDays: s.LandGraceDays, Ring: int(s.LandWoodlandRing),
+		RegrowEvery: time.Duration(s.LandRegrowHours) * time.Hour, SaplingFor: time.Duration(s.LandSaplingHours) * time.Hour,
+		FellRadius: int(s.LandFellRadius), QuarryRadius: int(s.LandQuarryRadius), RockShifts: int(s.LandRockShifts)}
+}
+
+// Farm turns the farm settings (settlement.farm_*, docs/adr/0067) into the rules of the farm cycle.
+func Farm(s config.Settlement) application.FarmRules {
+	from, _ := time.Parse(time.RFC3339, s.FarmRuleAt) // not an instant: every farm keeps its flat shift
+	return application.FarmRules{RuleAt: from, GraceDays: s.FarmGraceDays}
 }

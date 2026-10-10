@@ -132,3 +132,4 @@ func stallKeeperTerms(cfg *config.Config) handlers.StallKeeperTerms {
 	return handlers.StallKeeperTerms{ShareBPS: int64(t.StallKeeperShareBPS), ShareMinBPS: int64(t.StallKeeperShareMinBPS), ShareMaxBPS: int64(t.StallKeeperShareMaxBPS),
 		Wage: int64(t.StallKeeperWage), WageMin: int64(t.StallKeeperWageMin), WageMax: int64(t.StallKeeperWageMax)}
 }
+

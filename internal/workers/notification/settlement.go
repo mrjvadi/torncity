@@ -293,9 +293,15 @@ func villageLandChanged(_ context.Context, _ Deps, env *envelope.Envelope) ([]Se
 	}
 	var changed struct {
 		Kind string `json:"kind"`
+		X    *int   `json:"x"`
+		Y    *int   `json:"y"`
 	}
 	_ = json.Unmarshal(env.Payload, &changed)
-	return one(ev.SettlementID, SettlementLandChanged, withLayout(map[string]any{"kind": changed.Kind}, ev)), nil
+	data := map[string]any{"kind": changed.Kind}
+	if changed.X != nil && changed.Y != nil {
+		data["x"], data["y"] = *changed.X, *changed.Y
+	}
+	return one(ev.SettlementID, SettlementLandChanged, withLayout(data, ev)), nil
 }
 
 // villageBuilt: a building finished construction.

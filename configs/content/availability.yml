@@ -60,12 +60,16 @@ staff_roles:
   - {code: labourer, skill: "", wage_bps: 10000, support_npc: true, note: "ADR 0041 5.1"}
   - {code: tanner, skill: "", wage_bps: 13000, support_npc: true, note: "owner 2026-10-10: a skilled trade, 130 SUP an hour; docs/adr/0057"}
   - {code: woodcutter, skill: forestry, wage_bps: 10000, support_npc: true, note: "ADR 0041 5.1"}
+  - {code: forester, skill: forestry, wage_bps: 10000, support_npc: true, note: "ADR 0065: plants and tends the trees of the commons; an NPC of the pool or a player"}
   - {code: carpenter, crew: true, skill: carpentry, wage_bps: 14000, support_npc: true, note: "ADR 0041 5.1; owner 2026-10-10: no level is asked, anyone may work the trade to learn it"}
   - {code: mason, crew: true, skill: masonry, wage_bps: 14000, support_npc: true, note: "ADR 0041 5.1; owner 2026-10-10: no level is asked, anyone may work the trade to learn it"}
   - {code: smith, skill: smithing, wage_bps: 15000, personal: [{kind: level, min: 3}], support_npc: true, note: "ADR 0041 5.1"}
   - {code: weaver, skill: weaving, wage_bps: 13000, support_npc: true, note: "ADR 0041 5.1"}
   - {code: potter, skill: pottery, wage_bps: 13000, support_npc: true, note: "ADR 0041 5.1"}
   - {code: miller, skill: milling, wage_bps: 13000, support_npc: true, note: "ADR 0041 5.1"}
+  - {code: mill_hand, skill: milling, wage_bps: 10000, support_npc: true, note: "ADR 0067: the helper at a water mill, who clears the race and carries the sacks"}
+  - {code: farmer, skill: farming, wage_bps: 10000, support_npc: true, note: "ADR 0041 8.17: sows, tends and harvests; the work comes in peaks, so a crew of four"}
+  - {code: water_master, skill: "", wage_bps: 12500, support_npc: true, note: "ADR 0067: allocates the turns of the water on a fixed rota and keeps the works clear; the same office is the acequia mayordomo of Spain, the pekaseh of a Balinese subak, the Andean water regidor and the Iranian mirab. Paid by the users: here the treasury pays a day's wage"}
   - {code: baker, skill: baking, wage_bps: 13000, support_npc: true, note: "ADR 0041 5.1"}
   - {code: storekeeper, skill: trade, wage_bps: 11000, personal: [{kind: literacy}], support_npc: true, note: "ADR 0041 5.1"}
   - {code: beacon_keeper, skill: vigilance, wage_bps: 10000, personal: [{kind: level, min: 1}], support_npc: true, note: "ADR 0042 8.9"}
@@ -106,6 +110,7 @@ availability:
   - {kind: building, code: barracks, stage: town, growth: {requires: {knowledge: [military_drill, masonry_ii], buildings: [{role: security, tier: 1}, {role: storage, tier: 1}]}, note: "2026-10-03 audit: drilled men need a watch to recruit from and a granary to feed them"}, elsewhere: [{where: support}]}
   - {kind: building, code: port, stage: city, growth: {requires: {knowledge: [trading_post, masonry_iii, carpentry_iii], buildings: [{role: market, tier: 2}, {code: road}]}, note: "2026-10-03 audit: a trading post for the harbour trade, quay masonry, ship carpentry, a market and a road to carry cargo"}, elsewhere: [{where: support}]}
   - {kind: building, code: airport, stage: city, growth: {requires: {knowledge: [electricity, masonry_iii], buildings: [{code: road}, {role: craft, tier: 3}, {role: extraction, tier: 2}]}, note: "2026-10-03 audit: lighting and radio need electricity, fuel needs a mine, aircraft need a large workshop, the runway needs a road and dressed stone"}, elsewhere: [{where: support}]}
+  - {kind: building, code: forester_lodge, stage: village, requires: {knowledge: [forestry]}}
   - {kind: building, code: woodcutter_camp, stage: village, growth: {open: true, founding: true, row: 10}}
   - {kind: building, code: watch_hut, stage: village}
   - {kind: building, code: militia_camp, stage: village}
@@ -142,6 +147,8 @@ availability:
   - {kind: building, code: farm_shaft, stage: village}
   - {kind: building, code: farm_terrace, stage: village}
   - {kind: building, code: farm_paddy, stage: village}
+  - {kind: building, code: farm_dry, stage: village}
+  - {kind: building, code: water_mill, requires: {knowledge: [milling_ii]}, elsewhere: [{where: support}]}
   - {kind: building, code: pasture_range, stage: village}
   - {kind: building, code: health_house, stage: village, growth: {open: true, founding: true, row: 34}, elsewhere: [{where: support}]}
   - {kind: building, code: clinic, stage: town, elsewhere: [{where: support}]}
@@ -171,6 +178,7 @@ availability:
   - {kind: knowledge, code: basic_medicine, stage: village, growth: {open: true, founding: true, row: 51}, elsewhere: [{where: support}]}
   - {kind: knowledge, code: basic_medicine_ii, stage: town, elsewhere: [{where: support}]}
   - {kind: knowledge, code: carpentry, stage: village, growth: {open: true, founding: true, row: 53}, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: forestry, requires: {knowledge: [carpentry]}, elsewhere: [{where: support}]}
   - {kind: knowledge, code: carpentry_ii, stage: town, elsewhere: [{where: support}]}
   - {kind: knowledge, code: carpentry_iii, stage: city, elsewhere: [{where: support}]}
   - {kind: knowledge, code: carpentry_iv, stage: city, elsewhere: [{where: support}]}
@@ -192,6 +200,7 @@ availability:
   - {kind: knowledge, code: shaft_irrigation, stage: village, growth: {open: true, founding: true, row: 70}, elsewhere: [{where: support}]}
   - {kind: knowledge, code: terrace_irrigation, stage: village, growth: {open: true, founding: true, row: 71}, elsewhere: [{where: support}]}
   - {kind: knowledge, code: paddy_cultivation, stage: village, growth: {open: true, founding: true, row: 72}, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: dryland_farming, stage: village, growth: {open: true, founding: true, row: 76}, elsewhere: [{where: support}]}
   - {kind: knowledge, code: open_range_herding, stage: village, growth: {open: true, founding: true, row: 73}, elsewhere: [{where: support}]}
   - {kind: knowledge, code: coastal_fishing, stage: village, growth: {open: true, founding: true, row: 74}, elsewhere: [{where: support}]}
   - {kind: knowledge, code: pondfield_aquaculture, stage: village, growth: {open: true, founding: true, row: 75}, elsewhere: [{where: support}]}

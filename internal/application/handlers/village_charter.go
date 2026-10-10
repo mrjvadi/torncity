@@ -38,7 +38,7 @@ import (
 
 // charterDefaults are the caps used when VillageRules carries none.
 func charterDefaults() charter.Limits {
-	return charter.Limits{MaxOffices: 24, MaxSeats: 15, MaxPermissions: 40, TitleMin: 2, TitleMax: 32}
+	return charter.Limits{MaxOffices: 24, MaxSeats: 15, MaxPermissions: 64, TitleMin: 2, TitleMax: 32}
 }
 
 func (h *VillageHandler) limits() charter.Limits {

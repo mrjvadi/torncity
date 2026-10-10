@@ -573,6 +573,41 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 			}
 			return h.village.CurrencyDesk(ctx, env.Metadata, req)
 		},
+		"settlement.clear.order": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageClearRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.ClearOrder(ctx, env.Metadata, req)
+		},
+		"settlement.farm.sow": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageFarmRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.FarmSow(ctx, env.Metadata, req)
+		},
+		"settlement.mill.toll": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageMillRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.MillToll(ctx, env.Metadata, req)
+		},
+		"settlement.mill.grind": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageMillRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.MillGrind(ctx, env.Metadata, req)
+		},
+		"settlement.clear.cancel": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageClearRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.ClearCancel(ctx, env.Metadata, req)
+		},
 		"settlement.lot.manage": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			var req handlers.VillageManageRequest
 			if err := decode(env, &req); err != nil {
@@ -738,6 +773,13 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 				return nil, err
 			}
 			return h.village.LaborPost(ctx, env.Metadata, req)
+		},
+		"settlement.farm.ripe": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.CrimeScheduledRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.FarmRipe(ctx, env.Metadata, req)
 		},
 		"settlement.worked": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			var req handlers.CrimeScheduledRequest

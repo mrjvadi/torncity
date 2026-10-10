@@ -40,6 +40,9 @@ func (p *Pack) validateBuildingSchema(problems *[]error) {
 	l.functions()
 	l.recipes()
 	l.climate()
+	l.land()
+	l.farming()
+	l.nears()
 	l.raids()
 	l.roads()
 	l.rail()
@@ -48,7 +51,7 @@ func (p *Pack) validateBuildingSchema(problems *[]error) {
 
 func (p *Pack) hasBuildingSchema() bool {
 	return len(p.StorageClasses)+len(p.ItemStorage)+len(p.ModuleKinds)+len(p.BuildingFunctions)+len(p.Recipes)+
-		len(p.Climate)+len(p.SettlementRaids)+len(p.SettlementRaidDetectors)+len(p.RoadClasses)+len(p.RoadPlanner)+
+		len(p.Climate)+len(p.Land)+len(p.SettlementRaids)+len(p.SettlementRaidDetectors)+len(p.RoadClasses)+len(p.RoadPlanner)+
 		len(p.RailClasses)+len(p.HaulModes)+len(p.Rail) > 0
 }
 
@@ -102,6 +105,9 @@ func (p *Pack) SchemaOpenItems() SchemaOpenItems {
 		add(r.Head)
 	}
 	for _, r := range p.Climate {
+		add(r.Head)
+	}
+	for _, r := range p.Land {
 		add(r.Head)
 	}
 	for _, r := range p.SettlementRaids {
@@ -1137,4 +1143,116 @@ func (l *schemaLint) reachability() {
 	for _, c := range p.RailClasses {
 		rowOK("rail_class/"+c.Code, c.Requires)
 	}
+}
+
+func (l *schemaLint) land() {
+	if len(l.p.Land) > 1 {
+		l.bad("land: at most one obstacles block")
+	}
+	seen := map[string]bool{}
+	for _, d := range l.p.Land {
+		l.head("land", Head{Code: "land", Source: d.Source, Evidence: d.Evidence, Requires: d.Requires, PlannedKnowledge: d.PlannedKnowledge, Deferred: d.Deferred, NeedsResearch: d.NeedsResearch}, seen)
+		if d.GenVersion < 1 || d.MaxTreesGrid < 0 || d.MaxTreesRing < d.MaxTreesGrid || d.MaxRocks < 0 {
+			l.bad("land: gen_version from 1, trees on the ring at least as many as in the grid, no negative maximum")
+		}
+		for _, bps := range []int{d.CoreDensityBPS, d.OuterFactorBPS, d.SlopeRockBonusBPS, d.CoreClearShareBPS} {
+			if bps < 0 || bps > 10_000 {
+				l.bad("land: a basis point value is out of 0..10000")
+			}
+		}
+		if d.CoreClearBlock < 1 || d.CoreClearBlock > 5 {
+			l.bad("land: core_clear_block is a square of 1 to 5 lots")
+		}
+		codes := map[string]bool{}
+		for _, b := range d.Biomes {
+			if b.Biome == "" || codes[b.Biome] || b.TreeBPS < 0 || b.TreeBPS > 10_000 || b.RockBPS < 0 || b.RockBPS > 10_000 {
+				l.bad("land: biome %q is empty, twice, or its density is out of 0..10000", b.Biome)
+			}
+			codes[b.Biome] = true
+		}
+	}
+}
+
+// nears checks the proximity rules of the buildings (docs/adr/0067): a radius of a few lots, and something to be near that exists.
+func (l *schemaLint) nears() {
+	for _, b := range l.p.SettlementBuildings {
+		n := b.Near
+		if n == nil {
+			continue
+		}
+		if n.Radius < 1 || n.Radius > 10 || len(n.Tags)+len(n.Codes) == 0 {
+			l.bad("settlement_building/%s: near needs a radius of 1 to 10 and a tag or a building", b.Code)
+		}
+		// the tags are the lot flags and biome codes of the world's grid, which a test world does not all carry: not checked here
+		for _, c := range n.Codes {
+			if _, ok := l.buildingByCode(c); !ok {
+				l.bad("settlement_building/%s: near building %q does not exist", b.Code, c)
+			}
+		}
+	}
+}
+
+func (l *schemaLint) farming() {
+	if len(l.p.Farming) > 1 {
+		l.bad("farming: at most one farming block")
+	}
+	seen := map[string]bool{}
+	for _, d := range l.p.Farming {
+		l.head("farming", Head{Code: "farming", Source: d.Source, Evidence: d.Evidence, Requires: d.Requires, PlannedKnowledge: d.PlannedKnowledge, Deferred: d.Deferred, NeedsResearch: d.NeedsResearch}, seen)
+		if d.SowShifts < 1 || d.HarvestShifts < 1 || d.TendMax < 0 || d.TendBPS < 0 {
+			l.bad("farming: the sowing and the harvest each take at least one shift, tending is not negative")
+		}
+		for name, v := range map[string]string{"grow": d.Grow, "window": d.Window, "rot_step": d.RotStep} {
+			if dur, err := optionalDuration(v); err != nil || dur <= 0 {
+				l.bad("farming: %s %q is not a duration", name, v)
+			}
+		}
+		for _, bps := range []int{d.RotStepBPS, d.Water.ServedBPS, d.Water.UnservedBPS, d.Water.MinConditionBPS, d.SoilDefaultBPS, d.SteepPenaltyBPS,
+			d.Toll.MinBPS, d.Toll.MaxBPS, d.Toll.DefaultBPS} {
+			if bps < 0 || bps > 10_000 {
+				l.bad("farming: a basis point value is out of 0..10000")
+			}
+		}
+		if d.Toll.MinBPS > d.Toll.DefaultBPS || d.Toll.DefaultBPS > d.Toll.MaxBPS {
+			l.bad("farming: the toll default lies between its minimum and its maximum")
+		}
+		if d.Water.Reach < 1 || d.Water.Serves < 1 || d.Seed.Irrigated < 1 || d.Seed.Rainfed < 1 || d.Base.Irrigated < 1 || d.Base.Rainfed < 1 {
+			l.bad("farming: reach, serves, seed and base are positive")
+		}
+		if d.Pasture.GrazingLots < 1 || d.Pasture.Radius < 1 {
+			l.bad("farming: the pasture needs at least one grazing lot within a radius of at least one")
+		}
+		farms := map[string]bool{}
+		for _, b := range d.Branches {
+			if b.Farm == "" || farms[b.Farm] || (b.Work == "") != b.Rainfed {
+				l.bad("farming: branch %q is empty, twice, or has a water work exactly when it is not rain-fed", b.Farm)
+			}
+			farms[b.Farm] = true
+			if _, ok := l.buildingByCode(b.Farm); !ok {
+				l.bad("farming: branch farm %q is not a building", b.Farm)
+			}
+			if b.Work != "" {
+				if _, ok := l.buildingByCode(b.Work); !ok {
+					l.bad("farming: branch work %q is not a building", b.Work)
+				}
+			}
+		}
+		biomes := map[string]bool{}
+		for _, s := range d.Soil {
+			if s.Biome == "" || biomes[s.Biome] || s.BPS < 1000 || s.BPS > 20_000 {
+				l.bad("farming: soil biome %q is empty, twice, or out of 1000..20000", s.Biome)
+			}
+			biomes[s.Biome] = true
+		}
+	}
+}
+
+// buildingByCode finds a settlement building of the pack (the generated workplaces are already in it).
+func (l *schemaLint) buildingByCode(code string) (SettlementBuildingDef, bool) {
+	for _, b := range l.p.SettlementBuildings {
+		if b.Code == code {
+			return b, true
+		}
+	}
+	return SettlementBuildingDef{}, false
 }
