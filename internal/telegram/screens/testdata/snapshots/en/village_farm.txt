@@ -1,0 +1,87 @@
+━━━ Work · a farm growing, a farm with no water, a mill and a legacy farm ━━━
+(edits message 42)
+⚒ Work in Korendal
+
+• Canal farm: per shift (30m) 12 Wheat - wage 50 SUP - places taken: 0 of 4
+  🌾 growing; sowing 8/8, tending 3/6, harvest 0/12
+• Canal farm: per shift (30m) 12 Wheat - wage 50 SUP - places taken: 0 of 4
+  🌾 being sown; sowing 2/8, tending 0/6, harvest 0/12
+• Canal farm: per shift (30m) 12 Wheat - wage 50 SUP - places taken: 0 of 4
+  🌾 plain shift until 24 September 2026
+• Canal farm: per shift (30m) 12 Wheat - wage 50 SUP - places taken: 0 of 4
+  🌾 nothing sown yet; sowing 0/8, tending 0/6, harvest 0/12
+• Mill: per shift (15m) turns 8 Wheat into 8 Sack of flour - wage 30 SUP - places taken: 0 of 1
+  ⚖ miller's toll 5%; your own wheat: 20
+
+📦 Stock room: 14 of 60 units
+
+A resident works each shift; nothing is made without a worker and the wage is paid from the city treasury.
+  ───
+  [⚒ Start a shift at Canal farm] → settlement:work:f1
+  [⚒ Start a shift at Canal farm] → settlement:work:f2
+  [⚒ Start a shift at Canal farm] → settlement:work:f3
+  [🌱 Order the sowing of Canal farm] → settlement:farm.sow:f4
+  [🌾 Grind my own wheat at Mill] → settlement:mill.grind:m1
+  [⚒ Start a shift at Mill] → settlement:work:m1
+  [🧱 Stock and market] → settlement:materials   │   [🏗 Construction] → settlement:build
+  [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:work
+
+━━━ Sowing ordered ━━━
+(edits message 42)
+🌱 Sowing of "Canal farm" ordered. The seed (50 wheat) leaves the store with the first sowing shift; the sowing takes 8 shifts.
+  ───
+  [🔙 Back] → settlement:work
+
+━━━ Toll set ━━━
+(edits message 42)
+⚖ The miller's toll of "Korendal" is now 8.3% of the flour.
+  ───
+  [🔙 Back] → settlement:work
+
+━━━ Building panel · a canal, its master on duty ━━━
+(edits message 42)
+🏛 Irrigation canal
+
+Brings and holds water for the city's life and farming.
+
+✅ Built and working.
+
+👷 Working: 0 of 0 posts are filled.
+
+💧 The water master is on duty today; condition 82%. Farms watered: Canal farm.
+  ───
+  [🔙 Back] → settlement:build.progress   │   [🔄 Refresh] → settlement:building.view:w1
+
+━━━ Building panel · a farm and a pasture without land ━━━
+(edits message 42)
+🏛 Canal farm
+
+Grows the city's food and raises its food coverage.
+
+✅ Built and working.
+
+💤 Not working right now.
+
+🌾 Crop: growing. Sowing 8/8, tending 3/6, harvest 0/12. Expected harvest: 430 wheat (soil 100%, water 100%).
+
+💧 Water comes from "Irrigation canal".
+
+• The crop is growing and the weeding is done; nothing to do until it is ripe.
+  ───
+  [🔙 Back] → settlement:build.progress   │   [🔄 Refresh] → settlement:building.view:f1
+
+━━━ Building panel · a pasture with too little open land ━━━
+(edits message 42)
+🏛 Pasture
+
+Grows the city's food and raises its food coverage.
+
+✅ Built and working.
+
+💤 Not working right now.
+
+🐑 Open land round the pasture: 3 of 6.
+
+• There is not enough open land round the pasture; clear the trees and rocks.
+  ───
+  [🔙 Back] → settlement:build.progress   │   [🔄 Refresh] → settlement:building.view:p1

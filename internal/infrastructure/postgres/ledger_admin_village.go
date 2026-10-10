@@ -86,11 +86,22 @@ type VillageInvariants struct {
 	// NPCShiftsWithoutJob counts NPC production shifts no job posted; NPCHungry NPC shifts
 	// that started unfed (an NPC never does); CarryOutOfRange workplaces whose carried
 	// fraction is not within [0, 10000).
-	WorkNodes                                       bool
-	MealOpenedRows, MealOpenedKitchen               int64
-	MealEatenShifts, MealEatenKitchen               int64
-	MealJournalUnits, MealRowUnits                  int64
-	NPCShiftsWithoutJob, NPCHungry, CarryOutOfRange int64
+	WorkNodes                         bool
+	MealOpenedRows, MealOpenedKitchen int64
+	MealEatenShifts, MealEatenKitchen int64
+	MealJournalUnits, MealRowUnits    int64
+	// BoardJournalUnits and BoardShiftUnits: the food employers gave their hands, in the item journal and in the shift rows (migration 0142).
+	BoardJournalUnits, BoardShiftUnits int64
+	// ClearingLedger and ClearingRows: the fees citizens paid for the village's crew to clear their lots, in the ledger and as the
+	// wages of the shifts that worked those lots; LandShiftsWithoutLot counts felling or quarrying shifts whose lot has no delta row
+	// (migration 0143, ADR 0065).
+	ClearingLedger, ClearingRows, LandShiftsWithoutLot int64
+	// FarmSeedShifts and FarmSeedCycles: the seed the sowing shifts took and the seed the crops record having been sown;
+	// FarmShiftsWithoutCycle counts farm shifts of no crop; FarmCountersBroken the crops whose counters differ from the shifts
+	// that were started for them; FarmHarvestOver the crops harvested past their fixed yield; GrindWithoutCustomer the grinding
+	// shifts of no citizen (migration 0144, ADR 0067).
+	FarmSeedShifts, FarmSeedCycles, FarmShiftsWithoutCycle, FarmCountersBroken, FarmHarvestOver, GrindWithoutCustomer int64
+	NPCShiftsWithoutJob, NPCHungry, CarryOutOfRange    int64
 	// Condition (migration 0126): Repairs is whether the columns exist; RepairWithoutJob counts
 	// repair shifts no repair job posted or that restore nothing; DamageOutOfRange buildings
 	// whose damage is outside 0..10000; RepairUnpaid finished repair shifts with a gain but
@@ -205,7 +216,8 @@ type VillageInvariants struct {
 // WorkNodesOK reports whether the working-node checks hold.
 func (v VillageInvariants) WorkNodesOK() bool {
 	return !v.WorkNodes || (v.MealOpenedRows == v.MealOpenedKitchen && v.MealEatenShifts == v.MealEatenKitchen &&
-		v.MealJournalUnits == v.MealRowUnits && v.NPCShiftsWithoutJob == 0 && v.NPCHungry == 0 && v.CarryOutOfRange == 0 &&
+		v.MealJournalUnits == v.MealRowUnits && v.BoardJournalUnits == v.BoardShiftUnits && v.ClearingLedger == v.ClearingRows && v.LandShiftsWithoutLot == 0 &&
+		v.FarmSeedShifts == v.FarmSeedCycles && v.FarmShiftsWithoutCycle == 0 && v.FarmCountersBroken == 0 && v.FarmHarvestOver == 0 && v.GrindWithoutCustomer == 0 && v.NPCShiftsWithoutJob == 0 && v.NPCHungry == 0 && v.CarryOutOfRange == 0 &&
 		(!v.Repairs || (v.RepairWithoutJob == 0 && v.DamageOutOfRange == 0))) &&
 		(!v.Currencies || (v.PotMismatched == 0 && v.SupplyMismatched == 0 && v.IssuanceMismatched == 0 && v.StrayHoldings == 0)) &&
 		(!v.LocalObligations || (v.LocalLedgerPay == v.LocalRowsPay && v.LocalLedgerCollect == v.LocalRowsCollect && v.LocalLedgerTransfer == v.LocalRowsTransfer &&
@@ -418,6 +430,23 @@ func (a *EconomyAdmin) verifyWorkNodes(ctx context.Context, v *LedgerVerificatio
 		{&s.MealOpenedKitchen, "kitchen opened points", `SELECT COALESCE(SUM(opened_points), 0)::bigint FROM settlement_kitchen`},
 		{&s.MealEatenShifts, "points the shifts ate", `SELECT COALESCE(SUM(meal_points), 0)::bigint FROM settlement_shifts`},
 		{&s.MealEatenKitchen, "kitchen eaten points", `SELECT COALESCE(SUM(eaten_points), 0)::bigint FROM settlement_kitchen`},
+		{&s.ClearingLedger, "clearing fees in the ledger", `SELECT COALESCE(SUM(amount), 0)::bigint FROM ledger_entries WHERE reason = 'clearing_fee' AND amount > 0`},
+		{&s.ClearingRows, "clearing fees in the shift rows", `SELECT COALESCE(SUM(wage), 0)::bigint FROM settlement_shifts WHERE land_owner IS NOT NULL`},
+		{&s.LandShiftsWithoutLot, "land shifts whose lot has no delta", `SELECT count(*) FROM settlement_shifts s WHERE s.land_kind IN ('tree', 'rock')
+			AND NOT EXISTS (SELECT 1 FROM settlement_land l WHERE l.settlement_id = s.settlement_id AND l.lot_x = s.land_x AND l.lot_y = s.land_y)`},
+		{&s.FarmSeedShifts, "seed the sowing shifts took", `SELECT COALESCE(SUM((consumed->>'wheat')::bigint), 0)::bigint FROM settlement_shifts WHERE farm_phase = 'sow'`},
+		{&s.FarmSeedCycles, "seed the crops record", `SELECT COALESCE(SUM(seed_spent), 0)::bigint FROM farm_cycles`},
+		{&s.FarmShiftsWithoutCycle, "farm shifts of no crop", `SELECT count(*) FROM settlement_shifts s WHERE s.farm_phase IN ('sow', 'tend', 'harvest')
+			AND NOT EXISTS (SELECT 1 FROM farm_cycles c WHERE c.id = s.farm_cycle)`},
+		{&s.FarmCountersBroken, "crops whose counters differ from their shifts", `SELECT count(*) FROM farm_cycles c WHERE
+			c.sow_started <> (SELECT count(*) FROM settlement_shifts s WHERE s.farm_cycle = c.id AND s.farm_phase = 'sow')
+			OR c.tended <> (SELECT count(*) FROM settlement_shifts s WHERE s.farm_cycle = c.id AND s.farm_phase = 'tend')
+			OR c.harvest_started <> (SELECT count(*) FROM settlement_shifts s WHERE s.farm_cycle = c.id AND s.farm_phase = 'harvest')`},
+		{&s.FarmHarvestOver, "crops harvested past their yield", `SELECT count(*) FROM farm_cycles c WHERE
+			(SELECT COALESCE(SUM((s.produced->>'wheat')::bigint), 0) FROM settlement_shifts s WHERE s.farm_cycle = c.id AND s.farm_phase = 'harvest') > c.yield_total`},
+		{&s.GrindWithoutCustomer, "grinding shifts of no citizen", `SELECT count(*) FROM settlement_shifts WHERE farm_phase = 'grind' AND custom_for IS NULL`},
+		{&s.BoardJournalUnits, "board units in the item journal", `SELECT COALESCE(SUM(quantity), 0)::bigint FROM item_movements WHERE reason = 'board_eaten'`},
+		{&s.BoardShiftUnits, "board units in the shift rows", `SELECT COALESCE(SUM(v.value::bigint), 0)::bigint FROM settlement_shifts s, jsonb_each_text(s.board) v`},
 		{&s.MealJournalUnits, "meal units in the item journal", `SELECT COALESCE(SUM(quantity), 0)::bigint FROM item_movements WHERE reason = 'meal_eaten'`},
 		{&s.MealRowUnits, "meal units in the opening rows", `SELECT COALESCE(SUM(units), 0)::bigint FROM settlement_meals`},
 		{&s.NPCShiftsWithoutJob, "NPC production shifts without a job", `

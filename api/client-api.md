@@ -1832,3 +1832,11 @@ The owner is the employer: the job of a private production building is posted, h
 }
 ```
 `job` is absent when no job is posted; `produced_value` is the goods' base price (the real takings are the stall and book sales). Item reason `board_eaten` is new in the item journal.
+
+
+## Trees and rocks as land (ADR 0065)
+Layout: lots (grid and `ring.lots`) carry `trees`, `rocks`, `stumps`, `saplings[] {stage, ready_at}`, `ordered {trees, rocks}`, `obstructed`; block `woods {mark, forest_remaining_bps}`; the ETag includes `woods.mark`. Commands: `settlement.clear.order {x, y, what}`, `settlement.clear.cancel {x, y}` (screen `clear_order`). Refusals: `obstructed` (with `obstacles {x, y, trees, rocks, can_order}`), `no_trees_in_reach`, `no_plot_in_reach`. Event `land_changed {settlement_id, kind, x, y}`.
+
+
+## Farms, water works, the mill and the pasture (ADR 0067)
+Layout: `farms[]` {building, stage, rainfed, legacy, sow_done, sow_need, tended, tend_max, harvest_done, harvest_need, ripe_at, spoil_at}; the ETag ends in `.f<mark>` with farms. `land_changed` kind `farm_sown` (x, y of the farm). WorkNode (building panel): `farm` (FarmLine: stage, counters, seed, seed_have, expected, factors {soil, water, tending, loss}, water {work, served, open, condition_bps, reason}, can_sow, legacy, legacy_until), `mill` (MillLine: toll_bps, min_bps, max_bps, can_set, batch, have, toll_units), `water` (open, condition_bps, serves[]), `grazing` (open, need, radius). WorkplaceLine: `farm`, `mill`. Commands: `settlement.farm.sow {id}` -> screen `farm_sow`; `settlement.mill.toll {bps}` -> `mill_toll`; `settlement.mill.grind {id}` -> the work screen. Refusals: `needs_near`, `farm_idle`, `farm_waiting`, `farm_busy`, `farm_legacy`, `farm_not_farm`, `no_grazing`, `toll_range`, `mill_no_grain`, `mill_not_mill`. Charter permissions: `farm.sow`, `mill.toll`. Config: `settlement.farm_rule_at`, `settlement.farm_grace_days`.

@@ -464,7 +464,17 @@ type settlementSettings struct {
 	ServiceRuleAt                    *string `yaml:"service_rule_at"`
 	ServiceGraceDays                 *int64  `yaml:"service_grace_days"`
 	PersonalRuleAt                   *string `yaml:"personal_rule_at"`
+	LandRuleAt                       *string `yaml:"land_rule_at"`
 	PersonalGraceDays                *int64  `yaml:"personal_grace_days"`
+	LandRockShifts                   *int64  `yaml:"land_rock_shifts"`
+	LandQuarryRadius                 *int64  `yaml:"land_quarry_radius"`
+	LandFellRadius                   *int64  `yaml:"land_fell_radius"`
+	LandSaplingHours                 *int64  `yaml:"land_sapling_hours"`
+	LandRegrowHours                  *int64  `yaml:"land_regrow_hours"`
+	LandWoodlandRing                 *int64  `yaml:"land_woodland_ring"`
+	LandGraceDays                    *int64  `yaml:"land_grace_days"`
+	FarmRuleAt                       *string `yaml:"farm_rule_at"`
+	FarmGraceDays                    *int64  `yaml:"farm_grace_days"`
 	TeacherBaseBPS                   *int64  `yaml:"teacher_base_bps"`
 	TeacherPerLevelBPS               *int64  `yaml:"teacher_per_level_bps"`
 	TeacherXPPerClass                *int64  `yaml:"teacher_xp_per_class"`
@@ -1599,6 +1609,36 @@ var coreSettings = []setting{
 	moneySetting("settlement", "teacher_xp_per_class",
 		func(c *Config) *int64 { return &c.Settlement.TeacherXPPerClass },
 		func(f *fileConfig) *int64 { return f.Settlement.TeacherXPPerClass }),
+	stringSetting("settlement", "land_rule_at",
+		func(c *Config) *string { return &c.Settlement.LandRuleAt },
+		func(f *fileConfig) *string { return f.Settlement.LandRuleAt }),
+	moneySetting("settlement", "land_grace_days",
+		func(c *Config) *int64 { return &c.Settlement.LandGraceDays },
+		func(f *fileConfig) *int64 { return f.Settlement.LandGraceDays }),
+	moneySetting("settlement", "land_woodland_ring",
+		func(c *Config) *int64 { return &c.Settlement.LandWoodlandRing },
+		func(f *fileConfig) *int64 { return f.Settlement.LandWoodlandRing }),
+	moneySetting("settlement", "land_regrow_hours",
+		func(c *Config) *int64 { return &c.Settlement.LandRegrowHours },
+		func(f *fileConfig) *int64 { return f.Settlement.LandRegrowHours }),
+	moneySetting("settlement", "land_sapling_hours",
+		func(c *Config) *int64 { return &c.Settlement.LandSaplingHours },
+		func(f *fileConfig) *int64 { return f.Settlement.LandSaplingHours }),
+	moneySetting("settlement", "land_fell_radius",
+		func(c *Config) *int64 { return &c.Settlement.LandFellRadius },
+		func(f *fileConfig) *int64 { return f.Settlement.LandFellRadius }),
+	moneySetting("settlement", "land_quarry_radius",
+		func(c *Config) *int64 { return &c.Settlement.LandQuarryRadius },
+		func(f *fileConfig) *int64 { return f.Settlement.LandQuarryRadius }),
+	moneySetting("settlement", "land_rock_shifts",
+		func(c *Config) *int64 { return &c.Settlement.LandRockShifts },
+		func(f *fileConfig) *int64 { return f.Settlement.LandRockShifts }),
+	stringSetting("settlement", "farm_rule_at",
+		func(c *Config) *string { return &c.Settlement.FarmRuleAt },
+		func(f *fileConfig) *string { return f.Settlement.FarmRuleAt }),
+	moneySetting("settlement", "farm_grace_days",
+		func(c *Config) *int64 { return &c.Settlement.FarmGraceDays },
+		func(f *fileConfig) *int64 { return f.Settlement.FarmGraceDays }),
 	stringSetting("settlement", "personal_rule_at",
 		func(c *Config) *string { return &c.Settlement.PersonalRuleAt },
 		func(f *fileConfig) *string { return f.Settlement.PersonalRuleAt }),

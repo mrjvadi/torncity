@@ -1,0 +1,32 @@
+version: 1
+# What stands on a lot before anyone clears it: trees and rocks (ADR 0033 8.2, ADR 0041 7.1, ADR 0065).
+#
+# The count on a lot is a pure function of the world's seed, the lot and its biome, the same on every replica; what is
+# cut, quarried, planted or grown since is stored as deltas (settlement_land, settlement_saplings). Densities are the first
+# draft of ADR 0033 8.2; the ring of commons around the claimed grid carries more trees than the grid.
+#
+# Needs research: real stand densities per biome in trees per lot (a lot is about 30 m wide, so a hectare is about 11 lots);
+# the draft counts are game units, not a forestry survey.
+land:
+  source: "ADR 0065"
+  evidence: D
+  requires: {}
+  gen_version: 1
+  max_trees_grid: 3
+  max_trees_ring: 6
+  max_rocks: 2
+  core_density_bps: 0
+  outer_factor_bps: 5000
+  slope_rock_bonus_bps: 1500
+  core_clear_share_bps: 6000
+  core_clear_block: 4
+  biomes:
+    - {biome: temperate_forest,     tree_bps: 6500, rock_bps: 800}
+    - {biome: temperate_rainforest, tree_bps: 8000, rock_bps: 300}
+    - {biome: tropical_rainforest,  tree_bps: 8000, rock_bps: 300}
+    - {biome: boreal_forest,        tree_bps: 6000, rock_bps: 900}
+    - {biome: temperate_grassland,  tree_bps: 600,  rock_bps: 500}
+    - {biome: tropical_savanna,     tree_bps: 400,  rock_bps: 700}
+    - {biome: desert,               tree_bps: 20,   rock_bps: 1200}
+    - {biome: tundra,               tree_bps: 100,  rock_bps: 1500}
+    - {biome: polar_ice,            tree_bps: 0,    rock_bps: 800}

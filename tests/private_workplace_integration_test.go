@@ -17,6 +17,7 @@ import (
 // levy to the treasury, and the books verify.
 func TestAPlayerEmploysWorkersInHisOwnWorkplace(t *testing.T) {
 	e := newLotEnv(t)
+	e.alignToLocalMorning() // the shifts and "today" must not straddle the village's midnight
 	owner := e.owner
 	ctx := testCtx(t)
 	id := e.house(owner, "carpentry_workshop_own", 2000)
@@ -120,6 +121,9 @@ func TestAPlayerEmploysWorkersInHisOwnWorkplace(t *testing.T) {
 	if i.LaborWageLedger != i.LaborWageRows || i.LaborMismatched != 0 || i.LaborEscrowLedger != i.LaborEscrowRows ||
 		i.WageLedger != i.WageRows || i.WageMismatched != 0 || i.ShiftItems != i.ShiftItemRows {
 		t.Errorf("the books do not agree: %+v", i)
+	}
+	if i.BoardJournalUnits != i.BoardShiftUnits || i.BoardJournalUnits == 0 {
+		t.Errorf("the board eaten must match the shifts: journal %d, rows %d", i.BoardJournalUnits, i.BoardShiftUnits)
 	}
 	e.verify2b()
 }

@@ -25,7 +25,8 @@ func TestKnowledgeOfTheCraftRaisesTheShiftOutput(t *testing.T) {
 	if base <= 0 || got <= base {
 		t.Fatalf("knowing the craft should raise the output: %d against %d", got, base)
 	}
-	if want := base * 10_700 / 10_000; got < want-1 || got > want+1 {
-		t.Errorf("milling (400) and milling_ii (300) add 700 basis points: %d, want about %d", got, want)
+	// milling_ii no longer adds a percentage: it unlocks the water mill (docs/adr/0067)
+	if want := base * 10_400 / 10_000; got < want-1 || got > want+1 {
+		t.Errorf("milling (400) adds 400 basis points and milling_ii none: %d, want about %d", got, want)
 	}
 }

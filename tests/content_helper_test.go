@@ -22,6 +22,10 @@ func (s staticContentSource) Current() *content.Snapshot { return s.snap }
 // (configs/content/) and builds a snapshot from it, the identical pipeline
 // `admin content load` runs, for a test that needs a real
 // handlers.ContentSource rather than a fake.
+// landBoost makes loadTestContent fill the land with trees and rocks (a test of the land model sets it before it builds its
+// environment and clears it in a cleanup).
+var landBoost bool
+
 func loadTestContent(t *testing.T) *content.Snapshot {
 	t.Helper()
 	return loadTestContentOpen(t)
@@ -43,6 +47,12 @@ func loadTestContentOpen(t *testing.T, open ...string) *content.Snapshot {
 			if pack.SettlementBuildings[i].Code == code {
 				pack.SettlementBuildings[i].WaitsFor = ""
 			}
+		}
+	}
+	if landBoost && len(pack.Land) > 0 {
+		// every lot of every biome carries all it can, so a test finds trees and rocks wherever the test world puts its village
+		for i := range pack.Land[0].Biomes {
+			pack.Land[0].Biomes[i].TreeBPS, pack.Land[0].Biomes[i].RockBPS = 10_000, 5_000
 		}
 	}
 	pack = testworld.Extend(pack)

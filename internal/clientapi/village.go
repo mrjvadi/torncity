@@ -8,6 +8,7 @@ import (
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
+	"github.com/mrjvadi/torncity/internal/domain/land"
 	"github.com/mrjvadi/torncity/internal/domain/settlement"
 	"github.com/mrjvadi/torncity/internal/domain/worldgen"
 )
@@ -93,6 +94,12 @@ type VillageService struct {
 	// VillageGridLots is settlement.village_grid_lots.
 	VillageGridLots int
 	Now             func() time.Time
+	// Land and LandRules add the trees and rocks of the land to the layout (docs/adr/0065); nil Land leaves them out.
+	Land      application.LandReader
+	LandRules application.LandRules
+	// Farm and FarmRules add the stage of the farms' crops to the layout (docs/adr/0067); nil Farm leaves them out.
+	Farm      application.FarmReader
+	FarmRules application.FarmRules
 }
 
 // Place is a point on the planet with the base-LOD chunk holding it.
@@ -215,11 +222,58 @@ type VillageLayout struct {
 	Tenure []LayoutTenure `json:"tenure,omitempty"`
 	// Terms are the land and permit terms in force, for a member only.
 	Terms *LayoutTerms `json:"terms,omitempty"`
+	// Ring is the commons round the grid and Woods the state of the settlement's wood (docs/adr/0065); absent while the land
+	// model is off.
+	Ring  *LayoutRing  `json:"ring,omitempty"`
+	Woods *LayoutWoods `json:"woods,omitempty"`
+	// Farms are the crops of the farms that work in cycles, for the client to draw the stage of their fields (docs/adr/0067).
+	Farms []LayoutFarm `json:"farms,omitempty"`
+
+	farmMark string // changes with any crop; part of the ETag, not of Version
 	// Land is the land the roads opened beyond the first grid, for a member
 	// only: the drawn road cells and the lots along them, in absolute lot
 	// coordinates (negative west and south of the grid). A laid road is also in
 	// Buildings and Roads like any road.
 	Land *LayoutLand `json:"land,omitempty"`
+
+	woodLots map[land.Pos]*application.LandLot // the land model's lots, for the sections that carry trees
+}
+
+// LayoutRing is the woodland ring of commons: lots outside the claimed grid, in the grid's signed coordinates.
+type LayoutRing struct {
+	Depth int             `json:"depth"`
+	Lots  []LayoutRingLot `json:"lots"`
+}
+
+// LayoutRingLot is one lot of the ring.
+type LayoutRingLot struct {
+	X        int            `json:"x"`
+	Y        int            `json:"y"`
+	HeightM  float64        `json:"height_m"`
+	SlopeM   float64        `json:"slope_m"`
+	Biome    string         `json:"biome,omitempty"`
+	Water    string         `json:"water,omitempty"`
+	Trees    int            `json:"trees"`
+	Rocks    int            `json:"rocks"`
+	Stumps   int            `json:"stumps"`
+	Saplings []LayoutGrowth `json:"saplings,omitempty"`
+}
+
+// LayoutGrowth is a sapling still growing; Stage runs from 0 (planted) to 1 (a tree).
+type LayoutGrowth struct {
+	Stage float64 `json:"stage"`
+}
+
+// LayoutWoods is the settlement's wood: the share of its trees that is left (the client thins its own countryside by it), the
+// trees the land generated and the trees standing, and the generator version it is under (0: its founding grid stays clear).
+type LayoutWoods struct {
+	ForestRemainingBPS int `json:"forest_remaining_bps"`
+	GeneratedTrees     int `json:"generated_trees"`
+	TreesLeft          int `json:"trees_left"`
+	GenVersion         int `json:"gen_version"`
+	// Mark changes whenever anything on the land changes (a tree felled, a rock broken, a sapling planted or grown, regrowth); it
+	// is part of the ETag, not of Version, so the version of the state sync stays the one it always was.
+	Mark string `json:"mark,omitempty"`
 }
 
 // LayoutLand is the land the roads opened.
@@ -262,6 +316,9 @@ type LayoutOpenLot struct {
 	Biome     string   `json:"biome,omitempty"`
 	Water     string   `json:"water,omitempty"`
 	Tags      []string `json:"tags,omitempty"`
+	Trees     int      `json:"trees,omitempty"`
+	Rocks     int      `json:"rocks,omitempty"`
+	Stumps    int      `json:"stumps,omitempty"`
 }
 
 // LayoutTenure is one owned lot. Owner names the holder; Mine is set when the
@@ -329,6 +386,13 @@ type LayoutLot struct {
 	// Water is "ocean", "lake", "river" or "stream", empty on dry ground.
 	Water string   `json:"water,omitempty"`
 	Tags  []string `json:"tags,omitempty"`
+	// Trees, Rocks and Stumps are what stands on the lot now and Saplings the trees still growing; Obstructed says a tree or a rock
+	// stands on it, so it cannot be built on until cleared (Buildable stays the terrain's own answer; docs/adr/0065).
+	Trees      int            `json:"trees,omitempty"`
+	Rocks      int            `json:"rocks,omitempty"`
+	Stumps     int            `json:"stumps,omitempty"`
+	Saplings   []LayoutGrowth `json:"saplings,omitempty"`
+	Obstructed bool           `json:"obstructed,omitempty"`
 }
 
 // LayoutLotRef is a lot's coordinates.
@@ -449,18 +513,35 @@ func (v *VillageService) Layout(ctx context.Context, viewerID, settlementID stri
 		}
 	}
 	mark := ""
+	var open []application.OpenLotRow
+	if v.Citizens != nil {
+		var err error
+		if open, err = v.Citizens.OpenLots(ctx, s.CityID); err != nil {
+			return VillageLayout{}, err
+		}
+	}
+	woodsMark, err := v.addWoods(ctx, &out, w, s, lots, open, occupiedBy(rows, footprint), rows)
+	if err != nil {
+		return VillageLayout{}, err
+	}
+	if err := v.addFarms(ctx, &out, s, rows); err != nil {
+		return VillageLayout{}, err
+	}
 	if viewer.Member && v.Citizens != nil {
 		var err error
 		if mark, err = v.addTenure(ctx, &out, viewerID, s.CityID); err != nil {
 			return VillageLayout{}, err
 		}
-		landMark, err := v.addLand(ctx, &out, s.CityID)
+		roadMark, err := v.addLand(ctx, &out, s.CityID)
 		if err != nil {
 			return VillageLayout{}, err
 		}
-		mark = application.JoinMarks(mark, landMark)
+		mark = application.JoinMarks(mark, roadMark)
 	}
 	out.Version = layoutVersion(out, mark)
+	if out.Woods != nil {
+		out.Woods.Mark = woodsMark
+	}
 	return out, nil
 }
 
@@ -496,8 +577,12 @@ func (v *VillageService) addLand(ctx context.Context, out *VillageLayout, settle
 		land.Plans = append(land.Plans, LayoutRoadPlan{ID: p.ID, Class: p.Class, Lots: count[p.ID], ToX: p.ToX, ToY: p.ToY})
 	}
 	for _, o := range open {
-		land.Open = append(land.Open, LayoutOpenLot{X: o.X, Y: o.Y, Buildable: o.Buildable, Reason: o.Reason,
-			HeightM: round2(o.HeightM), SlopeM: round2(o.SlopeM), Biome: o.Biome, Water: o.Water, Tags: o.Tags})
+		ol := LayoutOpenLot{X: o.X, Y: o.Y, Buildable: o.Buildable, Reason: o.Reason,
+			HeightM: round2(o.HeightM), SlopeM: round2(o.SlopeM), Biome: o.Biome, Water: o.Water, Tags: o.Tags}
+		if l, ok := out.woodLots[lotKey(o.X, o.Y)]; ok {
+			ol.Trees, ol.Rocks, ol.Stumps = l.Trees, l.Rocks, l.Stumps
+		}
+		land.Open = append(land.Open, ol)
 	}
 	out.Land = land
 	return application.LandMark(plans, cells), nil
@@ -548,7 +633,16 @@ func (v *VillageService) addTenure(ctx context.Context, out *VillageLayout, view
 }
 
 // ETag is the layout's entity tag: its version and the detail it shows.
-func (l VillageLayout) ETag() string { return `"` + l.Version + "." + l.Detail + `"` }
+func (l VillageLayout) ETag() string {
+	tag := l.Version + "." + l.Detail
+	if l.Woods != nil && l.Woods.Mark != "" {
+		tag += "." + l.Woods.Mark
+	}
+	if l.farmMark != "" {
+		tag += ".f" + l.farmMark
+	}
+	return `"` + tag + `"`
+}
 
 func waterOf(l settlement.LotTerrain) string {
 	switch {
@@ -621,4 +715,92 @@ func (v *VillageService) LayoutVersions(ctx context.Context, settlementID string
 	}
 	lots := v.gridLots(s.Tier, s.GridGrowth)
 	return application.LayoutVersionsWithTenure(s.CityID, s.Tier, s.Name, lots, rows, footprint, mark), lots, nil
+}
+
+// landViewOf is the land of a settlement now, from the stored deltas; nil while the model is off.
+func (v *VillageService) landViewOf(ctx context.Context, w *worldgen.World, s application.FoundedSettlement, side int, open []application.OpenLotRow, occupied map[land.Pos]bool, rows []application.SettlementBuildingInstance) (*application.LandView, error) {
+	if v.Land == nil || !v.LandRules.Enabled() {
+		return nil, nil
+	}
+	def, ok := v.Content.Current().Land()
+	if !ok {
+		return nil, nil
+	}
+	deltas, err := v.Land.Rows(ctx, s.CityID)
+	if err != nil {
+		return nil, err
+	}
+	saplings, err := v.Land.Saplings(ctx, s.CityID)
+	if err != nil {
+		return nil, err
+	}
+	now := time.Now().UTC()
+	if v.Now != nil {
+		now = v.Now().UTC()
+	}
+	return application.BuildLandWith(w, s, side, open, occupied, v.grazedBy(rows), def, v.LandRules, deltas, saplings, now), nil
+}
+
+// addWoods adds the trees and rocks to the lots, the ring of commons and the state of the wood, and returns the mark the
+// version folds in.
+func (v *VillageService) addWoods(ctx context.Context, out *VillageLayout, w *worldgen.World, s application.FoundedSettlement, side int, open []application.OpenLotRow, occupied map[land.Pos]bool, rows []application.SettlementBuildingInstance) (string, error) {
+	lv, err := v.landViewOf(ctx, w, s, side, open, occupied, rows)
+	if err != nil || lv == nil || len(lv.Lots) == 0 {
+		return "", err
+	}
+	growth := func(l *application.LandLot) []LayoutGrowth {
+		var g []LayoutGrowth
+		for _, st := range l.Growing {
+			g = append(g, LayoutGrowth{Stage: round2(st)})
+		}
+		return g
+	}
+	for y := range out.Lots {
+		for x := range out.Lots[y] {
+			if l, ok := lv.Lots[land.Pos{X: x, Y: y}]; ok {
+				out.Lots[y][x].Trees, out.Lots[y][x].Rocks, out.Lots[y][x].Stumps = l.Trees, l.Rocks, l.Stumps
+				out.Lots[y][x].Saplings, out.Lots[y][x].Obstructed = growth(l), l.Obstructed
+			}
+		}
+	}
+	ring := &LayoutRing{Depth: lv.Rules.Ring, Lots: []LayoutRingLot{}}
+	for _, p := range lv.Order() {
+		l := lv.Lots[p]
+		if !l.Commons {
+			continue
+		}
+		ring.Lots = append(ring.Lots, LayoutRingLot{X: p.X, Y: p.Y, Biome: l.Ground.Biome, Water: waterKind(l), Trees: l.Trees, Rocks: l.Rocks,
+			Stumps: l.Stumps, Saplings: growth(l)})
+	}
+	out.Ring = ring
+	out.woodLots = lv.Lots
+	bps, gen, left := lv.Forest()
+	out.Woods = &LayoutWoods{ForestRemainingBPS: bps, GeneratedTrees: gen, TreesLeft: left, GenVersion: lv.Version}
+	return lv.Mark(), nil
+}
+
+func waterKind(l *application.LandLot) string {
+	if l.Ground.Water {
+		return "water"
+	}
+	return ""
+}
+
+func lotKey(x, y int) land.Pos { return land.Pos{X: x, Y: y} }
+
+// occupiedBy is the lots the buildings hold, for the land model.
+func occupiedBy(rows []application.SettlementBuildingInstance, footprint func(code string, rotated bool) (int, int)) map[land.Pos]bool {
+	out := map[land.Pos]bool{}
+	for _, b := range rows {
+		if !b.Holds() {
+			continue
+		}
+		fw, fh := footprint(b.TypeCode, b.Rotated)
+		for dy := 0; dy < fh; dy++ {
+			for dx := 0; dx < fw; dx++ {
+				out[land.Pos{X: b.LotX + dx, Y: b.LotY + dy}] = true
+			}
+		}
+	}
+	return out
 }

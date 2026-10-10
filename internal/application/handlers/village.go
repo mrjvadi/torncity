@@ -50,6 +50,10 @@ import (
 // primitive (used directly by appointments.go too); this is that same
 // direct use, one more caller, no content change.
 type VillageHandler struct {
+	// landRules are the settings of the land model: trees and rocks as land (config settlement.land_*, ADR 0065).
+	landRules application.LandRules
+	// farmRules are the settings of the farm cycle (config settlement.farm_*, ADR 0067).
+	farmRules application.FarmRules
 	// keeperTerms are the pay a hired stall keeper can be given (config trade.stall_keeper_*, ADR 0062).
 	keeperTerms StallKeeperTerms
 	uow     application.UnitOfWork
@@ -276,6 +280,8 @@ type villageRefusal struct {
 	lots []village.BatchLotFailure
 	// missing is the room a refused shift or purchase lacks, in units.
 	missing int64
+	// obstacles is what stands on a refused footprint (kind obstructed).
+	obstacles *village.ObstacleView
 	// action, subject and needs are the attempt view of a refused build,
 	// research or shift: exactly what is missing and where it comes from
 	// (village_economy.go).
@@ -312,7 +318,7 @@ func (h *VillageHandler) villageFinish(meta envelope.Metadata, lang string, err 
 			return village.LotAccessScreen(c, *r.access), nil
 		}
 		return village.VillageRefusal(c, village.VillageRefusalView{Kind: r.kind, Back: presentation.RefOfAddress(r.back), Remaining: r.remaining, Min: r.min, Max: r.max, Lots: r.lots, Missing: r.missing,
-			Action: r.action, Subject: r.subject, Needs: r.needs, Personal: r.personal}), nil
+			Action: r.action, Subject: r.subject, Needs: r.needs, Personal: r.personal, Obstacles: r.obstacles}), nil
 	}
 	if stderrors.Is(err, application.ErrCityNotFound) {
 		return village.VillageRefusal(c, village.VillageRefusalView{Kind: village.VillageNoSettlement}), nil
@@ -383,6 +389,19 @@ func (h *VillageHandler) grid(ctx context.Context, tx application.Tx, w *worldge
 		g[y] = make([]settlementbuilding.Lot, gridLots)
 		for x := 0; x < gridLots; x++ {
 			g[y][x] = settlementbuilding.Lot{Buildable: sampled[y][x].Buildable, TerrainTags: sampled[y][x].Tags}
+		}
+	}
+	// trees and rocks stand on the free lots until they are cleared (docs/adr/0065)
+	if lv, lerr := h.landViewOf(ctx, tx, w, s, nil); lerr != nil {
+		return nil, nil, lerr
+	} else {
+		for p, l := range lv.Lots {
+			if l.Ring == 0 && p.X >= 0 && p.Y >= 0 && p.X < gridLots && p.Y < gridLots {
+				g[p.Y][p.X].Obstructed = l.Obstructed
+				if l.Rocks > 0 {
+					g[p.Y][p.X].TerrainTags = append(g[p.Y][p.X].TerrainTags, "rocky_lot")
+				}
+			}
 		}
 	}
 	snap := h.content.Current()

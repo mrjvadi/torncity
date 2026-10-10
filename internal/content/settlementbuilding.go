@@ -57,6 +57,18 @@ type SettlementBuildingDef struct {
 	BuildCategory string `yaml:"build_category,omitempty" json:"build_category,omitempty"`
 	// Footprint is [width, height] in lots.
 	Footprint [2]int `yaml:"footprint" json:"footprint"`
+	// Fells, Plants and Quarries say what the crew does to the land (docs/adr/0065): a woodcutter's camp fells a tree of the
+	// land within reach each shift, a forester's lodge plants a sapling, a pit breaks the field rocks within reach before it
+	// works its face.
+	Fells    bool `yaml:"fells,omitempty" json:"fells,omitempty"`
+	Plants   bool `yaml:"plants,omitempty" json:"plants,omitempty"`
+	Quarries bool `yaml:"quarries,omitempty" json:"quarries,omitempty"`
+	// Grazes says the crew needs open lots round the building to graze the herd (docs/adr/0067): fewer than the farming
+	// pasture's lots in reach and the shift is refused; the grazed lots do not regrow trees.
+	Grazes bool `yaml:"grazes,omitempty" json:"grazes,omitempty"`
+	// Grinds says the building mills grain: a citizen may bring his own wheat and grind it himself for the settlement's toll
+	// (docs/adr/0067).
+	Grinds bool `yaml:"grinds,omitempty" json:"grinds,omitempty"`
 	// WaitsFor gates the building out of every menu until the plan item that gives it its people, inputs or outputs is
 	// built (docs/adr/0063): a building a player can place must be a working mechanic, so one that is not yet one is not
 	// offered. Buildings that already stand keep standing. The text names the plan item.
@@ -76,6 +88,8 @@ type SettlementBuildingDef struct {
 	// TerrainTags/TerrainMode: terrain the footprint itself must satisfy.
 	TerrainTags []string `yaml:"terrain_tags,omitempty" json:"terrain_tags,omitempty"`
 	TerrainMode string   `yaml:"terrain_mode,omitempty" json:"terrain_mode,omitempty"`
+	// Near is what must lie within a radius of the footprint: a lot with a terrain tag, or a standing building (docs/adr/0067).
+	Near *NearDef `yaml:"near,omitempty" json:"near,omitempty"`
 	// CostMoney is minor currency units; CostMaterials is component code
 	// -> quantity (ADR 0021's finished goods).
 	CostMoney     int64            `yaml:"cost_money" json:"cost_money"`
@@ -134,6 +148,14 @@ type SettlementBuildingDef struct {
 	Trains *SkillXPDef `yaml:"trains,omitempty" json:"trains,omitempty"`
 }
 
+// NearDef is a proximity rule of a building: within Radius lots of its footprint there is a lot with one of Tags or a
+// standing building with one of Codes (either satisfies it).
+type NearDef struct {
+	Radius int      `yaml:"radius" json:"radius"`
+	Tags   []string `yaml:"tags,omitempty" json:"tags,omitempty"`
+	Codes  []string `yaml:"codes,omitempty" json:"codes,omitempty"`
+}
+
 // The owners a settlement building may have.
 const (
 	BuildingOwnerSettlement = "settlement"
@@ -182,6 +204,9 @@ func (d SettlementBuildingDef) Def() settlementbuilding.Def {
 			Produces: copyQuantities(d.Produces), Consumes: copyQuantities(d.Consumes),
 			Workers: d.Workers, Shift: shift, Wage: d.Wage, ToolWearBPS: d.ToolWearBPS,
 		}
+	}
+	if d.Near != nil {
+		out.Near = &settlementbuilding.Near{Radius: d.Near.Radius, Tags: append([]string(nil), d.Near.Tags...), Codes: append([]string(nil), d.Near.Codes...)}
 	}
 	if len(d.CostMaterials) > 0 {
 		out.CostMaterials = make(map[string]int64, len(d.CostMaterials))
