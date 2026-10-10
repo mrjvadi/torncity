@@ -34,6 +34,18 @@ func MillToll(c Context, v village.MillTollView) *presenter.Response {
 	return c.withView(c.respond(text, kb.Build()), ScreenMillToll, v)
 }
 
+// farmNeedsSowing says a farm of the cycle has no crop in the ground, so there is no shift to start there.
+func farmNeedsSowing(p village.WorkplaceLine) bool {
+	if p.Farm == nil || p.Farm.Legacy {
+		return false
+	}
+	switch p.Farm.Stage {
+	case "idle", "harvested", "rotted":
+		return true
+	}
+	return false
+}
+
 // percentOf writes basis points as a percent with up to one decimal place.
 func percentOf(c Context, bps int64) string {
 	if bps%100 == 0 {

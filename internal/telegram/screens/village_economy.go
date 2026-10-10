@@ -313,7 +313,7 @@ func renderVillageWork(c Context, v WorkView) *presenter.Response {
 		if len(p.Personal) > 0 {
 			lines = append(lines, c.T("village.work.personal_warn", map[string]any{"needs": personalList(c, p.Personal), "until": FormatDate(c, v.PersonalUntil)}))
 		}
-		if v.Resident && v.Mine == nil {
+		if v.Resident && v.Mine == nil && !farmNeedsSowing(p) {
 			if b, ok := keyboards.Button(c.T("village.work.button.start", map[string]any{"building": c.SettlementBuildingName(p.Building)}),
 				AddrWork, p.ID); ok {
 				kb.Row(b)
