@@ -42,6 +42,13 @@ type AuditOptions struct {
 	// Literals are every string literal of the Go source outside the content package and the tests; Fields are every
 	// field or method name selected in it (".Name"). Nil means the source was not read: the reader check is skipped.
 	Literals, Fields map[string]bool
+	// Fillers names, for a staff role, the code that fills its posts when no shift of a generated workplace does (a
+	// keeper seat, a scholar's or teacher's post, the market day's clerk). Runtimes names, for a function or building
+	// code, the code that reads its staff, inputs and outputs. Notes are the `note:` texts of the content files
+	// (LoadNotes). All three come from the caller, which knows the Go source; nil lists nothing as filled (docs/adr/0061).
+	Fillers  map[string]string
+	Runtimes map[string]string
+	Notes    []NoteRow
 }
 
 // Affordable is the most one row may cost.
@@ -307,6 +314,8 @@ func (p *Pack) Audit(o AuditOptions) []AuditFinding {
 			add(AuditReal, "recipe", r.Code, "needs the planned knowledge %q", k)
 		}
 	}
+
+	p.auditPrerequisites(o, add)
 
 	// --- reader: a module kind that is not built waits for a reader (docs/adr/0060)
 	for _, m := range p.ModuleKinds {

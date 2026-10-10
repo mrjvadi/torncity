@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
+	"github.com/mrjvadi/torncity/internal/application/handlers"
 	"github.com/mrjvadi/torncity/internal/config"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/infrastructure/postgres"
@@ -349,6 +350,10 @@ func contentAudit(args []string) error {
 	} else {
 		fmt.Fprintf(os.Stderr, "the Go source under %s was not read, the reader check is skipped: %v\n", *src, err)
 	}
+	if notes, err := content.LoadNotes(contentDir()); err == nil {
+		o.Notes = notes
+	}
+	o.Fillers, o.Runtimes = handlers.StaffFillers, handlers.FunctionRuntimes
 	findings := pack.Audit(o)
 	for _, f := range findings {
 		fmt.Printf("%s\t%s\t%s\t%s\n", f.Check, f.Kind, f.Code, f.Detail)
