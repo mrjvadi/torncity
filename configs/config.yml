@@ -535,6 +535,8 @@ trade:
   village_stalls_per_player_post: 3
   village_stalls_per_player_hall: 6
   market_day_every_days: 7
+  # the share of a sale a hired stall keeper takes while the owner is away, basis points (ADR 0062)
+  stall_keeper_share_bps: 1000
   market_max_quantity: 10000
   market_max_price: 100000000
 

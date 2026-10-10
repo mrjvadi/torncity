@@ -158,7 +158,7 @@ func (h *VillageHandler) SettleServiceDay(ctx context.Context, tx application.Tx
 		}
 		c := market.claims
 		// the seats the last day's staff held are free to be filled again
-		seats = max(c.StaffFree()+c.Services-shopSeat-c.Keepers-c.Scholars-c.Clerks, 0)
+		seats = max(c.StaffFree()+c.Services-shopSeat-c.Keepers-c.Scholars-c.Clerks-c.Stalls, 0)
 		base = market.line.NPCWage
 	}
 	treasury, err := treasuryBalance(ctx, tx, s.CityID)

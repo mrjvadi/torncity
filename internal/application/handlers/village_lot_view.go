@@ -280,6 +280,10 @@ func (h *VillageHandler) fillDetail(ctx context.Context, tx application.Tx, lc *
 	for _, st := range def.Staff {
 		v.Staff = append(v.Staff, village.LotStaffLine{Role: st.Role, Slots: st.Slots})
 	}
+	var kerr error
+	if v.Keeper, kerr = h.stallKeeperLine(ctx, tx, lc); kerr != nil {
+		return kerr
+	}
 
 	// what can be added
 	for _, code := range lotKeys(lc.spec.Slots) {

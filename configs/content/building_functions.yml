@@ -170,7 +170,7 @@ building_functions:
     ledger_reasons: [stall_rent, stall_rent_levy, npc_customer_sale]
     replaces: [market_stall]
     needs_research: [wage_bps, food_points, decay_bps_per_day]
-    note: "the owner tends it himself or hires a stall_keeper (ADR 0040 16.4); open only while a village market stands (market_access capability, legacy requires_knowledge_capability). B1: each shelf is one stall of the owner's own on the village book (no listing fee, no common stall used); the owner tends it by being in the settlement (a hired keeper is not built). A leased stall is a lease on this function (commercial_leases), not another function."
+    note: "the owner tends it himself or hires a stall_keeper (ADR 0062): an NPC of the labour pool who keeps the stall open while the owner is away and takes a share of what it sells then. Open only while a village market stands (market_access capability, legacy requires_knowledge_capability). B1: each shelf is one stall of the owner's own on the village book (no listing fee, no common stall used). A leased stall is a lease on this function (commercial_leases), not another function."
   - code: general_store
     source: "ADR 0046 5.1"
     evidence: adr

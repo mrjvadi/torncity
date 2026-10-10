@@ -9,11 +9,14 @@ var StaffFillers = map[string]string{
 	"storekeeper":  "a keeper seat held by an NPC of the labour pool (village_storage.go)",
 	"market_clerk": "the market day's clerk, an NPC of the labour pool (village_trade.go)",
 	"shopkeeper":   "the village shop's keeper, an NPC of the labour pool (village_shop.go)",
+	"stall_keeper": "the keeper a stall owner hires, an NPC of the labour pool (village_lot_keeper.go, market.go settle)",
 }
 
 // FunctionRuntimes names, for each function or settlement building that is not a generated workplace or a plain
 // producer, the code that reads it. A building that is on neither this list nor a workplace only adds a percentage.
 var FunctionRuntimes = map[string]string{
+	"stall":           "the village book's stalls and the keeper (market_village.go, village_lot_keeper.go)",
+	"market_stall":    "the village book's stalls and the keeper (market_village.go, village_lot_keeper.go)",
 	"dwelling":        "housing capacity of the lot rules (village_lot.go)",
 	"private_cottage": "housing capacity (village_lot.go, population)",
 	"private_house":   "housing capacity (village_lot.go, population)",

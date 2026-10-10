@@ -1794,3 +1794,7 @@ ADR 0058, no migration. The work block of a building view (`village.NodeWork`) h
 ## The car asks its licence (2026-10-10)
 
 ADR 0059, no migration. `TravelOptionsView` has `licence`: a list of `{mode_code, course, until}` for the private modes that ask a certificate the rider lacks. `until` set: the mode is still in `options` and the certificate is needed from that time; `until` unset: the mode is left out of `options`. Empty for a rider who needs nothing.
+
+## The stall keeper (2026-10-10)
+
+ADR 0062, migration 0139. `settlement.lot.manage` on a stall the viewer owns carries `keeper` ({hired, share_bps, can, reason, seats_free}); the acts `keeper_hire` and `keeper_end` (ask, then confirm like the others). Refusals `lot_no_keeper` (the building has no keeper) and `lot_keeper_none` (already hired, or nobody free). While a keeper is hired the owner's asks stay on the village book when he is away; the config is `trade.stall_keeper_share_bps`.

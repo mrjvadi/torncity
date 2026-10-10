@@ -203,6 +203,11 @@ func (h *VillageHandler) laborMarket(ctx context.Context, tx application.Tx, sna
 	} else if last != nil && last.Staff > 0 {
 		claims.Services = min(last.Staff, max(claims.StaffFree()-shopSeat-storeSeats-claims.Scholars-claims.Clerks, 0))
 	}
+	if open, err := tx.StallKeepers().Open(ctx, s.CityID); err != nil {
+		return laborMarket{}, err
+	} else if open > 0 {
+		claims.Stalls = min(open, max(claims.StaffFree()-shopSeat-storeSeats-claims.Scholars-claims.Clerks-claims.Services, 0))
+	}
 	reserved := claims.Reserved()
 	available := claims.Free()
 	var reservedFrom *time.Time

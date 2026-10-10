@@ -395,6 +395,8 @@ func shopChecks(out *checks, s postgres.ShopInvariants, cfg *config.Config) {
 		"storekeepers' wages in the ledger match the storage days (%d = %d), each one treasury to sink for the wage (%d mismatched)",
 		s.StoreWageLedger, s.StoreWageRows, s.StoreWageMismatched)
 	line(s.SpoilJournal == s.SpoilRows, "the food that spoiled in the item journal is what the storage days say (%d = %d)", s.SpoilJournal, s.SpoilRows)
+	line(s.KeeperLedger == s.KeeperRows,
+		"the wages the stall keepers were paid in the ledger are the keeper share of the trades (%d = %d)", s.KeeperLedger, s.KeeperRows)
 	line(s.MarketDuesLedger == s.MarketDuesRows,
 		"the dues the village markets paid the treasuries in the ledger are the fee of their trades (%d = %d)", s.MarketDuesLedger, s.MarketDuesRows)
 	line(s.ListingLedger == s.ListingRows,

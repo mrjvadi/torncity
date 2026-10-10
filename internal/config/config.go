@@ -1188,6 +1188,8 @@ type Trade struct {
 	// periodic market holds a market day, in game days (0 for never): on it the
 	// listing fee is nothing and the dues are halved.
 	MarketDayEveryDays int // trade.market_day_every_days
+	// StallKeeperShareBPS is the share of a sale a hired stall keeper takes while the owner is away (docs/adr/0062).
+	StallKeeperShareBPS int // trade.stall_keeper_share_bps
 	// MarketMaxQuantity and MarketMaxPrice bound one order.
 	MarketMaxQuantity int   // trade.market_max_quantity
 	MarketMaxPrice    int64 // trade.market_max_price
@@ -2028,7 +2030,7 @@ func Defaults() *Config {
 			MarketMaxOpenOrders: 20,
 			VillageStallsPost:   6, VillageStallsHall: 20,
 			VillageStallsPerPlayerPost: 3, VillageStallsPerPlayerHall: 6,
-			MarketDayEveryDays: 7,
+			MarketDayEveryDays: 7, StallKeeperShareBPS: 1000,
 			MarketMaxQuantity:  10000,
 			MarketMaxPrice:     100_000_000,
 			AuctionDurations:   []time.Duration{time.Hour, 6 * time.Hour, 24 * time.Hour},

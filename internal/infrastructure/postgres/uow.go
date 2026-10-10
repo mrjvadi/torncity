@@ -246,6 +246,9 @@ func (t *tx) Trade() application.TradeRepository { return &TradeRepository{q: t.
 
 func (t *tx) ServiceDays() application.ServiceDayRepository { return &ServiceDayRepository{q: t.q} }
 
+// StallKeepers returns the hired stall keepers (migration 0139).
+func (t *tx) StallKeepers() application.StallKeeperRepository { return &StallKeeperRepository{q: t.q} }
+
 // Charters returns the offices, seats and audit of the settlements' charters (migration 0121).
 func (t *tx) Charters() application.CharterRepository { return &CharterRepository{q: t.q} }
 

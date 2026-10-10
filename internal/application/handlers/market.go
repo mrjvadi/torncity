@@ -834,6 +834,18 @@ func (h *MarketHandler) settle(ctx context.Context, tx application.Tx, meta enve
 			return 0, errors.Internal(err)
 		}
 	}
+	// A stall whose owner is away sells through the keeper he hired, who takes his share of the proceeds (ADR 0062).
+	var keeperCut int64
+	if village && !s.SellerReceives.IsZero() {
+		if share, err := h.keeperShare(ctx, tx, city.ID, t.Seller); err != nil {
+			return 0, err
+		} else if share > 0 {
+			keeperCut = s.SellerReceives.Minor() * share / 10_000
+			if s.SellerReceives, err = s.SellerReceives.Sub(money.FromMinor(keeperCut)); err != nil {
+				return 0, errors.Internal(err)
+			}
+		}
+	}
 	buyerEscrow, err := tx.Ledger().AccountFor(ctx, application.AccountPlayerEscrow, t.Buyer)
 	if err != nil {
 		return 0, err
@@ -852,6 +864,20 @@ func (h *MarketHandler) settle(ctx context.Context, tx application.Tx, meta enve
 			CreatedAt: now,
 		}); err != nil {
 			return 0, err
+		}
+	}
+	if keeperCut > 0 {
+		neg, _ := money.FromMinor(keeperCut).Neg()
+		keeperTx, err := tx.Ledger().Post(ctx, application.LedgerTransaction{
+			Reason: application.ReasonStallKeeperWage, ReferenceType: "market_trades", ReferenceID: tradeID,
+			Entries:   []application.LedgerEntry{{AccountID: buyerEscrow.ID, Amount: neg}, {AccountID: application.SystemSinkAccountID, Amount: money.FromMinor(keeperCut)}},
+			CreatedAt: now,
+		})
+		if err != nil {
+			return 0, err
+		}
+		if txID == "" {
+			txID = keeperTx
 		}
 	}
 	if !s.Fee.IsZero() {
@@ -892,7 +918,7 @@ func (h *MarketHandler) settle(ctx context.Context, tx application.Tx, meta enve
 	if err := tx.Market().RecordTrade(ctx, application.MarketTrade{
 		ID: tradeID, CityID: city.ID, Item: def.Code, BuyOrder: t.BuyOrderID, SellOrder: t.SellOrderID,
 		Buyer: t.Buyer, Seller: t.Seller, Qty: t.Quantity, Price: t.UnitPrice.Minor(), Notional: t.Notional.Minor(),
-		Fee: s.Fee.Minor(), LedgerTransactionID: txID, At: now,
+		Fee: s.Fee.Minor(), KeeperCut: keeperCut, LedgerTransactionID: txID, At: now,
 	}); err != nil {
 		return 0, err
 	}

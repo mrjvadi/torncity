@@ -34,6 +34,8 @@ const (
 	LotActionTemplateSave   = "template_save"
 	LotActionTemplateApply  = "template_apply"
 	LotActionTemplateDelete = "template_delete"
+	LotActionKeeperHire     = "keeper_hire"
+	LotActionKeeperEnd      = "keeper_end"
 )
 
 // Refusals of the screen (village_refusal kinds), as the core spells them.
@@ -52,6 +54,8 @@ const (
 	LotNoTemplate  = "lot_no_template"
 	LotInvalid     = "lot_invalid"
 	LotKeepOne     = "lot_keep_one"
+	LotNoKeeper    = "lot_no_keeper"
+	LotKeeperNone  = "lot_keeper_none"
 )
 
 // Reasons an act cannot be confirmed (view.Reason).
@@ -191,6 +195,18 @@ type LotWorkAdd struct {
 	Count  int
 }
 
+// LotKeeperLine is the stall keeper of a stall's owner (docs/adr/0062): hired, what he takes, or why none can be hired now.
+type LotKeeperLine struct {
+	Hired bool
+	// ShareBPS is the share of a sale he takes while the owner is away.
+	ShareBPS int64
+	// Can is true when a keeper could be hired now; Reason says why not (no_seat, no_market).
+	Can    bool
+	Reason string
+	// SeatsFree is the people of the labour pool still free to be hired.
+	SeatsFree int64
+}
+
 // LotStaffLine is a post at the function.
 type LotStaffLine struct {
 	Role  string
@@ -297,6 +313,8 @@ type LotManageView struct {
 	Functions                         []LotFunctionChoice
 	Work                              *LotWorkLine
 	Staff                             []LotStaffLine
+	// Keeper is set on a stall the viewer owns.
+	Keeper *LotKeeperLine
 	// What the lot gives: the sums of its modules beyond the level, shown with the legacy base the building has.
 	HousingCapacity int64
 	PersonalStorage int64
@@ -341,6 +359,14 @@ func LotManage(c presentation.Ctx, v LotManageView) *presentation.Response {
 		return screenLotManage.Response(c.Lang, v, a...)
 	}
 	a := []presentation.Action{back(AddrLotManage), refresh(AddrLotManage, v.ID)}
+	if v.CanManage && v.Built && v.Keeper != nil {
+		switch {
+		case v.Keeper.Hired:
+			a = append(a, act(AddrLotManage, v.ID, LotActionKeeperEnd).Named("lot.keeper_end"))
+		case v.Keeper.Can:
+			a = append(a, act(AddrLotManage, v.ID, LotActionKeeperHire).Named("lot.keeper_hire"))
+		}
+	}
 	if v.CanManage && v.Built {
 		for _, m := range v.Additions {
 			if m.Can {

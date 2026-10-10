@@ -50,6 +50,8 @@ import (
 // primitive (used directly by appointments.go too); this is that same
 // direct use, one more caller, no content change.
 type VillageHandler struct {
+	// keeperShare is the share (basis points) a hired stall keeper takes (config trade.stall_keeper_share_bps, ADR 0062).
+	keeperShare int64
 	uow     application.UnitOfWork
 	ids     IDGenerator
 	msgs    Translator

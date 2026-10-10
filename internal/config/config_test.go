@@ -343,6 +343,7 @@ trade:
   village_stalls_per_player_post: 4
   village_stalls_per_player_hall: 7
   market_day_every_days: 8
+  stall_keeper_share_bps: 1100
   market_max_quantity: 10001
   market_max_price: 100000001
   auction_durations: [2h, 7h]
@@ -949,6 +950,7 @@ var envOverrides = map[string]string{
 	"TORN_TRADE_VILLAGE_STALLS_PER_PLAYER_POST": "5",
 	"TORN_TRADE_VILLAGE_STALLS_PER_PLAYER_HALL": "8",
 	"TORN_TRADE_MARKET_DAY_EVERY_DAYS":          "9",
+	"TORN_TRADE_STALL_KEEPER_SHARE_BPS":         "1200",
 	"TORN_TRADE_MARKET_MAX_QUANTITY":            "10002",
 	"TORN_TRADE_MARKET_MAX_PRICE":               "100000002",
 	"TORN_TRADE_AUCTION_DURATIONS":              "3h,8h",
@@ -1333,7 +1335,7 @@ var envOverrides = map[string]string{
 	"TORN_CURRENCY_MACRO_PI_MAX_BPS":                       "302",
 	"TORN_CURRENCY_MACRO_W_TRADABLE_BPS":                   "6002",
 	"TORN_CURRENCY_INTERVENTION_DELAY":                     "26h",
-	"TORN_LABOR_NPC_HOURS_PER_SLOT_DAY":                   "12",
+	"TORN_LABOR_NPC_HOURS_PER_SLOT_DAY":                    "12",
 	"TORN_LABOR_HUNGRY_OUTPUT_BPS":                         "5002",
 	"TORN_LABOR_HUNGRY_SHIFT_HUNGER":                       "7",
 	"TORN_LABOR_REPAIR_MATERIAL_SHARE_BPS":                 "2002",

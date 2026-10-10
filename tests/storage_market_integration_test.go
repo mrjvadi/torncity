@@ -490,6 +490,24 @@ func TestTheVillageBook(t *testing.T) {
 	if err := pool.Raw().QueryRow(ctx, `SELECT COALESCE(SUM(filled), 0) FROM market_orders WHERE city_id = $1::uuid AND side = 'sell' AND status = 'open'`, cityID).Scan(&filled); err != nil || filled != 0 {
 		t.Errorf("a stall sold %d with its owner away (%v)", filled, err)
 	}
+	// 3b. An owner who hired a keeper keeps the stall open while he is away; the keeper takes his share of the proceeds
+	// (ADR 0062): 500 sold, 15 dues, 485 to share: 10 percent is 48 to the keeper, 437 to the seller.
+	if _, err := pool.Raw().Exec(ctx, `INSERT INTO stall_keepers (id, settlement_id, owner_id, share_bps, hired_at) VALUES (gen_random_uuid(), $1::uuid, $2::uuid, 1000, now())`, cityID, founder.ID); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _, _ = pool.Raw().Exec(context.Background(), `DELETE FROM stall_keepers WHERE settlement_id = $1::uuid`, cityID) })
+	bank0 := cashBalance(t, pool, application.AccountPlayerBank, founder.ID)
+	order(buyer, "buy", "5", "100")
+	var keeperCut int64
+	if err := pool.Raw().QueryRow(ctx, `SELECT COALESCE(SUM(keeper_cut), 0) FROM market_trades WHERE city_id = $1::uuid`, cityID).Scan(&keeperCut); err != nil || keeperCut != 48 {
+		t.Errorf("the keeper took %d (%v), want 48", keeperCut, err)
+	}
+	if got := cashBalance(t, pool, application.AccountPlayerBank, founder.ID) - bank0; got != 437 {
+		t.Errorf("the owner received %d, want 437", got)
+	}
+	if _, err := pool.Raw().Exec(ctx, `UPDATE stall_keepers SET ended_at = now() WHERE settlement_id = $1::uuid`, cityID); err != nil {
+		t.Fatal(err)
+	}
 	setCity(founder.ID, cityID)
 	order(buyer, "buy", "5", "100")
 	if err := pool.Raw().QueryRow(ctx, `SELECT COALESCE(SUM(filled), 0) FROM market_orders WHERE city_id = $1::uuid AND side = 'sell'`, cityID).Scan(&filled); err != nil || filled != 15 {
@@ -510,6 +528,9 @@ func TestTheVillageBook(t *testing.T) {
 		t.Fatal(err)
 	}
 	s := v.ShopCheck
+	if s.KeeperLedger != s.KeeperRows || s.KeeperLedger != 48 {
+		t.Errorf("keeper wages %d in the ledger, %d on the trades, want 48", s.KeeperLedger, s.KeeperRows)
+	}
 	if s.MarketDuesLedger != s.MarketDuesRows || s.ListingLedger != s.ListingRows || s.MarketDuesLedger == 0 || s.ListingLedger == 0 {
 		t.Errorf("dues %d / %d, listing fees %d / %d", s.MarketDuesLedger, s.MarketDuesRows, s.ListingLedger, s.ListingRows)
 	}

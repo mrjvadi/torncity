@@ -26,10 +26,12 @@ type seatClaims struct {
 	Clerks int64
 	// Services counts the staff the last settled service day seated at the watch posts and inns (ADR 0052).
 	Services int64
+	// Stalls counts the keepers stall owners hired (ADR 0062): each holds a seat while hired.
+	Stalls int64
 }
 
 // Reserved is the seats the standing posts hold apart from the teachers.
-func (c seatClaims) Reserved() int64 { return c.Shop + c.Keepers + c.Scholars + c.Clerks + c.Services }
+func (c seatClaims) Reserved() int64 { return c.Shop + c.Keepers + c.Scholars + c.Clerks + c.Services + c.Stalls }
 
 // StaffFree is the pool less the teachers: the people the standing posts are filled from.
 func (c seatClaims) StaffFree() int64 { return max(c.Pool-c.Teachers, 0) }
