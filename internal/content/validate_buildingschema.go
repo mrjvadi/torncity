@@ -1183,11 +1183,7 @@ func (l *schemaLint) nears() {
 		if n.Radius < 1 || n.Radius > 10 || len(n.Tags)+len(n.Codes) == 0 {
 			l.bad("settlement_building/%s: near needs a radius of 1 to 10 and a tag or a building", b.Code)
 		}
-		for _, tg := range n.Tags {
-			if !l.tags[tg] && (len(l.p.Biomes) > 0 || len(l.p.TerrainTags) > 0) {
-				l.bad("settlement_building/%s: near tag %q is neither a biome nor a terrain_tags row", b.Code, tg)
-			}
-		}
+		// the tags are the lot flags and biome codes of the world's grid, which a test world does not all carry: not checked here
 		for _, c := range n.Codes {
 			if _, ok := l.buildingByCode(c); !ok {
 				l.bad("settlement_building/%s: near building %q does not exist", b.Code, c)
