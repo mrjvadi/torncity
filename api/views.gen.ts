@@ -773,6 +773,18 @@ export interface CityMapView {
   places: PlaceLine[] | null
 }
 
+export interface ClearOrderView {
+  village: string
+  x: number
+  y: number
+  trees: number
+  rocks: number
+  order_trees: boolean
+  order_rocks: boolean
+  cancelled: boolean
+  private: boolean
+}
+
 export interface ClinicDeskView {
   ref: CompanyRef
   price: number
@@ -4085,6 +4097,14 @@ export interface Notice {
   target: GovPlace
 }
 
+export interface ObstacleView {
+  x: number
+  y: number
+  trees: number
+  rocks: number
+  can_order: boolean
+}
+
 export interface OccupationLine {
   city_code: string
   city: string
@@ -6204,6 +6224,7 @@ export interface VillageRefusalView {
   subject: Named
   needs: VillageNeed[] | null
   personal: PersonalNeed[] | null
+  obstacles: ObstacleView | null
 }
 
 export interface VillageRoleLine {
@@ -6630,6 +6651,7 @@ export interface ScreenViews {
   cities: MapView
   city_governance: CityGovView
   city_map: CityMapView
+  clear_order: ClearOrderView
   clinic_desk: ClinicDeskView
   clinic_treated_notice: ClinicTreatedView
   company_application_notice: CompanyApplicationNoticeView

@@ -107,6 +107,16 @@ knowledge:
     time: 60h
     effects: [{target: service_coverage_bps, op: add, value: 300}]
 
+  # forestry — the care of the woods: the forester's lodge needs it (ADR 0065).
+  - code: forestry
+    field: craft
+    name: "جنگل‌داری"
+    requires: [carpentry]
+    family: forestry
+    generation: 1
+    cost: 1000
+    time: 12h
+
   # carpentry — the owner's own example, generations i-iv.
   - code: carpentry
     field: craft

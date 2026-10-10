@@ -82,6 +82,8 @@ func buildingRefusal(err error) *villageRefusal {
 		return refuseVillage(village.VillageUnbuildable)
 	case stderrors.Is(err, settlementbuilding.ErrLotOccupied):
 		return refuseVillage(village.VillageOccupied)
+	case stderrors.Is(err, settlementbuilding.ErrObstructed):
+		return refuseVillage(village.VillageObstructed)
 	case stderrors.Is(err, settlementbuilding.ErrReservedLot):
 		return refuseVillage(village.VillageReserved)
 	case stderrors.Is(err, settlementbuilding.ErrTerrainRequired):
@@ -350,7 +352,7 @@ func (h *VillageHandler) Place(ctx context.Context, meta envelope.Metadata, req 
 			if r, ok := cerr.(*villageRefusal); ok {
 				return r
 			}
-			return buildingRefusal(cerr)
+			return h.withObstacles(ctx, tx, s, def, x, y, p.ID, buildingRefusal(cerr), cerr)
 		}
 		owned, oerr := privateLotSet(ctx, tx, s.CityID)
 		if oerr != nil {

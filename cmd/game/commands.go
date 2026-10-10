@@ -573,6 +573,20 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 			}
 			return h.village.CurrencyDesk(ctx, env.Metadata, req)
 		},
+		"settlement.clear.order": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageClearRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.ClearOrder(ctx, env.Metadata, req)
+		},
+		"settlement.clear.cancel": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageClearRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.ClearCancel(ctx, env.Metadata, req)
+		},
 		"settlement.lot.manage": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			var req handlers.VillageManageRequest
 			if err := decode(env, &req); err != nil {

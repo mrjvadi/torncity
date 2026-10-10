@@ -759,7 +759,7 @@ func (h *VillageHandler) PrivatePlace(ctx context.Context, meta envelope.Metadat
 			if r, ok := cerr.(*villageRefusal); ok {
 				return r
 			}
-			return buildingRefusalTo(cerr, village.AddrPrivateMenu)
+			return h.withObstacles(ctx, tx, sc.s, def, x, y, sc.p.ID, buildingRefusalTo(cerr, village.AddrPrivateMenu), cerr)
 		}
 		if !footprintFitsOwn(sc, def, x, y) {
 			return refuseVillage(village.CitizenNotOwner, village.AddrPrivateMenu)

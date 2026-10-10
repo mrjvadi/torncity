@@ -57,6 +57,12 @@ type SettlementBuildingDef struct {
 	BuildCategory string `yaml:"build_category,omitempty" json:"build_category,omitempty"`
 	// Footprint is [width, height] in lots.
 	Footprint [2]int `yaml:"footprint" json:"footprint"`
+	// Fells, Plants and Quarries say what the crew does to the land (docs/adr/0065): a woodcutter's camp fells a tree of the
+	// land within reach each shift, a forester's lodge plants a sapling, a pit breaks the field rocks within reach before it
+	// works its face.
+	Fells    bool `yaml:"fells,omitempty" json:"fells,omitempty"`
+	Plants   bool `yaml:"plants,omitempty" json:"plants,omitempty"`
+	Quarries bool `yaml:"quarries,omitempty" json:"quarries,omitempty"`
 	// WaitsFor gates the building out of every menu until the plan item that gives it its people, inputs or outputs is
 	// built (docs/adr/0063): a building a player can place must be a working mechanic, so one that is not yet one is not
 	// offered. Buildings that already stand keep standing. The text names the plan item.

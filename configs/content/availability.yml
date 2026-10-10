@@ -60,6 +60,7 @@ staff_roles:
   - {code: labourer, skill: "", wage_bps: 10000, support_npc: true, note: "ADR 0041 5.1"}
   - {code: tanner, skill: "", wage_bps: 13000, support_npc: true, note: "owner 2026-10-10: a skilled trade, 130 SUP an hour; docs/adr/0057"}
   - {code: woodcutter, skill: forestry, wage_bps: 10000, support_npc: true, note: "ADR 0041 5.1"}
+  - {code: forester, skill: forestry, wage_bps: 10000, support_npc: true, note: "ADR 0065: plants and tends the trees of the commons; an NPC of the pool or a player"}
   - {code: carpenter, crew: true, skill: carpentry, wage_bps: 14000, support_npc: true, note: "ADR 0041 5.1; owner 2026-10-10: no level is asked, anyone may work the trade to learn it"}
   - {code: mason, crew: true, skill: masonry, wage_bps: 14000, support_npc: true, note: "ADR 0041 5.1; owner 2026-10-10: no level is asked, anyone may work the trade to learn it"}
   - {code: smith, skill: smithing, wage_bps: 15000, personal: [{kind: level, min: 3}], support_npc: true, note: "ADR 0041 5.1"}
@@ -106,6 +107,7 @@ availability:
   - {kind: building, code: barracks, stage: town, growth: {requires: {knowledge: [military_drill, masonry_ii], buildings: [{role: security, tier: 1}, {role: storage, tier: 1}]}, note: "2026-10-03 audit: drilled men need a watch to recruit from and a granary to feed them"}, elsewhere: [{where: support}]}
   - {kind: building, code: port, stage: city, growth: {requires: {knowledge: [trading_post, masonry_iii, carpentry_iii], buildings: [{role: market, tier: 2}, {code: road}]}, note: "2026-10-03 audit: a trading post for the harbour trade, quay masonry, ship carpentry, a market and a road to carry cargo"}, elsewhere: [{where: support}]}
   - {kind: building, code: airport, stage: city, growth: {requires: {knowledge: [electricity, masonry_iii], buildings: [{code: road}, {role: craft, tier: 3}, {role: extraction, tier: 2}]}, note: "2026-10-03 audit: lighting and radio need electricity, fuel needs a mine, aircraft need a large workshop, the runway needs a road and dressed stone"}, elsewhere: [{where: support}]}
+  - {kind: building, code: forester_lodge, stage: village, requires: {knowledge: [forestry]}}
   - {kind: building, code: woodcutter_camp, stage: village, growth: {open: true, founding: true, row: 10}}
   - {kind: building, code: watch_hut, stage: village}
   - {kind: building, code: militia_camp, stage: village}
@@ -171,6 +173,7 @@ availability:
   - {kind: knowledge, code: basic_medicine, stage: village, growth: {open: true, founding: true, row: 51}, elsewhere: [{where: support}]}
   - {kind: knowledge, code: basic_medicine_ii, stage: town, elsewhere: [{where: support}]}
   - {kind: knowledge, code: carpentry, stage: village, growth: {open: true, founding: true, row: 53}, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: forestry, requires: {knowledge: [carpentry]}, elsewhere: [{where: support}]}
   - {kind: knowledge, code: carpentry_ii, stage: town, elsewhere: [{where: support}]}
   - {kind: knowledge, code: carpentry_iii, stage: city, elsewhere: [{where: support}]}
   - {kind: knowledge, code: carpentry_iv, stage: city, elsewhere: [{where: support}]}

@@ -240,8 +240,32 @@ building_functions:
     ledger_reasons: [stumpage_fee, wages]
     links: {to: [carpentry_workshop, charcoal_clamp, bakery, smithy, kiln, tannery, storehouse]}
     replaces: [woodcutter_camp]
-    workplace: {building: woodcutter_camp, role: forestry, tier: 1, shift: 30m, build_time: 30m, upkeep: 20, trains: {skill: forestry, xp: 15}}
+    workplace: {building: woodcutter_camp, fells: true, role: forestry, tier: 1, shift: 30m, build_time: 30m, upkeep: 20, trains: {skill: forestry, xp: 15}}
     note: "a half-hour of felling: timber 6, the tops as firewood 3 and a bark; a camp with no worker cuts nothing; trees in reach are the land model of ADR 0041 7"
+  - code: forester_lodge
+    source: "ADR 0065, ADR 0041 7.3 and 8.5; Banished wiki, Forester lodge"
+    evidence: D
+    name: "نهالستان"
+    requires: {knowledge: [forestry]}
+    kind: production
+    family: forestry
+    permit: craft
+    zones: [farm, industry]
+    footprint: [2, 2, 2, 2]
+    owners: [treasury]
+    levels:
+      - {level: 1, requires: {knowledge: [forestry]}, cost_money: 400, cost_materials: {timber: 6}, build_hours: 1}
+    staff: [{role: forester, slots: 2, shift_hours: 2}]
+    if_unstaffed: idle
+    consumes: {inputs: {}, food_points: 2, tool_wear_bps: 100}
+    produces: {outputs: {firewood: 1}, store: bulk}
+    storage: {needs: {bulk: 4}}
+    maintenance: {decay_bps_per_day: 50, repair_materials: {timber: 1}, repair_labour: 1}
+    ledger_reasons: [wages]
+    links: {to: [woodcutter_yard]}
+    replaces: [forester_lodge]
+    workplace: {building: forester_lodge, plants: true, role: forestry, tier: 1, shift: 30m, build_time: 30m, upkeep: 30, trains: {skill: forestry, xp: 15}}
+    note: "a forester plants one sapling on a cut lot of the commons within reach each shift and keeps the thinnings as firewood; a sapling is a tree after a day; a lodge with nobody to staff it plants nothing"
   - code: charcoal_clamp
     source: "ADR 0045 4.3 recipe 2, S70, S72; Wikipedia Charcoal, Charcoal burner"
     evidence: adr

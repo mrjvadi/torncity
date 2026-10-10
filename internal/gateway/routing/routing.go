@@ -503,6 +503,8 @@ var argNames = map[string][]string{
 	"settlement.currency.fee":          {"bps", "settlement"},
 	"settlement.currency.reserve":      {"action", "amount", "price", "id", "confirm", "settlement"},
 	"settlement.lot.manage":            {"building", "action", "code", "n", "name", "confirm"},
+	"settlement.clear.order":           {"x", "y", "what"},
+	"settlement.clear.cancel":          {"x", "y"},
 	"settlement.charter.election.open": {"office"},
 	"settlement.charter.stand":         {"ballot"},
 	"settlement.charter.vote":          {"ballot", "choice"},

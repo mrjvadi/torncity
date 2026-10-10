@@ -67,7 +67,7 @@ func renderVillageRefusal(c Context, v VillageRefusalView) *presenter.Response {
 	switch kind {
 	case VillageNoSettlement, VillageNotOfficeHolder, VillageInsufficient, VillageBusy, VillageAlreadyOwned,
 		VillageNotAvailable, VillageTerrain, VillagePrerequisite, VillageLiteracy, VillageNotFound,
-		VillageOccupied, VillageUnbuildable, VillageOutOfBounds, VillageConcurrentCap, VillageNotDemolishable, VillageMaterials,
+		VillageOccupied, VillageUnbuildable, village.VillageObstructed, village.LandNoTrees, village.LandNoPlot, VillageOutOfBounds, VillageConcurrentCap, VillageNotDemolishable, VillageMaterials,
 		VillageNotCancellable, VillageAlreadyResident, VillageNotResident, VillageResidenceWait, VillageHoldsOffice, VillageNoHome,
 		VillageDonateRange, VillageDonateNoCash, VillageBatch, VillageNoRoad, VillagePromotionTop,
 		VillageStorageFull, VillageNotEnough, VillageAlreadyWorking, VillageWorkplaceFull, VillageNotWorkplace,

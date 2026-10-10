@@ -1025,6 +1025,17 @@ type Settlement struct {
 	// PersonalGraceDays real days after it, with a notice of what will be needed; 0 days switches the grace off.
 	PersonalRuleAt    string // settlement.personal_rule_at
 	PersonalGraceDays int64  // settlement.personal_grace_days
+	// The land model (docs/adr/0065): LandRuleAt (RFC 3339) is when trees and rocks began to stand on the land of settlements founded
+	// before it only beyond their founding grid, and LandGraceDays the real days after it that a woodcutter's camp still cuts without
+	// a tree in reach.
+	LandRuleAt       string // settlement.land_rule_at
+	LandGraceDays    int64  // settlement.land_grace_days: how many real days after the rule date a woodcutter's camp still cuts without a tree in reach, with a notice
+	LandWoodlandRing int64  // settlement.land_woodland_ring: how many lots deep the ring of commons round the claimed grid is
+	LandRegrowHours  int64  // settlement.land_regrow_hours: real hours a wooded commons lot needs to regain one cut tree by itself
+	LandSaplingHours int64  // settlement.land_sapling_hours: real hours a planted sapling needs to be a felling tree
+	LandFellRadius   int64  // settlement.land_fell_radius: how many lots from a woodcutter's camp or a forester's lodge its crew works
+	LandQuarryRadius int64  // settlement.land_quarry_radius: how many lots from a pit its crew breaks field rocks
+	LandRockShifts   int64  // settlement.land_rock_shifts: shifts a field rock takes to break
 	// The teacher's skill in the literacy tick (docs/adr/0057): a class taught by a player with the teaching skill moves
 	// literacy at TeacherBaseBPS plus TeacherPerLevelBPS for each level (never above 10000); a class with no player teacher
 	// at TeacherBaseBPS. A finished class teaches its player teacher TeacherXPPerClass of the teaching skill.
@@ -1875,6 +1886,14 @@ func Defaults() *Config {
 			ServiceGraceDays:                 7,
 			PersonalRuleAt:                   "2026-10-10T00:00:00Z",
 			PersonalGraceDays:                7,
+			LandRuleAt:                       "2026-10-10T00:00:00Z",
+			LandGraceDays:                    7,
+			LandWoodlandRing:                 3,
+			LandRegrowHours:                  120,
+			LandSaplingHours:                 24,
+			LandFellRadius:                   4,
+			LandQuarryRadius:                 3,
+			LandRockShifts:                   2,
 			TeacherBaseBPS:                   6000,
 			TeacherPerLevelBPS:               150,
 			TeacherXPPerClass:                20,

@@ -1587,6 +1587,7 @@ staff_role:
   tanner: "دباغ"
   labourer: "کارگر"
   woodcutter: "هیزم‌شکن"
+  forester: "نهال‌کار"
   carpenter: "نجار"
   mason: "بنّا"
   smith: "آهنگر"
@@ -1613,6 +1614,7 @@ staff_role:
   loan_officer: "کارشناس وام"
   bank_manager: "مدیر شعبهٔ بانک"
 building_function:
+  forester_lodge: "نهالستان"
   charcoal_clamp_own: "کورهٔ زغال (شخصی)"
   carpentry_workshop_own: "کارگاه نجاری (شخصی)"
   masonry_workshop_own: "کارگاه بنایی (شخصی)"

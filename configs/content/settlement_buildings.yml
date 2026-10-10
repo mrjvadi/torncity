@@ -335,10 +335,11 @@ settlement_buildings:
   # ---------------------------------------------------------------------
   - code: small_pit
     name: گودال معدن
+    quarries: true
     role: extraction
     tier: 1
     footprint: [1, 1]
-    terrain_tags: [ore_deposit]
+    terrain_tags: [ore_deposit, sloped_lot, rocky_lot]
     terrain_mode: required
     cost_money: 400
     build_time: 1h

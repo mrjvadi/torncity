@@ -777,6 +777,11 @@ func (h *VillageHandler) startProduction(ctx context.Context, tx application.Tx,
 	if treasury < wage {
 		return refuseVillage(village.VillageInsufficient, village.AddrWork)
 	}
+	// the lot of the land this shift will work (docs/adr/0065): chosen before anything is written
+	landWork, err := h.planLand(ctx, tx, snap, s, b, d, wage, village.AddrWork)
+	if err != nil {
+		return err
+	}
 	// The workplace's condition (phase 5): worn it works at a share, ruined it is closed.
 	zone := s.Zone()
 	damage := h.damageNow(b, h.decayOf(snap, d), h.now(), zone)
@@ -896,6 +901,9 @@ func (h *VillageHandler) startProduction(ctx context.Context, tx application.Tx,
 	if p != nil {
 		sh.PlayerID, sh.WorkerKind, playerID = p.ID, application.LaborWorkerPlayer, p.ID
 	}
+	if landWork != nil && !landWork.abstract {
+		sh.LandKind, sh.LandX, sh.LandY, sh.LandOwner = landWork.kind, landWork.pos.X, landWork.pos.Y, landWork.owner
+	}
 	if err := tx.SettlementTreasury().StartShift(ctx, sh, d.Workers); err != nil {
 		switch {
 		case stderrors.Is(err, application.ErrWorkplaceFull):
@@ -903,6 +911,9 @@ func (h *VillageHandler) startProduction(ctx context.Context, tx application.Tx,
 		case stderrors.Is(err, application.ErrAlreadyWorking):
 			return refuseVillage(village.VillageAlreadyWorking, village.AddrWork)
 		}
+		return err
+	}
+	if err := h.applyLand(ctx, tx, meta, s, landWork, shiftID, wage, now); err != nil {
 		return err
 	}
 	if err := h.persistWear(ctx, tx, b, damage, now, zone); err != nil {
@@ -1065,12 +1076,27 @@ func (h *VillageHandler) Worked(ctx context.Context, meta envelope.Metadata, req
 				return errors.Internal(stderrors.New("handlers: a wage the settlement's money was checked for was not paid"))
 			}
 		}
+		// the goods of a shift on a citizen's lot are his, as far as his store has room (docs/adr/0065)
+		toOwner, err := h.ownerShare(ctx, tx, snap, sh, made)
+		if err != nil {
+			return err
+		}
 		for _, c := range materialCodes(made) {
-			if err := tx.Items().Move(ctx, application.ItemMove{
-				Item: c, Qty: made[c], ToOrg: org, ToHolding: application.HoldWarehouse,
-				Reason: application.ItemProduced, ReferenceType: application.SettlementShiftItemReference, ReferenceID: sh.ID, At: now,
-			}); err != nil {
-				return err
+			if q := toOwner[c]; q > 0 {
+				if err := tx.Items().Move(ctx, application.ItemMove{
+					Item: c, Qty: q, To: sh.LandOwner, ToHolding: application.HoldHome,
+					Reason: application.ItemProduced, ReferenceType: application.SettlementShiftItemReference, ReferenceID: sh.ID, At: now,
+				}); err != nil {
+					return err
+				}
+			}
+			if rest := made[c] - toOwner[c]; rest > 0 {
+				if err := tx.Items().Move(ctx, application.ItemMove{
+					Item: c, Qty: rest, ToOrg: org, ToHolding: application.HoldWarehouse,
+					Reason: application.ItemProduced, ReferenceType: application.SettlementShiftItemReference, ReferenceID: sh.ID, At: now,
+				}); err != nil {
+					return err
+				}
 			}
 		}
 		if pay > 0 && !local {

@@ -69,11 +69,12 @@ func (r *SettlementTreasuryRepository) StartShift(ctx context.Context, s applica
 	_, err = r.q.Exec(ctx, `
 		INSERT INTO settlement_shifts
 		       (id, settlement_id, building_id, player_id, status, wage, wage_paid, produced, consumed, game_action_id, started_at, finish_at, job_id, worker_kind,
-		        meal_points, fed, output_bps, payer_kind, payer_id, board)
+		        meal_points, fed, output_bps, payer_kind, payer_id, board, land_kind, land_x, land_y, land_owner)
 		VALUES ($1, $2, $3, NULLIF($4, '')::uuid, 'working', $5, 0, $6::jsonb, $7::jsonb, $8, $9, $10, NULLIF($11, '')::uuid, $12, $13, $14, $15,
-		        COALESCE(NULLIF($16, ''), 'settlement'), NULLIF($17, '')::uuid, $18::jsonb)`,
+		        COALESCE(NULLIF($16, ''), 'settlement'), NULLIF($17, '')::uuid, $18::jsonb, $19,
+		        CASE WHEN $19 = '' THEN NULL ELSE $20::int END, CASE WHEN $19 = '' THEN NULL ELSE $21::int END, NULLIF($22, '')::uuid)`,
 		s.ID, s.SettlementID, s.BuildingID, s.PlayerID, s.Wage, string(produced), string(consumed), s.GameActionID,
-		s.StartedAt.UTC(), s.FinishAt.UTC(), s.JobID, workerKindOf(s), s.MealPoints, s.Fed, outputBPSOf(s), s.PayerKind, s.PayerID, string(board))
+		s.StartedAt.UTC(), s.FinishAt.UTC(), s.JobID, workerKindOf(s), s.MealPoints, s.Fed, outputBPSOf(s), s.PayerKind, s.PayerID, string(board), s.LandKind, s.LandX, s.LandY, s.LandOwner)
 	if violates(err, sqlstateUniqueViolation, settlementShiftsOneWorkingIdx) {
 		return application.ErrAlreadyWorking
 	}
@@ -86,7 +87,7 @@ func (r *SettlementTreasuryRepository) StartShift(ctx context.Context, s applica
 const shiftColumns = `id::text, settlement_id::text, building_id::text, COALESCE(player_id::text, ''), status, wage, wage_paid,
 	produced, consumed, game_action_id::text, started_at, finish_at, finished_at,
 	kind, COALESCE(job_id::text, ''), worker_kind, work_points, payer_kind, COALESCE(payer_id::text, ''), fee,
-	meal_points, fed, output_bps, condition_gain`
+	meal_points, fed, output_bps, condition_gain, land_kind, COALESCE(land_x, 0), COALESCE(land_y, 0), COALESCE(land_owner::text, '')`
 
 func scanShift(row pgx.Row) (application.SettlementShift, error) {
 	var (
@@ -96,7 +97,7 @@ func scanShift(row pgx.Row) (application.SettlementShift, error) {
 	if err := row.Scan(&s.ID, &s.SettlementID, &s.BuildingID, &s.PlayerID, &s.Status, &s.Wage, &s.WagePaid,
 		&produced, &consumed, &s.GameActionID, &s.StartedAt, &s.FinishAt, &s.FinishedAt,
 		&s.Kind, &s.JobID, &s.WorkerKind, &s.WorkPoints, &s.PayerKind, &s.PayerID, &s.Fee,
-		&s.MealPoints, &s.Fed, &s.OutputBPS, &s.ConditionGain); err != nil {
+		&s.MealPoints, &s.Fed, &s.OutputBPS, &s.ConditionGain, &s.LandKind, &s.LandX, &s.LandY, &s.LandOwner); err != nil {
 		return s, err
 	}
 	if err := json.Unmarshal(produced, &s.Produced); err != nil {

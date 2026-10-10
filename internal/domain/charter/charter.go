@@ -42,7 +42,9 @@ const (
 	FiscalMarketFee Permission = "fiscal.set:market_fee"
 	FiscalLevy      Permission = "fiscal.set:levy"
 
-	RoadDraw       Permission = "road.draw"
+	RoadDraw Permission = "road.draw"
+	// LandClear orders the clearing of trees and rocks off the commons and the treasury's lots (docs/adr/0065).
+	LandClear      Permission = "land.clear"
 	ZoneOpen       Permission = "zone.open"
 	ZoneClose      Permission = "zone.close"
 	LotSell        Permission = "lot.sell"
@@ -107,7 +109,7 @@ var catalogue = []Def{
 	{StorageTake, "treasury", false, true},
 	{FiscalSalesTax, "fiscal", false, true}, {FiscalShopPrice, "fiscal", false, true},
 	{FiscalMarketFee, "fiscal", false, false}, {FiscalLevy, "fiscal", false, false},
-	{RoadDraw, "land", false, true}, {ZoneOpen, "land", false, false}, {ZoneClose, "land", false, false},
+	{RoadDraw, "land", false, true}, {LandClear, "land", false, true}, {ZoneOpen, "land", false, false}, {ZoneClose, "land", false, false},
 	{LotSell, "land", false, true}, {PublicBuild, "land", false, true}, {PublicDemolish, "land", false, true},
 	{CitizenAdmit, "people", false, false}, {CitizenBan, "people", false, false},
 	{StaffHire, "people", false, true}, {StaffFire, "people", false, true}, {JobsPost, "people", false, true},

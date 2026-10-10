@@ -537,6 +537,10 @@ func pauseReason(err error, started int) string {
 		return "employer_broke"
 	case village.LaborBudgetSpent:
 		return "budget_spent"
+	case village.LandNoTrees:
+		return "no_trees"
+	case village.LandNoPlot:
+		return "no_plot"
 	}
 	return ""
 }

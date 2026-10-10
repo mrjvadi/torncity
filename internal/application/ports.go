@@ -176,6 +176,8 @@ type Tx interface {
 	Trade() TradeRepository
 	// ServiceDays is the daily services of the settlement's posts (migration 0137).
 	ServiceDays() ServiceDayRepository
+	// Land is the deltas of the settlements' trees and rocks and their saplings (migration 0143, ADR 0065).
+	Land() LandRepository
 	// StallKeepers is the keepers stall owners hire (migration 0139, ADR 0062).
 	StallKeepers() StallKeeperRepository
 	// Charters holds each settlement's offices, seats and audit (ADR 0044

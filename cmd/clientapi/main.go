@@ -37,6 +37,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/infrastructure/centrifugo"
 	infranats "github.com/mrjvadi/torncity/internal/infrastructure/nats"
 	"github.com/mrjvadi/torncity/internal/infrastructure/postgres"
+	"github.com/mrjvadi/torncity/internal/settlementcfg"
 	infraredis "github.com/mrjvadi/torncity/internal/infrastructure/redis"
 	"github.com/mrjvadi/torncity/internal/infrastructure/storage"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
@@ -256,6 +257,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 		Buildings: postgres.NewSettlementBuildingReader(pool), World: worldSvc, Content: registry,
 		VillageGridLots: cfg.Settlement.VillageGridLots, Now: time.Now,
 		Citizens: postgres.NewCitizenReader(pool),
+		Land: postgres.NewLandReader(pool), LandRules: settlementcfg.Land(cfg.Settlement),
 		Overlay:  postgres.NewVillageFacts(pool), StockBaseCapacity: cfg.Settlement.StockBaseCapacity, HomesPerBuildCrew: cfg.Settlement.BuildHomesPerCrew,
 		CitizenTerms: application.CitizenBounds{
 			LotPrice: cfg.Settlement.CitizenLotPrice, LotPriceMin: cfg.Settlement.CitizenLotPriceMin, LotPriceMax: cfg.Settlement.CitizenLotPriceMax,

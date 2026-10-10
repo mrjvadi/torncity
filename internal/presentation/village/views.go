@@ -25,6 +25,12 @@ const (
 	VillageNotFound        = "not_found"
 	VillageOccupied        = "occupied"
 	VillageUnbuildable     = "unbuildable"
+	// VillageObstructed: trees or rocks stand on a lot of the footprint; Obstacles says how many and where (docs/adr/0065).
+	VillageObstructed = "obstructed"
+	// LandNoTrees: the woodcutter's camp has no tree of the commons within reach and none ordered cleared (the stop of ADR 0065);
+	// LandNoPlot: the forester's lodge has no cut lot of the commons within reach to plant.
+	LandNoTrees            = "no_trees_in_reach"
+	LandNoPlot             = "no_plot_in_reach"
 	VillageOutOfBounds     = "out_of_bounds"
 	VillageConcurrentCap   = "concurrent_cap"
 	VillageNotDemolishable = "not_demolishable"
@@ -88,6 +94,17 @@ type VillageRefusalView struct {
 	Needs   []VillageNeed      `json:"needs,omitempty"`
 	// Personal is what the player lacks for a post (kind "personal", ADR 0055).
 	Personal []PersonalNeed `json:"personal,omitempty"`
+	// Obstacles is what stands on the refused footprint (kind "obstructed", ADR 0065).
+	Obstacles *ObstacleView `json:"obstacles,omitempty"`
+}
+
+// ObstacleView is what stands on a refused footprint: the first lot of it that is obstructed, the trees and rocks over the whole
+// footprint, and whether the viewer may order the clearing.
+type ObstacleView struct {
+	X, Y     int
+	Trees    int
+	Rocks    int
+	CanOrder bool
 }
 
 // VillageRoleLine is one role's own standing building(s), for the

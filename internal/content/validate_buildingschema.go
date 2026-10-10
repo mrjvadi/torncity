@@ -40,6 +40,7 @@ func (p *Pack) validateBuildingSchema(problems *[]error) {
 	l.functions()
 	l.recipes()
 	l.climate()
+	l.land()
 	l.raids()
 	l.roads()
 	l.rail()
@@ -48,7 +49,7 @@ func (p *Pack) validateBuildingSchema(problems *[]error) {
 
 func (p *Pack) hasBuildingSchema() bool {
 	return len(p.StorageClasses)+len(p.ItemStorage)+len(p.ModuleKinds)+len(p.BuildingFunctions)+len(p.Recipes)+
-		len(p.Climate)+len(p.SettlementRaids)+len(p.SettlementRaidDetectors)+len(p.RoadClasses)+len(p.RoadPlanner)+
+		len(p.Climate)+len(p.Land)+len(p.SettlementRaids)+len(p.SettlementRaidDetectors)+len(p.RoadClasses)+len(p.RoadPlanner)+
 		len(p.RailClasses)+len(p.HaulModes)+len(p.Rail) > 0
 }
 
@@ -102,6 +103,9 @@ func (p *Pack) SchemaOpenItems() SchemaOpenItems {
 		add(r.Head)
 	}
 	for _, r := range p.Climate {
+		add(r.Head)
+	}
+	for _, r := range p.Land {
 		add(r.Head)
 	}
 	for _, r := range p.SettlementRaids {
@@ -1136,5 +1140,33 @@ func (l *schemaLint) reachability() {
 	}
 	for _, c := range p.RailClasses {
 		rowOK("rail_class/"+c.Code, c.Requires)
+	}
+}
+
+func (l *schemaLint) land() {
+	if len(l.p.Land) > 1 {
+		l.bad("land: at most one obstacles block")
+	}
+	seen := map[string]bool{}
+	for _, d := range l.p.Land {
+		l.head("land", Head{Code: "land", Source: d.Source, Evidence: d.Evidence, Requires: d.Requires, PlannedKnowledge: d.PlannedKnowledge, Deferred: d.Deferred, NeedsResearch: d.NeedsResearch}, seen)
+		if d.GenVersion < 1 || d.MaxTreesGrid < 0 || d.MaxTreesRing < d.MaxTreesGrid || d.MaxRocks < 0 {
+			l.bad("land: gen_version from 1, trees on the ring at least as many as in the grid, no negative maximum")
+		}
+		for _, bps := range []int{d.CoreDensityBPS, d.OuterFactorBPS, d.SlopeRockBonusBPS, d.CoreClearShareBPS} {
+			if bps < 0 || bps > 10_000 {
+				l.bad("land: a basis point value is out of 0..10000")
+			}
+		}
+		if d.CoreClearBlock < 1 || d.CoreClearBlock > 5 {
+			l.bad("land: core_clear_block is a square of 1 to 5 lots")
+		}
+		codes := map[string]bool{}
+		for _, b := range d.Biomes {
+			if b.Biome == "" || codes[b.Biome] || b.TreeBPS < 0 || b.TreeBPS > 10_000 || b.RockBPS < 0 || b.RockBPS > 10_000 {
+				l.bad("land: biome %q is empty, twice, or its density is out of 0..10000", b.Biome)
+			}
+			codes[b.Biome] = true
+		}
 	}
 }

@@ -1482,6 +1482,7 @@ staff_role:
   tanner: "Tanner"
   labourer: "Labourer"
   woodcutter: "Woodcutter"
+  forester: "Forester"
   carpenter: "Carpenter"
   mason: "Mason"
   smith: "Smith"
@@ -1508,6 +1509,7 @@ staff_role:
   loan_officer: "Loan officer"
   bank_manager: "Bank manager"
 building_function:
+  forester_lodge: "Forester's lodge"
   charcoal_clamp_own: "Charcoal clamp (own)"
   carpentry_workshop_own: "Carpentry workshop (own)"
   masonry_workshop_own: "Masonry workshop (own)"

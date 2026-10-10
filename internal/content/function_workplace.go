@@ -32,6 +32,9 @@ type WorkplaceDef struct {
 	// PrivateName is the name of the citizen twin ("workshop (own)"); empty: the row's name.
 	PrivateName string `yaml:"private_name,omitempty" json:"private_name,omitempty"`
 	Yard    int  `yaml:"yard,omitempty" json:"yard,omitempty"`
+	// Fells and Plants are copied to the building: the crew fells a tree or plants a sapling of the land each shift.
+	Fells  bool `yaml:"fells,omitempty" json:"fells,omitempty"`
+	Plants bool `yaml:"plants,omitempty" json:"plants,omitempty"`
 	// Role and Tier place the building in the build menu and in the promotion ladders (settlement_buildings.yml roles).
 	Role string `yaml:"role" json:"role"`
 	Tier int    `yaml:"tier,omitempty" json:"tier,omitempty"`
@@ -153,7 +156,7 @@ func (f BuildingFunctionDef) generatedWorkplace(roleBPS map[string]int) Settleme
 		Code: w.buildingCode(f.Code), Name: f.Name, Role: w.Role, Tier: max(w.Tier, 1), Generated: true,
 		Footprint:   [2]int{max(f.Footprint[0], 1), max(f.Footprint[1], 1)},
 		TerrainTags: append([]string(nil), f.TerrainTags...), TerrainMode: f.TerrainMode,
-		OutputTarget: w.OutputTarget, Upkeep: w.Upkeep, Wage: w.Wage, Effects: append([]EffectDef(nil), w.Effects...), Trains: w.Trains,
+		OutputTarget: w.OutputTarget, Fells: w.Fells, Plants: w.Plants, Upkeep: w.Upkeep, Wage: w.Wage, Effects: append([]EffectDef(nil), w.Effects...), Trains: w.Trains,
 	}
 	if len(f.Levels) > 0 {
 		lv := f.Levels[0]

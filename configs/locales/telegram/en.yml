@@ -353,6 +353,7 @@ village:
       fiscal_set_market_fee: "set the market fee"
       fiscal_set_levy: "set the levy"
       road_draw: "draw roads"
+      land_clear: "clear land of trees and rocks"
       zone_open: "open zones"
       zone_close: "close zones"
       lot_sell: "sell land and set its terms"
@@ -461,6 +462,9 @@ village:
     not_found: "That was not found."
     occupied: "🔒 That spot is already taken."
     unbuildable: "💧 Nothing can be built there (water or too steep)."
+    obstructed: "🌳 Trees or rocks stand on this land; clear it first."
+    no_trees_in_reach: "🪓 No tree is left to fell near the camp. Hire a forester, order a clearing, or buy timber."
+    no_plot_in_reach: "🌱 No cut land near the lodge to plant."
     out_of_bounds: "🔒 That spot is outside the city's own grid."
     concurrent_cap: "🏗 The city's build queue is full. Wait for one to finish."
     not_demolishable: "🔒 That building cannot be demolished right now."
@@ -716,6 +720,10 @@ village:
       no_units: "The treasury does not hold that many units."
       budget: "The intervention limits allow nothing now."
       no_excess: "There is not enough excess."
+  clear:
+    ordered: "🪓 Clearing ordered for the lot {x},{y}: {trees} trees and {rocks} rocks. The crews take it first."
+    ordered_private: "🪓 Clearing ordered for your lot ({x},{y}): {trees} trees and {rocks} rocks. The wood and stone are yours and you pay the crew."
+    cancelled: "The lot {x},{y} has no clearing order any more."
   lot:
     title: "🏠 My lots in {village}"
     none: "You have no building on your lots yet. Build a house or a stall first, then arrange it here."

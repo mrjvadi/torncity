@@ -7,6 +7,7 @@ import (
 	"sort"
 
 	"github.com/mrjvadi/torncity/internal/application"
+	"github.com/mrjvadi/torncity/internal/domain/land"
 	"github.com/mrjvadi/torncity/internal/domain/landroad"
 	wsettle "github.com/mrjvadi/torncity/internal/domain/settlement"
 	"github.com/mrjvadi/torncity/internal/domain/settlementbuilding"
@@ -45,6 +46,8 @@ type landPicture struct {
 	held map[[2]int]string
 	// network is every road lot of the first grid (and the civic hall).
 	network [][2]int
+	// land is the trees and rocks standing on the lots a road opened (docs/adr/0065); nil when the land model is off.
+	land *application.LandView
 }
 
 // frameOf is the settlement's land frame on the world.
@@ -92,6 +95,11 @@ func (h *VillageHandler) picture(ctx context.Context, tx application.Tx, w *worl
 		}
 		for _, o := range open {
 			p.open[landroad.Lot{X: o.X, Y: o.Y}] = o
+		}
+		if lv, lerr := h.landViewOf(ctx, tx, w, s, open); lerr != nil {
+			return nil, lerr
+		} else if len(lv.Lots) > 0 {
+			p.land = lv
 		}
 	}
 	snap := h.content.Current()
@@ -153,7 +161,16 @@ func (p *landPicture) outerLot(x, y int) settlementbuilding.Lot {
 		if o.Reason == application.OpenLotSteep {
 			tags = append(tags, "sloped_lot")
 		}
-		return settlementbuilding.Lot{Buildable: o.Buildable, Occupied: stands, TerrainTags: tags}
+		lot := settlementbuilding.Lot{Buildable: o.Buildable, Occupied: stands, TerrainTags: tags}
+		if p.land != nil {
+			if ll, ok := p.land.Lots[land.Pos{X: x, Y: y}]; ok {
+				lot.Obstructed = ll.Obstructed
+				if ll.Rocks > 0 {
+					lot.TerrainTags = append(lot.TerrainTags, "rocky_lot")
+				}
+			}
+		}
+		return lot
 	}
 	// land no road reaches
 	return settlementbuilding.Lot{Occupied: true}
