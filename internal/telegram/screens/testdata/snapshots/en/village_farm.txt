@@ -26,6 +26,30 @@ A resident works each shift; nothing is made without a worker and the wage is pa
   [🧱 Stock and market] → settlement:materials   │   [🏗 Construction] → settlement:build
   [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:work
 
+━━━ Work · a weaving shed with recipes, one locked ━━━
+(edits message 42)
+⚒ Work in Korendal
+
+• Weaving shed: per shift (30m) 2 Wheat - wage 30 SUP - places taken: 0 of 2
+📜 Recipes:
+• Carded roving: 4 Wool makes 4 Wool roving
+• Spinning: not yet; research needed: Weaving II
+
+📦 Stock room: 14 of 60 units
+
+A resident works each shift; nothing is made without a worker and the wage is paid from the city treasury.
+  ───
+  [📜 This shift: Carded roving] → settlement:work:w1:roving
+  [⚒ Start a shift at Weaving shed] → settlement:work:w1
+  [🧱 Stock and market] → settlement:materials   │   [🏗 Construction] → settlement:build
+  [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:work
+
+━━━ Craft started ━━━
+(edits message 42)
+🛠 Making "Spinning" (2 batches) at Weaving shed began; done at 15:25 (50m left). It will make: 2 Yarn. The goods left your home store and the result comes back to it.
+  ───
+  [🔙 Back] → settlement:work
+
 ━━━ Sowing ordered ━━━
 (edits message 42)
 🌱 Sowing of "Canal farm" ordered. The seed (50 wheat) leaves the store with the first sowing shift; the sowing takes 8 shifts.
