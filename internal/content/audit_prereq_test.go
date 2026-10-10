@@ -37,17 +37,17 @@ func TestAGatedBuildingIsOutOfTheMenusAndNamed(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	d, ok := snap.SettlementBuildingDef("home_workshop")
+	d, ok := snap.SettlementBuildingDef("bank")
 	if !ok || !d.Gated() {
-		t.Fatalf("the home workshop waits for personal crafting: %+v", d)
+		t.Fatalf("the bank waits for the licence: %+v", d)
 	}
 	o := AuditOptions{FoundingGrant: 10_000, EarnPerDay: 840, HorizonDays: 30, WalkKm: 40, CartKm: 150}
 	var named bool
 	for _, f := range p.Audit(o) {
-		if f.Check == AuditPrereq && f.Kind == "settlement_building" && f.Code == "home_workshop" {
+		if f.Check == AuditPrereq && f.Kind == "settlement_building" && f.Code == "bank" {
 			named = true
 		}
-		if f.Check == AuditPrereq && f.Code == "home_workshop/labourer" {
+		if f.Check == AuditPrereq && f.Code == "bank/teller" {
 			t.Error("a gated building's staff are not a finding: nobody can place it")
 		}
 	}
