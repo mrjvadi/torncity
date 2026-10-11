@@ -281,6 +281,8 @@ type villageRefusal struct {
 	missing int64
 	// obstacles is what stands on a refused footprint (kind obstructed).
 	obstacles *village.ObstacleView
+	// foundation is the lot that needs a foundation (kind land_needs_foundation).
+	foundation *village.RegCell
 	// action, subject and needs are the attempt view of a refused build,
 	// research or shift: exactly what is missing and where it comes from
 	// (village_economy.go).
@@ -317,7 +319,7 @@ func (h *VillageHandler) villageFinish(meta envelope.Metadata, lang string, err 
 			return village.LotAccessScreen(c, *r.access), nil
 		}
 		return village.VillageRefusal(c, village.VillageRefusalView{Kind: r.kind, Back: presentation.RefOfAddress(r.back), Remaining: r.remaining, Min: r.min, Max: r.max, Lots: r.lots, Missing: r.missing,
-			Action: r.action, Subject: r.subject, Needs: r.needs, Personal: r.personal, Obstacles: r.obstacles}), nil
+			Action: r.action, Subject: r.subject, Needs: r.needs, Personal: r.personal, Obstacles: r.obstacles, Foundation: r.foundation}), nil
 	}
 	if stderrors.Is(err, application.ErrCityNotFound) {
 		return village.VillageRefusal(c, village.VillageRefusalView{Kind: village.VillageNoSettlement}), nil

@@ -14,6 +14,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/domain/charter"
 	"github.com/mrjvadi/torncity/internal/domain/landroad"
 	"github.com/mrjvadi/torncity/internal/domain/landuse"
+	wsettle "github.com/mrjvadi/torncity/internal/domain/settlement"
 	"github.com/mrjvadi/torncity/internal/domain/settlementbuilding"
 	"github.com/mrjvadi/torncity/internal/domain/worldgen"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
@@ -176,8 +177,19 @@ func (h *VillageHandler) fillRegistry(ctx context.Context, tx application.Tx, sc
 		view.Zones = append(view.Zones, village.ZoneLine{ID: z.ID, Name: z.Name, Kind: z.Kind, Cells: len(z.Cells),
 			Effective: !now.Before(z.EffectiveAt), EffectiveAt: z.EffectiveAt, OpenedBy: by, CanClose: canClose && h.registry.ZoningOn(now)})
 	}
+	var ground *landroad.WorldGround
+	var gw *worldgen.World
+	if len(claims) > 0 {
+		if w, werr := h.world(ctx); werr == nil {
+			gw, ground = w, landroad.NewWorldGround(w, h.frameOf(w, sc.s), nil)
+		}
+	}
 	for _, c := range claims {
-		view.Claims = append(view.Claims, village.ClaimLine{ID: c.ID, Face: c.Tile.Face, GX: c.Tile.GX, GY: c.Tile.GY, ClaimedAt: c.ClaimedAt, PaidThrough: c.PaidThrough})
+		line := village.ClaimLine{ID: c.ID, Face: c.Tile.Face, GX: c.Tile.GX, GY: c.Tile.GY, ClaimedAt: c.ClaimedAt, PaidThrough: c.PaidThrough}
+		if ground != nil {
+			line.Rect = tileRect(gw, ground, worldgen.MakeTileID(int8(c.Tile.Face), c.Tile.GX, c.Tile.GY))
+		}
+		view.Claims = append(view.Claims, line)
 	}
 	view.Foundations = len(found)
 	view.ZoningOn, view.SlopeOn = h.registry.ZoningOn(now), h.registry.SlopeOn(now)
@@ -337,7 +349,7 @@ func (h *VillageHandler) registryDone(ctx context.Context, tx application.Tx, me
 		return err
 	}
 	payload := map[string]any{"settlement_id": sc.s.CityID, "kind": kind}
-	return appendVillageEvent(ctx, tx, meta, "land_changed", sc.s.CityID, payload)
+	return h.appendBuildingEvent(ctx, tx, meta, sc.s, "land_changed", payload)
 }
 
 // rectCells is the lots of the rectangle between two lot tokens, corners included; false when a token is bad or the rectangle
@@ -875,4 +887,26 @@ func (h *VillageHandler) knows(ctx context.Context, tx application.Tx, s applica
 		}
 	}
 	return false
+}
+
+// tileRect is the rectangle of lots that lie in a tile of the world, in the settlement's lot coordinates: the bounding box of the lots
+// round the tile's centre whose tile it is.
+func tileRect(w *worldgen.World, ground *landroad.WorldGround, t worldgen.TileID) *village.RegRect {
+	centre := ground.TileCentre(t)
+	r := wsettle.LotsPerTile + 2
+	minX, minY, maxX, maxY := math.MaxInt, math.MaxInt, math.MinInt, math.MinInt
+	for y := centre.Y - r; y <= centre.Y+r; y++ {
+		for x := centre.X - r; x <= centre.X+r; x++ {
+			if ground.Tile(landroad.Lot{X: x, Y: y}) != t {
+				continue
+			}
+			minX, maxX = min(minX, x), max(maxX, x)
+			minY, maxY = min(minY, y), max(maxY, y)
+		}
+	}
+	if minX > maxX {
+		return nil
+	}
+	_ = w
+	return &village.RegRect{X: minX, Y: minY, W: maxX - minX + 1, D: maxY - minY + 1}
 }

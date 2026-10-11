@@ -96,6 +96,9 @@ type VillageRefusalView struct {
 	Personal []PersonalNeed `json:"personal,omitempty"`
 	// Obstacles is what stands on the refused footprint (kind "obstructed", ADR 0065).
 	Obstacles *ObstacleView `json:"obstacles,omitempty"`
+	// Foundation is the lot a building could not stand on without a foundation (kind land_needs_foundation, docs/adr/0072): the first lot of
+	// the footprint that needs one, for the client to offer laying it.
+	Foundation *RegCell `json:"foundation,omitempty"`
 }
 
 // ObstacleView is what stands on a refused footprint: the first lot of it that is obstructed, the trees and rocks over the whole

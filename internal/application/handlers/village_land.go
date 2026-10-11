@@ -8,6 +8,7 @@ import (
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/domain/land"
+	"github.com/mrjvadi/torncity/internal/domain/landuse"
 	"github.com/mrjvadi/torncity/internal/domain/landroad"
 	wsettle "github.com/mrjvadi/torncity/internal/domain/settlement"
 	"github.com/mrjvadi/torncity/internal/domain/settlementbuilding"
@@ -587,6 +588,9 @@ func (h *VillageHandler) canPlaceAnywhere(ctx context.Context, tx application.Tx
 		st.Slope = h.registry.Slope
 	}
 	if err := h.canPlaceLand(ctx, tx, s, def, grid, x, y, st); err != nil {
+		if stderrors.Is(err, settlementbuilding.ErrNeedsFoundation) {
+			return h.needsFoundation(ctx, tx, s, def, grid, x, y, st)
+		}
 		return err
 	}
 	return h.zoneVerdict(ctx, tx, h.content.Current(), s.CityID, def, x, y, now)
@@ -695,12 +699,54 @@ func (h *VillageHandler) layoutMark(ctx context.Context, tx application.Tx, sett
 ) (string, error) {
 	mark := application.TenureMark(lots, priv)
 	plans, err := tx.Citizens().Plans(ctx, settlementID)
-	if err != nil || len(plans) == 0 {
+	if err != nil {
 		return mark, err
 	}
-	cells, err := tx.Citizens().Cells(ctx, settlementID)
-	if err != nil {
-		return "", err
+	if len(plans) > 0 {
+		cells, err := tx.Citizens().Cells(ctx, settlementID)
+		if err != nil {
+			return "", err
+		}
+		mark = application.JoinMarks(mark, application.LandMark(plans, cells))
 	}
-	return application.JoinMarks(mark, application.LandMark(plans, cells)), nil
+	if reg := tx.Registry(); reg != nil {
+		found, err := reg.Foundations(ctx, settlementID)
+		if err != nil {
+			return "", err
+		}
+		mark = application.JoinMarks(mark, application.FoundationMark(found))
+	}
+	return mark, nil
+}
+
+// needsFoundation is the refusal of a building that a sloped lot of its footprint will not take unaided, naming the first such lot, so
+// the client can offer to lay the foundation there.
+func (h *VillageHandler) needsFoundation(ctx context.Context, tx application.Tx, s application.FoundedSettlement, def settlementbuilding.Def,
+	grid settlementbuilding.Grid, x, y int, st settlementbuilding.Standing,
+) error {
+	r := refuseVillage(village.LandNeedsFoundation)
+	lotAt := func(px, py int) (settlementbuilding.Lot, bool) {
+		if px >= 0 && py >= 0 && py < len(grid) && px < len(grid[py]) {
+			return grid[py][px], true
+		}
+		return settlementbuilding.Lot{}, false
+	}
+	var pic *landPicture
+	for _, q := range footprintOf(def, x, y) {
+		lot, ok := lotAt(q[0], q[1])
+		if !ok {
+			if pic == nil {
+				var err error
+				if pic, err = h.pictureOf(ctx, tx, s); err != nil {
+					return r
+				}
+			}
+			lot, ok = pic.lotAt(q[0], q[1]), true
+		}
+		if ok && !lot.Foundation && landuse.Steps(def.SlopeOKBand, st.Slope.Of(lot.SlopeM)) == 1 {
+			r.foundation = &village.RegCell{X: q[0], Y: q[1]}
+			break
+		}
+	}
+	return r
 }

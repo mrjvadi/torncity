@@ -2,7 +2,12 @@ package application
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
+	"hash/fnv"
+	"sort"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/domain/landuse"
@@ -165,6 +170,27 @@ type RegistryRepository interface {
 	InsertFoundation(ctx context.Context, f Foundation) (bool, error)
 	// Audit appends an audit row of a registry act.
 	Audit(ctx context.Context, id, settlementID, kind, actor string, detail map[string]any, at time.Time) error
+}
+
+// RegistryReader reads the registry outside a transaction, for the client API.
+type RegistryReader interface {
+	Foundations(ctx context.Context, settlementID string) ([]Foundation, error)
+}
+
+// FoundationMark hashes the foundations laid for the member versions of a layout; empty while none is laid, so a settlement without
+// one keeps the version it always had.
+func FoundationMark(f []Foundation) string {
+	if len(f) == 0 {
+		return ""
+	}
+	parts := make([]string, 0, len(f))
+	for _, x := range f {
+		parts = append(parts, "f"+strconv.Itoa(x.X)+","+strconv.Itoa(x.Y))
+	}
+	sort.Strings(parts)
+	h := fnv.New64a()
+	_, _ = h.Write([]byte(strings.Join(parts, ";")))
+	return hex.EncodeToString(h.Sum(nil))
 }
 
 // ZoneRef is the zone a cell lies in.

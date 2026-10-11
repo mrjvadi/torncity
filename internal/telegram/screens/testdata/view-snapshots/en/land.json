@@ -17,7 +17,8 @@
           "gx": 3,
           "gy": 4,
           "id": "c1",
-          "paid_through": "2026-11-02T11:05:00Z"
+          "paid_through": "2026-11-02T11:05:00Z",
+          "rect": null
         }
       ],
       "foundation_stone": 0,
@@ -253,6 +254,7 @@
         "args": null,
         "command": ""
       },
+      "foundation": null,
       "kind": "land_not_yours",
       "lots": null,
       "max": 0,
@@ -277,6 +279,7 @@
         "args": null,
         "command": ""
       },
+      "foundation": null,
       "kind": "land_needs_foundation",
       "lots": null,
       "max": 0,
@@ -301,6 +304,7 @@
         "args": null,
         "command": ""
       },
+      "foundation": null,
       "kind": "land_zone_forbids",
       "lots": null,
       "max": 0,
@@ -325,6 +329,7 @@
         "args": null,
         "command": ""
       },
+      "foundation": null,
       "kind": "land_commons",
       "lots": null,
       "max": 0,
