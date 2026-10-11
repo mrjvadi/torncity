@@ -1423,7 +1423,7 @@ settlement:
   survival_grace_days: 14
   # the teacher's skill in a class (ADR 0071): from the rule date plus the grace a teacher of a craft course needs the craft level and the class's
   # xp follows him; a placeholder until the deploy sets it
-  teaching_rule_at: "2026-10-11T00:00:00Z"
+  teaching_rule_at: "2026-10-11T14:00:00Z"
   teaching_grace_days: 14
   # The teacher's skill in the literacy tick (docs/adr/0057): a class a player with the teaching skill gives moves literacy at
   # teacher_base_bps plus teacher_per_level_bps for each level of the skill (never above 10000); with no player teacher it moves at
