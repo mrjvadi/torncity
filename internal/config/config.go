@@ -1916,7 +1916,7 @@ func Defaults() *Config {
 			CraftingGraceDays:                14,
 			CareRuleAt:                       "2026-10-10T22:00:00Z",
 			CareGraceDays:                    14,
-			SurvivalRuleAt:                   "2026-10-11T00:00:00Z",
+			SurvivalRuleAt:                   "2026-10-11T10:00:00Z",
 			SurvivalGraceDays:                14,
 			TeacherBaseBPS:                   6000,
 			TeacherPerLevelBPS:               150,
