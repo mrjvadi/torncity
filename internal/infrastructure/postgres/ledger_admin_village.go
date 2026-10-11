@@ -195,10 +195,18 @@ type VillageInvariants struct {
 	// The NPC households (migration 0151, docs/adr/0073): wallets below zero, money held by households that are gone, household money
 	// from the source, NPC wages into the sink after a flip, living households not settled for the latest finished day, item movements
 	// and shop sales that name no household, days with two ticks.
-	Households                                                          bool
-	HouseholdWalletBelowZero, HouseholdGoneHolding, HouseholdFromSource int64
-	HouseholdWageToSink, HouseholdUnsettled, HouseholdItemOrphans       int64
-	HouseholdShopOrphans, HouseholdTickDup                              int64
+	Households bool
+	// Raids, falls and insurance of a settlement's fund (migration 0152, docs/adr/0074): fees, loot, tribute, falls' cash and goods in the
+	// ledger and the item journal against the rows, the share of a player's assets a fall took (the largest, in basis points), falls
+	// that touched anything but carried cash, raids resolved with no opening, detections without a raid.
+	Raids                                                                     bool
+	RaidFeeLedger, RaidFeeRows, RaidLootCashLedger, RaidLootCashRows          int64
+	RaidLootItemJournal, RaidLootItemRows, RaidTributeLedger, RaidTributeRows int64
+	FallCashLedger, FallCashRows, FallGoodsJournal, FallGoodsRows             int64
+	FallMaxShareBPS, FallStrayLegs, RaidWithoutOutcome, RaidOrphans           int64
+	HouseholdWalletBelowZero, HouseholdGoneHolding, HouseholdFromSource       int64
+	HouseholdWageToSink, HouseholdUnsettled, HouseholdItemOrphans             int64
+	HouseholdShopOrphans, HouseholdTickDup                                    int64
 	// The tool wear (docs/adr/0050): ToolInputs are the tools the item journal shows leaving the stores as shift inputs,
 	// ToolShiftUnits the tools the shifts recorded as consumed, ToolWearBroken the workplaces whose wear is out of range.
 	ToolInputs, ToolShiftUnits int64
@@ -259,6 +267,9 @@ func (v VillageInvariants) WorkNodesOK() bool {
 		(!v.Service || (v.ServiceLedger == v.ServiceRows && v.ServiceItems == v.ServiceUsedRows && v.ServiceDayBroken == 0)) &&
 		(!v.Care || (v.CareFeeLedger == v.CareFeeRows && v.CareMedicineJournal == v.CareMedicineRows && v.CareBroken == 0)) &&
 		(!v.Survival || (v.SurvivalGarmentJournal == v.SurvivalGarmentRows && v.SurvivalDoubleSlot == 0)) &&
+		(!v.Raids || (v.RaidFeeLedger == v.RaidFeeRows && v.RaidLootCashLedger == v.RaidLootCashRows && v.RaidLootItemJournal == v.RaidLootItemRows &&
+			v.RaidTributeLedger == v.RaidTributeRows && v.FallCashLedger == v.FallCashRows && v.FallGoodsJournal == v.FallGoodsRows && v.FallStrayLegs == 0 &&
+			v.RaidWithoutOutcome == 0 && v.RaidOrphans == 0)) &&
 		(!v.Households || (v.HouseholdWalletBelowZero == 0 && v.HouseholdGoneHolding == 0 && v.HouseholdFromSource == 0 && v.HouseholdWageToSink == 0 &&
 			v.HouseholdUnsettled == 0 && v.HouseholdItemOrphans == 0 && v.HouseholdShopOrphans == 0 && v.HouseholdTickDup == 0)) &&
 		(!v.Apprentice || (v.ApprenticeFeeLedger == v.ApprenticeFeeRows && v.ApprenticeRefundLedger == v.ApprenticeRefundRows && v.ApprenticeCertBroken == 0 && v.ApprenticeOverSlots == 0)) &&

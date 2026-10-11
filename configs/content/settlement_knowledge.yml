@@ -436,6 +436,13 @@ knowledge:
     provides: [local_security]
     cost: 4000
     time: 30h
+  - code: signal_fires
+    field: security
+    name: "آتش خبر"
+    requires: [communal_watch]
+    provides: [local_security]
+    cost: 1800
+    time: 14h
   - code: formal_constabulary
     field: security
     name: "ژاندارمری رسمی"

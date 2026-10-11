@@ -865,6 +865,7 @@ health:
     war: "Cause: wounded when the city was struck"
     work: "Cause: an accident at work"
     faction_crime: "Cause: hurt on a crew job"
+    raid: "Cause: a raid on the town"
   treat_title: "🩺 Who should treat you? A stay is treated once:"
   clinics_title: "🩺 Clinics in {city}:"
   city_hospital: "City hospital"

@@ -354,12 +354,12 @@ func (r *FinanceRepository) SavingsEarned(ctx context.Context, playerID string) 
 }
 
 const policyColumns = `id::text, no, player_id::text, product, covers, country_id::text, COALESCE(property_id::text, ''),
-	status, started_at, claims_from, ended_at, COALESCE(end_reason, ''), updated_at`
+	status, started_at, claims_from, ended_at, COALESCE(end_reason, ''), updated_at, issuer_kind, COALESCE(building_id::text, '')`
 
 func scanPolicy(row pgx.Row) (*application.InsurancePolicy, error) {
 	var p application.InsurancePolicy
 	if err := row.Scan(&p.ID, &p.No, &p.PlayerID, &p.Product, &p.Covers, &p.CountryID, &p.PropertyID, &p.Status,
-		&p.StartedAt, &p.ClaimsFrom, &p.EndedAt, &p.EndReason, &p.UpdatedAt); err != nil {
+		&p.StartedAt, &p.ClaimsFrom, &p.EndedAt, &p.EndReason, &p.UpdatedAt, &p.IssuerKind, &p.BuildingID); err != nil {
 		return nil, err
 	}
 	p.StartedAt, p.ClaimsFrom, p.UpdatedAt, p.EndedAt = p.StartedAt.UTC(), p.ClaimsFrom.UTC(), p.UpdatedAt.UTC(),
@@ -388,10 +388,10 @@ func (r *FinanceRepository) policies(ctx context.Context, sql string, args ...an
 func (r *FinanceRepository) CreatePolicy(ctx context.Context, p application.InsurancePolicy) (application.InsurancePolicy, error) {
 	err := r.q.QueryRow(ctx, `
 		INSERT INTO insurance_policies (id, player_id, product, covers, country_id, property_id, status, started_at,
-		                                claims_from, updated_at)
-		VALUES ($1::uuid, $2::uuid, $3, $4, $5::uuid, $6::uuid, 'active', $7, $8, $7) RETURNING no`,
+		                                claims_from, updated_at, issuer_kind, building_id)
+		VALUES ($1::uuid, $2::uuid, $3, $4, $5::uuid, $6::uuid, 'active', $7, $8, $7, $9, $10::uuid) RETURNING no`,
 		p.ID, p.PlayerID, p.Product, p.Covers, p.CountryID, nullText(p.PropertyID), p.StartedAt.UTC(),
-		p.ClaimsFrom.UTC()).Scan(&p.No)
+		p.ClaimsFrom.UTC(), issuerKind(p.IssuerKind), nullText(p.BuildingID)).Scan(&p.No)
 	if violates(err, sqlstateUniqueViolation, "insurance_policies_one_idx") {
 		return p, application.ErrPolicyExists
 	}
@@ -458,7 +458,24 @@ func (r *FinanceRepository) PropertyPolicies(ctx context.Context, cityID string)
 
 const policyColumnsI = `i.id::text, i.no, i.player_id::text, i.product, i.covers, i.country_id::text,
 	COALESCE(i.property_id::text, ''), i.status, i.started_at, i.claims_from, i.ended_at, COALESCE(i.end_reason, ''),
-	i.updated_at`
+	i.updated_at, i.issuer_kind, COALESCE(i.building_id::text, '')`
+
+// issuerKind is the issuer of a policy, a country when none is named.
+func issuerKind(k string) string {
+	if k == "" {
+		return "country"
+	}
+	return k
+}
+
+// BuildingPolicies lists the running raid_damage policies on a settlement's buildings (docs/adr/0074).
+func (r *FinanceRepository) BuildingPolicies(ctx context.Context, settlementID string) ([]application.InsurancePolicy, error) {
+	if !validUUID(settlementID) {
+		return nil, nil
+	}
+	return r.policies(ctx, `SELECT `+policyColumnsI+` FROM insurance_policies i JOIN settlement_buildings b ON b.id = i.building_id
+		WHERE i.status = 'active' AND i.covers = 'raid_damage' AND b.settlement_id = $1::uuid ORDER BY i.id FOR UPDATE OF i`, settlementID)
+}
 
 // SavePolicy writes a policy's status.
 func (r *FinanceRepository) SavePolicy(ctx context.Context, p application.InsurancePolicy) error {
@@ -712,4 +729,13 @@ func (r *FinanceRepository) SaveMarks(ctx context.Context, marks []application.P
 		}
 	}
 	return nil
+}
+
+// ClaimedBefore reports whether the source already made a claim on the policy.
+func (r *FinanceRepository) ClaimedBefore(ctx context.Context, policyID, source string) (bool, error) {
+	var found bool
+	if err := r.q.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM insurance_claims WHERE policy_id = $1::uuid AND source = $2)`, policyID, source).Scan(&found); err != nil {
+		return false, fmt.Errorf("postgres: reading a claim: %w", err)
+	}
+	return found, nil
 }

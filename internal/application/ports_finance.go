@@ -183,13 +183,18 @@ const (
 
 // InsurancePolicy is an insurance_policies row.
 type InsurancePolicy struct {
-	ID         string
-	No         int64
-	PlayerID   string
-	Product    string
-	Covers     string
+	ID       string
+	No       int64
+	PlayerID string
+	Product  string
+	Covers   string
+	// CountryID is the id of the issuer whose fund the policy is with: a country, a settlement or a company (IssuerKind).
 	CountryID  string
 	PropertyID string
+	// IssuerKind is who sells it: country (the default), settlement (a mutual) or company (docs/adr/0074).
+	IssuerKind string
+	// BuildingID is the building a raid_damage policy insures.
+	BuildingID string
 	Status     string
 	StartedAt  time.Time
 	ClaimsFrom time.Time
@@ -346,6 +351,8 @@ type FinanceRepository interface {
 	// CoveringPolicy is a player's running policy of a kind of cover (the
 	// first), nil for none.
 	CoveringPolicy(ctx context.Context, playerID, covers string) (*InsurancePolicy, error)
+	// BuildingPolicies lists the running raid_damage policies on a settlement's buildings (docs/adr/0074).
+	BuildingPolicies(ctx context.Context, settlementID string) ([]InsurancePolicy, error)
 	// PropertyPolicies lists the running policies on the properties of a
 	// city.
 	PropertyPolicies(ctx context.Context, cityID string) ([]InsurancePolicy, error)
@@ -355,6 +362,8 @@ type FinanceRepository interface {
 	// RecordPremium records a policy's premium for a period; false when it
 	// already was.
 	RecordPremium(ctx context.Context, policyID string, periodNo, amount int64, ledgerTx string, at time.Time) (bool, error)
+	// ClaimedBefore reports whether the source already made a claim on the policy.
+	ClaimedBefore(ctx context.Context, policyID, source string) (bool, error)
 	// RecordClaim records a claim; false when its source already made one
 	// on the policy.
 	RecordClaim(ctx context.Context, c InsuranceClaim) (bool, error)

@@ -58,6 +58,7 @@ type fileConfig struct {
 	Settlement    settlementSettings    `yaml:"settlement"`
 	Growth        growthSettings        `yaml:"growth"`
 	Households    householdsSettings    `yaml:"households"`
+	Raid          raidSettings          `yaml:"raid"`
 	Bag           bagSettings           `yaml:"bag"`
 	Merchant      merchantSettings      `yaml:"merchant"`
 	Premium       premiumSettings       `yaml:"premium"`
@@ -372,6 +373,54 @@ type growthSettings struct {
 	CacheTTL      *string `yaml:"cache_ttl"`
 	RuinedBPS     *int    `yaml:"ruined_bps"`
 	FlushInterval *string `yaml:"flush_interval"`
+}
+
+type raidSettings struct {
+	RuleAt               *string `yaml:"rule_at"`
+	GraceDays            *int64  `yaml:"grace_days"`
+	DeathRuleAt          *string `yaml:"death_rule_at"`
+	DeathGraceDays       *int64  `yaml:"death_grace_days"`
+	MinLeadHours         *int64  `yaml:"min_lead_hours"`
+	MaxLeadHours         *int64  `yaml:"max_lead_hours"`
+	WindowMinutes        *int64  `yaml:"window_minutes"`
+	CooldownHours        *int64  `yaml:"cooldown_hours"`
+	MaxPerWeek           *int64  `yaml:"max_per_week"`
+	ShieldHours          *int64  `yaml:"after_loss_shield_hours"`
+	ShieldLootCutBPS     *int64  `yaml:"shield_loot_cut_bps"`
+	FoundingGraceDays    *int64  `yaml:"founding_grace_days"`
+	GraceRatio           *int64  `yaml:"grace_ratio"`
+	TargetRatioMax       *int64  `yaml:"target_ratio_max"`
+	MinTargetValue       *int64  `yaml:"min_target_value"`
+	Fee                  *int64  `yaml:"fee"`
+	LootTreasuryBPS      *int64  `yaml:"loot_treasury_bps"`
+	LootStackBPS         *int64  `yaml:"loot_stack_bps"`
+	DamageMaxBPS         *int64  `yaml:"damage_max_bps"`
+	CarryPerRaider       *int64  `yaml:"carry_per_raider"`
+	NPCRaiderWage        *int64  `yaml:"npc_raider_wage"`
+	MaxNPCRaiders        *int64  `yaml:"max_npc_raiders"`
+	SeatFirepower        *int64  `yaml:"seat_firepower"`
+	SeatArmour           *int64  `yaml:"seat_armour"`
+	Rounds               *int64  `yaml:"rounds"`
+	DefenderAdvantageBPS *int64  `yaml:"defender_advantage_bps"`
+	BaseHitBPS           *int64  `yaml:"base_hit_bps"`
+	HitFloorBPS          *int64  `yaml:"hit_floor_bps"`
+	HitCeilingBPS        *int64  `yaml:"hit_ceiling_bps"`
+	DeathCashBPS         *int64  `yaml:"death_cash_bps"`
+	DeathGoodsBPS        *int64  `yaml:"death_goods_bps"`
+	GearWearBPS          *int64  `yaml:"gear_wear_bps"`
+	LossCapBPS           *int64  `yaml:"loss_cap_bps"`
+	FallCooldownHours    *int64  `yaml:"fall_cooldown_hours"`
+	StealthBPSPerStep    *int64  `yaml:"stealth_bps_per_step"`
+	StealthSteps         *int64  `yaml:"stealth_steps"`
+	StealthFloorBPS      *int64  `yaml:"stealth_floor_bps"`
+	NightPenaltyBPS      *int64  `yaml:"night_penalty_bps"`
+	BeaconHopMinutes     *int64  `yaml:"beacon_hop_minutes"`
+	RelayM               *int64  `yaml:"relay_m"`
+	SpeedFootKmh         *int64  `yaml:"speed_foot_kmh"`
+	SpeedCartKmh         *int64  `yaml:"speed_cart_kmh"`
+	SpeedHorseKmh        *int64  `yaml:"speed_horse_kmh"`
+	SpeedRailKmh         *int64  `yaml:"speed_rail_kmh"`
+	TributeMin           *int64  `yaml:"tribute_min"`
 }
 
 type householdsSettings struct {
@@ -1312,6 +1361,141 @@ var coreSettings = []setting{
 		func(c *Config) *int { return &c.WorldGen.ChunkDepositTilesPerDeposit },
 		func(f *fileConfig) *int { return f.WorldGen.ChunkDepositTilesPerDeposit }),
 
+	stringSetting("raid", "rule_at",
+		func(c *Config) *string { return &c.Raid.RuleAt },
+		func(f *fileConfig) *string { return f.Raid.RuleAt }),
+	moneySetting("raid", "grace_days",
+		func(c *Config) *int64 { return &c.Raid.GraceDays },
+		func(f *fileConfig) *int64 { return f.Raid.GraceDays }),
+	stringSetting("raid", "death_rule_at",
+		func(c *Config) *string { return &c.Raid.DeathRuleAt },
+		func(f *fileConfig) *string { return f.Raid.DeathRuleAt }),
+	moneySetting("raid", "death_grace_days",
+		func(c *Config) *int64 { return &c.Raid.DeathGraceDays },
+		func(f *fileConfig) *int64 { return f.Raid.DeathGraceDays }),
+	moneySetting("raid", "min_lead_hours",
+		func(c *Config) *int64 { return &c.Raid.MinLeadHours },
+		func(f *fileConfig) *int64 { return f.Raid.MinLeadHours }),
+	moneySetting("raid", "max_lead_hours",
+		func(c *Config) *int64 { return &c.Raid.MaxLeadHours },
+		func(f *fileConfig) *int64 { return f.Raid.MaxLeadHours }),
+	moneySetting("raid", "window_minutes",
+		func(c *Config) *int64 { return &c.Raid.WindowMinutes },
+		func(f *fileConfig) *int64 { return f.Raid.WindowMinutes }),
+	moneySetting("raid", "cooldown_hours",
+		func(c *Config) *int64 { return &c.Raid.CooldownHours },
+		func(f *fileConfig) *int64 { return f.Raid.CooldownHours }),
+	moneySetting("raid", "max_per_week",
+		func(c *Config) *int64 { return &c.Raid.MaxPerWeek },
+		func(f *fileConfig) *int64 { return f.Raid.MaxPerWeek }),
+	moneySetting("raid", "after_loss_shield_hours",
+		func(c *Config) *int64 { return &c.Raid.ShieldHours },
+		func(f *fileConfig) *int64 { return f.Raid.ShieldHours }),
+	moneySetting("raid", "shield_loot_cut_bps",
+		func(c *Config) *int64 { return &c.Raid.ShieldLootCutBPS },
+		func(f *fileConfig) *int64 { return f.Raid.ShieldLootCutBPS }),
+	moneySetting("raid", "founding_grace_days",
+		func(c *Config) *int64 { return &c.Raid.FoundingGraceDays },
+		func(f *fileConfig) *int64 { return f.Raid.FoundingGraceDays }),
+	moneySetting("raid", "grace_ratio",
+		func(c *Config) *int64 { return &c.Raid.GraceRatio },
+		func(f *fileConfig) *int64 { return f.Raid.GraceRatio }),
+	moneySetting("raid", "target_ratio_max",
+		func(c *Config) *int64 { return &c.Raid.TargetRatioMax },
+		func(f *fileConfig) *int64 { return f.Raid.TargetRatioMax }),
+	moneySetting("raid", "min_target_value",
+		func(c *Config) *int64 { return &c.Raid.MinTargetValue },
+		func(f *fileConfig) *int64 { return f.Raid.MinTargetValue }),
+	moneySetting("raid", "fee",
+		func(c *Config) *int64 { return &c.Raid.Fee },
+		func(f *fileConfig) *int64 { return f.Raid.Fee }),
+	moneySetting("raid", "loot_treasury_bps",
+		func(c *Config) *int64 { return &c.Raid.LootTreasuryBPS },
+		func(f *fileConfig) *int64 { return f.Raid.LootTreasuryBPS }),
+	moneySetting("raid", "loot_stack_bps",
+		func(c *Config) *int64 { return &c.Raid.LootStackBPS },
+		func(f *fileConfig) *int64 { return f.Raid.LootStackBPS }),
+	moneySetting("raid", "damage_max_bps",
+		func(c *Config) *int64 { return &c.Raid.DamageMaxBPS },
+		func(f *fileConfig) *int64 { return f.Raid.DamageMaxBPS }),
+	moneySetting("raid", "carry_per_raider",
+		func(c *Config) *int64 { return &c.Raid.CarryPerRaider },
+		func(f *fileConfig) *int64 { return f.Raid.CarryPerRaider }),
+	moneySetting("raid", "npc_raider_wage",
+		func(c *Config) *int64 { return &c.Raid.NPCRaiderWage },
+		func(f *fileConfig) *int64 { return f.Raid.NPCRaiderWage }),
+	moneySetting("raid", "max_npc_raiders",
+		func(c *Config) *int64 { return &c.Raid.MaxNPCRaiders },
+		func(f *fileConfig) *int64 { return f.Raid.MaxNPCRaiders }),
+	moneySetting("raid", "seat_firepower",
+		func(c *Config) *int64 { return &c.Raid.SeatFirepower },
+		func(f *fileConfig) *int64 { return f.Raid.SeatFirepower }),
+	moneySetting("raid", "seat_armour",
+		func(c *Config) *int64 { return &c.Raid.SeatArmour },
+		func(f *fileConfig) *int64 { return f.Raid.SeatArmour }),
+	moneySetting("raid", "rounds",
+		func(c *Config) *int64 { return &c.Raid.Rounds },
+		func(f *fileConfig) *int64 { return f.Raid.Rounds }),
+	moneySetting("raid", "defender_advantage_bps",
+		func(c *Config) *int64 { return &c.Raid.DefenderAdvantageBPS },
+		func(f *fileConfig) *int64 { return f.Raid.DefenderAdvantageBPS }),
+	moneySetting("raid", "base_hit_bps",
+		func(c *Config) *int64 { return &c.Raid.BaseHitBPS },
+		func(f *fileConfig) *int64 { return f.Raid.BaseHitBPS }),
+	moneySetting("raid", "hit_floor_bps",
+		func(c *Config) *int64 { return &c.Raid.HitFloorBPS },
+		func(f *fileConfig) *int64 { return f.Raid.HitFloorBPS }),
+	moneySetting("raid", "hit_ceiling_bps",
+		func(c *Config) *int64 { return &c.Raid.HitCeilingBPS },
+		func(f *fileConfig) *int64 { return f.Raid.HitCeilingBPS }),
+	moneySetting("raid", "death_cash_bps",
+		func(c *Config) *int64 { return &c.Raid.DeathCashBPS },
+		func(f *fileConfig) *int64 { return f.Raid.DeathCashBPS }),
+	moneySetting("raid", "death_goods_bps",
+		func(c *Config) *int64 { return &c.Raid.DeathGoodsBPS },
+		func(f *fileConfig) *int64 { return f.Raid.DeathGoodsBPS }),
+	moneySetting("raid", "gear_wear_bps",
+		func(c *Config) *int64 { return &c.Raid.GearWearBPS },
+		func(f *fileConfig) *int64 { return f.Raid.GearWearBPS }),
+	moneySetting("raid", "loss_cap_bps",
+		func(c *Config) *int64 { return &c.Raid.LossCapBPS },
+		func(f *fileConfig) *int64 { return f.Raid.LossCapBPS }),
+	moneySetting("raid", "fall_cooldown_hours",
+		func(c *Config) *int64 { return &c.Raid.FallCooldownHours },
+		func(f *fileConfig) *int64 { return f.Raid.FallCooldownHours }),
+	moneySetting("raid", "stealth_bps_per_step",
+		func(c *Config) *int64 { return &c.Raid.StealthBPSPerStep },
+		func(f *fileConfig) *int64 { return f.Raid.StealthBPSPerStep }),
+	moneySetting("raid", "stealth_steps",
+		func(c *Config) *int64 { return &c.Raid.StealthSteps },
+		func(f *fileConfig) *int64 { return f.Raid.StealthSteps }),
+	moneySetting("raid", "stealth_floor_bps",
+		func(c *Config) *int64 { return &c.Raid.StealthFloorBPS },
+		func(f *fileConfig) *int64 { return f.Raid.StealthFloorBPS }),
+	moneySetting("raid", "night_penalty_bps",
+		func(c *Config) *int64 { return &c.Raid.NightPenaltyBPS },
+		func(f *fileConfig) *int64 { return f.Raid.NightPenaltyBPS }),
+	moneySetting("raid", "beacon_hop_minutes",
+		func(c *Config) *int64 { return &c.Raid.BeaconHopMinutes },
+		func(f *fileConfig) *int64 { return f.Raid.BeaconHopMinutes }),
+	moneySetting("raid", "relay_m",
+		func(c *Config) *int64 { return &c.Raid.RelayM },
+		func(f *fileConfig) *int64 { return f.Raid.RelayM }),
+	moneySetting("raid", "speed_foot_kmh",
+		func(c *Config) *int64 { return &c.Raid.SpeedFootKmh },
+		func(f *fileConfig) *int64 { return f.Raid.SpeedFootKmh }),
+	moneySetting("raid", "speed_cart_kmh",
+		func(c *Config) *int64 { return &c.Raid.SpeedCartKmh },
+		func(f *fileConfig) *int64 { return f.Raid.SpeedCartKmh }),
+	moneySetting("raid", "speed_horse_kmh",
+		func(c *Config) *int64 { return &c.Raid.SpeedHorseKmh },
+		func(f *fileConfig) *int64 { return f.Raid.SpeedHorseKmh }),
+	moneySetting("raid", "speed_rail_kmh",
+		func(c *Config) *int64 { return &c.Raid.SpeedRailKmh },
+		func(f *fileConfig) *int64 { return f.Raid.SpeedRailKmh }),
+	moneySetting("raid", "tribute_min",
+		func(c *Config) *int64 { return &c.Raid.TributeMin },
+		func(f *fileConfig) *int64 { return f.Raid.TributeMin }),
 	stringSetting("households", "rule_at",
 		func(c *Config) *string { return &c.Households.RuleAt },
 		func(f *fileConfig) *string { return f.Households.RuleAt }),

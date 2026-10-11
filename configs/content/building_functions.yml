@@ -124,8 +124,8 @@ module_kinds:
   - {code: foundation, source: "ADR 0045 3.2", evidence: adr, requires: {knowledge: [masonry]}, waits_for: "B1b: the slope rule of a lot (a steep lot asks a foundation)", effect: foundation, needs_research: [cost_materials, build_shifts, decay_bps_per_day], note: "required on a slope steeper than the lot's limit"}
   - {code: field_plot, source: "ADR 0045 3.2", evidence: adr, requires: {}, waits_for: "B2: a plot at home that grows a crop", effect: field_plot, needs_research: [cost_materials, build_shifts]}
   - {code: barn,      source: "ADR 0045 3.2", evidence: adr, requires: {}, waits_for: "B2: a store for crops and fodder at a farm lot", effect: barn, needs_research: [provides, cost_materials, build_shifts, decay_bps_per_day]}
-  - {code: signal_fire, source: "ADR 0042 8.3", evidence: adr, requires: {knowledge: [communal_watch]}, planned_knowledge: [signal_fires], waits_for: "A4b: the territory model (lookouts and the beacon)", effect: signal_fire, consumes: {firewood: 1}, needs_research: [cost_materials, build_shifts], note: "the beacon's ready stack is 10 firewood"}
-  - {code: lookout_platform, source: "ADR 0042 8.1", evidence: adr, requires: {knowledge: [communal_watch]}, waits_for: "A4b: the territory model (lookouts and the beacon)", effect: lookout_platform, needs_research: [cost_materials, build_shifts, decay_bps_per_day]}
+  - {code: signal_fire, source: "ADR 0042 8.3", evidence: adr, requires: {knowledge: [communal_watch, signal_fires]}, effect: signal_fire, consumes: {firewood: 1}, cost_materials: {stone: 2}, build_shifts: 2, area: 1, needs_research: [decay_bps_per_day], note: "the beacon's ready stack is 10 firewood; draft numbers for the cost (ADR 0074)"}
+  - {code: lookout_platform, source: "ADR 0042 8.1", evidence: adr, requires: {knowledge: [communal_watch]}, effect: lookout_platform, cost_materials: {timber: 2}, build_shifts: 2, area: 1, needs_research: [decay_bps_per_day], note: "draft numbers for the cost (ADR 0074)"}
   - {code: shaft_level, source: "ADR 0045 8.3", evidence: adr, requires: {}, planned_knowledge: [prospecting, timbering], waits_for: "B11: mining depth bands", effect: shaft_level, needs_research: [cost_materials, build_shifts, decay_bps_per_day], note: "depth bands: surface pit to 3 m, timbered shaft to 30 m, ventilated and pumped to 60 m"}
   - {code: hoist,     source: "ADR 0045 8.3", evidence: adr, requires: {}, planned_knowledge: [timbering], waits_for: "B11: mining depth bands", effect: hoist, needs_research: [cost_materials, build_shifts, decay_bps_per_day]}
   - {code: guest_bed, source: "RESEARCH 2026-10-03 2.3, 2.5", evidence: I, requires: {}, waits_for: "C7: guest nights at an inn", effect: transient_bed, needs_research: [provides, cost_materials, build_shifts, decay_bps_per_day], note: "a bed for a traveller (sleep spot hostel); it counts as a transient bed and never as a resident's housing capacity"}
@@ -980,6 +980,48 @@ building_functions:
     replaces: [watch_hut]
     needs_research: [decay_bps_per_day]
     note: "security +150 bps per post while a watchman is on duty (ADR 0041 8.6); no meal or firewood and an NPC watch does not start"
+  - code: militia_hall
+    source: "ADR 0074 7.1; ADR 0045 7.4; RESEARCH 2026-10-11 B10 (militia, fyrd and trained bands as a part-time local defence called out for drill and for a raid)"
+    evidence: adr
+    name: "اردوگاه سواران محلی"
+    requires: {knowledge: [mounted_militia]}
+    kind: service
+    family: security
+    zones: [core, residential]
+    footprint: [2, 1, 2, 1]
+    owners: [treasury]
+    levels:
+      - {level: 1, requires: {knowledge: [mounted_militia]}, cost_money: 500, build_hours: 1}
+    staff: [{role: militiaman, slots: 4, shift_hours: 4}]
+    if_unstaffed: idle
+    consumes: {fuel: {firewood: 1}, food_points: 8}
+    produces: {service: garrison, daily: true, field: security}
+    links: {from: [woodcutter_yard, granary], to: [granary]}
+    ledger_reasons: [service_wage]
+    replaces: [militia_camp]
+    needs_research: [decay_bps_per_day]
+    note: "four residents of the roll are called out for drill and stand as garrison seats in a raid on a day the camp is open (fed, paid, with a fire); a camp with no roll, no wage or no wood stands idle and covers nothing"
+  - code: retainer_house
+    source: "ADR 0074 7.1; ADR 0045 7.4; RESEARCH 2026-10-11 B10 (household retainers sworn to a lord and kept by him)"
+    evidence: adr
+    name: "تالار محافظان"
+    requires: {knowledge: [sworn_retainers]}
+    kind: service
+    family: security
+    zones: [core, residential]
+    footprint: [2, 1, 2, 1]
+    owners: [treasury]
+    levels:
+      - {level: 1, requires: {knowledge: [sworn_retainers]}, cost_money: 600, build_hours: 1}
+    staff: [{role: retainer, slots: 3, shift_hours: 6}]
+    if_unstaffed: idle
+    consumes: {fuel: {firewood: 1}, food_points: 8}
+    produces: {service: garrison, daily: true, field: security}
+    links: {from: [woodcutter_yard, granary], to: [granary]}
+    ledger_reasons: [service_wage]
+    replaces: [retainer_hall]
+    needs_research: [decay_bps_per_day]
+    note: "three sworn retainers, kept and paid by the settlement, stand as garrison seats on a day the hall is open; unpaid or unfed they leave their post"
   - code: health_house
     source: "ADR 0038 section 2 (village health worker); RESEARCH 2026-10-09 A6 (Wikipedia Primary health care, Community health worker)"
     evidence: adr
@@ -1037,9 +1079,10 @@ building_functions:
     staff: [{role: watchman, slots: 2, shift_hours: 4}]
     if_unstaffed: unheld
     consumes: {fuel: {firewood: 1}, food_points: 4}
-    produces: {service: claim_and_sight}
+    produces: {service: claim_and_sight, daily: true, field: security}
     coverage: {bins: 256, observer_height_m: 6, claim_base_m: 1000, claim_cap_m: 3000, sight_m: 3000}
     links: {from: [woodcutter_yard, granary], to: [beacon_tower]}
+    replaces: [lookout_post]
     needs_research: [observer_height_m, build_hours, decay_bps_per_day]
     note: "claim base 1 km, cap 3 km (times prominence), sight 3 km (ADR 0042 8.1); the 6 m observer height is not given by the ADR. Unstaffed after the grace period its land erodes."
   - code: watchtower
@@ -1059,17 +1102,17 @@ building_functions:
     staff: [{role: watchman, slots: 3, shift_hours: 4}]
     if_unstaffed: unheld
     consumes: {fuel: {firewood: 1}, food_points: 4}
-    produces: {service: claim_and_sight}
+    produces: {service: claim_and_sight, daily: true, field: security}
     coverage: {bins: 256, observer_height_m: 12, claim_base_m: 1500, claim_cap_m: 5000, sight_m: 8000}
     links: {from: [woodcutter_yard, granary, masonry_workshop], to: [beacon_tower]}
+    replaces: [watchtower]
     needs_research: [observer_height_m, build_hours, decay_bps_per_day]
     note: "Limes towers 10 to 12 m tall (ADR 0042 R21), so 12 m is used as the observer height; claim base 1.5 km, cap 5 km (up to 10 km on a ridge), sight 8 km"
   - code: beacon_tower
     source: "ADR 0042 8.3, ADR 0045 7.2"
     evidence: adr
     name: "برج آتش"
-    requires: {knowledge: [communal_watch]}
-    planned_knowledge: [signal_fires]
+    requires: {knowledge: [communal_watch, signal_fires]}
     kind: service
     family: signal
     slope_ok_band: steep
@@ -1078,14 +1121,15 @@ building_functions:
     owners: [treasury]
     slots: [{module: signal_fire, max: 1}]
     levels:
-      - {level: 1, adds: [signal_fire], requires: {knowledge: [communal_watch]}, planned_knowledge: [signal_fires], cost_money: 300, cost_materials: {stone: 6, timber: 6}}
+      - {level: 1, adds: [signal_fire], requires: {knowledge: [communal_watch, signal_fires]}, cost_money: 300, cost_materials: {stone: 6, timber: 6}}
     staff: [{role: beacon_keeper, slots: 1, shift_hours: 8}]
     if_unstaffed: unheld
     consumes: {fuel: {firewood: 1}, food_points: 8}
-    produces: {service: relay}
+    produces: {service: relay, daily: true, field: security}
     storage: {provides: {bulk: 10}}
     coverage: {bins: 256, observer_height_m: 12, claim_base_m: 500, claim_cap_m: 1000, sight_m: 8000}
     links: {from: [woodcutter_yard], to: [lookout_post, watchtower]}
+    replaces: [beacon_tower]
     needs_research: [observer_height_m, sight_m, build_hours, decay_bps_per_day]
     note: "claim 0.5 to 1 km; relays every claiming building in its line of sight up to 60 km; the ready stack of 10 firewood must be full for it to count as held; 3 shifts a day so someone is always on duty. Its own sight is not fixed by the ADR; the watchtower's 8 km is a stand-in."
 

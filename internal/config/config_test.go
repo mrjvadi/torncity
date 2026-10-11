@@ -609,6 +609,52 @@ households:
   discretionary_items: ["rope"]
   grace_days: 21
   compositions: ["1+0:1"]
+raid:
+  rule_at: "2098-01-01T00:00:00Z"
+  grace_days: 1010
+  death_rule_at: "2098-01-01T00:00:00Z"
+  death_grace_days: 1024
+  min_lead_hours: 1031
+  max_lead_hours: 1038
+  window_minutes: 1045
+  cooldown_hours: 1052
+  max_per_week: 1059
+  after_loss_shield_hours: 1066
+  shield_loot_cut_bps: 1073
+  founding_grace_days: 1080
+  grace_ratio: 1087
+  target_ratio_max: 1094
+  min_target_value: 1101
+  fee: 1108
+  loot_treasury_bps: 1115
+  loot_stack_bps: 1122
+  damage_max_bps: 1129
+  carry_per_raider: 1136
+  npc_raider_wage: 1143
+  max_npc_raiders: 1150
+  seat_firepower: 1157
+  seat_armour: 1164
+  rounds: 1171
+  defender_advantage_bps: 1178
+  base_hit_bps: 1185
+  hit_floor_bps: 1192
+  hit_ceiling_bps: 1199
+  death_cash_bps: 1206
+  death_goods_bps: 1213
+  gear_wear_bps: 1220
+  loss_cap_bps: 1227
+  fall_cooldown_hours: 1234
+  stealth_bps_per_step: 1241
+  stealth_steps: 1248
+  stealth_floor_bps: 1255
+  night_penalty_bps: 1262
+  beacon_hop_minutes: 1269
+  relay_m: 1276
+  speed_foot_kmh: 1283
+  speed_cart_kmh: 1290
+  speed_horse_kmh: 1297
+  speed_rail_kmh: 1304
+  tribute_min: 1311
 growth:
   capabilities: off
   cache_ttl: 6s
@@ -1261,6 +1307,52 @@ var envOverrides = map[string]string{
 	"TORN_HOUSEHOLDS_MAX_RENT":                   "209",
 	"TORN_HOUSEHOLDS_GRACE_DAYS":                 "23",
 	"TORN_HOUSEHOLDS_COMPOSITIONS":               "1+0:3",
+
+	"TORN_RAID_RULE_AT":                 "2097-01-01T00:00:00Z",
+	"TORN_RAID_GRACE_DAYS":              "2012",
+	"TORN_RAID_DEATH_RULE_AT":           "2097-01-01T00:00:00Z",
+	"TORN_RAID_DEATH_GRACE_DAYS":        "2026",
+	"TORN_RAID_MIN_LEAD_HOURS":          "2033",
+	"TORN_RAID_MAX_LEAD_HOURS":          "2040",
+	"TORN_RAID_WINDOW_MINUTES":          "2047",
+	"TORN_RAID_COOLDOWN_HOURS":          "2054",
+	"TORN_RAID_MAX_PER_WEEK":            "2061",
+	"TORN_RAID_AFTER_LOSS_SHIELD_HOURS": "2068",
+	"TORN_RAID_SHIELD_LOOT_CUT_BPS":     "2075",
+	"TORN_RAID_FOUNDING_GRACE_DAYS":     "2082",
+	"TORN_RAID_GRACE_RATIO":             "2089",
+	"TORN_RAID_TARGET_RATIO_MAX":        "2096",
+	"TORN_RAID_MIN_TARGET_VALUE":        "2103",
+	"TORN_RAID_FEE":                     "2110",
+	"TORN_RAID_LOOT_TREASURY_BPS":       "2117",
+	"TORN_RAID_LOOT_STACK_BPS":          "2124",
+	"TORN_RAID_DAMAGE_MAX_BPS":          "2131",
+	"TORN_RAID_CARRY_PER_RAIDER":        "2138",
+	"TORN_RAID_NPC_RAIDER_WAGE":         "2145",
+	"TORN_RAID_MAX_NPC_RAIDERS":         "2152",
+	"TORN_RAID_SEAT_FIREPOWER":          "2159",
+	"TORN_RAID_SEAT_ARMOUR":             "2166",
+	"TORN_RAID_ROUNDS":                  "2173",
+	"TORN_RAID_DEFENDER_ADVANTAGE_BPS":  "2180",
+	"TORN_RAID_BASE_HIT_BPS":            "2187",
+	"TORN_RAID_HIT_FLOOR_BPS":           "2194",
+	"TORN_RAID_HIT_CEILING_BPS":         "2201",
+	"TORN_RAID_DEATH_CASH_BPS":          "2208",
+	"TORN_RAID_DEATH_GOODS_BPS":         "2215",
+	"TORN_RAID_GEAR_WEAR_BPS":           "2222",
+	"TORN_RAID_LOSS_CAP_BPS":            "2229",
+	"TORN_RAID_FALL_COOLDOWN_HOURS":     "2236",
+	"TORN_RAID_STEALTH_BPS_PER_STEP":    "2243",
+	"TORN_RAID_STEALTH_STEPS":           "2250",
+	"TORN_RAID_STEALTH_FLOOR_BPS":       "2257",
+	"TORN_RAID_NIGHT_PENALTY_BPS":       "2264",
+	"TORN_RAID_BEACON_HOP_MINUTES":      "2271",
+	"TORN_RAID_RELAY_M":                 "2278",
+	"TORN_RAID_SPEED_FOOT_KMH":          "2285",
+	"TORN_RAID_SPEED_CART_KMH":          "2292",
+	"TORN_RAID_SPEED_HORSE_KMH":         "2299",
+	"TORN_RAID_SPEED_RAIL_KMH":          "2306",
+	"TORN_RAID_TRIBUTE_MIN":             "2313",
 
 	"TORN_GROWTH_CAPABILITIES":   "shadow",
 	"TORN_GROWTH_CACHE_TTL":      "6s",

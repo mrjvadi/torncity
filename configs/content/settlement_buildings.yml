@@ -190,9 +190,46 @@ settlement_buildings:
     upkeep: 30
     effects: [{target: local_security_bps, op: add, value: 300}]
 
+  # The watch of a raid (ADR 0074 7.2): a lookout on a rise, a tower of stone, a signal fire. Each is a daily service (building_functions.yml:
+  # lookout_post, watchtower, beacon_tower): watchmen or a keeper, a wage, a fire; on a day it is open it sees raiders coming.
+  - code: lookout_post
+    name: "دیده‌بانی"
+    role: security
+    tier: 1
+    footprint: [1, 1]
+    requires_knowledge: [communal_watch]
+    cost_money: 200
+    cost_materials: {timber: 4}
+    build_time: 1h
+    upkeep: 20
+    effects: []
+
+  - code: watchtower
+    name: "برج دیده‌بانی"
+    role: security
+    tier: 1
+    footprint: [1, 1]
+    requires_knowledge: [masonry]
+    cost_money: 600
+    cost_materials: {stone: 12, timber: 4}
+    build_time: 2h
+    upkeep: 30
+    effects: []
+
+  - code: beacon_tower
+    name: "برج آتش"
+    role: security
+    tier: 1
+    footprint: [1, 1]
+    requires_knowledge: [communal_watch, signal_fires]
+    cost_money: 300
+    cost_materials: {stone: 6, timber: 6}
+    build_time: 1h30m
+    upkeep: 20
+    effects: []
+
   - code: militia_camp
     name: اردوگاه سواران محلی
-    waits_for: "B10: the security forces (a roster, drill, patrols, arms, the head of security); a camp that only adds a percentage is not offered"
     role: security
     tier: 1
     footprint: [2, 1]
@@ -204,7 +241,6 @@ settlement_buildings:
 
   - code: retainer_hall
     name: تالار محافظان
-    waits_for: "B10: the security forces (retainers sworn to a lord, arms, upkeep); a hall that only adds a percentage is not offered"
     role: security
     tier: 1
     footprint: [2, 1]
@@ -216,7 +252,7 @@ settlement_buildings:
 
   - code: constable_post
     name: "پاسگاه ژاندارمری"
-    waits_for: "B10: the security forces (a constable and his deputies, patrols, arrests, a lock-up); a post that only adds a percentage is not offered"
+    waits_for: "B14: the police powers (a constable and his deputies, patrols, arrests, a lock-up); a post that only adds a percentage is not offered (moved from B10 by ADR 0074, owner 2026-10-11)"
     role: security
     tier: 1
     footprint: [1, 1]

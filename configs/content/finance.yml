@@ -171,6 +171,50 @@ finance:
       max_claim: 250000
       waiting: 48h
 
+    # Falls and raids (docs/adr/0074). The neutral city's NPC insurer sells these at a higher premium and a lower cover than a
+    # settlement's mutual or a player company (the issuer lines below), so a settlement has a reason to run its own fund. A premium
+    # is fixed per period; a raid_damage premium also takes bps of the insured building's cost. The deductible is the share of a
+    # loss the insured bears first.
+    - code: kit
+      name: Carried-goods insurance
+      covers: death_loss
+      premium: 60
+      cover_bps: 5000
+      deductible_bps: 2500
+      max_claim: 20000
+      waiting: 48h
+
+    - code: kit_mutual
+      name: Carried-goods insurance (mutual)
+      covers: death_loss
+      issuer: settlement
+      premium: 35
+      cover_bps: 7000
+      deductible_bps: 2000
+      max_claim: 20000
+      waiting: 48h
+
+    - code: home
+      name: Raid damage insurance
+      covers: raid_damage
+      premium: 20
+      premium_bps: 60
+      cover_bps: 5000
+      deductible_bps: 2500
+      max_claim: 50000
+      waiting: 48h
+
+    - code: home_mutual
+      name: Raid damage insurance (mutual)
+      covers: raid_damage
+      issuer: settlement
+      premium: 10
+      premium_bps: 35
+      cover_bps: 7000
+      deductible_bps: 2000
+      max_claim: 50000
+      waiting: 48h
+
   stocks:
     min_age: 72h
     min_revenue: 5000

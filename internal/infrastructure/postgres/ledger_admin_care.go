@@ -50,7 +50,10 @@ func (a *EconomyAdmin) verifyCare(ctx context.Context, v *LedgerVerification) er
 	if err := a.verifyApprentice(ctx, v); err != nil {
 		return err
 	}
-	return a.verifyHouseholds(ctx, v)
+	if err := a.verifyHouseholds(ctx, v); err != nil {
+		return err
+	}
+	return a.verifyRaids(ctx, v)
 }
 
 // verifySurvival runs the checks of garments when migration 0147 is applied (docs/adr/0070): the garments that left the bags in the

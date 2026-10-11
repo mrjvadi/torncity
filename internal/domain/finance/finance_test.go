@@ -202,3 +202,40 @@ func TestDividendBalances(t *testing.T) {
 		t.Fatal("holdings that do not add up were split")
 	}
 }
+
+func TestClaimDueTakesTheDeductibleAndTheCoverAndTheCap(t *testing.T) {
+	// a loss of 1000, 25 percent deductible, 50 percent cover: 750 above, 375 due
+	if got := ClaimDue(1000, 5000, 2500, 0); got != 375 {
+		t.Errorf("deductible and cover: %d", got)
+	}
+	if got := ClaimDue(1000, 5000, 2500, 300); got != 300 {
+		t.Errorf("capped: %d", got)
+	}
+	if got := ClaimDue(0, 5000, 2500, 0); got != 0 {
+		t.Errorf("no loss: %d", got)
+	}
+	// the insured always bears something: never more than the loss
+	if got := ClaimDue(1000, 10000, 0, 0); got != 1000 {
+		t.Errorf("full cover: %d", got)
+	}
+}
+
+func TestAShortFundPaysEveryClaimTheSameShare(t *testing.T) {
+	got := ProRata([]int64{600, 300, 100}, 500)
+	var sum int64
+	for _, g := range got {
+		sum += g
+	}
+	if got[0] != 300 || got[1] != 150 || got[2] != 50 || sum > 500 {
+		t.Fatalf("half each: %v (sum %d)", got, sum)
+	}
+	if got := ProRata([]int64{600, 300}, 5000); got[0] != 600 || got[1] != 300 {
+		t.Errorf("a fund that holds enough pays in full: %v", got)
+	}
+	if got := ProRata([]int64{7, 7, 7}, 10); got[0]+got[1]+got[2] > 10 {
+		t.Errorf("never overdrawn: %v", got)
+	}
+	if got := ProRata([]int64{5}, 0); got[0] != 0 {
+		t.Errorf("an empty fund pays nothing: %v", got)
+	}
+}
