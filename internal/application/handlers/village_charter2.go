@@ -397,7 +397,7 @@ func (h *VillageHandler) settleBallot(ctx context.Context, tx application.Tx, s 
 		}
 		for _, w := range res.Elected {
 			if o.Acquisition == charter.AcquireHead {
-				if _, _, err := application.ElectToOffice(ctx, tx, officeFor(s.Tier), s.JurisdictionID, 1, w.PlayerID, now); err != nil {
+				if _, _, err := application.ElectToOffice(ctx, tx, officeFor(), s.JurisdictionID, 1, w.PlayerID, now); err != nil {
 					return h.auditCharter(ctx, tx, s, "", "election_blocked", o.ID, now, map[string]any{"ballot": b.ID, "winner": w.PlayerID, "why": err.Error()})
 				}
 			} else if _, err := tx.Charters().Seat(ctx, application.CharterSeat{ID: h.ids.NewID(), OfficeID: o.ID, HolderID: w.PlayerID, Since: now, TermEnds: now.Add(term)}); err != nil {
@@ -430,7 +430,7 @@ func (h *VillageHandler) settleBallot(ctx context.Context, tx application.Tx, s 
 			o, found := st.officeByIDExact(b.OfficeID)
 			if found && o.Acquisition == charter.AcquireHead {
 				if st.headHeld == b.TargetPlayerID {
-					if _, _, err := application.VacateOffice(ctx, tx, officeFor(s.Tier), s.JurisdictionID, 1, now); err != nil {
+					if _, _, err := application.VacateOffice(ctx, tx, officeFor(), s.JurisdictionID, 1, now); err != nil {
 						return err
 					}
 				}
@@ -551,7 +551,7 @@ type VillageBallotRequest struct {
 func (h *VillageHandler) CharterElectionOpen(ctx context.Context, meta envelope.Metadata, req VillageBallotRequest) (*presentation.Response, error) {
 	return h.charterAct(ctx, meta, func(c *charterCtx) (*village.CharterChangedView, error) {
 		if _, ok := c.st.heldBy(c.p.ID).Has(charter.ElectionCall); !ok {
-			return nil, application.ErrNotOfficeHolder.WithDetail("office", officeFor(c.s.Tier)).WithDetail("permission", string(charter.ElectionCall))
+			return nil, application.ErrNotOfficeHolder.WithDetail("office", officeFor()).WithDetail("permission", string(charter.ElectionCall))
 		}
 		o, ok := c.st.officeByID(req.Office)
 		if !ok || (o.Acquisition != charter.AcquireElection && o.Acquisition != charter.AcquireHead) {

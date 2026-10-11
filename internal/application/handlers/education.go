@@ -73,11 +73,11 @@ type EducationHandler struct {
 	personal PersonalRules
 	// experiencePerClass is the education experience a finished class in a founded settlement adds (WithExperience).
 	experiencePerClass int64
-	uow     application.UnitOfWork
-	ids     IDGenerator
-	msgs    Translator
-	content ContentSource
-	cities  application.CityRepository
+	uow                application.UnitOfWork
+	ids                IDGenerator
+	msgs               Translator
+	content            ContentSource
+	cities             application.CityRepository
 	// home is the code of the neutral city (settlement.home_city_code), where a course a
 	// settlement does not teach can be had.
 	home string

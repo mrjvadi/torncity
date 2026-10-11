@@ -170,7 +170,7 @@ func (v *VillageService) Mine(ctx context.Context, playerID string) (*BootstrapS
 		return nil, err
 	}
 	out := &BootstrapSettlement{ID: ps.CityID, Code: ps.Code, Name: ps.Name, Tier: application.TierCity, WorldCell: ps.WorldCellID,
-		IsHead: holdsHead(ps), Permissions: ps.Permissions, Resident: ps.Resident, GridLots: v.gridLots(ps.Tier, ps.GridGrowth), LayoutPath: "/api/v1/settlements/" + ps.CityID + "/layout"}
+		IsHead: holdsHead(ps), Permissions: ps.Permissions, Resident: ps.Resident, GridLots: v.gridLots(ps.GridGrowth), LayoutPath: "/api/v1/settlements/" + ps.CityID + "/layout"}
 	if _, w, err := v.World.active(ctx); err == nil {
 		out.Centre = centreOf(w, ps.WorldCellID)
 	}
@@ -188,8 +188,8 @@ func (v *VillageService) Mine(ctx context.Context, playerID string) (*BootstrapS
 // of its charter (ADR 0044 section 6). The founder's office holds them all.
 func holdsHead(ps application.PlayerSettlement) bool { return ps.CanManage() }
 
-func (v *VillageService) gridLots(tier string, growth int) int {
-	return settlement.GridLotsGrown(tier, v.VillageGridLots, growth)
+func (v *VillageService) gridLots(growth int) int {
+	return settlement.GridLots(v.VillageGridLots, growth)
 }
 
 func centreOf(w *worldgen.World, cell int32) *Place {
@@ -468,7 +468,7 @@ func (v *VillageService) Layout(ctx context.Context, viewerID, settlementID stri
 	}
 
 	pt := w.Cells[s.WorldCellID].Point
-	lots := v.gridLots(s.Tier, s.GridGrowth)
+	lots := v.gridLots(s.GridGrowth)
 	gridLat, gridLon := settlement.GridCentreGrown(w, pt.LatDeg, pt.LonDeg, s.GridShiftX, s.GridShiftY, s.GridGrowth)
 	grid := settlement.SampleGridDetail(w, gridLat, gridLon, lots, s.WorldCellID)
 	out := VillageLayout{
@@ -713,7 +713,7 @@ func (v *VillageService) LayoutVersions(ctx context.Context, settlementID string
 			mark = application.JoinMarks(mark, application.LandMark(plans, cells))
 		}
 	}
-	lots := v.gridLots(s.Tier, s.GridGrowth)
+	lots := v.gridLots(s.GridGrowth)
 	return application.LayoutVersionsWithTenure(s.CityID, s.Tier, s.Name, lots, rows, footprint, mark), lots, nil
 }
 

@@ -1,6 +1,9 @@
 package settlementbuilding
 
-import "github.com/mrjvadi/torncity/internal/domain/item"
+import (
+	"github.com/mrjvadi/torncity/internal/domain/item"
+	"github.com/mrjvadi/torncity/internal/domain/landuse"
+)
 
 // This file is ADR 0028 section 6's placement legality, phase W5: in
 // bounds, terrain not water or steep, no overlap, knowledge and role/tier
@@ -24,6 +27,9 @@ type Lot struct {
 	Reserved bool
 	// Obstructed is true while trees or rocks stand on the lot: it has to be cleared first (docs/adr/0065).
 	Obstructed bool
+	// SlopeM is the drop to the steepest side neighbour, in metres, and Foundation says a foundation was laid on the lot (docs/adr/0072).
+	SlopeM     float64
+	Foundation bool
 	// TerrainTags are this lot's own terrain flags (coastal_lot, river_lot,
 	// sloped_lot, a biome code, or a synthetic tag such as ore_deposit —
 	// the identical open vocabulary settlementknowledge.Tech.TerrainTags
@@ -68,17 +74,15 @@ type Standing struct {
 	// RunningBuilds is how many builds are currently queued or under
 	// construction right now.
 	RunningBuilds int
-	// ConcurrentCap is the settlement's own tier's concurrent-build cap
-	// (ADR 0028 section 4: 1 village / 2 town / 4 city).
+	// ConcurrentCap is how many buildings the settlement may raise at once (its crews, CrewCap).
 	ConcurrentCap int
 	// LiteracyShareBPS is the settlement's own current literacy_share (ADR
 	// 0031 section 4.4), 0-10000.
 	LiteracyShareBPS int
 	// Placed lists the complete buildings, for a building that must stand near another (docs/adr/0067).
 	Placed []Placed
-	// SettlementTier is the settlement's own tier ("village", "town",
-	// "city"); empty skips the tier rule (a caller that has none).
-	SettlementTier string
+	// Slope are the slope bands (docs/adr/0072); the zero value switches the slope rule off (before its rule date, in a test).
+	Slope landuse.Bands
 }
 
 // footprintLots yields every (lx, ly) grid coordinate def's footprint would
@@ -117,6 +121,16 @@ func CanPlace(def Def, grid Grid, x, y int, s Standing) error {
 		}
 		if lot.Obstructed {
 			return ErrObstructed
+		}
+		if s.Slope.Valid() {
+			switch landuse.Steps(def.SlopeOKBand, s.Slope.Of(lot.SlopeM)) {
+			case -1:
+				return ErrSlopeUnusable
+			case 1:
+				if !lot.Foundation {
+					return ErrNeedsFoundation
+				}
+			}
 		}
 		if !terrainOK {
 			for _, tag := range def.TerrainTags {

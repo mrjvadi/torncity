@@ -100,9 +100,9 @@ func Sweep(snap *content.Snapshot, s SweepSettlement, ruinedBPS int) []SweepRow 
 		// compare like with like, so a disagreement is the tier label's effect.
 		switch t.Kind {
 		case "building":
-			if d, ok := snap.SettlementBuildingDef(t.Code); ok {
+			if _, ok := snap.SettlementBuildingDef(t.Code); ok {
 				own, _ := snap.GrowthNeeds(content.AvailabilityDef{Kind: "building", Code: t.Code}, false)
-				row.TierAnswer = d.Def().ListedAt(s.Tier) && caps.Satisfies(needOf(own))
+				row.TierAnswer = caps.Satisfies(needOf(own))
 			}
 		case "knowledge":
 			own, _ := snap.GrowthNeeds(content.AvailabilityDef{Kind: "knowledge", Code: t.Code}, false)

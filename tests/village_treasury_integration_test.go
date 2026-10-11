@@ -199,10 +199,10 @@ func TestVillageTreasury(t *testing.T) {
 	// Support's services a journey away; a group without one, the call to
 	// found; a resident in a private chat, the village, run in its group.
 	cities := postgres.NewCityRepository(pool)
-	if c, err := cities.ByID(ctx, cityA); err != nil || c.Tier != "village" || c.IsCityTier() {
+	if c, err := cities.ByID(ctx, cityA); err != nil || c.Tier != "village" || c.Content() {
 		t.Errorf("a founded village is not village tier: %+v %v", c, err)
 	}
-	if c, err := cities.ByCode(ctx, "support"); err != nil || !c.IsCityTier() {
+	if c, err := cities.ByCode(ctx, "support"); err != nil || !c.Content() {
 		t.Errorf("Support is not city tier: %+v %v", c, err)
 	}
 	hm := asPlayer(metaA, founderA)

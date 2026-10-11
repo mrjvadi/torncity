@@ -986,8 +986,8 @@ func (h *MissionsHandler) OnEvent(ctx context.Context, env *envelope.Envelope, s
 // everywhere; one that only the neutral city has (stage support) is never a settlement's.
 func stageReaches(snap *content.Snapshot, kind, code, tier string) bool {
 	tag, ok := snap.AvailabilityTag(kind, code)
-	if !ok || tag.Stage == content.StageUndecided {
-		return true
+	if !ok || tag.Stage == content.StageUndecided || tag.Stage == "" {
+		return true // no size is named: what the settlement has decides (the growth gate)
 	}
 	need := content.StageRank(tag.Stage)
 	return need != 0 && content.StageRank(tierStage(tier)) >= need

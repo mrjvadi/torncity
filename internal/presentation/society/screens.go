@@ -191,7 +191,7 @@ func CityGovernance(c presentation.Ctx, v CityGovView) *presentation.Response {
 		act(AddrGovHistory, v.City.Code).Named("gov.history"),
 		act(AddrElections).Named("gov.elections"),
 	}
-	if v.Tier == "" || v.Tier == "city" {
+	if !v.Charter {
 		a = append(a, act(addrBudget, v.City.Code).Named("gov.budget"), act(AddrBills).Named("gov.laws"))
 	}
 	if v.Charter {

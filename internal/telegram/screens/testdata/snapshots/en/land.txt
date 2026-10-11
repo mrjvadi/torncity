@@ -1,0 +1,79 @@
+━━━ Land registry · parcels, zones and claims ━━━
+(edits message 42)
+<b>🗺 Land and parcels of Korendal</b>
+
+The two parcels are one now.
+
+<b>Parcels (4)</b>
+
+🏡 Sara's parcel, 2 lots
+In the zone "Fields"
+
+🏡 Sara's parcel, 1 lots
+
+🏡 Kaveh's parcel, 1 lots
+
+🌾 The town's common land, 2 lots
+
+<b>Zones</b>
+
+📐 Fields (Farming) - 12 lots, opened by Kaveh
+
+📐 Market row (Centre) - 4 lots, opened by Sara. The notice period is still running.
+
+<b>Claimed blocks (1)</b>
+
+Each block costs 5 SUP a day to keep; if the treasury cannot pay, the block lapses.
+
+Lots with a foundation: 2
+  ───
+  [➕ Join (2 lots)] → settlement:parcel.join:p1:p2
+  [❌ Close the zone "Fields"] → settlement:zone.close:z1
+  [🔙 Back] → settlement:land   │   [🔄 Refresh] → settlement:land.registry
+
+━━━ Land registry · nothing yet, the rules not started ━━━
+(edits message 42)
+<b>🗺 Land and parcels of Korendal</b>
+
+No parcels yet. Every plot you buy becomes one.
+
+Zoning starts on 2 November 2026.
+
+The slope rule for new buildings starts on 2 November 2026.
+  ───
+  [🔙 Back] → settlement:land   │   [🔄 Refresh] → settlement:land.registry
+
+━━━ Land registry · a foundation quote ━━━
+(edits message 42)
+<b>🗺 Land and parcels of Korendal</b>
+
+Laying the foundation takes 8 stone and a mason's wage (you put in 5 you carry and buy 3). 220 SUP in all.
+
+No parcels yet. Every plot you buy becomes one.
+  ───
+  [✅ Confirm (220 SUP)] → settlement:foundation.lay:3-4:confirm
+  [🔙 Back] → settlement:land   │   [🔄 Refresh] → settlement:land.registry
+
+━━━ Land refusal · land_not_yours ━━━
+(edits message 42)
+🔒 This parcel is not yours.
+  ───
+  [🔙 Back] → settlement:overview
+
+━━━ Land refusal · land_needs_foundation ━━━
+(edits message 42)
+⛰ The ground is too steep for this building; lay a foundation first.
+  ───
+  [🔙 Back] → settlement:overview
+
+━━━ Land refusal · land_zone_forbids ━━━
+(edits message 42)
+The zone of this ground does not take such a building.
+  ───
+  [🔙 Back] → settlement:overview
+
+━━━ Land refusal · land_commons ━━━
+(edits message 42)
+The common land is not for sale.
+  ───
+  [🔙 Back] → settlement:overview

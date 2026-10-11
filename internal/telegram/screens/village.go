@@ -80,7 +80,7 @@ func renderVillageRefusal(c Context, v VillageRefusalView) *presenter.Response {
 		if isCitizenRefusal(kind) {
 			return renderCitizenRefusal(c, v)
 		}
-		if strings.HasPrefix(kind, "charter_") {
+		if strings.HasPrefix(kind, "charter_") || isLandRefusal(kind) {
 			break
 		}
 		kind = VillageNotFound

@@ -1408,6 +1408,23 @@ settlement:
   land_rock_shifts: 2
   # the farm cycle (ADR 0067): sowing, tending, harvest. The rule date and the grace of the farms that stood before it, which keep
   # their flat shift of 12 wheat until the grace is over
+  zone_max_cells: 400   # settlement.zone_max_cells: the most cells one zone covers
+  zoning_rule_at: "2026-10-12T10:00:00Z"   # settlement.zoning_rule_at: zones count (the date zone.open and zone.close are in force)
+  zoning_grace_days: 14   # settlement.zoning_grace_days
+  slope_rule_at: "2026-10-18T10:00:00Z"   # settlement.slope_rule_at: the slope bands count for a new building
+  slope_grace_days: 14   # settlement.slope_grace_days
+  slope_flat_m: 8   # settlement.slope_flat_m: a lot with a drop under this to a side neighbour is flat
+  slope_gentle_m: 20   # settlement.slope_gentle_m: under this a lot is gentle, over it steep
+  slope_unusable_m: 30   # settlement.slope_unusable_m: from this drop a lot takes no building at all
+  parcel_max_cells: 60   # settlement.parcel_max_cells: the most cells one parcel holds
+  parcel_change_fee: 50   # settlement.parcel_change_fee: what an owner pays the treasury to join or split parcels
+  zone_open_fee: 20   # settlement.zone_open_fee: per cell of a zone, into the sink
+  zone_notice_minutes: 24   # settlement.zone_notice_minutes: real minutes between opening a zone and its rules biting (a game day)
+  foundation_stone: 4   # settlement.foundation_stone: stone a foundation takes for each step of slope it lifts, per lot
+  foundation_wage: 60   # settlement.foundation_wage: the mason's wage for each step of slope, per lot, into the sink
+  claim_cost: 2000   # settlement.claim_cost: what a settlement pays to claim one more tile, from the treasury into the sink
+  claim_upkeep: 5   # settlement.claim_upkeep: per claimed tile per game day, from the treasury
+  claim_max_tiles: 200   # settlement.claim_max_tiles: the most tiles one settlement claims
   farm_rule_at: "2026-10-10T17:00:00Z"
   farm_grace_days: 14
   # the tool tiers (ADR 0068): from the rule date plus the grace a worker's best tool tier lifts or lowers his output
@@ -1556,9 +1573,10 @@ labor:
   shift_real_minutes: 1        # what a shift takes a player, REAL minutes (a sitting stays minutes)
   reference_crew: 4            # workers the content's build time assumes
   base_wage: 30                # NPC wage per shift in a balanced market
-  min_wage_village: 10         # statutory floor per settlement tier
-  min_wage_town: 15
-  min_wage_city: 25
+  min_wage: 10                 # statutory floor of an NPC wage, the same everywhere (no tiers, ADR 0072)
+  min_wage_village: 10         # old key: read only while min_wage is unset
+  min_wage_town: 15            # retired, ignored
+  min_wage_city: 25            # retired, ignored
   participation_bps: 6000      # share of NPC residents who work
   base_housing: 8              # households a settlement has before any home
   npc_productivity_bps: 8500   # an NPC labourer works at 85 %

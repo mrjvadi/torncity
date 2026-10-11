@@ -185,7 +185,7 @@ func (h *GovernanceHandler) City(ctx context.Context, meta envelope.Metadata, re
 	}); err != nil {
 		return nil, err
 	}
-	view.Sections = sectionsAtStage(view.Sections, city.Tier)
+	view.Sections = sectionsOf(view.Sections, city.Content())
 	if err != nil {
 		if g, ok := govRefusalOf(err, h.now()); ok {
 			return society.PolicyRefused(c, society.PolicyRefusalView{Refusal: g}), nil
@@ -210,20 +210,18 @@ var kindStage = map[string]string{
 	"country": content.StageCountry, "union": content.StageCountry,
 }
 
-// sectionsAtStage keeps the sections of the levels a settlement of this tier
-// has: a village has its own head and levy and nothing above them, a town its
-// own level, and a city (which belongs to a country) the national level too
-// (CLAUDE.md section 2: nothing exists in a village by default; the audit's
-// F45). The offices and levers of a level the settlement has not reached are
-// not mentioned.
-func sectionsAtStage(sections []society.GovSection, tier string) []society.GovSection {
-	have := content.StageRank(tierStage(tier))
-	if have >= content.StageRank(content.StageCity) {
-		have = content.StageRank(content.StageCountry)
+// sectionsOf keeps the sections a place has: a content city has every level
+// (its own, the province, the country); a founded settlement has its own head and
+// levy and nothing above them until its players create a union or a country
+// (CLAUDE.md section 2: nothing exists in a settlement by default). The offices
+// and levers of a level it has not made are not mentioned.
+func sectionsOf(sections []society.GovSection, contentCity bool) []society.GovSection {
+	if contentCity {
+		return sections
 	}
 	out := make([]society.GovSection, 0, len(sections))
 	for _, s := range sections {
-		if need := content.StageRank(kindStage[s.Place.Kind]); need == 0 || need <= have {
+		if kindStage[s.Place.Kind] == "" || s.Place.Kind == "village" {
 			out = append(out, s)
 		}
 	}

@@ -220,7 +220,7 @@ func (h *VillageHandler) laborMarket(ctx context.Context, tx application.Tx, sna
 	}
 	return laborMarket{pool: pool, free: claims.Free(), staffFree: claims.StaffFree(), claims: claims, line: village.LaborMarketLine{
 		Housing: housing, Pool: pool, Available: available, Reserved: reserved, ReservedFrom: reservedFrom, Working: all, Vacancies: vacancies,
-		TightnessBPS: tight, Level: level, NPCWage: h.labor.NPCWage(s.Tier, tight), MinWage: h.labor.MinWage[s.Tier],
+		TightnessBPS: tight, Level: level, NPCWage: h.labor.NPCWage(tight), MinWage: h.labor.MinWage,
 	}}, nil
 }
 
@@ -1091,7 +1091,7 @@ func (h *VillageHandler) LaborWage(ctx context.Context, meta envelope.Metadata, 
 			return "", "", err
 		}
 		wage := m.line.NPCWage * pct / 100
-		if wage < h.labor.MinWage[s.Tier] {
+		if wage < h.labor.MinWage {
 			return "", "", refuseVillage(village.LaborWageTooLow, village.AddrLaborSite+":"+job.BuildingID)
 		}
 		fresh, err := h.reserve(ctx, tx, p.ID, meta)

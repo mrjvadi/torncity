@@ -77,7 +77,7 @@ func (h *VillageHandler) RoadPlan(ctx context.Context, meta envelope.Metadata, r
 		if ok, err := h.mayDrawRoads(ctx, tx, s, p.ID); err != nil {
 			return err
 		} else if !ok {
-			return application.ErrNotOfficeHolder.WithDetail("office", officeFor(s.Tier))
+			return application.ErrNotOfficeHolder.WithDetail("office", officeFor())
 		}
 		confirmed := strings.TrimSpace(req.Confirm) == village.VillageBuildConfirm
 		if confirmed {
@@ -546,7 +546,7 @@ func (h *VillageHandler) RoadCancel(ctx context.Context, meta envelope.Metadata,
 		if ok, err := h.mayDrawRoads(ctx, tx, s, p.ID); err != nil {
 			return err
 		} else if !ok {
-			return application.ErrNotOfficeHolder.WithDetail("office", officeFor(s.Tier))
+			return application.ErrNotOfficeHolder.WithDetail("office", officeFor())
 		}
 		if err := tx.Citizens().LockLots(ctx, s.CityID); err != nil {
 			return err

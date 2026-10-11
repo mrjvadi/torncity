@@ -846,6 +846,15 @@ export interface CityMapView {
   places: PlaceLine[] | null
 }
 
+export interface ClaimLine {
+  id: string
+  face: number
+  gx: number
+  gy: number
+  claimed_at: string | null
+  paid_through: string | null
+}
+
 export interface ClearOrderView {
   village: string
   x: number
@@ -3179,6 +3188,49 @@ export interface LandCell {
   cost: number
 }
 
+export interface LandQuote {
+  act: string
+  args: string[] | null
+  cells: number
+  lot: RegCell | null
+  money: number
+  stone_need: number
+  stone_have: number
+  stone_buy: number
+  cash: number
+}
+
+export interface LandRegistryView {
+  village: string
+  notice: string
+  parcels: ParcelLine[] | null
+  zones: ZoneLine[] | null
+  claims: ClaimLine[] | null
+  quote: LandQuote | null
+  foundations: number
+  zoning_on: boolean
+  zoning_starts_at: string | null | null
+  slope_on: boolean
+  slope_starts_at: string | null | null
+  can_zone: boolean
+  can_close_zone: boolean
+  can_claim: boolean
+  can_lay_foundation: boolean
+  zone_kinds: string[] | null
+  parcel_max_cells: number
+  zone_max_cells: number
+  claim_max_tiles: number
+  parcel_change_fee: number
+  zone_open_fee: number
+  claim_cost: number
+  claim_upkeep_per_day: number
+  foundation_stone: number
+  foundation_wage: number
+  slope_flat_m: number
+  slope_gentle_m: number
+  slope_unusable_m: number
+}
+
 export interface LandView {
   village: string
   settlement_id: string
@@ -4405,6 +4457,18 @@ export interface OrdersView {
   crew: number
 }
 
+export interface ParcelLine {
+  id: string
+  owner: Named
+  treasury: boolean
+  mine: boolean
+  cells: RegCell[] | null
+  use: string
+  zone: Named | null
+  can_join: string[] | null
+  can_split: boolean
+}
+
 export interface PayConfirmView {
   payee_name: string
   payee_code: string
@@ -5138,6 +5202,11 @@ export interface RefusalView {
   cash: number
   wait_seconds: number
   ends_at: string | null
+}
+
+export interface RegCell {
+  x: number
+  y: number
 }
 
 export interface RentedHomeLine {
@@ -6900,6 +6969,17 @@ export interface WorthView {
   total: number
 }
 
+export interface ZoneLine {
+  id: string
+  name: string
+  kind: string
+  cells: number
+  effective: boolean
+  effective_at: string | null
+  opened_by: Named
+  can_close: boolean
+}
+
 /** The screens of the migrated areas: the screen name on the wire, and its view. */
 export interface ScreenViews {
   achievement_notice: AchievementView
@@ -7149,6 +7229,7 @@ export interface ScreenViews {
   settlement_founded: SettlementFoundedView
   settlement_knowledge_list: KnowledgeListView
   settlement_land: LandView
+  settlement_land_registry: LandRegistryView
   settlement_lot_access: LotAccessView
   settlement_lot_buy_confirm: LotBuyView
   settlement_lot_buy_done: LotBuyView

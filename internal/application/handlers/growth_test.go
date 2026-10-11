@@ -89,15 +89,15 @@ func TestSweepJudgesEveryTagBothWays(t *testing.T) {
 	}
 }
 
-// TestAppendixAOpenRowsAgreeWithTheTier: a class A row (open from founding,
-// stage village) is offered by the tier and by the capabilities in every
-// settlement: dropping the label changes nothing for it.
+// TestAppendixAOpenRowsAgreeWithTheTier: a class A row (open from founding) is
+// offered by the tier and by the capabilities in every settlement: the label is
+// gone from it (ADR 0072) and nothing changes for it.
 func TestAppendixAOpenRowsAgreeWithTheTier(t *testing.T) {
 	snap := shippedSnapshot(t)
 	open := 0
 	for _, s := range seededSettlements() {
 		for _, r := range Sweep(snap, s, 10000) {
-			if r.Class != SweepOpen || r.Stage != content.StageVillage {
+			if r.Class != SweepOpen || r.Stage != "" {
 				continue
 			}
 			open++
@@ -107,7 +107,7 @@ func TestAppendixAOpenRowsAgreeWithTheTier(t *testing.T) {
 		}
 	}
 	if open < 4*40 {
-		t.Fatalf("only %d open village-stage rows swept: the appendix has well over 40 per settlement", open)
+		t.Fatalf("only %d open rows swept: the appendix has well over 40 per settlement", open)
 	}
 }
 
@@ -128,21 +128,21 @@ func TestAppendixADGatesFollowWhatTheSettlementHas(t *testing.T) {
 	}
 	cases := []want{
 		// row 3: housing L1 + masonry_ii. The kit has no housing and no masonry; the grown village has both.
-		{3, "building", "housing_block", "fresh", false, true, "a village lists it today; capabilities: no housing and no masonry_ii yet"},
+		{3, "building", "housing_block", "fresh", false, true, "no label to refuse it; capabilities: no housing and no masonry_ii yet"},
 		{3, "building", "housing_block", "grown", true, true, "both: cottage + masonry_ii"},
 		// row 86: driving school = education L1 + a road.
-		{86, "course", "driving_licence", "fresh", false, false, "no class building"},
-		{86, "course", "driving_licence", "grown", true, false, "teaching_circle (education L1) and a road stand; the tier says town"},
+		{86, "course", "driving_licence", "fresh", false, true, "no class building (the label is gone: the tier answer is open)"},
+		{86, "course", "driving_licence", "grown", true, true, "teaching_circle (education L1) and a road stand"},
 		{86, "course", "driving_licence", "town", true, true, "both"},
 		// row 112: a centre needs market L2 + civic hall.
-		{112, "place", "city_centre", "fresh", false, false, "barter_post is market L1"},
-		{112, "place", "city_centre", "town", true, false, "market L2 and a civic hall; the tier says city"},
+		{112, "place", "city_centre", "fresh", false, true, "barter_post is market L1"},
+		{112, "place", "city_centre", "town", true, true, "market L2 and a civic hall"},
 		{112, "place", "city_centre", "city", true, true, "both"},
 		// row 292: a courier needs a road and market L1: the fresh village already has both.
-		{292, "company_type", "courier", "fresh", true, false, "road + barter_post; the tier says town"},
+		{292, "company_type", "courier", "fresh", true, true, "road + barter_post"},
 		{292, "company_type", "courier", "town", true, true, "both"},
 		// row 187: coffee beans are grown on a farm (food L1).
-		{187, "component", "coffee_bean", "fresh", false, false, "no farm"},
+		{187, "component", "coffee_bean", "fresh", false, true, "no farm"},
 		// rows 336 to 339: a branch needs barracks.
 		{336, "branch", "ground", "fresh", false, false, "no barracks"},
 		{336, "branch", "ground", "city", true, true, "barracks stand; the tier says country, which a city has around it"},
@@ -248,8 +248,8 @@ func TestGrowthShadowKeepsTheTierAndMetersTheDisagreement(t *testing.T) {
 	g := withGrowth(t, GrowthModeShadow, nil, store)
 	snap := shippedSnapshot(t)
 	caps := capabilitiesOf(snap, seededStanding(foundingKit, foundingGrants), 10000)
-	// courier: the tier (stage town) refuses a village; the capabilities (road + market L1) accept.
-	tag, _ := snap.AvailabilityTag("company_type", "courier")
+	// sandwich: the tier (stage town) refuses a village; the capabilities (a row open to everyone) accept.
+	tag, _ := snap.AvailabilityTag("item", "sandwich")
 	if got := g.Decide("hubs", "city-1", snap, caps, true, tag, false); got {
 		t.Fatal("shadow mode must keep the tier answer (refused)")
 	}
@@ -260,7 +260,7 @@ func TestGrowthShadowKeepsTheTierAndMetersTheDisagreement(t *testing.T) {
 	// a content city (found=false) is never judged
 	g.Decide("hubs", "city-2", snap, caps, false, tag, false)
 	p := g.Pending()
-	if len(p) != 1 || p[0].Count != 2 || p[0].TierAnswer || !p[0].CapabilityAnswer || p[0].Kind != "company_type" || p[0].Site != "hubs" {
+	if len(p) != 1 || p[0].Count != 2 || p[0].TierAnswer || !p[0].CapabilityAnswer || p[0].Kind != "item" || p[0].Site != "hubs" {
 		t.Fatalf("pending = %+v", p)
 	}
 	if err := g.Flush(context.Background()); err != nil {
@@ -330,16 +330,16 @@ func TestHubsOfferedDualReadMetersButKeepsTheTier(t *testing.T) {
 	st := seededStanding(foundingKit, foundingGrants)
 	here := hubSettlement{stageRank: content.StageRank("village"), stands: standsIn(snap, st.Buildings),
 		growth: g, cityID: "city-1", caps: g.FromRows(snap, st), capsFound: true}
-	// courier is a town thing by tier: refused; capabilities (road + market L1) would accept
-	if here.offered(snap, "company_type", "courier") {
+	// sandwich is a town thing by tier: refused; capabilities would accept
+	if here.offered(snap, "item", "sandwich") {
 		t.Fatal("the tier must stay authoritative in shadow mode")
 	}
-	if p := g.Pending(); len(p) != 1 || p[0].Code != "courier" {
+	if p := g.Pending(); len(p) != 1 || p[0].Code != "sandwich" {
 		t.Fatalf("pending = %+v", p)
 	}
 	// with the flag off the same settlement behaves exactly as before and meters nothing
 	here.growth = nil
-	if here.offered(snap, "company_type", "courier") {
+	if here.offered(snap, "item", "sandwich") {
 		t.Fatal("off: the tier answer")
 	}
 }
@@ -359,8 +359,8 @@ func TestBuildingListingComparesTheTierEffectAlone(t *testing.T) {
 	if got := g.DecideBuilding("build_menu", "c", snap, caps, true, "housing_block", true); got {
 		t.Fatal("a building whose gate the village lacks was listed")
 	}
-	p := g.Pending()
-	if len(p) != 1 || p[0].Code != "housing_block" || !p[0].TierAnswer || p[0].CapabilityAnswer {
+	// and a row with no size label has no tier answer to disagree with: nothing is metered
+	if p := g.Pending(); len(p) != 0 {
 		t.Fatalf("pending = %+v", p)
 	}
 }

@@ -254,7 +254,10 @@ func (r *CitizenRepository) SyncOpenLots(ctx context.Context, settlementID strin
 // ForeignTiles lists the tiles inside the box that carry a road of another settlement.
 func (r *CitizenRepository) ForeignTiles(ctx context.Context, settlementID string, face int, gxMin, gxMax, gyMin, gyMax int32) ([]application.TileKey, error) {
 	rows, err := r.q.Query(ctx, `
-		SELECT DISTINCT tile_face, tile_gx, tile_gy FROM settlement_road_cells
+		SELECT DISTINCT tile_face, tile_gx, tile_gy FROM (
+		  SELECT settlement_id, tile_face, tile_gx, tile_gy FROM settlement_road_cells
+		  UNION ALL
+		  SELECT settlement_id, tile_face, tile_gx, tile_gy FROM settlement_claims) t
 		 WHERE settlement_id <> $1::uuid AND tile_face = $2 AND tile_gx BETWEEN $3 AND $4 AND tile_gy BETWEEN $5 AND $6`,
 		settlementID, face, gxMin, gxMax, gyMin, gyMax)
 	if err != nil {

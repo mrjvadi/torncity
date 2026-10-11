@@ -175,7 +175,7 @@ func (h *VillageHandler) lotStanding(ctx context.Context, tx application.Tx, sna
 		return lotStanding{}, err
 	}
 	ls := lotStanding{owned: st.Owned, caps: caps, built: standingCodes(buildings)}
-	ls.pc = pathContext{snap: snap, tier: s.Tier, owned: st.Owned, caps: caps, standing: ls.built, stock: stock, markup: h.materialMarkupBPS}
+	ls.pc = pathContext{snap: snap, owned: st.Owned, caps: caps, standing: ls.built, stock: stock, markup: h.materialMarkupBPS}
 	ls.maxSto = lotbuild.MaxStoreys(h.lot.StoreyKnowledge, func(code string) bool { return st.Owned.Has(code) })
 	return ls, nil
 }

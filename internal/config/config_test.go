@@ -673,6 +673,23 @@ settlement:
   land_fell_radius: 105
   land_quarry_radius: 104
   land_rock_shifts: 103
+  zone_max_cells: 401
+  zoning_rule_at: "2026-12-10T00:00:00Z"
+  zoning_grace_days: 301
+  slope_rule_at: "2026-12-11T00:00:00Z"
+  slope_grace_days: 302
+  slope_flat_m: 9
+  slope_gentle_m: 21
+  slope_unusable_m: 31
+  parcel_max_cells: 61
+  parcel_change_fee: 51
+  zone_open_fee: 21
+  zone_notice_minutes: 25
+  foundation_stone: 5
+  foundation_wage: 61
+  claim_cost: 2001
+  claim_upkeep: 6
+  claim_max_tiles: 201
   farm_rule_at: "2026-11-06T00:00:00Z"
   farm_grace_days: 109
   crafting_rule_at: "2026-11-07T00:00:00Z"
@@ -780,6 +797,7 @@ labor:
   shift_real_minutes: 3
   reference_crew: 5
   base_wage: 31
+  min_wage: 12
   min_wage_village: 11
   min_wage_town: 16
   min_wage_city: 26
@@ -1271,6 +1289,23 @@ var envOverrides = map[string]string{
 	"TORN_SETTLEMENT_LAND_FELL_RADIUS":                     "205",
 	"TORN_SETTLEMENT_LAND_QUARRY_RADIUS":                   "204",
 	"TORN_SETTLEMENT_LAND_ROCK_SHIFTS":                     "203",
+	"TORN_SETTLEMENT_ZONE_MAX_CELLS":                       "501",
+	"TORN_SETTLEMENT_ZONING_RULE_AT":                       "2026-12-20T00:00:00Z",
+	"TORN_SETTLEMENT_ZONING_GRACE_DAYS":                    "401",
+	"TORN_SETTLEMENT_SLOPE_RULE_AT":                        "2026-12-21T00:00:00Z",
+	"TORN_SETTLEMENT_SLOPE_GRACE_DAYS":                     "402",
+	"TORN_SETTLEMENT_SLOPE_FLAT_M":                         "109",
+	"TORN_SETTLEMENT_SLOPE_GENTLE_M":                       "121",
+	"TORN_SETTLEMENT_SLOPE_UNUSABLE_M":                     "131",
+	"TORN_SETTLEMENT_PARCEL_MAX_CELLS":                     "161",
+	"TORN_SETTLEMENT_PARCEL_CHANGE_FEE":                    "151",
+	"TORN_SETTLEMENT_ZONE_OPEN_FEE":                        "121",
+	"TORN_SETTLEMENT_ZONE_NOTICE_MINUTES":                  "125",
+	"TORN_SETTLEMENT_FOUNDATION_STONE":                     "105",
+	"TORN_SETTLEMENT_FOUNDATION_WAGE":                      "161",
+	"TORN_SETTLEMENT_CLAIM_COST":                           "2101",
+	"TORN_SETTLEMENT_CLAIM_UPKEEP":                         "106",
+	"TORN_SETTLEMENT_CLAIM_MAX_TILES":                      "301",
 	"TORN_SETTLEMENT_FARM_RULE_AT":                         "2026-12-05T00:00:00Z",
 	"TORN_SETTLEMENT_FARM_GRACE_DAYS":                      "209",
 	"TORN_SETTLEMENT_CRAFTING_RULE_AT":                     "2026-12-06T00:00:00Z",
@@ -1343,6 +1378,7 @@ var envOverrides = map[string]string{
 	"TORN_LABOR_SHIFT_REAL_MINUTES":                        "4",
 	"TORN_LABOR_REFERENCE_CREW":                            "6",
 	"TORN_LABOR_BASE_WAGE":                                 "32",
+	"TORN_LABOR_MIN_WAGE":                                  "13",
 	"TORN_LABOR_MIN_WAGE_VILLAGE":                          "12",
 	"TORN_LABOR_MIN_WAGE_TOWN":                             "17",
 	"TORN_LABOR_MIN_WAGE_CITY":                             "27",

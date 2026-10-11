@@ -84,6 +84,10 @@ func buildingRefusal(err error) *villageRefusal {
 		return refuseVillage(village.VillageOccupied)
 	case stderrors.Is(err, settlementbuilding.ErrObstructed):
 		return refuseVillage(village.VillageObstructed)
+	case stderrors.Is(err, settlementbuilding.ErrNeedsFoundation):
+		return refuseVillage(village.LandNeedsFoundation)
+	case stderrors.Is(err, settlementbuilding.ErrSlopeUnusable):
+		return refuseVillage(village.LandSteepest)
 	case stderrors.Is(err, settlementbuilding.ErrNeedsNear):
 		return refuseVillage(village.VillageNeedsNear)
 	case stderrors.Is(err, settlementbuilding.ErrReservedLot):
@@ -162,7 +166,7 @@ func (h *VillageHandler) buildPlacementContext(ctx context.Context, tx applicati
 	standing = settlementbuilding.Standing{
 		Knowledge: st.Owned, KnowledgeCapabilities: capabilities, Built: built,
 		RunningBuilds: running, ConcurrentCap: capNow, LiteracyShareBPS: st.LiteracyShareBPS,
-		SettlementTier: s.Tier, Placed: placedOf(snap, rows),
+		Placed: placedOf(snap, rows),
 	}
 	return
 }
@@ -222,7 +226,7 @@ func (h *VillageHandler) Lots(ctx context.Context, meta envelope.Metadata, req V
 		if err != nil {
 			return err
 		}
-		listed, lerr := ListedInTx(ctx, tx, h.content.Current(), "build_lots", s.CityID, def.Code, def.ListedAt(s.Tier))
+		listed, lerr := ListedInTx(ctx, tx, h.content.Current(), "build_lots", s.CityID, def.Code, true)
 		if lerr != nil {
 			return lerr
 		}
@@ -338,7 +342,7 @@ func (h *VillageHandler) Place(ctx context.Context, meta envelope.Metadata, req 
 		if d.Private() {
 			return refuseVillage(village.CitizenPrivateOnly)
 		}
-		listed, lerr := ListedInTx(ctx, tx, h.content.Current(), "build_place", s.CityID, def.Code, def.ListedAt(s.Tier))
+		listed, lerr := ListedInTx(ctx, tx, h.content.Current(), "build_place", s.CityID, def.Code, true)
 		if lerr != nil {
 			return lerr
 		}
@@ -713,7 +717,7 @@ func (h *VillageHandler) appendBuildingEvent(ctx context.Context, tx application
 		return err
 	}
 	payload["layout_version"] = application.LayoutVersionsWithTenure(s.CityID, s.Tier, s.Name,
-		wsettle.GridLotsGrown(s.Tier, h.villageGridLots, s.GridGrowth), rows, footprint, mark)
+		wsettle.GridLots(h.villageGridLots, s.GridGrowth), rows, footprint, mark)
 	return appendVillageEvent(ctx, tx, meta, name, s.CityID, payload)
 }
 

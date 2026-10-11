@@ -12,7 +12,7 @@ import (
 func laborRules(c config.Labor) labor.Rules {
 	return labor.Rules{
 		ShiftMinutes: c.ShiftMinutes, ShiftRealMinutes: c.ShiftRealMinutes, ReferenceCrew: c.ReferenceCrew, BaseWage: c.BaseWage,
-		MinWage: map[string]int64{"village": c.MinWageVillage, "town": c.MinWageTown, "city": c.MinWageCity},
+		MinWage: minWageOf(c),
 		Curve: []labor.Point{
 			{TightnessBPS: 0, WageBPS: c.WageSlackBPS},
 			{TightnessBPS: c.TightBalancedBPS, WageBPS: c.WageBalancedBPS},
@@ -37,4 +37,12 @@ func trainingRules(c config.Training) handlers.TrainingRules {
 			DiminishStamina: c.DiminishStamina, StaminaPerMaxEnergy: c.StaminaPerMaxEnergy, MaxEnergyBonusCap: c.MaxEnergyBonusCap},
 		YardBPS: c.YardBPS, GroundBPS: c.GroundBPS, GymBPS: c.GymBPS, GroundFee: c.GroundFee, GymFee: c.GymFee,
 	}
+}
+
+// minWageOf is the one statutory floor: labor.min_wage, else the old village key (the town and city keys are retired).
+func minWageOf(c config.Labor) int64 {
+	if c.MinWage > 0 {
+		return c.MinWage
+	}
+	return c.MinWageVillage
 }

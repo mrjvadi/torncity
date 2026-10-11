@@ -118,6 +118,16 @@ func (r *CitizenRepository) InsertLot(ctx context.Context, l application.Settlem
 	if err != nil {
 		return fmt.Errorf("postgres: recording the settlement lot: %w", err)
 	}
+	// every owned lot is a cell of a parcel (migration 0150): a lot bought alone is a parcel of one cell, with the lot's id
+	if _, err := r.q.Exec(ctx, `
+		INSERT INTO parcels (id, settlement_id, owner_kind, owner_id, use, created_at, updated_at)
+		VALUES ($1::uuid, $2::uuid, 'player', $3::uuid, '', $4, $4)`, l.ID, l.SettlementID, l.OwnerID, l.AcquiredAt.UTC()); err != nil {
+		return fmt.Errorf("postgres: recording the parcel of a lot: %w", err)
+	}
+	if _, err := r.q.Exec(ctx, `INSERT INTO parcel_cells (settlement_id, lot_x, lot_y, parcel_id) VALUES ($1::uuid, $2, $3, $4::uuid)`,
+		l.SettlementID, l.X, l.Y, l.ID); err != nil {
+		return fmt.Errorf("postgres: recording the parcel cell of a lot: %w", err)
+	}
 	return nil
 }
 

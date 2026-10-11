@@ -417,7 +417,7 @@ func (r *SettlementRepository) ByPlayer(ctx context.Context, playerID string) (a
 		    AND (c.id = (SELECT residence_city_id FROM players WHERE id = $1::uuid)
 		         OR EXISTS (SELECT 1 FROM offices o WHERE o.jurisdiction_id = c.jurisdiction_id AND o.holder_player_id = $1::uuid))
 		  ORDER BY EXISTS (SELECT 1 FROM offices o WHERE o.jurisdiction_id = c.jurisdiction_id AND o.holder_player_id = $1::uuid
-		                      AND o.office_code = CASE c.tier WHEN 'town' THEN 'town_head' WHEN 'city' THEN 'mayor' ELSE 'village_head' END) DESC,
+		                      AND o.office_code = 'village_head') DESC,
 		           c.founded_at, c.id
 		  LIMIT 1`, playerID), &out.FoundedSettlement, &offices, &out.Resident)
 	if errors.Is(err, pgx.ErrNoRows) {
@@ -439,7 +439,7 @@ func (r *SettlementRepository) ByPlayer(ctx context.Context, playerID string) (a
 // of them for the head office's holder, else the grants of the offices they sit in.
 func (r *SettlementRepository) permissionsOf(ctx context.Context, ps application.PlayerSettlement, playerID string) ([]string, error) {
 	have := map[string]bool{}
-	head := settlement.HeadOffice(ps.Tier)
+	head := settlement.HeadOffice()
 	for _, o := range ps.Offices {
 		if o == head {
 			for _, g := range charter.AllPermissions() {

@@ -174,7 +174,7 @@ func (h *VillageHandler) BuildMenu(ctx context.Context, meta envelope.Metadata) 
 		if err != nil {
 			return err
 		}
-		pc := pathContext{snap: snap, tier: s.Tier, owned: st.Owned, caps: capabilities, standing: standingCodes(buildings), stock: stock.Units, markup: h.materialMarkupBPS}
+		pc := pathContext{snap: snap, owned: st.Owned, caps: capabilities, standing: standingCodes(buildings), stock: stock.Units, markup: h.materialMarkupBPS}
 
 		capNow, cerr := h.buildCapOf(ctx, tx, snap, s, buildings)
 		if cerr != nil {

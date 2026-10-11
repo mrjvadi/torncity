@@ -364,6 +364,7 @@ func (p *Pack) validateAvailability(problems *[]error) {
 		}
 		p.validateGrowth(key, t, bad)
 		p.lintStageOnly(key, t, bad)
+		p.lintStageLabel(key, t, bad)
 		if t.Stage == StageUndecided && strings.TrimSpace(t.Question) == "" {
 			bad("%s: an undecided stage needs a question for the owner", key)
 		}
@@ -463,6 +464,7 @@ func (p *Pack) validateAvailability(problems *[]error) {
 		checkPersonal(where, n.Personal)
 	}
 	p.lintLegacyList(tags, bad)
+	p.lintStageExceptions(tags, bad)
 	for key, t := range tags {
 		checkNeeds(key, t.Requires)
 		if t.Growth != nil {

@@ -48,6 +48,8 @@ type landPicture struct {
 	network [][2]int
 	// land is the trees and rocks standing on the lots a road opened (docs/adr/0065); nil when the land model is off.
 	land *application.LandView
+	// foundations are the lots beyond the grid that carry a foundation (docs/adr/0072).
+	foundations map[[2]int]bool
 }
 
 // frameOf is the settlement's land frame on the world.
@@ -100,6 +102,20 @@ func (h *VillageHandler) picture(ctx context.Context, tx application.Tx, w *worl
 			return nil, lerr
 		} else if len(lv.Lots) > 0 {
 			p.land = lv
+		}
+	}
+	if reg := tx.Registry(); reg != nil {
+		found, ferr := reg.Foundations(ctx, s.CityID)
+		if ferr != nil {
+			return nil, ferr
+		}
+		for _, f := range found {
+			if !p.inGrid(f.X, f.Y) {
+				if p.foundations == nil {
+					p.foundations = map[[2]int]bool{}
+				}
+				p.foundations[[2]int{f.X, f.Y}] = true
+			}
 		}
 	}
 	snap := h.content.Current()
@@ -161,7 +177,7 @@ func (p *landPicture) outerLot(x, y int) settlementbuilding.Lot {
 		if o.Reason == application.OpenLotSteep {
 			tags = append(tags, "sloped_lot")
 		}
-		lot := settlementbuilding.Lot{Buildable: o.Buildable, Occupied: stands, TerrainTags: tags}
+		lot := settlementbuilding.Lot{Buildable: o.Buildable, Occupied: stands, TerrainTags: tags, SlopeM: o.SlopeM, Foundation: p.foundations[[2]int{x, y}]}
 		if p.land != nil {
 			if ll, ok := p.land.Lots[land.Pos{X: x, Y: y}]; ok {
 				lot.Obstructed = ll.Obstructed
@@ -564,6 +580,20 @@ func (h *VillageHandler) roadClassName(code string) string {
 // first grid, or, when the footprint reaches beyond it, the lots a road
 // opened. A footprint out of the open land is refused as out of bounds.
 func (h *VillageHandler) canPlaceAnywhere(ctx context.Context, tx application.Tx, s application.FoundedSettlement,
+	def settlementbuilding.Def, grid settlementbuilding.Grid, x, y int, st settlementbuilding.Standing,
+) error {
+	now := h.now()
+	if h.registry.SlopeOn(now) {
+		st.Slope = h.registry.Slope
+	}
+	if err := h.canPlaceLand(ctx, tx, s, def, grid, x, y, st); err != nil {
+		return err
+	}
+	return h.zoneVerdict(ctx, tx, h.content.Current(), s.CityID, def, x, y, now)
+}
+
+// canPlaceLand is the placement rules of the domain over the first grid or the land the roads opened.
+func (h *VillageHandler) canPlaceLand(ctx context.Context, tx application.Tx, s application.FoundedSettlement,
 	def settlementbuilding.Def, grid settlementbuilding.Grid, x, y int, st settlementbuilding.Standing,
 ) error {
 	if x >= 0 && y >= 0 && x+def.FootprintW <= len(grid) && y+def.FootprintH <= len(grid) {

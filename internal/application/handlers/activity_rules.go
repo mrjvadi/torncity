@@ -63,7 +63,7 @@ func judgeCrimes(tags []content.AvailabilityDef, s crimeStanding) crimeVerdict {
 	v := crimeVerdict{Allowed: map[string]bool{}}
 	for _, tag := range tags {
 		need := content.StageRank(tag.Stage)
-		stageOK := need != 0 && s.stageRank >= need
+		stageOK := (need != 0 && s.stageRank >= need) || tag.Stage == ""
 		if !stageOK && s.decide == nil {
 			continue // not offered at this stage, or the stage is undecided
 		}

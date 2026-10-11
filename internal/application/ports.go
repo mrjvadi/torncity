@@ -186,6 +186,8 @@ type Tx interface {
 	Survival() SurvivalRepository
 	// Apprentices is the apprenticeships of the teaching network (migration 0148, ADR 0071).
 	Apprentices() ApprenticeRepository
+	// Registry is the land registry: parcels, zones, tile claims and foundations (migration 0150, ADR 0072).
+	Registry() RegistryRepository
 	// StallKeepers is the keepers stall owners hire (migration 0139, ADR 0062).
 	StallKeepers() StallKeeperRepository
 	// Charters holds each settlement's offices, seats and audit (ADR 0044

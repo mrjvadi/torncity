@@ -71,10 +71,10 @@ func TestMoreHomesMoreWorkers(t *testing.T) {
 func TestScarcityRaisesAndSurplusLowersTheWage(t *testing.T) {
 	r := Default()
 	pool := r.PoolSize(0, 0) // 5
-	slack := r.NPCWage("village", r.Tightness(0, pool))
-	balanced := r.NPCWage("village", r.Tightness(pool/2, pool)) // 2 of 5 = 40 %
-	tight := r.NPCWage("village", r.Tightness(pool, pool))
-	short := r.NPCWage("village", r.Tightness(2*pool, pool))
+	slack := r.NPCWage(r.Tightness(0, pool))
+	balanced := r.NPCWage(r.Tightness(pool/2, pool)) // 2 of 5 = 40 %
+	tight := r.NPCWage(r.Tightness(pool, pool))
+	short := r.NPCWage(r.Tightness(2*pool, pool))
 	if !(slack < balanced && balanced < tight && tight < short) {
 		t.Fatalf("wage does not rise with scarcity: %d %d %d %d", slack, balanced, tight, short)
 	}
@@ -83,12 +83,12 @@ func TestScarcityRaisesAndSurplusLowersTheWage(t *testing.T) {
 	}
 	// The owner's example: more houses -> more workers -> the same demand is cheaper.
 	demand := int64(4)
-	few := r.NPCWage("village", r.Tightness(demand, r.PoolSize(0, 0)))
-	many := r.NPCWage("village", r.Tightness(demand, r.PoolSize(20, 0)))
+	few := r.NPCWage(r.Tightness(demand, r.PoolSize(0, 0)))
+	many := r.NPCWage(r.Tightness(demand, r.PoolSize(20, 0)))
 	if many >= few {
 		t.Errorf("more houses did not lower the wage under the same demand: %d -> %d", few, many)
 	}
-	if r.NPCWage("village", 1_000_000) != 75 {
+	if r.NPCWage(1_000_000) != 75 {
 		t.Error("the wage kept rising past the curve")
 	}
 }
@@ -96,11 +96,12 @@ func TestScarcityRaisesAndSurplusLowersTheWage(t *testing.T) {
 func TestMinimumWageIsAFloor(t *testing.T) {
 	r := Default()
 	r.BaseWage = 10
-	if got := r.NPCWage("city", 0); got != 25 {
-		t.Errorf("a city floor of 25 paid %d", got)
+	if got := r.NPCWage(0); got != 10 {
+		t.Errorf("a floor of 10 paid %d", got)
 	}
-	if got := r.NPCWage("village", 0); got != 10 {
-		t.Errorf("a village floor of 10 paid %d", got)
+	r.MinWage = 25
+	if got := r.NPCWage(0); got != 25 {
+		t.Errorf("a floor of 25 paid %d", got)
 	}
 }
 

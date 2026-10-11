@@ -30,7 +30,7 @@ func TestTheDatabaseHoldsEveryListTheFilesDeclare(t *testing.T) {
 		t.Fatalf("reading the active version: %v", err)
 	}
 	// lists a service never reads back by design (the shape of the files, lint-only data)
-	exempt := map[string]bool{"Schema": true, "Checksum": true, "Version": true, "CityIDs": true,
+	exempt := map[string]bool{"StageExceptions": true, "Schema": true, "Checksum": true, "Version": true, "CityIDs": true,
 		// world generation reads world.yml itself (content.LoadWorldGen), never from the database
 		"Biomes": true, "Resources": true, "NameSyllables": true, "NamingTemplates": true}
 	// the lists whose stored form must equal the files' exactly (the others are rebuilt from their own

@@ -104,7 +104,7 @@ func settlementCheckSites(ctx context.Context) error {
 		params.Site.MinBuildableShareBps, params.Site.GridLots, params.Site.GridLots)
 	bad := 0
 	for _, s := range sites {
-		g := wsettle.GridLotsForTier(s.Tier, params.Site.GridLots)
+		g := wsettle.GridLots(params.Site.GridLots, 0)
 		rep := wsettle.EvaluateSite(w, s.CellID, s.ShiftX, s.ShiftY, g)
 		verdict := "ok"
 		if !rep.Meets(wsettle.SiteRules{GridLots: g, MinBuildableShareBps: params.Site.MinBuildableShareBps}) {

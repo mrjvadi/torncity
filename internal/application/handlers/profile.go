@@ -413,7 +413,7 @@ func (h *ProfileHandler) life(ctx context.Context, tx application.Tx, p *applica
 func (h *ProfileHandler) place(ctx context.Context, tx application.Tx, p *application.Player, city *application.City,
 	view *life.ProfileView,
 ) error {
-	if h.content == nil || view.Travelling || !city.IsCityTier() {
+	if h.content == nil || view.Travelling || !city.Content() {
 		return nil
 	}
 	snap := h.content.Current()

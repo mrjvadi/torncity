@@ -142,7 +142,7 @@ func loadCharterState(ctx context.Context, tx application.Tx, s application.Foun
 			st.seats[seat.OfficeID] = append(st.seats[seat.OfficeID], seat)
 		}
 	}
-	seat, err := tx.Governance().Seat(ctx, officeFor(s.Tier), s.JurisdictionID, 1)
+	seat, err := tx.Governance().Seat(ctx, officeFor(), s.JurisdictionID, 1)
 	if err != nil {
 		return st, err
 	}
@@ -238,7 +238,7 @@ func requirePermission(ctx context.Context, tx application.Tx, s application.Fou
 	}
 	limit, ok := held.Has(perm)
 	if !ok {
-		return 0, application.ErrNotOfficeHolder.WithDetail("office", officeFor(s.Tier)).WithDetail("permission", string(perm))
+		return 0, application.ErrNotOfficeHolder.WithDetail("office", officeFor()).WithDetail("permission", string(perm))
 	}
 	return limit, nil
 }
@@ -623,7 +623,7 @@ func (h *VillageHandler) CharterOfficeSave(ctx context.Context, meta envelope.Me
 			need = charter.OfficeCreate
 		}
 		if _, ok := held.Has(need); !ok {
-			return application.ErrNotOfficeHolder.WithDetail("office", officeFor(s.Tier)).WithDetail("permission", string(need))
+			return application.ErrNotOfficeHolder.WithDetail("office", officeFor()).WithDetail("permission", string(need))
 		}
 		if fresh, err := h.reserve(ctx, tx, p.ID, meta); err != nil {
 			return err
@@ -734,7 +734,7 @@ func (h *VillageHandler) CharterOfficeSave(ctx context.Context, meta envelope.Me
 			}
 			if h.cset().NeedsVote(int(residents)) {
 				if _, ok := held.Has(charter.CharterAmend); !ok {
-					return application.ErrNotOfficeHolder.WithDetail("office", officeFor(s.Tier)).WithDetail("permission", string(charter.CharterAmend))
+					return application.ErrNotOfficeHolder.WithDetail("office", officeFor()).WithDetail("permission", string(charter.CharterAmend))
 				}
 				id, err := h.openAmendment(ctx, tx, s, "save", next, p.ID, now)
 				if err != nil {
@@ -832,7 +832,7 @@ func (h *VillageHandler) CharterOfficeClose(ctx context.Context, meta envelope.M
 			return err
 		}
 		if _, ok := st.heldBy(p.ID).Has(charter.OfficeEdit); !ok {
-			return application.ErrNotOfficeHolder.WithDetail("office", officeFor(s.Tier)).WithDetail("permission", string(charter.OfficeEdit))
+			return application.ErrNotOfficeHolder.WithDetail("office", officeFor()).WithDetail("permission", string(charter.OfficeEdit))
 		}
 		if fresh, err := h.reserve(ctx, tx, p.ID, meta); err != nil {
 			return err
@@ -869,7 +869,7 @@ func (h *VillageHandler) CharterOfficeClose(ctx context.Context, meta envelope.M
 			}
 			if h.cset().NeedsVote(int(residents)) {
 				if _, ok := st.heldBy(p.ID).Has(charter.CharterAmend); !ok {
-					return application.ErrNotOfficeHolder.WithDetail("office", officeFor(s.Tier)).WithDetail("permission", string(charter.CharterAmend))
+					return application.ErrNotOfficeHolder.WithDetail("office", officeFor()).WithDetail("permission", string(charter.CharterAmend))
 				}
 				id, err := h.openAmendment(ctx, tx, s, "close", *target, p.ID, now)
 				if err != nil {
@@ -942,7 +942,7 @@ func (h *VillageHandler) charterSeat(ctx context.Context, meta envelope.Metadata
 		}
 		if !resign {
 			if _, ok := held.Has(need); !ok {
-				return application.ErrNotOfficeHolder.WithDetail("office", officeFor(s.Tier)).WithDetail("permission", string(need))
+				return application.ErrNotOfficeHolder.WithDetail("office", officeFor()).WithDetail("permission", string(need))
 			}
 		}
 		if fresh, err := h.reserve(ctx, tx, p.ID, meta); err != nil {

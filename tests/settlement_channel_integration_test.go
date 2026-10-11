@@ -261,7 +261,7 @@ func verifySettlementChannel(t *testing.T, pool *postgres.Pool, cityID string) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	now := application.LayoutVersionsOf(cityID, cityRow.Tier, cityRow.Name, wsettle.GridLotsForTier(cityRow.Tier, 5), stored,
+	now := application.LayoutVersionsOf(cityID, cityRow.Tier, cityRow.Name, wsettle.GridLots(5, 0), stored,
 		func(code string, rotated bool) (int, int) {
 			if d, ok := snap.SettlementBuildingDef(code); ok {
 				def := d.Def()

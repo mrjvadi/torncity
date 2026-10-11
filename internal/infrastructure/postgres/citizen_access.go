@@ -3,7 +3,10 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
+
+	"github.com/jackc/pgx/v5"
 
 	"github.com/mrjvadi/torncity/internal/application"
 )
@@ -27,14 +30,29 @@ func (r *CitizenRepository) ReleaseLot(ctx context.Context, rel application.LotR
 	if rel.Kind == application.ReleaseRefund {
 		amount, txID = rel.RefundAmount, rel.RefundLedgerTransactionID
 	}
-	tag, err := r.q.Exec(ctx, `
+	var sid string
+	var lx, ly int
+	err := r.q.QueryRow(ctx, `
 		UPDATE settlement_lots
 		   SET released_at = $2, release_kind = $3, refund_amount = $4::bigint, refund_ledger_transaction_id = $5::uuid
-		 WHERE id = $1::uuid AND released_at IS NULL`, rel.LotID, rel.At.UTC(), rel.Kind, amount, txID)
+		 WHERE id = $1::uuid AND released_at IS NULL
+		RETURNING settlement_id::text, lot_x, lot_y`, rel.LotID, rel.At.UTC(), rel.Kind, amount, txID).Scan(&sid, &lx, &ly)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return false, nil
+	}
 	if err != nil {
 		return false, fmt.Errorf("postgres: releasing the settlement lot: %w", err)
 	}
-	return tag.RowsAffected() == 1, nil
+	// the cell leaves its parcel, and a parcel left with no cell goes (migration 0150)
+	var parcel string
+	if err := r.q.QueryRow(ctx, `DELETE FROM parcel_cells WHERE settlement_id = $1::uuid AND lot_x = $2 AND lot_y = $3 RETURNING parcel_id::text`, sid, lx, ly).Scan(&parcel); err == nil {
+		if _, err := r.q.Exec(ctx, `DELETE FROM parcels WHERE id = $1::uuid AND NOT EXISTS (SELECT 1 FROM parcel_cells WHERE parcel_id = $1::uuid)`, parcel); err != nil {
+			return false, fmt.Errorf("postgres: dropping the parcel of a released lot: %w", err)
+		}
+	} else if !errors.Is(err, pgx.ErrNoRows) {
+		return false, fmt.Errorf("postgres: freeing the parcel cell of a released lot: %w", err)
+	}
+	return true, nil
 }
 
 // RoadReserves lists a settlement's reserved right-of-way.

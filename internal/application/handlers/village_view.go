@@ -273,7 +273,7 @@ func (h *VillageHandler) upgradeLines(ctx context.Context, tx application.Tx, sn
 	if err != nil {
 		return nil, err
 	}
-	pc := pathContext{snap: snap, tier: s.Tier, owned: st.Owned, caps: capabilities, standing: standingCodes(buildings), stock: stock.Units, markup: h.materialMarkupBPS}
+	pc := pathContext{snap: snap, owned: st.Owned, caps: capabilities, standing: standingCodes(buildings), stock: stock.Units, markup: h.materialMarkupBPS}
 	var out []village.BuildingUpgradeLine
 	for _, code := range sortedBuildingCodes(snap) {
 		o, _ := snap.SettlementBuildingDef(code)
@@ -288,7 +288,7 @@ func (h *VillageHandler) upgradeLines(ctx context.Context, tx application.Tx, sn
 			BuildTime: h.scale.RealWait(def.BuildTime), Available: true,
 		}
 		upgradeDetails(snap, o, &line)
-		listed, lerr := ListedInTx(ctx, tx, snap, "upgrade_list", s.CityID, o.Code, def.ListedAt(s.Tier))
+		listed, lerr := ListedInTx(ctx, tx, snap, "upgrade_list", s.CityID, o.Code, true)
 		if lerr != nil {
 			return nil, lerr
 		}

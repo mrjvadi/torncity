@@ -436,7 +436,7 @@ func (h *VillageHandler) appendTenureEvent(ctx context.Context, tx application.T
 }
 
 func gridLotsFor(h *VillageHandler, s application.FoundedSettlement) int {
-	return wsettle.GridLotsGrown(s.Tier, h.villageGridLots, s.GridGrowth)
+	return wsettle.GridLots(h.villageGridLots, s.GridGrowth)
 }
 
 // ---------------------------------------------------------------------

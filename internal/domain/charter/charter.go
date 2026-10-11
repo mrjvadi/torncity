@@ -48,7 +48,9 @@ const (
 	// FarmSow orders the sowing of the treasury's farms (docs/adr/0067); the owner of a private farm needs no permission.
 	FarmSow Permission = "farm.sow"
 	// MillToll sets the settlement's statute of the miller's toll (docs/adr/0067).
-	MillToll       Permission = "mill.toll"
+	MillToll Permission = "mill.toll"
+	// LandClaim claims a tile of the world for the settlement (docs/adr/0072).
+	LandClaim      Permission = "land.claim"
 	ZoneOpen       Permission = "zone.open"
 	ZoneClose      Permission = "zone.close"
 	LotSell        Permission = "lot.sell"
@@ -113,7 +115,7 @@ var catalogue = []Def{
 	{StorageTake, "treasury", false, true},
 	{FiscalSalesTax, "fiscal", false, true}, {FiscalShopPrice, "fiscal", false, true},
 	{FiscalMarketFee, "fiscal", false, false}, {FiscalLevy, "fiscal", false, false},
-	{RoadDraw, "land", false, true}, {LandClear, "land", false, true}, {FarmSow, "land", false, true}, {MillToll, "fiscal", false, true}, {ZoneOpen, "land", false, false}, {ZoneClose, "land", false, false},
+	{RoadDraw, "land", false, true}, {LandClear, "land", false, true}, {FarmSow, "land", false, true}, {MillToll, "fiscal", false, true}, {ZoneOpen, "land", false, true}, {ZoneClose, "land", false, true}, {LandClaim, "land", false, true},
 	{LotSell, "land", false, true}, {PublicBuild, "land", false, true}, {PublicDemolish, "land", false, true},
 	{CitizenAdmit, "people", false, false}, {CitizenBan, "people", false, false},
 	{StaffHire, "people", false, true}, {StaffFire, "people", false, true}, {JobsPost, "people", false, true},

@@ -19,6 +19,14 @@ func (h phaseHandlers) bindStageE() map[string]commandFunc {
 		"health.hospital": bare(hh.Hospital),
 		"health.treat":    decoded(hh.Treat),
 		"health.survival": bare(h.survival.Needs),
+		// The land registry (docs/adr/0072).
+		"settlement.land.registry":  bare(h.village.LandRegistry),
+		"settlement.parcel.join":    decoded(h.village.ParcelJoin),
+		"settlement.parcel.split":   decoded(h.village.ParcelSplit),
+		"settlement.zone.open":      decoded(h.village.ZoneOpen),
+		"settlement.zone.close":     decoded(h.village.ZoneClose),
+		"settlement.claim":          decoded(h.village.Claim),
+		"settlement.foundation.lay": decoded(h.village.FoundationLay),
 		// The teaching network (docs/adr/0071).
 		"settlement.apprentice.mine":    bare(h.apprentice.Mine),
 		"settlement.apprentice.offer":   decoded(h.apprentice.Offer),

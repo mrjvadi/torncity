@@ -51,6 +51,10 @@ var (
 	ErrUnbuildableLot = errors.New("settlementbuilding: a lot in the footprint is not buildable")
 	// ErrObstructed means trees or rocks stand on a lot of the footprint: clear it first (docs/adr/0065).
 	ErrObstructed = errors.New("settlementbuilding: trees or rocks stand on a lot in the footprint")
+	// ErrNeedsFoundation means a lot of the footprint is steeper than the building takes unaided: a foundation must be laid on it first (docs/adr/0072).
+	ErrNeedsFoundation = errors.New("settlementbuilding: a lot in the footprint is too steep without a foundation")
+	// ErrSlopeUnusable means a lot of the footprint is too steep for the building even with a foundation.
+	ErrSlopeUnusable = errors.New("settlementbuilding: a lot in the footprint is too steep to build on")
 	// ErrNeedsNear means the building must stand near a terrain tag or a standing building it does not have in reach
 	// (a canal channel near a river, a farm near its water work; docs/adr/0067).
 	ErrNeedsNear = errors.New("settlementbuilding: the building needs something near it that is not there")
@@ -185,6 +189,8 @@ type Def struct {
 	// gate.
 	MinLiteracyShareBPS int
 
+	// SlopeOKBand is the steepest band of lot the building stands on unaided (landuse.Band*; a foundation lifts it by one).
+	SlopeOKBand int
 	// CapExempt frees this building from the concurrent-construction cap
 	// (Standing.ConcurrentCap): it neither waits for a free slot nor holds
 	// one. Content, for the cheap, quick, everywhere-needed pieces (a road)
@@ -233,66 +239,17 @@ func (w Work) Workplace() bool { return len(w.Produces) > 0 }
 // MaxShift bounds one shift, GAME time.
 const MaxShift = 24 * time.Hour
 
-// The settlement tiers, smallest first (internal/domain/settlement.Tier*).
-const (
-	SettlementVillage = "village"
-	SettlementTown    = "town"
-	SettlementCity    = "city"
-)
-
-var settlementTierRank = map[string]int{SettlementVillage: 1, SettlementTown: 2, SettlementCity: 3}
-
-// concurrentCaps is how many buildings a settlement of a tier may raise at
-// once (ADR 0028 section 4). The placement and the client's view of "a
-// builder is free" read the same numbers.
-var concurrentCaps = map[string]int{SettlementVillage: 1, SettlementTown: 2, SettlementCity: 4}
-
-// ConcurrentCap is how many buildings a settlement of the tier may raise at
-// once; a tier it does not know raises one.
-func ConcurrentCap(tier string) int {
-	if n, ok := concurrentCaps[tier]; ok {
-		return n
-	}
-	return 1
-}
-
 // CrewCap is how many buildings a settlement may raise at once from what it
 // has: one crew for each homesPerCrew homes (the people who can raise a building),
-// never fewer than the old label's cap, which stays the floor for settlements
-// that were promoted before the ladder was retired. homesPerCrew 0 keeps the
-// label's cap alone.
-func CrewCap(tier string, homes, homesPerCrew int64) int {
-	n := ConcurrentCap(tier)
+// never fewer than one. homesPerCrew 0 keeps the cap at one.
+func CrewCap(homes, homesPerCrew int64) int {
+	n := 1
 	if homesPerCrew > 0 {
 		if c := int(1 + homes/homesPerCrew); c > n {
 			n = c
 		}
 	}
 	return n
-}
-
-// MinSettlementTier is the smallest settlement that may list and build this
-// building (ADR 0033 section 3): a role tier 1 is a village's, tier 2 a town's,
-// tier 3 and up a city's. A row with no role tier (a legacy row) is a
-// village's.
-func (d Def) MinSettlementTier() string {
-	switch {
-	case d.Tier <= 1:
-		return SettlementVillage
-	case d.Tier == 2:
-		return SettlementTown
-	default:
-		return SettlementCity
-	}
-}
-
-// ListedAt reports whether a settlement lists the building as far as its label
-// goes. There is no ladder (owner scope rule 2026-10-02): a building's size says
-// nothing about who may raise it, only its own research, standing buildings and
-// the growth gate do. A settlement with an unknown tier label lists nothing.
-func (d Def) ListedAt(settlementTier string) bool {
-	_, ok := settlementTierRank[settlementTier]
-	return ok
 }
 
 // CanRotate reports whether rotating this building's footprint would

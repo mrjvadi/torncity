@@ -126,38 +126,18 @@ func maxDrop(samples [][]worldgen.FineSample, x, y, gridLots int) float64 {
 	return m
 }
 
-// Grid size by tier (docs/adr/0028-world-and-settlements.md section 4): a
-// village's is configured (settlement.village_grid_lots), a town's and a
-// city's are fixed.
-const (
-	townGridLots = 9
-	cityGridLots = 15
-)
-
-// GridLotsForTier is the side, in lots, of a settlement's grid.
-func GridLotsForTier(tier string, villageLots int) int {
-	switch tier {
-	case "town":
-		return townGridLots
-	case "city":
-		return cityGridLots
+// GridLots is the side, in lots, of a settlement's first block of land: the
+// configured side (settlement.village_grid_lots) plus the growth steps it has
+// bought. There is no size ladder (ADR 0044, 0072): a settlement grows its land
+// by roads, claims and parcels.
+func GridLots(villageLots, growth int) int {
+	if villageLots < 1 {
+		villageLots = 1
 	}
-	return villageLots
+	return villageLots + growth
 }
 
-// GridLotsGrown is the side of a grid that has grown by growth steps.
-func GridLotsGrown(tier string, villageLots, growth int) int {
-	return GridLotsForTier(tier, villageLots) + growth
-}
-
-// HeadOffice is the code of the office at the top of a settlement of the
-// tier (docs/adr/0028 section 4).
-func HeadOffice(tier string) string {
-	switch tier {
-	case "town":
-		return "town_head"
-	case "city":
-		return "mayor"
-	}
-	return "village_head"
-}
+// HeadOffice is the code of the office at the top of a settlement. Every
+// settlement has the same head office; its title is the players' own (the
+// founder names it) and the permissions it holds are the charter's.
+func HeadOffice() string { return "village_head" }

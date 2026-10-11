@@ -270,9 +270,6 @@ func canUpgrade(in overlayInput, steps []content.SettlementBuildingDef, built ma
 ) bool {
 	for _, o := range steps {
 		def := o.Def()
-		if !def.ListedAt(in.Tier) {
-			continue
-		}
 		ok := true
 		for _, k := range def.RequiresKnowledge {
 			if _, has := in.Facts.Owned[k]; !has {
@@ -343,7 +340,7 @@ func (v *VillageService) SettlementOverlay(ctx context.Context, settlementID, pl
 	}
 	viewer := OverlayViewer{ID: playerID, Kind: kind, Resident: resident}
 	in := overlayInput{Snap: v.Content.Current(), Tier: s.Tier, Rows: rows, Viewer: viewer,
-		StockBase: v.StockBaseCapacity, ConcurrentN: settlementbuilding.CrewCap(s.Tier, overlayHousing(v.Content.Current(), rows), v.HomesPerBuildCrew)}
+		StockBase: v.StockBaseCapacity, ConcurrentN: settlementbuilding.CrewCap(overlayHousing(v.Content.Current(), rows), v.HomesPerBuildCrew)}
 	if viewer.Kind != statesync.ViewerPublic {
 		if v.Overlay == nil {
 			return nil, nil, errors.New("clientapi: no overlay reader")

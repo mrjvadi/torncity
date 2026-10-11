@@ -9,6 +9,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/application/handlers"
 	"github.com/mrjvadi/torncity/internal/config"
+	"github.com/mrjvadi/torncity/internal/domain/landuse"
 	"github.com/mrjvadi/torncity/internal/domain/lotbuild"
 )
 
@@ -51,6 +52,20 @@ func Farm(s config.Settlement) application.FarmRules {
 func Care(s config.Settlement) application.CareRules {
 	from, _ := time.Parse(time.RFC3339, s.CareRuleAt) // not an instant: the city hospital stays
 	return application.CareRules{RuleAt: from, GraceDays: s.CareGraceDays}
+}
+
+// Registry turns the land registry settings (settlement.parcel_*, zone_*, slope_*, foundation_*, claim_*, docs/adr/0072) into its rules.
+func Registry(s config.Settlement) application.RegistryRules {
+	z, _ := time.Parse(time.RFC3339, s.ZoningRuleAt)
+	sl, _ := time.Parse(time.RFC3339, s.SlopeRuleAt)
+	return application.RegistryRules{
+		ParcelMaxCells: s.ParcelMaxCells, ParcelChangeFee: s.ParcelChangeFee, ZoneOpenFee: s.ZoneOpenFee, ZoneMaxCells: s.ZoneMaxCells,
+		ZoneNotice: time.Duration(s.ZoneNoticeMinutes) * time.Minute, ZoningRuleAt: z, ZoningGraceDays: s.ZoningGraceDays,
+		SlopeRuleAt: sl, SlopeGraceDays: s.SlopeGraceDays,
+		Slope:           landuse.Bands{Flat: s.SlopeFlatM, Gentle: s.SlopeGentleM, Unusable: s.SlopeUnusableM},
+		FoundationStone: s.FoundationStone, FoundationWage: s.FoundationWage,
+		ClaimCost: s.ClaimCost, ClaimUpkeepPerDay: s.ClaimUpkeep, ClaimMaxTiles: s.ClaimMaxTiles,
+	}
 }
 
 // Survival turns the survival settings (settlement.survival_*, docs/adr/0070) into the rules of thirst and warmth.

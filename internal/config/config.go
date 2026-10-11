@@ -1042,7 +1042,25 @@ type Settlement struct {
 	FarmGraceDays int64  // settlement.farm_grace_days
 	// The tool tiers (docs/adr/0068): CraftingRuleAt (RFC 3339) is when the tiers began to count, CraftingGraceDays the real days after it
 	// before they lift or lower anyone's output.
-	CraftingRuleAt    string // settlement.crafting_rule_at
+	CraftingRuleAt string // settlement.crafting_rule_at
+	// Parcels, zones, slope and claims (docs/adr/0072).
+	ZoneMaxCells      int    // settlement.zone_max_cells: the most cells one zone covers
+	ZoningRuleAt      string // settlement.zoning_rule_at: zones count (the date zone.open and zone.close are in force)
+	ZoningGraceDays   int64  // settlement.zoning_grace_days
+	SlopeRuleAt       string // settlement.slope_rule_at: the slope bands count for a new building
+	SlopeGraceDays    int64  // settlement.slope_grace_days
+	SlopeFlatM        int    // settlement.slope_flat_m: a lot with a drop under this to a side neighbour is flat
+	SlopeGentleM      int    // settlement.slope_gentle_m: under this a lot is gentle, over it steep
+	SlopeUnusableM    int    // settlement.slope_unusable_m: from this drop a lot takes no building at all
+	ParcelMaxCells    int    // settlement.parcel_max_cells: the most cells one parcel holds
+	ParcelChangeFee   int64  // settlement.parcel_change_fee: what an owner pays the treasury to join or split parcels
+	ZoneOpenFee       int64  // settlement.zone_open_fee: per cell of a zone, into the sink
+	ZoneNoticeMinutes int64  // settlement.zone_notice_minutes: real minutes between opening a zone and its rules biting (a game day)
+	FoundationStone   int64  // settlement.foundation_stone: stone a foundation takes for each step of slope it lifts, per lot
+	FoundationWage    int64  // settlement.foundation_wage: the mason's wage for each step of slope, per lot, into the sink
+	ClaimCost         int64  // settlement.claim_cost: what a settlement pays to claim one more tile, from the treasury into the sink
+	ClaimUpkeep       int64  // settlement.claim_upkeep: per claimed tile per game day, from the treasury
+	ClaimMaxTiles     int    // settlement.claim_max_tiles: the most tiles one settlement claims
 	CraftingGraceDays int64  // settlement.crafting_grace_days
 	// Care in a founded settlement (docs/adr/0069): CareRuleAt (RFC 3339) is when a settlement stopped being offered a hospital it never
 	// built; CareGraceDays the real days after it before the conjured city hospital is gone (a stay admitted before keeps it).
@@ -1433,9 +1451,10 @@ type Labor struct {
 	ShiftRealMinutes   int64 // labor.shift_real_minutes
 	ReferenceCrew      int64 // labor.reference_crew
 	BaseWage           int64 // labor.base_wage
-	MinWageVillage     int64 // labor.min_wage_village
-	MinWageTown        int64 // labor.min_wage_town
-	MinWageCity        int64 // labor.min_wage_city
+	MinWage            int64 // labor.min_wage: the statutory floor of an NPC wage, the same in every settlement (ADR 0072)
+	MinWageVillage     int64 // labor.min_wage_village: the old key, read only while min_wage is unset (until the rule grace ends)
+	MinWageTown        int64 // labor.min_wage_town: retired, ignored
+	MinWageCity        int64 // labor.min_wage_city: retired, ignored
 	ParticipationBPS   int64 // labor.participation_bps
 	BaseHousing        int64 // labor.base_housing
 	NPCProductivityBPS int64 // labor.npc_productivity_bps
@@ -1917,6 +1936,23 @@ func Defaults() *Config {
 			FarmRuleAt:                       "2026-10-10T17:00:00Z",
 			FarmGraceDays:                    14,
 			CraftingRuleAt:                   "2026-10-10T21:00:00Z",
+			ZoneMaxCells:                     400,
+			ZoningRuleAt:                     "2026-10-12T10:00:00Z",
+			ZoningGraceDays:                  14,
+			SlopeRuleAt:                      "2026-10-18T10:00:00Z",
+			SlopeGraceDays:                   14,
+			SlopeFlatM:                       8,
+			SlopeGentleM:                     20,
+			SlopeUnusableM:                   30,
+			ParcelMaxCells:                   60,
+			ParcelChangeFee:                  50,
+			ZoneOpenFee:                      20,
+			ZoneNoticeMinutes:                24,
+			FoundationStone:                  4,
+			FoundationWage:                   60,
+			ClaimCost:                        2000,
+			ClaimUpkeep:                      5,
+			ClaimMaxTiles:                    200,
 			CraftingGraceDays:                14,
 			CareRuleAt:                       "2026-10-10T22:00:00Z",
 			CareGraceDays:                    14,
@@ -2011,6 +2047,7 @@ func Defaults() *Config {
 			ShiftRealMinutes:       1,
 			ReferenceCrew:          4,
 			BaseWage:               30,
+			MinWage:                10,
 			MinWageVillage:         10,
 			MinWageTown:            15,
 			MinWageCity:            25,

@@ -1,0 +1,79 @@
+━━━ Land registry · parcels, zones and claims ━━━
+(edits message 42)
+<b>🗺 زمین و قطعه‌های کورندال</b>
+
+دو قطعه یکی شد.
+
+<b>قطعه‌ها (⁨4⁩)</b>
+
+🏡 قطعهٔ سارا، ⁨2⁩ خانه
+در پهنهٔ «کشتزار»
+
+🏡 قطعهٔ سارا، ⁨1⁩ خانه
+
+🏡 قطعهٔ کاوه، ⁨1⁩ خانه
+
+🌾 زمین مشاع شهر، ⁨2⁩ خانه
+
+<b>پهنه‌ها</b>
+
+📐 کشتزار (کشاورزی) - ⁨12⁩ خانه، باز کرده: کاوه
+
+📐 بازار (مرکز) - ⁨4⁩ خانه، باز کرده: سارا. مهلت اعلام هنوز تمام نشده.
+
+<b>قلمروهای گرفته‌شده (⁨1⁩)</b>
+
+هر بلوک روزی ⁨⁨5⁩ ساپ⁩ نگهداری می‌خواهد؛ اگر خزانه نتواند بدهد، بلوک را از دست می‌دهید.
+
+پی‌ریخته‌شده: ⁨2⁩ خانه
+  ───
+  [➕ یکی کن (⁨2⁩ خانه)] → settlement:parcel.join:p1:p2
+  [❌ بستن پهنهٔ «کشتزار»] → settlement:zone.close:z1
+  [🔙 بازگشت] → settlement:land   │   [🔄 به‌روزرسانی] → settlement:land.registry
+
+━━━ Land registry · nothing yet, the rules not started ━━━
+(edits message 42)
+<b>🗺 زمین و قطعه‌های کورندال</b>
+
+هنوز قطعه‌ای ثبت نشده. هر زمینی که بخری یک قطعه می‌شود.
+
+پهنه‌بندی از ⁨11⁩ آبان ⁨1405⁩ شروع می‌شود.
+
+قاعدهٔ شیب برای ساخت‌وساز تازه از ⁨11⁩ آبان ⁨1405⁩ شروع می‌شود.
+  ───
+  [🔙 بازگشت] → settlement:land   │   [🔄 به‌روزرسانی] → settlement:land.registry
+
+━━━ Land registry · a foundation quote ━━━
+(edits message 42)
+<b>🗺 زمین و قطعه‌های کورندال</b>
+
+پی‌ریزی این قطعه ⁨8⁩ سنگ و دستمزد بنّا می‌خواهد (از سنگ همراهت ⁨5⁩ را می‌گذاری، ⁨3⁩ را می‌خری). جمعاً ⁨⁨220⁩ ساپ⁩.
+
+هنوز قطعه‌ای ثبت نشده. هر زمینی که بخری یک قطعه می‌شود.
+  ───
+  [✅ تأیید (⁨⁨220⁩ ساپ⁩)] → settlement:foundation.lay:3-4:confirm
+  [🔙 بازگشت] → settlement:land   │   [🔄 به‌روزرسانی] → settlement:land.registry
+
+━━━ Land refusal · land_not_yours ━━━
+(edits message 42)
+🔒 این قطعه مال تو نیست.
+  ───
+  [🔙 بازگشت] → settlement:overview
+
+━━━ Land refusal · land_needs_foundation ━━━
+(edits message 42)
+⛰ زمین برای این بنا زیادی شیب دارد؛ اول پی بریز.
+  ───
+  [🔙 بازگشت] → settlement:overview
+
+━━━ Land refusal · land_zone_forbids ━━━
+(edits message 42)
+پهنهٔ این زمین چنین بنایی را قبول نمی‌کند.
+  ───
+  [🔙 بازگشت] → settlement:overview
+
+━━━ Land refusal · land_commons ━━━
+(edits message 42)
+زمین مشاع فروشی نیست.
+  ───
+  [🔙 بازگشت] → settlement:overview

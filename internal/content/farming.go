@@ -25,9 +25,9 @@ type FarmingDef struct {
 	Water FarmingWater `yaml:"water" json:"water"`
 	// Soil is the factor of a farm's lots by biome, less SteepPenaltyBPS for a steep lot; SoilDefaultBPS where the biome
 	// is not listed.
-	SoilDefaultBPS   int              `yaml:"soil_default_bps" json:"soil_default_bps"`
-	SteepPenaltyBPS  int              `yaml:"steep_penalty_bps" json:"steep_penalty_bps"`
-	Soil             []FarmingSoilDef `yaml:"soil" json:"soil"`
+	SoilDefaultBPS  int              `yaml:"soil_default_bps" json:"soil_default_bps"`
+	SteepPenaltyBPS int              `yaml:"steep_penalty_bps" json:"steep_penalty_bps"`
+	Soil            []FarmingSoilDef `yaml:"soil" json:"soil"`
 	// Branches ties each farm to the water work it draws from; a rain-fed farm has none.
 	Branches []FarmingBranchDef `yaml:"branches" json:"branches"`
 	// Toll is the miller's toll the settlement sets, in basis points of the grain (statute: 1/30 to 1/10).
