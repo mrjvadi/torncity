@@ -57,6 +57,8 @@ type VillageHandler struct {
 	// craftRules are the settings of the tool tiers (config settlement.crafting_*, ADR 0068).
 	craftRules application.CraftRules
 	// shiftFactor is the share of a shift's output the player's thirst, warmth and sickness leave them (docs/adr/0070); nil: all.
+	// apprentices are the apprenticeships' hooks on a shift: the wage share and the extra learning (docs/adr/0071); nil: none.
+	apprentices ApprenticeHook
 	shiftFactor func(ctx context.Context, tx application.Tx, p *application.Player, now time.Time) (int64, error)
 	// keeperTerms are the pay a hired stall keeper can be given (config trade.stall_keeper_*, ADR 0062).
 	keeperTerms StallKeeperTerms

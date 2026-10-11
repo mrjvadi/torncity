@@ -10,6 +10,8 @@ Courses you can take here:
   [📖 Reading and Writing Class] → education:view:literacy_class
   [📖 First Aid] → education:view:first_aid
   [📖 Driving Licence] → education:view:driving_licence
+  [🛠 Apprenticeship] → settlement:apprentice.mine
+  [🎓 Teachers] → education:teachers:carpentry
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → education:list:1
 
 ━━━ First Aid ━━━
@@ -77,6 +79,8 @@ Courses you can take here:
   [📖 Reading and Writing Class] → education:view:literacy_class
   [📖 First Aid] → education:view:first_aid
   [📖 Driving Licence] → education:view:driving_licence
+  [🛠 Apprenticeship] → settlement:apprentice.mine
+  [🎓 Teachers] → education:teachers:carpentry
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → education:list:1
 
 ━━━ Profile while studying ━━━
@@ -167,6 +171,8 @@ Courses you can take here:
   ───
   [📖 Reading and Writing Class] → education:view:literacy_class
   [📖 Driving Licence] → education:view:driving_licence
+  [🛠 Apprenticeship] → settlement:apprentice.mine
+  [🎓 Teachers] → education:teachers:carpentry
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → education:list:1
 
 ━━━ Profile after the course ━━━

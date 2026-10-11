@@ -481,6 +481,8 @@ type settlementSettings struct {
 	CareGraceDays                    *int64  `yaml:"care_grace_days"`
 	SurvivalRuleAt                   *string `yaml:"survival_rule_at"`
 	SurvivalGraceDays                *int64  `yaml:"survival_grace_days"`
+	TeachingRuleAt                   *string `yaml:"teaching_rule_at"`
+	TeachingGraceDays                *int64  `yaml:"teaching_grace_days"`
 	TeacherBaseBPS                   *int64  `yaml:"teacher_base_bps"`
 	TeacherPerLevelBPS               *int64  `yaml:"teacher_per_level_bps"`
 	TeacherXPPerClass                *int64  `yaml:"teacher_xp_per_class"`
@@ -1663,6 +1665,12 @@ var coreSettings = []setting{
 	moneySetting("settlement", "survival_grace_days",
 		func(c *Config) *int64 { return &c.Settlement.SurvivalGraceDays },
 		func(f *fileConfig) *int64 { return f.Settlement.SurvivalGraceDays }),
+	stringSetting("settlement", "teaching_rule_at",
+		func(c *Config) *string { return &c.Settlement.TeachingRuleAt },
+		func(f *fileConfig) *string { return f.Settlement.TeachingRuleAt }),
+	moneySetting("settlement", "teaching_grace_days",
+		func(c *Config) *int64 { return &c.Settlement.TeachingGraceDays },
+		func(f *fileConfig) *int64 { return f.Settlement.TeachingGraceDays }),
 	stringSetting("settlement", "personal_rule_at",
 		func(c *Config) *string { return &c.Settlement.PersonalRuleAt },
 		func(f *fileConfig) *string { return f.Settlement.PersonalRuleAt }),

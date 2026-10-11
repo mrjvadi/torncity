@@ -35,6 +35,12 @@ func (h *VillageHandler) WithSurvivalFactor(f func(ctx context.Context, tx appli
 	return h
 }
 
+// WithApprentices gives a shift the apprenticeships' hooks (docs/adr/0071).
+func (h *VillageHandler) WithApprentices(a ApprenticeHook) *VillageHandler {
+	h.apprentices = a
+	return h
+}
+
 // craftKit is the crafting content and the ladder.
 func (h *VillageHandler) craftKit(snap *content.Snapshot) (content.CraftingDef, craft.Tools, bool) {
 	cd, ok := snap.Crafting()

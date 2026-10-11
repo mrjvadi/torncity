@@ -681,6 +681,8 @@ settlement:
   care_grace_days: 111
   survival_rule_at: "2026-11-09T00:00:00Z"
   survival_grace_days: 112
+  teaching_rule_at: "2026-11-10T00:00:00Z"
+  teaching_grace_days: 113
   teacher_base_bps: 6100
   teacher_per_level_bps: 151
   teacher_xp_per_class: 21
@@ -1277,6 +1279,8 @@ var envOverrides = map[string]string{
 	"TORN_SETTLEMENT_CARE_GRACE_DAYS":                      "211",
 	"TORN_SETTLEMENT_SURVIVAL_RULE_AT":                     "2026-12-08T00:00:00Z",
 	"TORN_SETTLEMENT_SURVIVAL_GRACE_DAYS":                  "212",
+	"TORN_SETTLEMENT_TEACHING_RULE_AT":                     "2026-12-09T00:00:00Z",
+	"TORN_SETTLEMENT_TEACHING_GRACE_DAYS":                  "213",
 	"TORN_SETTLEMENT_TEACHER_BASE_BPS":                     "6200",
 	"TORN_SETTLEMENT_TEACHER_PER_LEVEL_BPS":                "152",
 	"TORN_SETTLEMENT_TEACHER_XP_PER_CLASS":                 "22",

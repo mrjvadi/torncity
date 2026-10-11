@@ -1052,6 +1052,10 @@ type Settlement struct {
 	// SurvivalGraceDays the real days after it before they drift.
 	SurvivalRuleAt    string // settlement.survival_rule_at
 	SurvivalGraceDays int64  // settlement.survival_grace_days
+	// The teacher's skill in a class (docs/adr/0071): from TeachingRuleAt plus TeachingGraceDays a teacher of a craft course must have the
+	// craft level and the class's xp follows him; before that classes keep their old rules.
+	TeachingRuleAt    string // settlement.teaching_rule_at
+	TeachingGraceDays int64  // settlement.teaching_grace_days
 	// The teacher's skill in the literacy tick (docs/adr/0057): a class taught by a player with the teaching skill moves
 	// literacy at TeacherBaseBPS plus TeacherPerLevelBPS for each level (never above 10000); a class with no player teacher
 	// at TeacherBaseBPS. A finished class teaches its player teacher TeacherXPPerClass of the teaching skill.
@@ -1918,6 +1922,8 @@ func Defaults() *Config {
 			CareGraceDays:                    14,
 			SurvivalRuleAt:                   "2026-10-11T10:00:00Z",
 			SurvivalGraceDays:                14,
+			TeachingRuleAt:                   "2026-10-11T00:00:00Z",
+			TeachingGraceDays:                14,
 			TeacherBaseBPS:                   6000,
 			TeacherPerLevelBPS:               150,
 			TeacherXPPerClass:                20,

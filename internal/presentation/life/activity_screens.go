@@ -449,6 +449,7 @@ func Education(c presentation.Ctx, v EducationView) *presentation.Response {
 	for _, l := range v.Courses {
 		a = append(a, act(AddrCourseView, l.Course.Code).Named("education.course").About(l.Course.Code))
 	}
+	a = append(a, act(AddrApprentices).Named("apprentice.mine"), act(AddrTeachers, "carpentry").Named("education.teachers"))
 	a = append(a, pager(AddrEducation, v.Page, v.Pages)...)
 	a = append(a, back(AddrHome), pageRefresh(AddrEducation, v.Page))
 	return screenEducation.Response(c.Lang, v, a...)

@@ -21,3 +21,40 @@ crafting:
   max_jobs: 2
   home_tool_wear_bps: 100
   xp_per_batch: 10
+  # ADR 0071 (owner answers 2026-10-11): the teacher's own skill in a class, and the apprenticeship; every number is a draft.
+  teaching:
+    min_craft_level: 3
+    npc_level: 2
+    xp_per_level_bps: 100
+    xp_bonus_cap_bps: 5000
+    directory_km: 400
+    directory_max: 8
+  apprenticeship:
+    master_min_level: 3
+    max_per_master: 3
+    npc_master_level: 2
+    term_min: 7
+    term_max: 120
+    term_default: 28
+    wage_share_min_bps: 2500
+    wage_share_default_bps: 5000
+    fee_max: 100000
+    learning_base_bps: 15000
+    learning_per_level_bps: 1000
+    learning_cap_bps: 25000
+    exam_shifts: 3
+    dismiss_reasons: [idle, abusive]
+    crafts:
+      - {craft: carpentry, course: carpentry_craft, workplaces: [carpentry_workshop]}
+      - {craft: masonry,   course: masonry_craft,   workplaces: [masonry_workshop]}
+      - {craft: smithing,  course: smithing_craft,  workplaces: [smithy]}
+      - {craft: weaving,   course: weaving_craft,   workplaces: [weaving_shed]}
+      - {craft: pottery,   course: pottery_craft,   workplaces: [pottery_kiln]}
+      - {craft: milling,   course: milling_craft,   workplaces: [mill]}
+      - {craft: baking,    course: baking_craft,    workplaces: [bakery]}
+      - {craft: tanning,   course: tanning_craft,   workplaces: [tannery]}
+      - {craft: forestry,  course: forestry_craft,  workplaces: [woodcutter_camp, forester_lodge]}
+      - {craft: herding,   course: herding_craft,   workplaces: [pasture_range]}
+      - {craft: farming,   course: farming_craft,   workplaces: [farm_canal, farm_shaft, farm_terrace, farm_paddy, farm_dry]}
+      - {craft: tailoring, course: tailoring_craft, workplaces: [tailor_shop]}
+      - {craft: herbalism, course: herbal_medicine, workplaces: [apothecary, herb_garden]}

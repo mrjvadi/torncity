@@ -252,6 +252,8 @@ func deletePlayer(t *testing.T, pool *postgres.Pool, playerID string) {
 		`DELETE FROM player_survival WHERE player_id = $1::uuid`,
 		`DELETE FROM player_garments WHERE player_id = $1::uuid`,
 		`DELETE FROM player_illness WHERE player_id = $1::uuid`,
+		`DELETE FROM apprentice_exams WHERE candidate_id = $1::uuid`,
+		`DELETE FROM apprenticeships WHERE apprentice_id = $1::uuid OR master_id = $1::uuid`,
 		// A war strike hurts everyone in a city, which gives a player the
 		// test never played a stats row.
 		`DELETE FROM player_stats WHERE player_id = $1::uuid`,

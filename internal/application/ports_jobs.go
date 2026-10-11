@@ -195,6 +195,8 @@ type EducationRepository interface {
 	// Certify records a certificate. fresh is false when the player already
 	// holds it; nothing is written then.
 	Certify(ctx context.Context, playerID, courseCode, enrollmentID string, at time.Time) (fresh bool, err error)
+	// CertifyVia records a certificate with its route (a class or an apprenticeship) and who issued it (docs/adr/0071).
+	CertifyVia(ctx context.Context, c CertificateIssue) (fresh bool, err error)
 	// Certifications lists the player's certificates, oldest first.
 	Certifications(ctx context.Context, playerID string) ([]Certification, error)
 	// Pause stops the player's course in progress at at, if it is running;

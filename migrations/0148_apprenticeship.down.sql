@@ -1,0 +1,12 @@
+BEGIN;
+ALTER TABLE certifications DISABLE TRIGGER certifications_append_only;
+DELETE FROM certifications WHERE route = 'apprenticeship';
+ALTER TABLE certifications ENABLE TRIGGER certifications_append_only;
+ALTER TABLE certifications DROP CONSTRAINT certifications_route_check;
+ALTER TABLE certifications DROP COLUMN apprenticeship_id;
+ALTER TABLE certifications DROP COLUMN route;
+ALTER TABLE certifications DROP COLUMN issued_by;
+ALTER TABLE certifications ALTER COLUMN enrollment_id SET NOT NULL;
+DROP TABLE apprentice_exams;
+DROP TABLE apprenticeships;
+COMMIT;

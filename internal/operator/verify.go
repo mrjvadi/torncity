@@ -222,6 +222,12 @@ func VerifyChecks(v postgres.LedgerVerification, cfg *config.Config) []Check {
 		out.add(t.SurvivalDoubleSlot == 0, fmt.Sprintf("no player wears two garments in one slot (%d do)", t.SurvivalDoubleSlot))
 	}
 
+	if v.Village && v.Apprentice {
+		t := v.VillageInvariants
+		out.add(t.ApprenticeFeeLedger == t.ApprenticeFeeRows && t.ApprenticeRefundLedger == t.ApprenticeRefundRows, fmt.Sprintf("the fees apprentices paid their masters, and the refunds of dismissals, in the ledger are what the contracts say (%d = %d, %d = %d)", t.ApprenticeFeeLedger, t.ApprenticeFeeRows, t.ApprenticeRefundLedger, t.ApprenticeRefundRows))
+		out.add(t.ApprenticeCertBroken == 0 && t.ApprenticeOverSlots == 0, fmt.Sprintf("every certificate of the apprenticeship route has an apprenticeship that passed its exam (%d off) and no master runs more than ten contracts (%d do)", t.ApprenticeCertBroken, t.ApprenticeOverSlots))
+	}
+
 	if v.Village && v.Trade {
 		t := v.VillageInvariants
 		out.add(t.TradeLedger == t.TradeRows && t.TradeDayBroken == 0, fmt.Sprintf("the trader's money in the ledger is what the market days say (%d = %d), each day is its lines, never above its cap, one transaction of source to treasury for the gross and one of treasury to sink for the clerk's wage (%d off)", t.TradeLedger, t.TradeRows, t.TradeDayBroken))

@@ -1,0 +1,103 @@
+━━━ Apprentices · an offer, a pool master, an exam to judge ━━━
+(edits message 42) (private in groups)
+<b>🛠 شاگردی</b>
+
+✅ شاگردی شروع شد؛ در کارگاه استاد کار کنید تا زودتر یاد بگیرید.
+
+شاگرد رضا در کارگاه نجاری (نجاری)
+مدت: ⁨28⁩ روز - شهریه: ⁨⁨400⁩ ساپ⁩ - سهم شاگرد از مزد: ⁨50⁩٪
+پیشنهاد شده، منتظر پذیرش
+
+شاگرد استاد کارگاه شهر در کارگاه نجاری (بافندگی)
+مدت: ⁨28⁩ روز - شهریه: ⁨⁨0⁩ ساپ⁩ - سهم شاگرد از مزد: ⁨50⁩٪
+در جریان
+پایان دوره: ساعت ⁨14⁩:⁨35⁩
+شیفت‌های کار: ⁨2⁩ از ⁨3⁩ لازم برای آزمون
+
+نجار شاگرد شماست در کارگاه نجاری (نجاری)
+مدت: ⁨28⁩ روز - شهریه: ⁨⁨0⁩ ساپ⁩ - سهم شاگرد از مزد: ⁨50⁩٪
+دوره تمام شده، آمادهٔ آزمون
+
+شاگرد رضا در کارگاه نجاری (کوزه‌گری)
+مدت: ⁨0⁩ روز - شهریه: ⁨⁨0⁩ ساپ⁩ - سهم شاگرد از مزد: ⁨0⁩٪
+دوره تمام شده، آمادهٔ آزمون
+🎓 گواهی شاگردی گرفته است
+  ───
+  [✅ می‌پذیرم (⁨⁨400⁩ ساپ⁩)] → settlement:apprentice.accept:a1
+  [🚪 کنار می‌روم] → settlement:apprentice.leave:a1
+  [🚪 کنار می‌روم] → settlement:apprentice.leave:a2
+  [🎓 آزمون: قبول] → settlement:apprentice.exam:a3:pass
+  [❌ آزمون: رد] → settlement:apprentice.exam:a3:fail
+  [🛠 شاگردی نجاری در کارگاه نجاری (تا سطح ⁨2⁩)] → settlement:apprentice.join:w2
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → settlement:apprentice.mine
+
+━━━ Apprentices · nothing yet ━━━
+(edits message 42) (private in groups)
+<b>🛠 شاگردی</b>
+
+هنوز شاگرد کسی نیستید و شاگردی هم ندارید.
+  ───
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → settlement:apprentice.mine
+
+━━━ Teachers · a craft with a class, a master, the pool and the city ━━━
+(edits message 42) (private in groups)
+<b>🎓 استادان</b>
+
+کجا می‌شود نجاری یاد گرفت؟ (دورهٔ کارگاه نجاری)
+
+• همین‌جا، استمارچ: رضا - سطح ⁨5⁩، تا سطح ⁨4⁩ یاد می‌دهد - شهریه ⁨⁨800⁩ ساپ⁩، ⁨9⁩ جا
+
+• فنویک اسپن (⁨120⁩ کیلومتر): استاد رضا - سطح ⁨4⁩، ⁨2⁩ جای شاگردی
+
+• فنویک اسپن (⁨120⁩ کیلومتر): استاد کارگاه شهر - تا سطح ⁨2⁩
+
+• شهر مرکزی: کلاس همیشه باز است - شهریه ⁨⁨800⁩ ساپ⁩
+  ───
+  [بافندگی] → education:teachers:weaving
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → education:teachers:carpentry
+
+━━━ Teachers · nobody near ━━━
+(edits message 42) (private in groups)
+<b>🎓 استادان</b>
+
+کجا می‌شود بافندگی یاد گرفت؟ (دورهٔ کارگاه نجاری)
+
+نزدیک شما استادی پیدا نشد؛ شهر مرکزی همیشه کلاس دارد.
+  ───
+  [نجاری] → education:teachers:carpentry
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → education:teachers:weaving
+
+━━━ Apprentice refusal · not_master ━━━
+(edits message 42) (private in groups)
+استاد فقط در کارگاه خودش شاگرد می‌گیرد.
+  ───
+  [🛠 شاگردی من] → settlement:apprentice.mine
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Apprentice refusal · range ━━━
+(edits message 42) (private in groups)
+مدت، شهریه یا سهم مزد از حد مجاز بیرون است.
+  ───
+  [🛠 شاگردی من] → settlement:apprentice.mine
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Apprentice refusal · cannot_afford ━━━
+(edits message 42) (private in groups)
+پول کافی برای شهریه ندارید.
+  ───
+  [🛠 شاگردی من] → settlement:apprentice.mine
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Apprentice refusal · exam_not_ready ━━━
+(edits message 42) (private in groups)
+هنوز وقت آزمون نشده یا شیفت‌های کافی کار نکرده است.
+  ───
+  [🛠 شاگردی من] → settlement:apprentice.mine
+  [🔙 بازگشت] → player:profile.get
+
+━━━ Apprentice refusal · too_skilled ━━━
+(edits message 42) (private in groups)
+از استاد کارگاه شهر بیشتر یاد نمی‌گیرید؛ پیش استادی بالاتر بروید.
+  ───
+  [🛠 شاگردی من] → settlement:apprentice.mine
+  [🔙 بازگشت] → player:profile.get

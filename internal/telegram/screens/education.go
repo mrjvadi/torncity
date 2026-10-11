@@ -99,6 +99,8 @@ func renderEducation(c Context, v EducationView) *presenter.Response {
 
 	kb := keyboards.New()
 	kb.Grid(1, buttons...)
+	addBtn(kb, c.T("education.button.apprentices", nil), AddrApprentices) // the teaching network (docs/adr/0071)
+	addBtn(kb, c.T("education.button.teachers", nil), AddrTeachers, "carpentry")
 	kb.Nav(c.nav(keyboards.Nav{
 		Prefix:   AddrEducation,
 		Page:     v.Page,

@@ -231,6 +231,10 @@ func (f *fakeEducation) Certify(_ context.Context, playerID, course, _ string, a
 	return true, nil
 }
 
+func (f *fakeEducation) CertifyVia(ctx context.Context, c application.CertificateIssue) (bool, error) {
+	return f.Certify(ctx, c.PlayerID, c.CourseCode, c.EnrollmentID, c.At)
+}
+
 func (f *fakeEducation) Certifications(_ context.Context, playerID string) ([]application.Certification, error) {
 	return append([]application.Certification(nil), f.certs[playerID]...), nil
 }

@@ -477,6 +477,14 @@ commands:
   settlement.clear.order: {channel: both, client: true}
   settlement.clear.cancel: {channel: both, client: true}
   settlement.farm.sow: {channel: both, client: true}
+  settlement.apprentice.mine: {channel: private, client: true}
+  settlement.apprentice.offer: {channel: private, client: true}
+  settlement.apprentice.accept: {channel: private, client: true}
+  settlement.apprentice.leave: {channel: private, client: true}
+  settlement.apprentice.dismiss: {channel: private, client: true}
+  settlement.apprentice.exam: {channel: private, client: true}
+  settlement.apprentice.join: {channel: private, client: true}
+  education.teachers: {channel: private, client: true}
   settlement.craft: {channel: both, client: true}
   settlement.mill.toll: {channel: both, client: true}
   settlement.mill.grind: {channel: both, client: true}

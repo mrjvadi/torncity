@@ -1,0 +1,278 @@
+[
+  {
+    "title": "Apprentices · an offer, a pool master, an exam to judge",
+    "screen": "apprentices",
+    "view": {
+      "can_join": [
+        {
+          "craft": "carpentry",
+          "up_to": 2,
+          "workshop": {
+            "code": "w2",
+            "name": "Carpentry workshop"
+          }
+        }
+      ],
+      "lines": [
+        {
+          "can_accept": true,
+          "can_dismiss": false,
+          "can_exam": false,
+          "can_leave": true,
+          "certified": false,
+          "craft": "carpentry",
+          "ends_at": null,
+          "exam_shifts": 3,
+          "extra_xp": 0,
+          "fee": 400,
+          "id": "a1",
+          "npc": false,
+          "role": "apprentice",
+          "shifts": 0,
+          "status": "offered",
+          "term_days": 28,
+          "wage_share_bps": 5000,
+          "with": {
+            "code": "M4ST3RX",
+            "name": "Reza"
+          },
+          "workshop": {
+            "code": "w1",
+            "name": "Carpentry workshop"
+          }
+        },
+        {
+          "can_accept": false,
+          "can_dismiss": false,
+          "can_exam": false,
+          "can_leave": true,
+          "certified": false,
+          "craft": "weaving",
+          "ends_at": "2026-10-13T11:05:00Z",
+          "exam_shifts": 3,
+          "extra_xp": 0,
+          "fee": 0,
+          "id": "a2",
+          "npc": true,
+          "role": "apprentice",
+          "shifts": 2,
+          "status": "active",
+          "term_days": 28,
+          "wage_share_bps": 5000,
+          "with": {
+            "code": "",
+            "name": ""
+          },
+          "workshop": {
+            "code": "w1",
+            "name": "Carpentry workshop"
+          }
+        },
+        {
+          "can_accept": false,
+          "can_dismiss": false,
+          "can_exam": true,
+          "can_leave": false,
+          "certified": false,
+          "craft": "carpentry",
+          "ends_at": null,
+          "exam_shifts": 3,
+          "extra_xp": 0,
+          "fee": 0,
+          "id": "a3",
+          "npc": false,
+          "role": "master",
+          "shifts": 5,
+          "status": "completed",
+          "term_days": 28,
+          "wage_share_bps": 5000,
+          "with": {
+            "code": "APPRNT1",
+            "name": "carpenter"
+          },
+          "workshop": {
+            "code": "w1",
+            "name": "Carpentry workshop"
+          }
+        },
+        {
+          "can_accept": false,
+          "can_dismiss": false,
+          "can_exam": false,
+          "can_leave": false,
+          "certified": true,
+          "craft": "pottery",
+          "ends_at": null,
+          "exam_shifts": 3,
+          "extra_xp": 0,
+          "fee": 0,
+          "id": "a4",
+          "npc": false,
+          "role": "apprentice",
+          "shifts": 4,
+          "status": "completed",
+          "term_days": 0,
+          "wage_share_bps": 0,
+          "with": {
+            "code": "M4ST3RX",
+            "name": "Reza"
+          },
+          "workshop": {
+            "code": "w1",
+            "name": "Carpentry workshop"
+          }
+        }
+      ],
+      "notice": "started"
+    }
+  },
+  {
+    "title": "Apprentices · nothing yet",
+    "screen": "apprentices",
+    "view": {
+      "can_join": null,
+      "lines": null,
+      "notice": ""
+    }
+  },
+  {
+    "title": "Teachers · a craft with a class, a master, the pool and the city",
+    "screen": "teachers",
+    "view": {
+      "course": {
+        "code": "carpentry_craft",
+        "name": "Carpentry workshop"
+      },
+      "craft": "carpentry",
+      "crafts": [
+        "carpentry",
+        "weaving"
+      ],
+      "entries": [
+        {
+          "craft_level": 5,
+          "fee": 800,
+          "free_seats": 9,
+          "here": true,
+          "kind": "class",
+          "km": 0,
+          "settlement": {
+            "code": "ostmarch",
+            "name": "Ostmarch"
+          },
+          "teacher": {
+            "code": "M4ST3RX",
+            "name": "Reza"
+          },
+          "teaching_level": 2,
+          "up_to": 4
+        },
+        {
+          "craft_level": 4,
+          "fee": 0,
+          "free_seats": 2,
+          "here": false,
+          "kind": "master",
+          "km": 120,
+          "settlement": {
+            "code": "fenwick_span",
+            "name": "Fenwick Span"
+          },
+          "teacher": {
+            "code": "M4ST3RX",
+            "name": "Reza"
+          },
+          "teaching_level": 0,
+          "up_to": 4
+        },
+        {
+          "craft_level": 2,
+          "fee": 0,
+          "free_seats": 0,
+          "here": false,
+          "kind": "npc_master",
+          "km": 120,
+          "settlement": {
+            "code": "fenwick_span",
+            "name": "Fenwick Span"
+          },
+          "teacher": {
+            "code": "",
+            "name": ""
+          },
+          "teaching_level": 0,
+          "up_to": 2
+        },
+        {
+          "craft_level": 0,
+          "fee": 800,
+          "free_seats": 99,
+          "here": false,
+          "kind": "city",
+          "km": 0,
+          "settlement": {
+            "code": "support",
+            "name": "Support"
+          },
+          "teacher": {
+            "code": "",
+            "name": ""
+          },
+          "teaching_level": 0,
+          "up_to": 0
+        }
+      ]
+    }
+  },
+  {
+    "title": "Teachers · nobody near",
+    "screen": "teachers",
+    "view": {
+      "course": {
+        "code": "weaving_craft",
+        "name": "Carpentry workshop"
+      },
+      "craft": "weaving",
+      "crafts": [
+        "carpentry",
+        "weaving"
+      ],
+      "entries": null
+    }
+  },
+  {
+    "title": "Apprentice refusal · not_master",
+    "screen": "apprentice_refusal",
+    "view": {
+      "kind": "not_master"
+    }
+  },
+  {
+    "title": "Apprentice refusal · range",
+    "screen": "apprentice_refusal",
+    "view": {
+      "kind": "range"
+    }
+  },
+  {
+    "title": "Apprentice refusal · cannot_afford",
+    "screen": "apprentice_refusal",
+    "view": {
+      "kind": "cannot_afford"
+    }
+  },
+  {
+    "title": "Apprentice refusal · exam_not_ready",
+    "screen": "apprentice_refusal",
+    "view": {
+      "kind": "exam_not_ready"
+    }
+  },
+  {
+    "title": "Apprentice refusal · too_skilled",
+    "screen": "apprentice_refusal",
+    "view": {
+      "kind": "too_skilled"
+    }
+  }
+]

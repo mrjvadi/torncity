@@ -59,6 +59,12 @@ func Survival(s config.Settlement) application.SurvivalRules {
 	return application.SurvivalRules{RuleAt: from, GraceDays: s.SurvivalGraceDays}
 }
 
+// Teaching turns the teaching settings (settlement.teaching_*, docs/adr/0071) into the rule date of the teacher's skill.
+func Teaching(s config.Settlement) application.TeachingRules {
+	from, _ := time.Parse(time.RFC3339, s.TeachingRuleAt) // not an instant: classes keep their old rules
+	return application.TeachingRules{RuleAt: from, GraceDays: s.TeachingGraceDays}
+}
+
 // Craft turns the crafting settings (settlement.crafting_*, docs/adr/0068) into the rules of the tool tiers.
 func Craft(s config.Settlement) application.CraftRules {
 	from, _ := time.Parse(time.RFC3339, s.CraftingRuleAt) // not an instant: the tiers are off

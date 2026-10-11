@@ -35,6 +35,7 @@ type phaseHandlers struct {
 	settlements *handlers.SettlementsHandler
 	village     *handlers.VillageHandler
 	survival    *handlers.SurvivalHandler
+	apprentice  *handlers.ApprenticeHandler
 	presence    *handlers.PresenceHandler
 
 	jobs      *handlers.JobsHandler
