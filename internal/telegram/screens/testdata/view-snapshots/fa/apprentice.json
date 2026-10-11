@@ -3,6 +3,7 @@
     "title": "Apprentices · an offer, a pool master, an exam to judge",
     "screen": "apprentices",
     "view": {
+      "bounds": null,
       "can_join": [
         {
           "craft": "carpentry",
@@ -130,6 +131,7 @@
     "title": "Apprentices · nothing yet",
     "screen": "apprentices",
     "view": {
+      "bounds": null,
       "can_join": null,
       "lines": null,
       "notice": ""
@@ -221,7 +223,8 @@
           "teaching_level": 0,
           "up_to": 0
         }
-      ]
+      ],
+      "starts_at": null
     }
   },
   {
@@ -237,13 +240,15 @@
         "carpentry",
         "weaving"
       ],
-      "entries": null
+      "entries": null,
+      "starts_at": null
     }
   },
   {
     "title": "Apprentice refusal · not_master",
     "screen": "apprentice_refusal",
     "view": {
+      "bounds": null,
       "kind": "not_master"
     }
   },
@@ -251,6 +256,7 @@
     "title": "Apprentice refusal · range",
     "screen": "apprentice_refusal",
     "view": {
+      "bounds": null,
       "kind": "range"
     }
   },
@@ -258,6 +264,7 @@
     "title": "Apprentice refusal · cannot_afford",
     "screen": "apprentice_refusal",
     "view": {
+      "bounds": null,
       "kind": "cannot_afford"
     }
   },
@@ -265,6 +272,7 @@
     "title": "Apprentice refusal · exam_not_ready",
     "screen": "apprentice_refusal",
     "view": {
+      "bounds": null,
       "kind": "exam_not_ready"
     }
   },
@@ -272,6 +280,7 @@
     "title": "Apprentice refusal · too_skilled",
     "screen": "apprentice_refusal",
     "view": {
+      "bounds": null,
       "kind": "too_skilled"
     }
   }

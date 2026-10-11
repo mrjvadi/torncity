@@ -61,7 +61,7 @@ func renderEducation(c Context, v EducationView) *presenter.Response {
 	if len(v.Certificates) > 0 {
 		names := make([]string, 0, len(v.Certificates))
 		for _, cert := range v.Certificates {
-			names = append(names, c.course(cert))
+			names = append(names, c.course(presentation.CourseRef{Code: cert.Code, Name: cert.Name}))
 		}
 		certificates = c.T("education.certificates", map[string]any{
 			"list": strings.Join(names, c.T("education.separator", nil)),

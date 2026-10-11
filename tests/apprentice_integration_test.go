@@ -9,6 +9,7 @@ import (
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/application/handlers"
+	"github.com/mrjvadi/torncity/internal/domain/gametime"
 	"github.com/mrjvadi/torncity/internal/domain/player"
 	"github.com/mrjvadi/torncity/internal/infrastructure/postgres"
 	"github.com/mrjvadi/torncity/internal/presentation"
@@ -205,6 +206,21 @@ func TestAPlayerMasterTeachesInHisOwnWorkshop(t *testing.T) {
 	if got := offer(master, pupil, "3", "0"); got != "apprentice_range" {
 		t.Errorf("a term under the least: %q", got)
 	}
+	// the range refusal names the bounds the form shows
+	if resp, err := e.ap.Offer(testCtx(t), e.as(master, "settlement.apprentice.offer", "offer"),
+		handlers.ApprenticeRequest{Building: bench, Player: pupil.PublicCode, Days: "3", Fee: "0"}); err != nil {
+		t.Fatal(err)
+	} else {
+		var rv plife.ApprenticeRefusalView
+		if err := presentation.DecodeView(resp.View, &rv); err != nil {
+			t.Fatal(err)
+		}
+		ad, _ := loadTestContent(t).Crafting()
+		if b := rv.Bounds; rv.Kind != "range" || b == nil || b.MinDays != ad.Apprenticeship.TermMin || b.MaxDays != ad.Apprenticeship.TermMax ||
+			b.MaxFee != ad.Apprenticeship.FeeMax || b.MinShareBPS != ad.Apprenticeship.WageShareMinBPS || b.MaxShareBPS != 10_000 {
+			t.Errorf("the range refusal carries the bounds: %+v", rv)
+		}
+	}
 	if got := offer(master, pupil, "14", "400"); got != "" {
 		t.Fatalf("a good offer was refused: %q", got)
 	}
@@ -275,6 +291,29 @@ func TestAPlayerMasterTeachesInHisOwnWorkshop(t *testing.T) {
 	if e.scalar(`SELECT count(*) FROM certifications WHERE player_id = $1::uuid AND course_code = 'carpentry_craft' AND route = 'apprenticeship' AND issued_by = $2::uuid`, pupil.ID, master.ID) != 1 {
 		t.Error("the certificate carries the master's name")
 	}
+	// the study hub names who issued the certificate and by which route
+	edu := handlers.NewEducationHandler(postgres.NewUnitOfWork(e.pool, testDefaultLanguage), workIDs{t}, nil, staticContentSource{snap: loadTestContent(t)},
+		postgres.NewCityRepository(e.pool), gametime.Scale(1), 5, time.Hour, e.clock.Now)
+	if resp, err := edu.List(testCtx(t), e.as(pupil, "education.list", "list"), handlers.PageRequest{}); err != nil {
+		t.Fatal(err)
+	} else {
+		var ev plife.EducationView
+		if err := presentation.DecodeView(resp.View, &ev); err != nil {
+			t.Fatal(err)
+		}
+		found := false
+		for _, c := range ev.Certificates {
+			if c.Code == "carpentry_craft" {
+				found = true
+				if c.Route != application.RouteApprenticeship || c.IssuedBy == nil || c.IssuedBy.Code != master.PublicCode {
+					t.Errorf("the certificate line names the master and the route: %+v", c)
+				}
+			}
+		}
+		if !found {
+			t.Errorf("the certificate is listed: %+v", ev.Certificates)
+		}
+	}
 	if got := exam("pass"); got != "apprentice_exam_done" {
 		t.Errorf("one certificate: %q", got)
 	}
@@ -332,5 +371,35 @@ func TestTheDirectoryOfTeachers(t *testing.T) {
 	}
 	if v.Craft != "carpentry" || !kinds[plife.DirKindNPC] || !kinds[plife.DirKindCity] || len(v.Crafts) < 12 {
 		t.Fatalf("the directory: %+v", v)
+	}
+	if v.StartsAt != nil {
+		t.Errorf("no rule date is set, so no start day: %v", v.StartsAt)
+	}
+	directory := func() plife.TeachersView {
+		t.Helper()
+		resp, err := e.ap.Teachers(testCtx(t), e.as(seeker, "education.teachers", "teachers"), handlers.ApprenticeRequest{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		var dv plife.TeachersView
+		if err := presentation.DecodeView(resp.View, &dv); err != nil {
+			t.Fatal(err)
+		}
+		return dv
+	}
+	// no craft asked: the first of the list, then the viewer's best craft
+	if dv := directory(); dv.Craft != dv.Crafts[0] {
+		t.Errorf("no craft asked, none skilled: the first of the list, got %q of %v", dv.Craft, dv.Crafts)
+	}
+	best := v.Crafts[len(v.Crafts)-1]
+	skillAt(t, e.pool, seeker.ID, best, 120)
+	if dv := directory(); dv.Craft != best {
+		t.Errorf("no craft asked: the viewer's best craft %q, got %q", best, dv.Craft)
+	}
+	// the teacher rule not yet counting: the directory names the day
+	e.ap.WithTeachingRules(application.TeachingRules{RuleAt: e.clock.Now().Add(24 * time.Hour), GraceDays: 2})
+	want := e.clock.Now().Add(24 * time.Hour).AddDate(0, 0, 2)
+	if dv := directory(); dv.StartsAt == nil || !dv.StartsAt.Equal(want) {
+		t.Errorf("the start day of the teacher rule: %v, want %v", dv.StartsAt, want)
 	}
 }

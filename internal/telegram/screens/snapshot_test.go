@@ -484,7 +484,7 @@ func educationScreens(c Context, _ people, add func(string, *presenter.Response)
 	add("Education · studying, with certificates", Education(c, EducationView{
 		Current: &CurrentCourseView{Course: CourseRef{Code: "bookkeeping", Name: "Bookkeeping"}, Percent: 60, Remaining: 95 * time.Minute,
 			EndsAt: snapshotNow.Add(95 * time.Minute)},
-		Certificates: []CourseRef{{Code: "first_aid", Name: "First Aid"}, {Code: "driving_licence", Name: "Driving Licence"}},
+		Certificates: []CertificateLine{{Code: "first_aid", Name: "First Aid"}, {Code: "driving_licence", Name: "Driving Licence"}},
 		Courses:      courses[2:], Page: 1, Pages: 1,
 	}))
 	add("Education · the course paused in jail", Education(c, EducationView{

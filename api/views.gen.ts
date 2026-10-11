@@ -92,6 +92,16 @@ export interface AppointView {
   player: GovPlayer
 }
 
+export interface ApprenticeBounds {
+  min_days: number
+  max_days: number
+  default_days: number
+  max_fee: number
+  min_share_bps: number
+  default_share_bps: number
+  max_share_bps: number
+}
+
 export interface ApprenticeJoinLine {
   workshop: Named
   craft: string
@@ -122,10 +132,12 @@ export interface ApprenticeLine {
 
 export interface ApprenticeRefusalView {
   kind: string
+  bounds: ApprenticeBounds | null
 }
 
 export interface ApprenticesView {
   lines: ApprenticeLine[] | null
+  bounds: ApprenticeBounds | null
   can_join: ApprenticeJoinLine[] | null
   notice: string
 }
@@ -654,6 +666,13 @@ export interface CaseOutcomeView {
 
 export interface CasesView {
   cases: CaseLine[] | null
+}
+
+export interface CertificateLine {
+  code: string
+  name: string
+  issued_by: Named | null
+  route: string
 }
 
 export interface CharterActingView {
@@ -1657,7 +1676,7 @@ export interface EducationLiteracy {
 
 export interface EducationView {
   current: CurrentCourseView | null
-  certificates: CourseRef[] | null
+  certificates: CertificateLine[] | null
   place: Named
   tier: string
   currency: Currency | null
@@ -6016,6 +6035,7 @@ export interface TeachersView {
   course: Named
   entries: TeacherEntry[] | null
   crafts: string[] | null
+  starts_at: string | null | null
 }
 
 export interface TeachingView {

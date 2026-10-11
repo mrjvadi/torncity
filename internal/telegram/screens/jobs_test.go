@@ -87,7 +87,7 @@ func sampleWorkScreens() map[string]func(Context) string {
 		"education": func(c Context) string {
 			return workTranscript(Education(c, EducationView{
 				Current:      &CurrentCourseView{Course: aid, Percent: 40, Remaining: 90 * time.Minute},
-				Certificates: []CourseRef{{Code: "bookkeeping", Name: "Bookkeeping"}},
+				Certificates: []CertificateLine{{Code: "bookkeeping", Name: "Bookkeeping"}},
 				Courses:      []CourseLine{{Course: aid, Fee: 600, Duration: 2 * time.Hour, MinLevel: 1, Eligible: true}},
 				Page:         1, Pages: 1,
 			}))
