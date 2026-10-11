@@ -172,6 +172,13 @@ func TestAPlayerMasterTeachesInHisOwnWorkshop(t *testing.T) {
 	}
 	grantCash(t, e.pool, pupil.ID, 2_000)
 	grantCash(t, e.pool, master.ID, 2_000)
+	t.Cleanup(func() { // the fees and refunds that moved between them go with them
+		_, _ = e.pool.Raw().Exec(testCtx(t), `DELETE FROM apprentice_exams WHERE candidate_id = $1::uuid`, pupil.ID)
+		_, _ = e.pool.Raw().Exec(testCtx(t), `DELETE FROM apprenticeships WHERE master_id = $1::uuid`, master.ID)
+		for _, p := range []*application.Player{pupil, master} {
+			purgeLedgerFor(t, e.pool, p.ID)
+		}
+	})
 	bench := newUUID(t)
 	if _, err := e.pool.Raw().Exec(testCtx(t), `INSERT INTO settlement_buildings (id, settlement_id, type_code, lot_x, lot_y, status, queued_at, completed_at)
 		VALUES ($1::uuid, $2::uuid, 'carpentry_workshop_own', 41, 40, 'complete', now(), now())`, bench, e.cityID); err != nil {
@@ -279,6 +286,7 @@ func TestAPlayerMasterTeachesInHisOwnWorkshop(t *testing.T) {
 		t.Fatal(err)
 	}
 	grantCash(t, e.pool, third.ID, 1_000)
+	t.Cleanup(func() { purgeLedgerFor(t, e.pool, third.ID) })
 	cid := e.cityID
 	third.CityID = &cid
 	if got := offer(master, third, "20", "200"); got != "" {
