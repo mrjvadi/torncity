@@ -1873,9 +1873,9 @@ func Defaults() *Config {
 			Compositions:           []string{"1+0:2", "2+0:4", "2+1:3", "2+2:2"},
 		},
 		Raid: Raid{
-			RuleAt:               "2099-01-01T00:00:00Z",
+			RuleAt:               "2026-10-11T23:30:00Z",
 			GraceDays:            14,
-			DeathRuleAt:          "2099-01-01T00:00:00Z",
+			DeathRuleAt:          "2026-10-11T23:30:00Z",
 			DeathGraceDays:       14,
 			MinLeadHours:         2,
 			MaxLeadHours:         48,

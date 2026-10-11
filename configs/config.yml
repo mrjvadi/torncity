@@ -1154,9 +1154,9 @@ worldgen:
 # plus their grace days; both are placeholders far in the future until the deploy sets them. Content (settlement_raids.yml) holds the detectors;
 # these are the numbers of the fight, the limits and the loss.
 raid:
-  rule_at: "2099-01-01T00:00:00Z"   # raids: a settlement may file or be raided from this instant plus grace_days; a placeholder far in the future until the deploy sets it (ADR 0074)
+  rule_at: "2026-10-11T23:30:00Z"   # raids: a settlement may file or be raided from this instant plus grace_days; a placeholder far in the future until the deploy sets it (ADR 0074)
   grace_days: 14   # days after rule_at before a raid may be filed
-  death_rule_at: "2099-01-01T00:00:00Z"   # falls cost assets from this instant plus death_grace_days; a placeholder far in the future until the deploy sets it (ADR 0074)
+  death_rule_at: "2026-10-11T23:30:00Z"   # falls cost assets from this instant plus death_grace_days; a placeholder far in the future until the deploy sets it (ADR 0074)
   death_grace_days: 14   # days after death_rule_at before a fall costs assets
   min_lead_hours: 2   # the least lead between filing and the start of a raid, hours
   max_lead_hours: 48   # the most lead between filing and the start of a raid, hours
