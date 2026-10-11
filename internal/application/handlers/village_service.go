@@ -270,11 +270,18 @@ func (h *VillageHandler) SettleServiceDay(ctx context.Context, tx application.Tx
 		if err != nil {
 			return nil, err
 		}
+		payee, err := h.npcWagePayee(ctx, tx, s.CityID, "service")
+		if err != nil {
+			return nil, err
+		}
 		if _, err := tx.Ledger().Post(ctx, application.LedgerTransaction{ID: d.WageTx, Reason: application.ReasonServiceWage, CreatedAt: now,
 			ReferenceType: application.ServiceDayReference, ReferenceID: s.CityID, Entries: []application.LedgerEntry{
 				{AccountID: acct.ID, Amount: money.FromMinor(-d.Wage)},
-				{AccountID: application.SystemSinkAccountID, Amount: money.FromMinor(d.Wage)},
+				{AccountID: payee.Account, Amount: money.FromMinor(d.Wage)},
 			}}); err != nil {
+			return nil, err
+		}
+		if err := h.afterNPCWage(ctx, tx, payee, s.CityID, d.Wage, application.ServiceDayReference, s.CityID, now); err != nil {
 			return nil, err
 		}
 	}

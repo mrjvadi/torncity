@@ -168,7 +168,7 @@ func (a *EconomyAdmin) verifyShop(ctx context.Context, v *LedgerVerification) er
 			SELECT count(*) FROM (
 			    SELECT COALESCE(p.settlement_id, q.settlement_id), COALESCE(p.line, q.line), COALESCE(p.day, q.day)
 			      FROM (SELECT settlement_id, line, day, SUM(quantity) AS n FROM village_shop_player_day GROUP BY 1, 2, 3) p
-			      FULL JOIN (SELECT settlement_id, line, day, SUM(quantity) AS n FROM village_shop_sales GROUP BY 1, 2, 3) q
+			      FULL JOIN (SELECT settlement_id, line, day, SUM(quantity) AS n FROM village_shop_sales WHERE household_id IS NULL GROUP BY 1, 2, 3) q
 			        ON q.settlement_id = p.settlement_id AND q.line = p.line AND q.day = p.day
 			     WHERE COALESCE(p.n, 0) <> COALESCE(q.n, 0)) x`},
 		{&s.GrantsUnjournalled, "starting bag grants", `

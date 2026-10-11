@@ -1150,6 +1150,50 @@ worldgen:
 # Organic settlement growth (docs/adr/0044-organic-growth-alliances-countries.md,
 # phases G0 and G1): what a settlement HAS (buildings, research, staff) replaces
 # its tier label as the thing every gate asks.
+# NPC households (docs/adr/0073-npc-households.md, plan B9): the people behind the labour pool. They start from rule_at (a placeholder far in the
+# future until the deploy sets it); a settlement enrolls itself then, runs a dual run, and flips when its households can fill the old pool.
+# The numbers are drafts until the household budget surveys of the ADR are read (ADR 0073 section 15).
+households:
+  rule_at: "2099-01-01T00:00:00Z"   # the households start for settlements from this instant; a placeholder far in the future until the deploy sets it (ADR 0073)
+  firewood_item: "firewood"   # the fuel a household burns
+  per_batch: 50   # households settled in one batch of a settlement-day
+  catchup_days_max: 3   # most days a settlement catches up when nobody read it
+  arrivals_per_day: 2   # most households that arrive in one settlement-day
+  vacancy_margin_bps: 1000   # share of the home slots kept free before anyone arrives
+  arrive_above_bps: 5000   # average satisfaction that lets more households arrive
+  leave_below_bps: 3000   # satisfaction under which a household is unhappy
+  leave_after_days: 5   # days in a row unhappy before a household leaves
+  notice_days: 2   # days of notice a household gets when a player takes its home
+  satisfaction_alpha_bps: 2000   # share of a day's score that enters the average
+  start_satisfaction_bps: 7000   # satisfaction of a household that arrives
+  birth_above_bps: 8000   # satisfaction from which a household may have a dependant
+  birth_chance_bps: 200   # chance a day of a dependant in a satisfied household
+  dependant_weight_bps: 5000   # what a dependant counts as against an adult in food, water and fuel
+  dependant_to_earner_days: 60   # days a dependant takes to grow into an adult
+  earner_bps: 6000   # mean earners a household has, in basis points of one earner (size-neutral flip, ADR 0073 4.9)
+  player_reserve_bps: 7000   # share of a day's shelf delivery households cannot buy
+  wallet_cap: 2000   # the savings a household keeps before it spends its surplus on the stock, minor units
+  welcome_grant: 300   # what the treasury gives an arriving household, minor units
+  welcome_floor: 1000   # the treasury must stay above this after a welcome grant, minor units
+  food_points_per_person_day: 4   # food points an adult eats a day (a worker's hour is one point)
+  water_milli_per_person: 1000   # thousandths of a unit of water an adult drinks a day
+  firewood_milli_per_person: 500   # thousandths of a unit of firewood an adult burns a day
+  stock_days: 2   # days of the households' needs the market day's trader leaves in the stock
+  tick_keep_days: 30   # days the household ticks are kept
+  clinic_chance_bps: 500   # chance a day that a household uses a standing clinic or health house
+  weight_food: 3000   # share of food in the day's score
+  weight_water: 2500   # share of water in the day's score
+  weight_warmth: 1500   # share of warmth in the day's score
+  weight_shelter: 1500   # share of shelter in the day's score
+  weight_work: 1000   # share of work in the day's score
+  weight_care: 500   # share of care in the day's score
+  surplus_spend_bps: 5000   # households.surplus_spend_bps: the share of the surplus above the savings a household spends a day
+  discretionary_items: ["pots"]   # the stock goods a household spends its surplus on (reference price, into the treasury)
+  welcome_quiet_days: 3   # households.welcome_quiet_days: no welcome grant while a household left in this many game days
+  max_rent: 200   # the most rent a day an owner may ask of a household, minor units
+  grace_days: 14   # days after rule_at before a settlement is forced live
+  compositions: ["1+0:2", "2+0:4", "2+1:3", "2+2:2"]   # kinds of arriving household: adults+dependants:weight
+
 growth:
   # authoritative (default since the promotion ladder was retired, 2026-10-04):
   # what the settlement has decides every gate. shadow: the same answer decides

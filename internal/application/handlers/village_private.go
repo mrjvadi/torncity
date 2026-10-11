@@ -409,12 +409,19 @@ func (h *VillageHandler) workedPrivate(ctx context.Context, tx application.Tx, m
 			return err
 		}
 		reason, to := application.ReasonLaborWageNPC, application.SystemSinkAccountID
+		var payee npcPayee
 		if sh.WorkerKind == application.LaborWorkerPlayer {
 			cash, err := tx.Ledger().AccountFor(ctx, application.AccountPlayerCash, sh.PlayerID)
 			if err != nil {
 				return err
 			}
 			reason, to = application.ReasonLaborWage, cash.ID
+		} else {
+			// an NPC's wage goes to the household that holds the seat once the settlement is live (ADR 0073)
+			if payee, err = h.npcWagePayee(ctx, tx, sh.SettlementID, "shift:"+sh.ID); err != nil {
+				return err
+			}
+			to = payee.Account
 		}
 		entries := []application.LedgerEntry{{AccountID: escrow.ID, Amount: money.FromMinor(-pay)}}
 		if net > 0 {
@@ -431,6 +438,9 @@ func (h *VillageHandler) workedPrivate(ctx context.Context, tx application.Tx, m
 			ID: txID, Reason: reason, CreatedAt: now,
 			ReferenceType: application.SettlementShiftReference, ReferenceID: sh.ID, Entries: entries,
 		}); err != nil {
+			return err
+		}
+		if err := h.afterNPCWage(ctx, tx, payee, sh.SettlementID, net, application.SettlementShiftReference, sh.ID, now); err != nil {
 			return err
 		}
 	}

@@ -569,6 +569,46 @@ worldgen:
   chunk_stream_frequency: 61
   chunk_stream_amplitude: 61
   chunk_deposit_tiles_per_deposit: 6
+households:
+  rule_at: "2098-01-01T00:00:00Z"
+  firewood_item: logs
+  per_batch: 57
+  catchup_days_max: 10
+  arrivals_per_day: 9
+  vacancy_margin_bps: 1007
+  arrive_above_bps: 5007
+  leave_below_bps: 3007
+  leave_after_days: 12
+  notice_days: 9
+  satisfaction_alpha_bps: 2007
+  start_satisfaction_bps: 7007
+  birth_above_bps: 8007
+  birth_chance_bps: 207
+  dependant_weight_bps: 5007
+  dependant_to_earner_days: 67
+  earner_bps: 6007
+  player_reserve_bps: 7007
+  wallet_cap: 2007
+  welcome_grant: 307
+  welcome_floor: 1007
+  food_points_per_person_day: 11
+  water_milli_per_person: 1007
+  firewood_milli_per_person: 507
+  stock_days: 9
+  tick_keep_days: 37
+  clinic_chance_bps: 507
+  weight_food: 3007
+  weight_water: 2507
+  weight_warmth: 1507
+  weight_shelter: 1507
+  weight_work: 1007
+  weight_care: 507
+  max_rent: 207
+  welcome_quiet_days: 12
+  surplus_spend_bps: 5007
+  discretionary_items: ["rope"]
+  grace_days: 21
+  compositions: ["1+0:1"]
 growth:
   capabilities: off
   cache_ttl: 6s
@@ -1181,6 +1221,46 @@ var envOverrides = map[string]string{
 	"TORN_WORLDGEN_CHUNK_STREAM_FREQUENCY":          "62",
 	"TORN_WORLDGEN_CHUNK_STREAM_AMPLITUDE":          "62",
 	"TORN_WORLDGEN_CHUNK_DEPOSIT_TILES_PER_DEPOSIT": "7",
+
+	"TORN_HOUSEHOLDS_RULE_AT":                    "2097-01-01T00:00:00Z",
+	"TORN_HOUSEHOLDS_FIREWOOD_ITEM":              "kindling",
+	"TORN_HOUSEHOLDS_PER_BATCH":                  "59",
+	"TORN_HOUSEHOLDS_CATCHUP_DAYS_MAX":           "12",
+	"TORN_HOUSEHOLDS_ARRIVALS_PER_DAY":           "11",
+	"TORN_HOUSEHOLDS_VACANCY_MARGIN_BPS":         "1009",
+	"TORN_HOUSEHOLDS_ARRIVE_ABOVE_BPS":           "5009",
+	"TORN_HOUSEHOLDS_LEAVE_BELOW_BPS":            "3009",
+	"TORN_HOUSEHOLDS_LEAVE_AFTER_DAYS":           "14",
+	"TORN_HOUSEHOLDS_NOTICE_DAYS":                "11",
+	"TORN_HOUSEHOLDS_SATISFACTION_ALPHA_BPS":     "2009",
+	"TORN_HOUSEHOLDS_START_SATISFACTION_BPS":     "7009",
+	"TORN_HOUSEHOLDS_BIRTH_ABOVE_BPS":            "8009",
+	"TORN_HOUSEHOLDS_BIRTH_CHANCE_BPS":           "209",
+	"TORN_HOUSEHOLDS_DEPENDANT_WEIGHT_BPS":       "5009",
+	"TORN_HOUSEHOLDS_DEPENDANT_TO_EARNER_DAYS":   "69",
+	"TORN_HOUSEHOLDS_EARNER_BPS":                 "6009",
+	"TORN_HOUSEHOLDS_PLAYER_RESERVE_BPS":         "7009",
+	"TORN_HOUSEHOLDS_WALLET_CAP":                 "2009",
+	"TORN_HOUSEHOLDS_WELCOME_GRANT":              "309",
+	"TORN_HOUSEHOLDS_WELCOME_FLOOR":              "1009",
+	"TORN_HOUSEHOLDS_FOOD_POINTS_PER_PERSON_DAY": "13",
+	"TORN_HOUSEHOLDS_WATER_MILLI_PER_PERSON":     "1009",
+	"TORN_HOUSEHOLDS_FIREWOOD_MILLI_PER_PERSON":  "509",
+	"TORN_HOUSEHOLDS_STOCK_DAYS":                 "11",
+	"TORN_HOUSEHOLDS_TICK_KEEP_DAYS":             "39",
+	"TORN_HOUSEHOLDS_CLINIC_CHANCE_BPS":          "509",
+	"TORN_HOUSEHOLDS_WEIGHT_FOOD":                "3009",
+	"TORN_HOUSEHOLDS_WEIGHT_WATER":               "2509",
+	"TORN_HOUSEHOLDS_WEIGHT_WARMTH":              "1509",
+	"TORN_HOUSEHOLDS_WEIGHT_SHELTER":             "1509",
+	"TORN_HOUSEHOLDS_WEIGHT_WORK":                "1009",
+	"TORN_HOUSEHOLDS_WEIGHT_CARE":                "509",
+	"TORN_HOUSEHOLDS_SURPLUS_SPEND_BPS":          "5009",
+	"TORN_HOUSEHOLDS_DISCRETIONARY_ITEMS":        "chain",
+	"TORN_HOUSEHOLDS_WELCOME_QUIET_DAYS":         "13",
+	"TORN_HOUSEHOLDS_MAX_RENT":                   "209",
+	"TORN_HOUSEHOLDS_GRACE_DAYS":                 "23",
+	"TORN_HOUSEHOLDS_COMPOSITIONS":               "1+0:3",
 
 	"TORN_GROWTH_CAPABILITIES":   "shadow",
 	"TORN_GROWTH_CACHE_TTL":      "6s",

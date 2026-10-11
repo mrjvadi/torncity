@@ -15,6 +15,7 @@ func init() {
 	Register(village.ScreenKnowledgeList, screens.KnowledgeList)
 	Register(village.ScreenResearch, screens.ResearchBoard)
 	Register(village.ScreenTradeDesk, screens.TradeDesk)
+	Register(village.ScreenHouseholds, screens.Households)
 	Register(village.ScreenBuildMenu, screens.BuildMenu)
 	Register(village.ScreenConstructionProgress, screens.ConstructionProgress)
 	Register(village.ScreenLotGrid, screens.LotGrid)

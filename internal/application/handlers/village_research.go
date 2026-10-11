@@ -369,11 +369,18 @@ func (h *VillageHandler) settleResearchDay(ctx context.Context, tx application.T
 			}
 		}
 		if d.WageNPC > 0 {
+			payee, err := h.npcWagePayee(ctx, tx, s.CityID, "scholar")
+			if err != nil {
+				return nil, err
+			}
 			if _, err := tx.Ledger().Post(ctx, application.LedgerTransaction{ID: d.LedgerNPCTx, Reason: application.ReasonScholarWageNPC,
 				CreatedAt: now, ReferenceType: application.ResearchDayReference, ReferenceID: s.CityID, Entries: []application.LedgerEntry{
 					{AccountID: acct.ID, Amount: money.FromMinor(-d.WageNPC)},
-					{AccountID: application.SystemSinkAccountID, Amount: money.FromMinor(d.WageNPC)},
+					{AccountID: payee.Account, Amount: money.FromMinor(d.WageNPC)},
 				}}); err != nil {
+				return nil, err
+			}
+			if err := h.afterNPCWage(ctx, tx, payee, s.CityID, d.WageNPC, application.ResearchDayReference, s.CityID, now); err != nil {
 				return nil, err
 			}
 		}

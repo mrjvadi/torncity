@@ -85,7 +85,7 @@ func (k AccountKind) Valid() bool {
 	case AccountPlayerCash, AccountPlayerBank, AccountCompanyTreasury,
 		AccountFactionTreasury, AccountCityTreasury, AccountSystemSink, AccountSystemSource,
 		AccountPlayerEscrow, AccountStateTreasury, AccountDefenceFund, AccountNationalBank, AccountInsuranceFund,
-		AccountPlayerSavings, AccountForeignHolding, AccountReservePot, AccountFXEscrow:
+		AccountPlayerSavings, AccountForeignHolding, AccountReservePot, AccountFXEscrow, AccountHouseholdWallet:
 		return true
 	}
 	return false
@@ -567,7 +567,7 @@ var knownReasons = map[Reason]struct{}{
 	ReasonFXEscrow: {}, ReasonFXRelease: {}, ReasonFXTradeSUP: {}, ReasonFXTradeVC: {},
 	ReasonInterventionBuy: {}, ReasonReserveRelease: {}, ReasonWindDownClaim: {},
 	ReasonCourseFee: {}, ReasonTuition: {}, ReasonTeacherWage: {}, ReasonTeacherWageNPC: {}, ReasonTrainingFee: {}, ReasonTrainerWage: {},
-	ReasonUseChangeFee: {},
+	ReasonUseChangeFee:    {},
 	ReasonParcelChangeFee: {}, ReasonZoneOpenFee: {}, ReasonSettlementClaim: {}, ReasonFoundationWorks: {}, ReasonClaimUpkeep: {},
 }
 

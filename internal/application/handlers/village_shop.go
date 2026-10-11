@@ -206,7 +206,11 @@ func (h *VillageHandler) shopStateOf(ctx context.Context, tx application.Tx, sna
 		return st, err
 	}
 	st.pool, st.wage = market.pool, market.line.NPCWage
-	st.served = st.residents + st.pool
+	hp, err := h.householdPersons(ctx, tx, s.CityID)
+	if err != nil {
+		return st, err
+	}
+	st.served = st.residents + st.pool + hp
 
 	var lines []vshop.Line
 	for _, l := range def.Lines {
@@ -318,14 +322,21 @@ func (h *VillageHandler) SettleShopDay(ctx context.Context, tx application.Tx, s
 		if err != nil {
 			return nil, err
 		}
+		payee, err := h.npcWagePayee(ctx, tx, s.CityID, "shopkeeper")
+		if err != nil {
+			return nil, err
+		}
 		if _, err := tx.Ledger().Post(ctx, application.LedgerTransaction{
 			ID: d.LedgerTransactionID, Reason: application.ReasonShopkeeperWage, CreatedAt: now,
 			ReferenceType: application.VillageShopDayReference, ReferenceID: s.CityID,
 			Entries: []application.LedgerEntry{
 				{AccountID: acct.ID, Amount: money.FromMinor(-d.Wage)},
-				{AccountID: application.SystemSinkAccountID, Amount: money.FromMinor(d.Wage)},
+				{AccountID: payee.Account, Amount: money.FromMinor(d.Wage)},
 			},
 		}); err != nil {
+			return nil, err
+		}
+		if err := h.afterNPCWage(ctx, tx, payee, s.CityID, d.Wage, application.VillageShopDayReference, s.CityID, now); err != nil {
 			return nil, err
 		}
 	}

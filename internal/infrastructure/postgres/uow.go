@@ -244,6 +244,9 @@ func (t *tx) Research() application.ResearchRepository { return &ResearchReposit
 // Trade returns the market day's orders and days (migration 0136).
 func (t *tx) Trade() application.TradeRepository { return &TradeRepository{q: t.q} }
 
+// Household returns the NPC households (migration 0151).
+func (t *tx) Household() application.HouseholdRepository { return &HouseholdRepository{q: t.q} }
+
 func (t *tx) ServiceDays() application.ServiceDayRepository { return &ServiceDayRepository{q: t.q} }
 
 // Craft returns the craft jobs (migration 0145).

@@ -159,12 +159,18 @@ func (r *VillageShopRepository) RecordSale(ctx context.Context, s application.Vi
 	if err != nil {
 		return err
 	}
+	var player, house any
+	if s.HouseholdID != "" {
+		house = s.HouseholdID
+	} else {
+		player = s.PlayerID
+	}
 	if _, err := r.q.Exec(ctx,
-		`INSERT INTO village_shop_sales (id, settlement_id, player_id, line, day, quantity, unit_price, reference_price,
+		`INSERT INTO village_shop_sales (id, settlement_id, player_id, household_id, line, day, quantity, unit_price, reference_price,
 		                                 total, tax, method, ledger_transaction_id, created_at)
-		 VALUES ($1::uuid, $2::uuid, $3::uuid, $4, $5, $6, $7, $8, $9, $10, $11, $12::uuid, $13)`,
-		id, s.SettlementID, s.PlayerID, s.Line, s.Day, s.Quantity, s.UnitPrice, s.ReferencePrice, s.Total, s.Tax, s.Method,
-		s.LedgerTransactionID, s.At.UTC()); err != nil {
+		 VALUES ($1::uuid, $2::uuid, $3::uuid, $14::uuid, $4, $5, $6, $7, $8, $9, $10, $11, $12::uuid, $13)`,
+		id, s.SettlementID, player, s.Line, s.Day, s.Quantity, s.UnitPrice, s.ReferencePrice, s.Total, s.Tax, s.Method,
+		s.LedgerTransactionID, s.At.UTC(), house); err != nil {
 		return fmt.Errorf("postgres: recording a shop sale: %w", err)
 	}
 	return nil

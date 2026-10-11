@@ -8,6 +8,7 @@
 🟢 کاوه - آنلاین
 🟢 نیلوفر - در حال سفر
   ───
+  [🏠 خانوارها] → settlement:households
   [🔙 بازگشت] → settlement:overview   │   [🔄 به‌روزرسانی] → settlement:who
 
 ━━━ Who is around · nobody online ━━━
@@ -18,6 +19,7 @@
 
 الان کسی آنلاین نیست.
   ───
+  [🏠 خانوارها] → settlement:households
   [🔙 بازگشت] → settlement:overview   │   [🔄 به‌روزرسانی] → settlement:who
 
 ━━━ Settings · last seen shown to everyone ━━━

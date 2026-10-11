@@ -117,7 +117,7 @@ var catalogue = []Def{
 	{FiscalMarketFee, "fiscal", false, false}, {FiscalLevy, "fiscal", false, false},
 	{RoadDraw, "land", false, true}, {LandClear, "land", false, true}, {FarmSow, "land", false, true}, {MillToll, "fiscal", false, true}, {ZoneOpen, "land", false, true}, {ZoneClose, "land", false, true}, {LandClaim, "land", false, true},
 	{LotSell, "land", false, true}, {PublicBuild, "land", false, true}, {PublicDemolish, "land", false, true},
-	{CitizenAdmit, "people", false, false}, {CitizenBan, "people", false, false},
+	{CitizenAdmit, "people", false, true}, {CitizenBan, "people", false, false},
 	{StaffHire, "people", false, true}, {StaffFire, "people", false, true}, {JobsPost, "people", false, true},
 	{ResearchStart, "knowledge", false, true}, {ResearchShare, "knowledge", false, true}, {TradeExport, "treasury", false, true},
 	{PolicePatrol, "order", false, false}, {PoliceFine, "order", true, false}, {CourtJudge, "order", false, false},

@@ -44,6 +44,13 @@ func settlementUsage() {
                           treasury left after the fee, so no treasury is stripped; under
                           currency.auto_charter_floor the settlement is skipped and its head keeps
                           the offer. Audited per settlement; a rerun charters nothing twice
+  households --id UUID --state off|dual|live --reason "why" [--by NAME]
+                          the per-settlement flag of the NPC households (ADR 0073, npc.citizens): dual
+                          (they arrive, nothing else changes), live (the pool is their earners, wages
+                          go to their wallets) or off (the emergency stop: arrivals and days stop, the
+                          wallets stay, new shifts pay the sink again). A settlement not yet enrolled
+                          is enrolled in the state given. Prints the old and the new state. A settlement set
+                          live before its households arrived has an empty pool until they do
   backfill-functions      give every finished building of every founded settlement the function
                           (and the modules its level includes) its catalogue code stands for (docs/adr/0045
                           step 0.5, phase B1); idempotent, batched per settlement, safe to rerun. Reports
@@ -93,6 +100,8 @@ func settlementCommand(ctx context.Context, args []string) error {
 		return settlementBackfillTimezones(ctx)
 	case "backfill-functions":
 		return settlementBackfillFunctions(ctx)
+	case "households":
+		return settlementHouseholds(ctx, args[1:])
 	case "charter-currencies":
 		return settlementCharterCurrencies(ctx, args[1:])
 	case "refund-national-levy":
@@ -269,5 +278,57 @@ func settlementRefundLevy(ctx context.Context, args []string) error {
 	}
 	fmt.Printf("settlements refunded: %d\ntotal:                %s (state treasury %s, defence fund %s, system source %s)\nby:                   %s\nreason:               %s\n",
 		len(refunds), money.FromMinor(total), money.FromMinor(state), money.FromMinor(fund), money.FromMinor(source), who, *reason)
+	return nil
+}
+
+// settlementHouseholds moves a settlement between the phases of the NPC households (docs/adr/0073 section 8).
+func settlementHouseholds(ctx context.Context, args []string) error {
+	fs := flag.NewFlagSet("settlement households", flag.ExitOnError)
+	fs.Usage = settlementUsage
+	id := fs.String("id", "", "the settlement's id (required)")
+	state := fs.String("state", "", "off, dual or live (required)")
+	reason := fs.String("reason", "", "why (required)")
+	op := addOperatorFlags(fs)
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	*reason = strings.TrimSpace(*reason)
+	switch {
+	case strings.TrimSpace(*id) == "":
+		return errors.New("settlement households: --id is required")
+	case *state != "off" && *state != "dual" && *state != "live":
+		return errors.New("settlement households: --state is off, dual or live")
+	case *reason == "":
+		return errors.New("settlement households: --reason is required")
+	}
+	who, err := op.resolve("settlement households", os.LookupEnv)
+	if err != nil {
+		return err
+	}
+	_, _, closeFn, err := settlementOps(ctx)
+	if err != nil {
+		return err
+	}
+	defer closeFn()
+	pool, err := contentPool(ctx)
+	if err != nil {
+		return err
+	}
+	defer pool.Close()
+	var before string
+	_ = pool.Raw().QueryRow(ctx, `SELECT COALESCE((SELECT state FROM household_settlements WHERE settlement_id = $1::uuid), 'none')`, strings.TrimSpace(*id)).Scan(&before)
+	tag, err := pool.Raw().Exec(ctx, `
+		INSERT INTO household_settlements (settlement_id, state, enrolled_at, flipped_at, updated_at)
+		SELECT c.id, $2, now(), CASE WHEN $2 = 'live' THEN now() END, now() FROM cities c WHERE c.id = $1::uuid
+		ON CONFLICT (settlement_id) DO UPDATE SET state = EXCLUDED.state, updated_at = now(),
+		       flipped_at = CASE WHEN EXCLUDED.state = 'live' THEN COALESCE(household_settlements.flipped_at, now()) ELSE household_settlements.flipped_at END`,
+		strings.TrimSpace(*id), *state)
+	if err != nil {
+		return err
+	}
+	if tag.RowsAffected() == 0 {
+		return fmt.Errorf("settlement households: no settlement %s", *id)
+	}
+	fmt.Printf("settlement:  %s\nhouseholds:  %s -> %s\nset by:      %s\nreason:      %s\n", *id, before, *state, who, *reason)
 	return nil
 }

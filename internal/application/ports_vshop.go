@@ -65,12 +65,14 @@ type VillageShopDay struct {
 // VillageShopSale is one purchase at the counter.
 type VillageShopSale struct {
 	ID, SettlementID, PlayerID, Line string
-	Day, Quantity                    int64
-	UnitPrice, ReferencePrice        int64
-	Total, Tax                       int64
-	Method                           string
-	LedgerTransactionID              string
-	At                               time.Time
+	// HouseholdID is the buyer when a household bought (PlayerID is then empty; migration 0151).
+	HouseholdID               string
+	Day, Quantity             int64
+	UnitPrice, ReferencePrice int64
+	Total, Tax                int64
+	Method                    string
+	LedgerTransactionID       string
+	At                        time.Time
 }
 
 // VillageShopRepository persists the shop. Reach it through Tx.VillageShop, so a

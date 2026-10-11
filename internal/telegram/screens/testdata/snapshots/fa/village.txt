@@ -171,6 +171,55 @@
   ───
   [🔙 بازگشت] → settlement:materials   │   [🔄 به‌روزرسانی] → settlement:trade
 
+━━━ Households · none yet ━━━
+(edits message 42)
+👨‍👩‍👧 خانوارهای «کورندال»
+
+این شهر هنوز خانواری ندارد؛ وقتی خانه و کار باشد، خانوارها می‌آیند.
+  ───
+  [🔙 بازگشت] → settlement:who   │   [🔄 به‌روزرسانی] → settlement:households
+
+━━━ Households · the dual run, the head may close the city ━━━
+(edits message 42)
+👨‍👩‍👧 خانوارهای «کورندال»
+
+⏳ خانوارها دارند می‌آیند؛ تا وقتی جای کارِ شهر (⁨5⁩ نفر) پُر شود، همه‌چیز مثل قبل می‌ماند.
+
+🏠 ⁨4⁩ خانوار - ⁨9⁩ نفر - ⁨3⁩ نفر سرِ کار - جا برای ⁨7⁩ خانوار
+🙂 رضایت خانوارها: ⁨70⁩٪
+
+🚪 شهر به روی خانوارهای تازه باز است.
+  ───
+  [🚪 بستن شهر] → settlement:households:close
+  [🔙 بازگشت] → settlement:who   │   [🔄 به‌روزرسانی] → settlement:households
+
+━━━ Households · live, with news, a tax and an owner's dwelling ━━━
+(edits message 42)
+👨‍👩‍👧 خانوارهای «کورندال»
+
+✅ مردم شهر را خانوارها می‌سازند: مزد کارگرها به کیف خانوارشان می‌رود و خرجشان را از انبار و دکان می‌دهند.
+
+🏠 ⁨7⁩ خانوار - ⁨17⁩ نفر - ⁨6⁩ نفر سرِ کار - جا برای ⁨8⁩ خانوار
+🙂 رضایت خانوارها: ⁨62⁩٪
+⚠️ بیشترین کم‌داشت: هیزم و گرما
+🧾 مالیات بر مزد خانوارها: ⁨10⁩٪
+
+🚪 شهر به روی خانوارهای تازه باز است.
+
+📰 تازه‌ها:
+• خانواری (⁨2+1⁩) آمد - ⁨19⁩ مهر ⁨1405⁩، ⁨11⁩:⁨30⁩
+• خانواری رفت (کم‌داشت: غذا) - ⁨19⁩ مهر ⁨1405⁩، ⁨12⁩:⁨30⁩
+
+🏡 خانه‌های شما:
+• کلبه: جا برای ⁨2⁩ خانوار؛ اجاره نمی‌دهید
+• خانه: اجاره می‌دهید، روزی ⁨⁨30⁩ ساپ⁩ - ⁨2⁩ خانوار نشسته‌اند
+  ───
+  [🚪 بستن شهر] → settlement:households:close
+  [مالیات ⁨0⁩٪] → settlement:households:tax:0   │   [مالیات ⁨5⁩٪] → settlement:households:tax:500   │   [مالیات ⁨10⁩٪] → settlement:households:tax:1000
+  [اجاره ⁨⁨20⁩ ساپ⁩] → settlement:households:rent_open:private_cottage:20   │   [اجاره ⁨⁨50⁩ ساپ⁩] → settlement:households:rent_open:private_cottage:50
+  [بستن اجارهٔ خانه] → settlement:households:rent_close:private_house
+  [🔙 بازگشت] → settlement:who   │   [🔄 به‌روزرسانی] → settlement:households
+
 ━━━ Research desk · a laboratory at work, a library short of paper, a pact offered ━━━
 (edits message 42)
 🔬 پژوهش‌های «کورندال»

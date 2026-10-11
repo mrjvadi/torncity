@@ -222,6 +222,7 @@ village:
     trade: "🚚 Trader"
     overview: "🏘 City"
     who: "👥 People"
+    households: "🏠 Households"
     knowledge: "📚 City knowledge"
     build: "🏗 Construction"
     progress: "⏳ Build progress"
@@ -1028,6 +1029,46 @@ trade:
     all: "{item} - all"
     keep: "keep {n}"
     off: "✖"
+
+households:
+  title: "👨‍👩‍👧 Households of {name}"
+  none: "This city has no households yet; they come once there are homes and work."
+  counts: "🏠 {living} households - {persons} people - {earners} at work - room for {homes}"
+  mood: "🙂 Household satisfaction: {percent}%"
+  worst: "⚠️ Most lacking: {need}"
+  need:
+    food: "food"
+    water: "water"
+    warmth: "firewood and warmth"
+    shelter: "a home"
+    home: "a home"
+    work: "work"
+    care: "care"
+  phase:
+    dual: "⏳ Households are arriving; until they fill the city's work ({target} people) nothing changes."
+    live: "✅ The city's people are its households: workers' wages go to their purses and they pay for their needs at the stock and the shop."
+  tax: "🧾 Tax on households' wages: {percent}%"
+  admission:
+    open: "🚪 The city is open to new households."
+    closed: "🚪 The city is closed to new households."
+  news_title: "📰 News:"
+  news:
+    arrived: "• A household ({detail}) arrived - {date}, {time}"
+    left: "• A household left (lacked: {detail}) - {date}, {time}"
+    notice: "• A household was given notice (lacked: {detail}) - {date}, {time}"
+    born: "• A child was born - {date}, {time}"
+    grown: "• A child grew up - {date}, {time}"
+    grant: "• The treasury gave a new household {detail} - {date}, {time}"
+  dwellings_title: "🏡 Your homes:"
+  dwelling:
+    open: "• {building}: let at {rent} a day - {tenants} households live there"
+    closed: "• {building}: room for {slots} households; not let"
+  button:
+    admit: "🚪 Open the city"
+    close: "🚪 Close the city"
+    tax: "Tax {percent}%"
+    rent_open: "Rent {rent}"
+    rent_close: "Stop letting {building}"
 
 research:
   title: "🔬 Research of {name}"

@@ -2690,6 +2690,65 @@ export interface HospitalisedView {
   remaining_seconds: number
 }
 
+export interface HouseholdDayLine {
+  households: number
+  arrivals: number
+  departures: number
+  at: string | null
+}
+
+export interface HouseholdDwellingLine {
+  building: Named
+  slots: number
+  open: boolean
+  rent: number
+  tenants: number
+}
+
+export interface HouseholdLine {
+  index: number
+  adults: number
+  dependants: number
+  earners: number
+  satisfaction_bps: number
+  state: string
+  worst: string
+  wallet: number
+  arrived_at: string | null
+}
+
+export interface HouseholdNewsLine {
+  kind: string
+  detail: string
+  at: string | null
+}
+
+export interface HouseholdsView {
+  name: string
+  phase: string
+  open: boolean
+  income_tax_bps: number
+  living: number
+  leaving: number
+  persons: number
+  earners: number
+  homes: number
+  mood_bps: number
+  worst: string
+  wallets: number
+  target_pool: number
+  pool: number
+  last_day: HouseholdDayLine | null
+  list: HouseholdLine[] | null
+  news: HouseholdNewsLine[] | null
+  dwellings: HouseholdDwellingLine[] | null
+  max_rent: number
+  may_admit: boolean
+  may_tax: boolean
+  tax_presets: number[] | null
+  rent_presets: number[] | null
+}
+
 export interface HubView {
   place: ActivityPlace
   entries: ActivityEntry[] | null
@@ -7114,6 +7173,7 @@ export interface ScreenViews {
   history: HistoryView
   hospital: HospitalView
   hospitalised_notice: HospitalisedView
+  households: HouseholdsView
   hunger_notice: EmptyView
   impose: ImposeView
   improvement: ImprovementView

@@ -499,10 +499,17 @@ func (h *EducationHandler) payTeacher(ctx context.Context, tx application.Tx, en
 		return nil
 	}
 	var payee application.Account
+	var npcSeat npcPayee
 	reason := application.ReasonTeacherWage
 	if t.Kind == application.TeacherNPC {
 		reason = application.ReasonTeacherWageNPC
-		payee = application.Account{ID: application.SystemSinkAccountID}
+		// an NPC teacher's wage goes to the household that holds the seat once the settlement is live (ADR 0073)
+		hp, err := payeeOf(ctx, tx, seat.SettlementID, "teacher:"+enrollmentID)
+		if err != nil {
+			return err
+		}
+		payee = application.Account{ID: hp.Account}
+		npcSeat = hp
 	} else if payee, err = tx.Ledger().AccountFor(ctx, application.AccountPlayerCash, t.PlayerID); err != nil {
 		return err
 	}
@@ -513,7 +520,10 @@ func (h *EducationHandler) payTeacher(ctx context.Context, tx application.Tx, en
 			{AccountID: payee.ID, Amount: money.FromMinor(pay)},
 		},
 	})
-	return err
+	if err != nil {
+		return err
+	}
+	return withholdWageTax(ctx, tx, npcSeat, seat.SettlementID, pay, "class_seats", enrollmentID, now)
 }
 
 // WithExperience gives the education handler the experience a finished class in a founded settlement adds to the field
