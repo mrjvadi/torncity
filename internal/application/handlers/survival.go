@@ -18,8 +18,6 @@ import (
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/presentation"
 	plife "github.com/mrjvadi/torncity/internal/presentation/life"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
-	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // Survival (docs/adr/0070, plan B6): thirst, warmth, garments and sickness in a founded settlement.
@@ -87,10 +85,6 @@ func NewSurvivalHandler(uow application.UnitOfWork, ids IDGenerator, msgs Transl
 func (h *SurvivalHandler) WithRules(r application.SurvivalRules, home HomeWarmer, care application.VillageCarer, clock gametime.Clock) *SurvivalHandler {
 	h.deps = survivalDeps{rules: r, home: home, care: care, clock: clock}
 	return h
-}
-
-func (h *SurvivalHandler) screen(meta envelope.Metadata, lang string) screens.Context {
-	return screens.Context{Msgs: h.msgs, Lang: lang, MessageID: editableMessageID(meta), Shared: meta.InGroup()}
 }
 
 // sctx is where a player stands and the numbers that apply there.
@@ -397,7 +391,7 @@ const (
 	HealthRefusedNotIll     = "not_ill"
 )
 
-func (h *SurvivalHandler) finish(meta envelope.Metadata, lang string, err error) (*presenter.Response, error) {
+func (h *SurvivalHandler) finish(meta envelope.Metadata, lang string, err error) (*presentation.Response, error) {
 	if err == nil {
 		return nil, nil
 	}
@@ -497,7 +491,7 @@ func medicineFor(s content.SurvivalDef, stock map[string]int64) string {
 }
 
 // Needs handles health.needs: thirst, warmth, the weather, the dress and what can be done.
-func (h *SurvivalHandler) Needs(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *SurvivalHandler) Needs(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	return h.run(ctx, meta, "", func(ctx context.Context, tx application.Tx, snap *content.Snapshot, p *application.Player, t *touched, now time.Time) (string, error) {
 		return "", nil
 	})
@@ -506,7 +500,7 @@ func (h *SurvivalHandler) Needs(ctx context.Context, meta envelope.Metadata) (*p
 // run is the frame of every command: the player, the touch, the action, the screen.
 func (h *SurvivalHandler) run(ctx context.Context, meta envelope.Metadata, _ string,
 	act func(ctx context.Context, tx application.Tx, snap *content.Snapshot, p *application.Player, t *touched, now time.Time) (string, error),
-) (*presenter.Response, error) {
+) (*presentation.Response, error) {
 	if err := validatePlayerMeta(meta); err != nil {
 		return nil, err
 	}
@@ -570,7 +564,7 @@ func dieOf(seed int64, playerID string, at time.Time) int64 {
 }
 
 // Drink handles health.drink.
-func (h *SurvivalHandler) Drink(ctx context.Context, meta envelope.Metadata, req SurvivalRequest) (*presenter.Response, error) {
+func (h *SurvivalHandler) Drink(ctx context.Context, meta envelope.Metadata, req SurvivalRequest) (*presentation.Response, error) {
 	return h.run(ctx, meta, "", func(ctx context.Context, tx application.Tx, snap *content.Snapshot, p *application.Player, t *touched, now time.Time) (string, error) {
 		c := t.c
 		s := c.def.Survival
@@ -664,7 +658,7 @@ func (h *SurvivalHandler) Drink(ctx context.Context, meta envelope.Metadata, req
 }
 
 // Wear handles health.wear: a garment from the bag or from the wardrobe is put on, and the one on that slot is taken off.
-func (h *SurvivalHandler) Wear(ctx context.Context, meta envelope.Metadata, req SurvivalRequest) (*presenter.Response, error) {
+func (h *SurvivalHandler) Wear(ctx context.Context, meta envelope.Metadata, req SurvivalRequest) (*presentation.Response, error) {
 	return h.run(ctx, meta, "", func(ctx context.Context, tx application.Tx, snap *content.Snapshot, p *application.Player, t *touched, now time.Time) (string, error) {
 		c := t.c
 		var g application.Garment
@@ -715,7 +709,7 @@ func (h *SurvivalHandler) Wear(ctx context.Context, meta envelope.Metadata, req 
 }
 
 // Remove handles health.remove: the garment on a slot is taken off and kept in the wardrobe.
-func (h *SurvivalHandler) Remove(ctx context.Context, meta envelope.Metadata, req SurvivalRequest) (*presenter.Response, error) {
+func (h *SurvivalHandler) Remove(ctx context.Context, meta envelope.Metadata, req SurvivalRequest) (*presentation.Response, error) {
 	return h.run(ctx, meta, "", func(ctx context.Context, tx application.Tx, snap *content.Snapshot, p *application.Player, t *touched, now time.Time) (string, error) {
 		for _, k := range t.kept {
 			if k.Worn && k.Slot == req.Slot {
@@ -727,7 +721,7 @@ func (h *SurvivalHandler) Remove(ctx context.Context, meta envelope.Metadata, re
 }
 
 // Warm handles health.warm: on a day the warming house is open the player warms himself at its hearth and is sheltered for some hours.
-func (h *SurvivalHandler) Warm(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *SurvivalHandler) Warm(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	return h.run(ctx, meta, "", func(ctx context.Context, tx application.Tx, snap *content.Snapshot, p *application.Player, t *touched, now time.Time) (string, error) {
 		if h.deps.care == nil {
 			return "", &survivalRefusal{HealthRefusedNotOpen}
@@ -749,7 +743,7 @@ func (h *SurvivalHandler) Warm(ctx context.Context, meta envelope.Metadata) (*pr
 }
 
 // Cure handles health.cure: a health house or a clinic that is open treats a sickness with a medicine of the settlement stock.
-func (h *SurvivalHandler) Cure(ctx context.Context, meta envelope.Metadata) (*presenter.Response, error) {
+func (h *SurvivalHandler) Cure(ctx context.Context, meta envelope.Metadata) (*presentation.Response, error) {
 	return h.run(ctx, meta, "", func(ctx context.Context, tx application.Tx, snap *content.Snapshot, p *application.Player, t *touched, now time.Time) (string, error) {
 		ills, err := tx.Survival().Illnesses(ctx, p.ID)
 		if err != nil {
