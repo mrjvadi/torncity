@@ -707,9 +707,9 @@ func TestADetectorSeesAndABeaconChainRelaysTheNewsInTime(t *testing.T) {
 		}
 	}
 	id := e.file("3", "5")
-	// a seed for which the lookout's six in ten chance comes up
+	// a seed for which the lookout's chance comes up by day and by night (six in ten, a tenth less at night)
 	for s := int64(1); ; s++ {
-		if raid.Detected(6000, raid.Roll(s, "detect:"+lookout)) {
+		if raid.Detected(4000, raid.Roll(s, "detect:"+lookout)) {
 			e.pool.Raw().Exec(testCtx(t), `UPDATE settlement_raids SET seed = $2 WHERE id = $1::uuid`, id, s)
 			break
 		}
