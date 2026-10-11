@@ -888,6 +888,13 @@ func (h *VillageHandler) startProduction(ctx context.Context, tx application.Tx,
 	if bare {
 		outputBPS = outputBPS * h.realItems.BareHandsBPS / labor.BPS
 	}
+	if p != nil && h.shiftFactor != nil {
+		f, err := h.shiftFactor(ctx, tx, p, now)
+		if err != nil {
+			return err
+		}
+		outputBPS = outputBPS * f / labor.BPS
+	}
 	// The knowledge the settlement holds about this craft lifts every shift (docs/adr/0058).
 	if d.OutputTarget != "" {
 		bonus, err := h.knowledgeOutputBPS(ctx, tx, snap, s.CityID, d.OutputTarget)

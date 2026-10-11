@@ -139,7 +139,7 @@ func HealthHome(c presentation.Ctx, v HealthHomeView) *presentation.Response {
 	if v.Rest.Has {
 		a = append(a, presentation.Do("settlement.home.rest").Named("health.rest"))
 	}
-	a = append(a, presentation.Do("health.hospital").Named("health.hospital"),
+	a = append(a, presentation.Do("health.hospital").Named("health.hospital"), act(AddrSurvival).Named("health.survival"),
 		back(AddrActivitiesHub), refresh(AddrHealthHome))
 	return screenHealthHome.Response(c.Lang, v, a...)
 }

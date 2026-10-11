@@ -29,5 +29,76 @@ climate:
   thirst_per_game_day: 40
   game_year_days: 28
   seasons: 4
-  needs_research: [seasonal_swing, night_dip, weather_odds_by_region, heat_work_thirst_multiplier, warmth_drift_rate, need_effect_sizes, garment_warmth_points]
+  # ADR 0070 (owner answers 2026-10-11): every number below is a draft (evidence D), tuning, never code.
+  # The environment (internal/domain/climate): the yearly swing by latitude, the day-night range by the dryness of the air,
+  # the weather of a local day by season. Seasons run from the start of the year: winter, spring, summer, autumn (northern
+  # hemisphere; the southern one is flipped). year_offset_days moves the start so the first season after the survival rule date
+  # is spring.
+  weather:
+    year_offset_days: 18
+    swing_equator_c100: 200
+    swing_pole_c100: 1800
+    night_dip_humid_c100: 500
+    night_dip_dry_c100: 1000
+    dry_below_mm: 300
+    humid_above_mm: 1000
+    rain_bps: [2000, 3000, 1500, 2500]
+    wind_bps: 2500
+    rain_dry_percent: 30
+    cold_snap_bps: 400
+    cold_snap_c100: 800
+    heat_spell_bps: 400
+    heat_spell_c100: 600
+    rain_cool_c100: 200
+  # Thirst and warmth (internal/domain/survival), the shelters, the effects on a shift, the sicknesses.
+  survival:
+    hot_above_c: 30
+    hot_thirst_bps: 15000
+    drink_points: 25
+    drink_cooldown: 30s
+    thirst_high: 70
+    thirst_severe: 90
+    points_per_deficit: 25
+    drift_per_hour: 4
+    chilly: 40
+    cold: 70
+    freezing: 90
+    collapse: 95
+    night_from: 21
+    night_to: 6
+    home_bonus: 2
+    hearth_bonus: 2
+    warming_bonus: 3
+    shelter_hours: 6
+    max_steps: 48
+    cache_entries: 4096
+    collapse_damage: 80
+    chilly_bps: 500
+    cold_bps: 1500
+    freezing_bps: 3000
+    thirst_high_bps: 800
+    thirst_severe_bps: 1800
+    illness_bps: 2000
+    chill_after_hours: 12
+    chill_course_hours: 96
+    waterborne_bps: 2000
+    waterborne_warm_bps: 3000
+    waterborne_warm_above_c: 25
+    waterborne_course_hours: 72
+    medicines: [painkillers, herb_extract]
+    treat_cut_percent: 50
+    boil_item: firewood
+    water_item: spring_water
+  # The garments: the item, the slot, the warmth points, the share of the warmth a wet day takes (wool little, hide more), what it
+  # cuts of the heat's extra thirst, and how many days worn it lasts. A full outfit reaches 7, above the severe band's 6.
+  garments:
+    - {item: hide_wrap,    slot: outer, warmth: 1, wet_bps: 3000, durability_days: 60}
+    - {item: hide_boots,   slot: feet,  warmth: 1, wet_bps: 4000, durability_days: 90}
+    - {item: wool_tunic,   slot: base,  warmth: 1, wet_bps: 1500, durability_days: 90}
+    - {item: wool_vest,    slot: mid,   warmth: 1, wet_bps: 1500, durability_days: 90}
+    - {item: wool_cloak,   slot: outer, warmth: 2, wet_bps: 2000, durability_days: 120}
+    - {item: wool_cap,     slot: head,  warmth: 1, wet_bps: 1500, durability_days: 90}
+    - {item: wool_mittens, slot: hands, warmth: 1, wet_bps: 1500, durability_days: 90}
+    - {item: sun_hat,      slot: head,  warmth: 0, wet_bps: 5000, heat_cut_bps: 3000, durability_days: 60}
+  needs_research: [weather_odds_by_region]
   note: "a game year is 28 real days, a season a real week (calendar compressed by decision of 2026-10-05; the day itself is a real day)"

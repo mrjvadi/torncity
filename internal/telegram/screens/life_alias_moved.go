@@ -31,7 +31,11 @@ type (
 	EnrolledView        = life.EnrolledView
 	HealthRefusalView   = life.HealthRefusalView
 	CareView            = life.CareView
+	SurvivalView        = life.SurvivalView
 	CareSiteView        = life.CareSiteView
+	EnvLine             = life.EnvLine
+	GarmentLine         = life.GarmentLine
+	IllnessLine         = life.IllnessLine
 	HeatView            = life.HeatView
 	HospitalView        = life.HospitalView
 	InjuryView          = life.InjuryView

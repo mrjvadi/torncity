@@ -182,6 +182,8 @@ type Tx interface {
 	Farm() FarmRepository
 	// Craft is the citizens' timed crafts at their home stations (migration 0145, ADR 0068).
 	Craft() CraftRepository
+	// Survival is thirst, warmth, garments and sickness (migration 0147, ADR 0070).
+	Survival() SurvivalRepository
 	// StallKeepers is the keepers stall owners hire (migration 0139, ADR 0062).
 	StallKeepers() StallKeeperRepository
 	// Charters holds each settlement's offices, seats and audit (ADR 0044

@@ -118,6 +118,60 @@
   ───
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → health:hospital
 
+━━━ Survival · cold and thirsty, a sickness, a well and a warming house ━━━
+(edits message 42) (private in groups)
+<b>🌡 تشنگی و سرما</b>
+
+🤢 آب رود ناپاک بود و بیمار شدید. دفعهٔ بعد آب را بجوشانید.
+
+💧 تشنگی: ⁨72⁩ از 100، تشنه‌اید
+
+🔥 سرما: ⁨55⁩ از 100، کمی سردتان است
+
+🌤 هوای بیرون: ⁨3⁩ درجه زیر صفر، زمستان
+🌧 باران می‌بارد
+💨 باد می‌وزد
+
+🤒 بیماری: سرماخوردگی
+تا ساعت ⁨14⁩:⁨35⁩
+
+🧥 لباس تن‌تان:
+رو‌پوش: شنل پشمی (گرما ⁨2⁩، ⁨90⁩ روز دیگر می‌پوشید)
+  ───
+  [💧 آب از چاه شهر] → health:drink:well
+  [💧 آب از کوله (⁨2⁩)] → health:drink:bag
+  [🔥 آب رود جوشیده] → health:drink:boiled
+  [💧 آب رود (بدون جوشاندن)] → health:drink:river
+  [🧥 بپوش: کلاه پشمی] → health:wear:wool_cap
+  [🧥 درآور: شنل پشمی] → health:remove:outer
+  [🔥 گرم شدن در گرمخانه] → health:warm
+  [💊 درمان بیماری] → health:cure
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → health:survival
+
+━━━ Survival · fine, nothing worn ━━━
+(edits message 42) (private in groups)
+<b>🌡 تشنگی و سرما</b>
+
+💧 تشنگی: ⁨10⁩ از 100، خوب
+
+🔥 سرما: ⁨5⁩ از 100، گرم هستید
+
+🌤 هوای بیرون: ⁨21⁩ درجه، تابستان
+
+🧥 لباس تن‌تان:
+هیچ لباسی تن‌تان نیست.
+  ───
+  [💧 آب از چاه شهر] → health:drink:well
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → health:survival
+
+━━━ Survival · the neutral city ━━━
+(edits message 42) (private in groups)
+<b>🌡 تشنگی و سرما</b>
+
+در این شهر تشنگی و سرما حساب نمی‌شود؛ آب و لباس ساده را از بازار شهر بخرید.
+  ───
+  [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → health:survival
+
 ━━━ Treat · confirm, first aid at the health house ━━━
 (edits message 42) (private in groups)
 🩺 درمان در خانهٔ بهداشت: رایگان. این درمان ⁨54 ثانیه⁩ از ⁨6 دقیقه⁩ بستری باقی‌مانده کم می‌کند.

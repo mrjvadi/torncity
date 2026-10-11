@@ -31,6 +31,7 @@ activities:
     empty:
       no_facility: "اینجا جای درمانی نیست. استراحت کن یا به شهر مرکزی برو."
     refer: "برای درمان جدی به {city} برو."
+    button_survival: "🌡 تشنگی و سرما"
 
 # The Economy and Society hubs: the entries that exist where the player stands.
 hubs:

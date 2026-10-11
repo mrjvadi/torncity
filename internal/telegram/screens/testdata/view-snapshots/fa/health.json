@@ -579,6 +579,117 @@
     }
   },
   {
+    "title": "Survival · cold and thirsty, a sickness, a well and a warming house",
+    "screen": "survival",
+    "view": {
+      "bag": [
+        {
+          "id": "",
+          "item": {
+            "code": "wool_cap",
+            "name": "کلاه پشمی"
+          },
+          "left_seconds": 0,
+          "qty": 1,
+          "slot": "head",
+          "warmth": 1
+        }
+      ],
+      "can_cure": true,
+      "carried": 2,
+      "env": {
+        "hour": 7,
+        "rain": true,
+        "season": 0,
+        "temp_c": -3,
+        "wind": true
+      },
+      "founded": true,
+      "illness": [
+        {
+          "ends_at": "2026-09-25T11:05:00Z",
+          "kind": "chill",
+          "treated": false
+        }
+      ],
+      "kept": null,
+      "notice": "river_sick",
+      "river": true,
+      "sheltered": false,
+      "thirst": 72,
+      "thirst_level": 1,
+      "warming_open": true,
+      "warmth": 55,
+      "warmth_level": "chilly",
+      "well_open": true,
+      "worn": [
+        {
+          "id": "g1",
+          "item": {
+            "code": "wool_cloak",
+            "name": "شنل پشمی"
+          },
+          "left_seconds": 7776000,
+          "qty": 0,
+          "slot": "outer",
+          "warmth": 2
+        }
+      ]
+    }
+  },
+  {
+    "title": "Survival · fine, nothing worn",
+    "screen": "survival",
+    "view": {
+      "bag": null,
+      "can_cure": false,
+      "carried": 0,
+      "env": {
+        "hour": 14,
+        "rain": false,
+        "season": 2,
+        "temp_c": 21,
+        "wind": false
+      },
+      "founded": true,
+      "illness": null,
+      "kept": null,
+      "notice": "",
+      "river": false,
+      "sheltered": false,
+      "thirst": 10,
+      "thirst_level": 0,
+      "warming_open": false,
+      "warmth": 5,
+      "warmth_level": "fine",
+      "well_open": true,
+      "worn": null
+    }
+  },
+  {
+    "title": "Survival · the neutral city",
+    "screen": "survival",
+    "view": {
+      "bag": null,
+      "can_cure": false,
+      "carried": 0,
+      "env": null,
+      "founded": false,
+      "illness": null,
+      "kept": null,
+      "notice": "not_founded",
+      "river": false,
+      "sheltered": false,
+      "thirst": 0,
+      "thirst_level": 0,
+      "warming_open": false,
+      "warmth": 0,
+      "warmth_level": "",
+      "well_open": false,
+      "worn": null
+    }
+  },
+  {
     "title": "Treat · confirm, first aid at the health house",
     "screen": "treat_confirm",
     "view": {

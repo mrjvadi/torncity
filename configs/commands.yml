@@ -360,6 +360,12 @@ commands:
   economy.hub: {channel: private, client: true}
   society.hub: {channel: private, client: true}
   health.treat: {channel: private}
+  health.survival: {channel: private, client: true}
+  health.drink: {channel: private, client: true}
+  health.wear: {channel: private, client: true}
+  health.remove: {channel: private, client: true}
+  health.warm: {channel: private, client: true}
+  health.cure: {channel: private, client: true}
   health.clinic: {channel: private}
   health.price: {channel: private}
   health.open: {channel: private}

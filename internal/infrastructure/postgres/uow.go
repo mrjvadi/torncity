@@ -249,6 +249,9 @@ func (t *tx) ServiceDays() application.ServiceDayRepository { return &ServiceDay
 // Craft returns the craft jobs (migration 0145).
 func (t *tx) Craft() application.CraftRepository { return &CraftRepository{q: t.q} }
 
+// Survival returns thirst, warmth, garments and sickness (migration 0147).
+func (t *tx) Survival() application.SurvivalRepository { return &SurvivalRepository{q: t.q} }
+
 // Farm returns the crops and the mill statute (migration 0144).
 func (t *tx) Farm() application.FarmRepository { return &FarmRepository{q: t.q} }
 

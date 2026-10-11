@@ -166,6 +166,7 @@ const (
 	ScreenHospitalisedNotice  = "hospitalised_notice"
 	ScreenClinicTreatedNotice = "clinic_treated_notice"
 	ScreenHealthRefusal       = "health_refusal"
+	ScreenSurvival            = "survival"
 
 	// The bag: one good or piece, using it, giving it, dropping it
 	// (items.go).

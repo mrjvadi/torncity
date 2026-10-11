@@ -867,6 +867,7 @@ func (l *schemaLint) climate() {
 		if c.GameYearDays < 1 || c.Seasons < 1 || c.GameYearDays%c.Seasons != 0 {
 			l.bad("climate: the game year must divide into whole seasons")
 		}
+		l.survival(c)
 	}
 }
 

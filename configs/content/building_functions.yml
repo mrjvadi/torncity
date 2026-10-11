@@ -553,6 +553,50 @@ building_functions:
     replaces: [apothecary]
     workplace: {private: true, private_name: "عطاری (شخصی)", role: craft, tier: 1, shift: 30m, build_time: 2h, upkeep: 40, trains: {skill: herbalism, xp: 20}}
     note: "the apothecary prepares the garden's herbs over a fire: herbs 4, water and a firewood make herb extract 2 (the standard shift); the other remedies are recipes at the same bench: painkillers from the extract and a cloth, a first aid kit from bandages, painkillers and a pot, and bandages from cloth. Without herbs, water or fire it stands idle and says which link is missing"
+  - code: tailor_shop
+    source: "ADR 0070; ADR 0045 5.3 (tailoring is a separate craft); Banished wiki, Tailor"
+    evidence: D
+    name: "خیاطی"
+    requires: {knowledge: [weaving]}
+    kind: production
+    family: craft
+    permit: craft
+    zones: [core, residential, industry]
+    footprint: [2, 2, 2, 2]
+    owners: [treasury, player]
+    levels:
+      - {level: 1, requires: {knowledge: [weaving]}, cost_money: 1000, cost_materials: {timber: 4}, build_hours: 2}
+    staff: [{role: tailor, slots: 1, shift_hours: 2}]
+    if_unstaffed: idle
+    consumes: {inputs: {cloth: 2}, food_points: 2, tool_wear_bps: 50, tool_tier: 0}
+    produces: {outputs: {wool_tunic: 1}, store: goods}
+    storage: {needs: {goods: 2}}
+    maintenance: {decay_bps_per_day: 50, repair_materials: {timber: 1}, repair_labour: 1}
+    links: {from: [weaving_shed, tannery], to: [storehouse]}
+    replaces: [tailor_shop]
+    workplace: {private: true, private_name: "خیاطی (شخصی)", role: craft, tier: 1, shift: 30m, build_time: 2h, upkeep: 40, trains: {skill: tailoring, xp: 20}}
+    note: "a tailor cuts and sews the cloth of the weaving shed and the leather of the tannery into garments: the standard shift is a wool tunic from two cloths; the other garments are recipes at the same bench (and tier 0 ones at any home). With no cloth or no tailor it stands idle and the chain says which link is missing"
+  - code: warming_house
+    source: "ADR 0070 3.4; RESEARCH 2026-10-11 B6 (communal hearths, warming huts, caravanserai); Banished wiki, firewood heats homes"
+    evidence: D
+    name: "گرمخانه"
+    requires: {knowledge: [carpentry]}
+    kind: service
+    family: hospitality
+    zones: [core, residential]
+    footprint: [2, 2, 2, 2]
+    owners: [treasury]
+    levels:
+      - {level: 1, requires: {knowledge: [carpentry]}, cost_money: 700, cost_materials: {timber: 5, stone: 3}, build_hours: 2}
+    staff: [{role: hearth_keeper, slots: 1, shift_hours: 6}]
+    if_unstaffed: idle
+    consumes: {fuel: {firewood: 3}, food_points: 2}
+    produces: {service: shelter, daily: true}
+    links: {from: [woodcutter_yard, charcoal_clamp]}
+    ledger_reasons: [service_wage]
+    replaces: [warming_house]
+    workplace: {role: recreation, tier: 1, upkeep: 30}
+    note: "a communal hearth kept by one person from the pool, paid by the treasury, burning three firewood a day: on a day it is open anyone may warm up there (life.warm) and is sheltered for some hours; idle without fuel, keeper or wage. It lets a poor newcomer through the first winter (ADR 0045 12)"
   # ---- food and water (ADR 0041 8.15, 8.16, 8.21, 8.22, 8.23) ----
   - code: brickworks
     source: "RESEARCH 2026-10-09 A4b (Wikipedia Brick, Brickworks); ADR 0041 8.14 and 0045 4.3 recipe 4: bricks are an alternative recipe of the kiln"

@@ -317,7 +317,7 @@ type BuildingFunctionDef struct {
 	// private workplace (docs/adr/0066). Never written in the YAML.
 	Generated bool `yaml:"-" json:"generated,omitempty"`
 	Head      `yaml:",inline"`
-	Name string `yaml:"name,omitempty" json:"name,omitempty"`
+	Name      string `yaml:"name,omitempty" json:"name,omitempty"`
 	// Kind is ADR 0041 3.1's node kind.
 	Kind string `yaml:"kind" json:"kind"`
 	// Market is legal (default) or shadow (ADR 0035 3.1).
@@ -495,6 +495,10 @@ type ClimateDef struct {
 	// GameYearDays and Seasons: the calendar the swing follows.
 	GameYearDays int `yaml:"game_year_days" json:"game_year_days"`
 	Seasons      int `yaml:"seasons" json:"seasons"`
+	// Weather, Survival and Garments: the environment, the two needs and the garments (docs/adr/0070).
+	Weather  WeatherDef   `yaml:"weather" json:"weather"`
+	Survival SurvivalDef  `yaml:"survival" json:"survival"`
+	Garments []GarmentDef `yaml:"garments" json:"garments"`
 }
 
 // LandBiomeDef is the density of trees and rocks on the lots of one biome, basis points of the lot's draws.
