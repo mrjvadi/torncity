@@ -73,6 +73,8 @@ type ApprenticeLine struct {
 // ApprenticesView is the screen of one's apprenticeships: those as an apprentice, and those as a master.
 type ApprenticesView struct {
 	Lines []ApprenticeLine
+	// Bounds are what an offer may ask (the offer form names them).
+	Bounds *ApprenticeBounds
 	// CanJoin lists the crafts the viewer could join at a public workshop of the settlement now (an NPC master teaches to the NPC level).
 	CanJoin []ApprenticeJoinLine
 	Notice  string
@@ -108,13 +110,26 @@ type TeachersView struct {
 	Entries []TeacherEntry
 	// Crafts lists the crafts a directory can be asked for.
 	Crafts []string
+	// StartsAt is the day the teacher's skill starts to count, set only until then.
+	StartsAt *time.Time `json:"starts_at"`
 }
 
 // ScreenApprenticeRefusal is a refused apprenticeship command.
 const ScreenApprenticeRefusal = "apprentice_refusal"
 
 // ApprenticeRefusalView is a refused apprenticeship command; Kind is the reason.
-type ApprenticeRefusalView struct{ Kind string }
+type ApprenticeRefusalView struct {
+	Kind string
+	// Bounds are what an offer may ask, set for the range refusal.
+	Bounds *ApprenticeBounds
+}
+
+// ApprenticeBounds are the least and most an offer may ask: the term in days, the fee, and the share of the wage the apprentice keeps.
+type ApprenticeBounds struct {
+	MinDays, MaxDays, DefaultDays             int
+	MaxFee                                    int64
+	MinShareBPS, DefaultShareBPS, MaxShareBPS int
+}
 
 // ApprenticeRefusalCode is the refusal code of a kind.
 func ApprenticeRefusalCode(kind string) string { return "apprentice_" + kind }

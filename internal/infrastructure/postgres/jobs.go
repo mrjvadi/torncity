@@ -399,7 +399,7 @@ func (r *EducationRepository) Certify(ctx context.Context, playerID, courseCode,
 // Certifications lists a player's certificates, oldest first.
 func (r *EducationRepository) Certifications(ctx context.Context, playerID string) ([]application.Certification, error) {
 	rows, err := r.q.Query(ctx,
-		`SELECT course_code, issued_at FROM certifications WHERE player_id = $1::uuid ORDER BY issued_at, course_code`,
+		`SELECT course_code, issued_at, COALESCE(issued_by::text, ''), route FROM certifications WHERE player_id = $1::uuid ORDER BY issued_at, course_code`,
 		playerID)
 	if err != nil {
 		if isInvalidUUIDText(err) {
@@ -411,7 +411,7 @@ func (r *EducationRepository) Certifications(ctx context.Context, playerID strin
 	var out []application.Certification
 	for rows.Next() {
 		var c application.Certification
-		if err := rows.Scan(&c.CourseCode, &c.IssuedAt); err != nil {
+		if err := rows.Scan(&c.CourseCode, &c.IssuedAt, &c.IssuedBy, &c.Route); err != nil {
 			return nil, fmt.Errorf("postgres: scanning certificate: %w", err)
 		}
 		c.IssuedAt = c.IssuedAt.UTC()

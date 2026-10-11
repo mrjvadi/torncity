@@ -29,11 +29,18 @@ type CourseLine struct {
 	Eligible bool
 }
 
+// CertificateLine is a certificate held: the course, who issued it (nil for the school's own NPC) and the route (RouteClass or RouteApprenticeship).
+type CertificateLine struct {
+	Code, Name string
+	IssuedBy   *presentation.Named
+	Route      string
+}
+
 // EducationView is the study hub: the course in progress, the certificates
 // held, and one page of the courses on offer here.
 type EducationView struct {
 	Current      *CurrentCourseView
-	Certificates []CourseRef
+	Certificates []CertificateLine
 	// Place is where the player stands and Tier its stage (village, town or city).
 	Place presentation.Named
 	Tier  string

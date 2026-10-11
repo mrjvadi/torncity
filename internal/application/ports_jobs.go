@@ -174,6 +174,9 @@ type Enrollment struct {
 type Certification struct {
 	CourseCode string
 	IssuedAt   time.Time
+	// IssuedBy is the player who taught or examined (empty for an NPC or the school); Route is RouteClass or RouteApprenticeship.
+	IssuedBy string
+	Route    string
 }
 
 // EducationRepository persists study. Reach it through Tx.Education, so an

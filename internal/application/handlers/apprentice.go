@@ -52,6 +52,14 @@ type ApprenticeHandler struct {
 	teacherXP int64
 	homeCode  string
 	now       func() time.Time
+	// teachingRules are the rule date of the teacher's skill (ADR 0071); the directory names the day it starts counting.
+	teachingRules application.TeachingRules
+}
+
+// WithTeachingRules gives the handler the teacher rule's date, so the directory can name the day it starts.
+func (h *ApprenticeHandler) WithTeachingRules(r application.TeachingRules) *ApprenticeHandler {
+	h.teachingRules = r
+	return h
 }
 
 // NewApprenticeHandler wires the handler.
@@ -109,16 +117,25 @@ const (
 	ApprRefusedExamNeeds   = "exam_needs"
 )
 
-type apprRefusal struct{ kind string }
+type apprRefusal struct {
+	kind   string
+	bounds *plife.ApprenticeBounds
+}
 
 func (r *apprRefusal) Error() string { return "handlers: apprenticeship refused: " + r.kind }
 
-func refuseAppr(kind string) error { return &apprRefusal{kind} }
+func refuseAppr(kind string) error { return &apprRefusal{kind: kind} }
+
+// apprenticeBounds are the term, fee and share bounds of an offer, from the content.
+func apprenticeBounds(ad content.ApprenticeshipDef) plife.ApprenticeBounds {
+	return plife.ApprenticeBounds{MinDays: ad.TermMin, MaxDays: ad.TermMax, DefaultDays: ad.TermDefault, MaxFee: ad.FeeMax,
+		MinShareBPS: ad.WageShareMinBPS, DefaultShareBPS: ad.WageShareDefaultBPS, MaxShareBPS: 10_000}
+}
 
 func (h *ApprenticeHandler) finish(lang string, err error) (*presentation.Response, error) {
 	var r *apprRefusal
 	if stderrors.As(err, &r) {
-		return plife.ApprenticeRefusal(presentation.Ctx{Lang: lang}, plife.ApprenticeRefusalView{Kind: r.kind}), nil
+		return plife.ApprenticeRefusal(presentation.Ctx{Lang: lang}, plife.ApprenticeRefusalView{Kind: r.kind, Bounds: r.bounds}), nil
 	}
 	return nil, err
 }
@@ -290,7 +307,8 @@ func (h *ApprenticeHandler) Offer(ctx context.Context, meta envelope.Metadata, r
 			share = int64(ad.WageShareDefaultBPS)
 		}
 		if days < int64(ad.TermMin) || days > int64(ad.TermMax) || fee < 0 || fee > ad.FeeMax || share < int64(ad.WageShareMinBPS) || share > 10_000 {
-			return refuseAppr(ApprRefusedRange)
+			b := apprenticeBounds(ad)
+			return &apprRefusal{kind: ApprRefusedRange, bounds: &b}
 		}
 		if cur, err := tx.Apprentices().ActiveOf(ctx, target.ID); err != nil {
 			return err
@@ -671,6 +689,8 @@ func (h *ApprenticeHandler) mine(ctx context.Context, meta envelope.Metadata, no
 		view.Notice = notice
 		now := h.now()
 		ad := cd.Apprenticeship
+		b := apprenticeBounds(ad)
+		view.Bounds = &b
 		mine, err := tx.Apprentices().OfApprentice(ctx, p.ID, 10)
 		if err != nil {
 			return err
@@ -896,9 +916,24 @@ func (h *ApprenticeHandler) Teachers(ctx context.Context, meta envelope.Metadata
 		for _, c := range ad.Crafts {
 			view.Crafts = append(view.Crafts, c.Craft)
 		}
+		if r := h.teachingRules; !r.RuleAt.IsZero() && !r.On(h.now()) {
+			at := r.RuleAt.AddDate(0, 0, int(max(r.GraceDays, 0)))
+			view.StartsAt = &at // the teacher's skill counts from this day (the rule date plus its grace)
+		}
 		craftCode := req.Craft
 		if craftCode == "" {
+			// the viewer's best craft, else the first of the list
 			craftCode = ad.Crafts[0].Craft
+			best := 0
+			for _, c := range ad.Crafts {
+				lvl, _, serr := skillLevel(ctx, tx, p.ID, c.Craft)
+				if serr != nil {
+					return serr
+				}
+				if lvl > best {
+					best, craftCode = lvl, c.Craft
+				}
+			}
 		}
 		craft, ok := ad.Craft(craftCode)
 		if !ok {

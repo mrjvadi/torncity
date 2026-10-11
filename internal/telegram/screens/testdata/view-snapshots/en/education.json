@@ -59,11 +59,15 @@
       "certificates": [
         {
           "code": "first_aid",
-          "name": "First Aid"
+          "issued_by": null,
+          "name": "First Aid",
+          "route": ""
         },
         {
           "code": "driving_licence",
-          "name": "Driving Licence"
+          "issued_by": null,
+          "name": "Driving Licence",
+          "route": ""
         }
       ],
       "courses": [

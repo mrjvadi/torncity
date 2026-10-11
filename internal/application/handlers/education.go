@@ -326,8 +326,25 @@ func (h *EducationHandler) List(ctx context.Context, meta envelope.Metadata, req
 				Paused:    d.IsPaused(),
 			}
 		}
+		issuers := map[string]*presentation.Named{}
 		for _, c := range s.certs {
-			view.Certificates = append(view.Certificates, courseRef(snap, c.CourseCode))
+			ref := courseRef(snap, c.CourseCode)
+			line := plife.CertificateLine{Code: ref.Code, Name: ref.Name, Route: c.Route}
+			if c.IssuedBy != "" {
+				if n, ok := issuers[c.IssuedBy]; ok {
+					line.IssuedBy = n
+				} else {
+					pl, perr := tx.Players().GetByID(ctx, c.IssuedBy)
+					switch {
+					case perr == nil:
+						n := presentation.Named{Code: pl.PublicCode, Name: shownName(pl)}
+						issuers[c.IssuedBy], line.IssuedBy = &n, &n
+					case !isSentinel(perr, application.ErrPlayerNotFound):
+						return perr
+					}
+				}
+			}
+			view.Certificates = append(view.Certificates, line)
 		}
 
 		hereC, err := h.courseHereOf(ctx, tx, snap, s.here())

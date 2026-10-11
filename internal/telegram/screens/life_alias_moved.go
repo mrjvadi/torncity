@@ -27,6 +27,7 @@ type (
 	CrimeResultView       = life.CrimeResultView
 	CrimeStartedView      = life.CrimeStartedView
 	CurrentCourseView     = life.CurrentCourseView
+	CertificateLine       = life.CertificateLine
 	EducationView         = life.EducationView
 	EnrolledView          = life.EnrolledView
 	HealthRefusalView     = life.HealthRefusalView

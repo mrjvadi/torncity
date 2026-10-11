@@ -595,7 +595,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	h.village.WithSurvivalFactor(h.survival.ShiftFactor)
 	// The teaching network (docs/adr/0071): apprenticeships, the teacher directory, and their hooks on a shift.
 	h.apprentice = handlers.NewApprenticeHandler(uow, uuidGenerator{}, registry, cities, postgres.NewPlayerSearchRepository(pool), worldCache, nil).
-		WithRules(cfg.Settlement.TeacherXPPerClass, postgres.NewPolicyReader(pool, nil), cfg.Settlement.HomeCityCode)
+		WithRules(cfg.Settlement.TeacherXPPerClass, postgres.NewPolicyReader(pool, nil), cfg.Settlement.HomeCityCode).WithTeachingRules(settlementcfg.Teaching(cfg.Settlement))
 	h.village.WithApprentices(h.apprentice)
 	h.profile.WithHealth(gametime.Scale(cfg.Game.TimeScale))
 	h.profile.WithHungerAlert(cfg.Notifications.HungerAlertCooldown)
