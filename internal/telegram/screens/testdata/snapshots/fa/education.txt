@@ -12,6 +12,8 @@
   [📖 کمک‌های اولیه] → education:view:first_aid
   [📖 کلاس شبانهٔ حسابداری] → education:view:evening_accounting
   [📖 مدیریت فروشگاه] → education:view:retail_management
+  [🛠 شاگردی] → settlement:apprentice.mine
+  [🎓 استادان] → education:teachers:carpentry
   [بعدی ⬅️] → education:list:2
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → education:list:1
 
@@ -29,6 +31,8 @@
 🔒 مدیریت فروشگاه - ⁨⁨2,800⁩ ساپ⁩ - ⁨8 ساعت⁩ - از سطح ⁨4⁩
   ───
   [📖 مدیریت فروشگاه] → education:view:retail_management
+  [🛠 شاگردی] → settlement:apprentice.mine
+  [🎓 استادان] → education:teachers:carpentry
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → education:list:1
 
 ━━━ Education · the course paused in jail ━━━
@@ -42,6 +46,8 @@
 🔒 مدیریت فروشگاه - ⁨⁨2,800⁩ ساپ⁩ - ⁨8 ساعت⁩ - از سطح ⁨4⁩
   ───
   [📖 مدیریت فروشگاه] → education:view:retail_management
+  [🛠 شاگردی] → settlement:apprentice.mine
+  [🎓 استادان] → education:teachers:carpentry
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → education:list:1
 
 ━━━ Education · course finishing ━━━
@@ -53,6 +59,8 @@
 
 فعلاً دورهٔ تازه‌ای برای شما اینجا نیست. با گرفتن مدرک، رسیدن به سطح بالاتر یا رفتن به شهرهای دیگر، دوره‌های بیشتری باز می‌شود.
   ───
+  [🛠 شاگردی] → settlement:apprentice.mine
+  [🎓 استادان] → education:teachers:carpentry
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → education:list:1
 
 ━━━ Education · nothing new here ━━━
@@ -61,6 +69,8 @@
 
 فعلاً دورهٔ تازه‌ای برای شما اینجا نیست. با گرفتن مدرک، رسیدن به سطح بالاتر یا رفتن به شهرهای دیگر، دوره‌های بیشتری باز می‌شود.
   ───
+  [🛠 شاگردی] → settlement:apprentice.mine
+  [🎓 استادان] → education:teachers:carpentry
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → education:list:1
 
 ━━━ Course · can enrol ━━━

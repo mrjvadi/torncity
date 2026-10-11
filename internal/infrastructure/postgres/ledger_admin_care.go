@@ -44,7 +44,10 @@ func (a *EconomyAdmin) verifyCare(ctx context.Context, v *LedgerVerification) er
 			return fmt.Errorf("postgres: checking %s: %w", c.what, err)
 		}
 	}
-	return a.verifySurvival(ctx, v)
+	if err := a.verifySurvival(ctx, v); err != nil {
+		return err
+	}
+	return a.verifyApprentice(ctx, v)
 }
 
 // verifySurvival runs the checks of garments when migration 0147 is applied (docs/adr/0070): the garments that left the bags in the

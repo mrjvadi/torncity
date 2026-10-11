@@ -349,6 +349,14 @@ commands:
   settlement.clear.order: {kind: primary, icon: "action:build"}
   settlement.clear.cancel: {kind: secondary, icon: "action:cancel_build"}
   settlement.farm.sow: {kind: primary, icon: "action:build"}
+  settlement.apprentice.mine: {kind: secondary, icon: "action:build"}
+  settlement.apprentice.offer: {kind: primary, icon: "action:build"}
+  settlement.apprentice.accept: {kind: primary, icon: "action:build"}
+  settlement.apprentice.leave: {kind: secondary, icon: "action:build"}
+  settlement.apprentice.dismiss: {kind: primary, icon: "action:build"}
+  settlement.apprentice.exam: {kind: primary, icon: "action:build"}
+  settlement.apprentice.join: {kind: primary, icon: "action:build"}
+  education.teachers: {kind: secondary, icon: "action:build"}
   settlement.craft: {kind: primary, icon: "action:build"}
   settlement.mill.toll: {kind: secondary, icon: "action:build"}
   settlement.mill.grind: {kind: primary, icon: "action:build"}

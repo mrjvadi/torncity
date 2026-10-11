@@ -500,6 +500,15 @@ career:
 
 # Course names, keyed on content codes (configs/content/education.yml).
 course:
+  weaving_craft: Weaving Journeyman
+  pottery_craft: Pottery Journeyman
+  milling_craft: Milling Journeyman
+  baking_craft: Baking Journeyman
+  tanning_craft: Tanning Journeyman
+  forestry_craft: Forestry Journeyman
+  herding_craft: Herding Journeyman
+  farming_craft: Farming Journeyman
+  tailoring_craft: Tailoring Journeyman
   officer_training: Officer Training
   first_aid: First Aid
   driving_licence: Driving Licence

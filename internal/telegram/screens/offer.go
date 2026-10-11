@@ -2,8 +2,8 @@ package screens
 
 import (
 	"github.com/mrjvadi/torncity/internal/presentation"
-	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 	"github.com/mrjvadi/torncity/internal/telegram/keyboards"
+	"github.com/mrjvadi/torncity/internal/telegram/presenter"
 )
 
 // OfferText words what a confirm says about paying a settlement in its own money (docs/adr/0033 6.10):

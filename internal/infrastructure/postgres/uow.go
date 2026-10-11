@@ -252,6 +252,9 @@ func (t *tx) Craft() application.CraftRepository { return &CraftRepository{q: t.
 // Survival returns thirst, warmth, garments and sickness (migration 0147).
 func (t *tx) Survival() application.SurvivalRepository { return &SurvivalRepository{q: t.q} }
 
+// Apprentices returns the apprenticeships (migration 0148).
+func (t *tx) Apprentices() application.ApprenticeRepository { return &ApprenticeRepository{q: t.q} }
+
 // Farm returns the crops and the mill statute (migration 0144).
 func (t *tx) Farm() application.FarmRepository { return &FarmRepository{q: t.q} }
 

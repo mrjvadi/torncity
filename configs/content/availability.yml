@@ -58,7 +58,7 @@ staff_roles:
   # `skill` is the trade the shifts train (a planned skill until the skill set in code
   # has it, audit M-04), `wage_bps` the wage class as basis points of the market wage.
   - {code: labourer, skill: "", wage_bps: 10000, support_npc: true, note: "ADR 0041 5.1"}
-  - {code: tanner, skill: "", wage_bps: 13000, support_npc: true, note: "owner 2026-10-10: a skilled trade, 130 SUP an hour; docs/adr/0057"}
+  - {code: tanner, skill: tanning, wage_bps: 13000, support_npc: true, note: "owner 2026-10-10: a skilled trade, 130 SUP an hour; docs/adr/0057"}
   - {code: woodcutter, skill: forestry, wage_bps: 10000, support_npc: true, note: "ADR 0041 5.1"}
   - {code: forester, skill: forestry, wage_bps: 10000, support_npc: true, note: "ADR 0065: plants and tends the trees of the commons; an NPC of the pool or a player"}
   - {code: carpenter, crew: true, skill: carpentry, wage_bps: 14000, support_npc: true, note: "ADR 0041 5.1; owner 2026-10-10: no level is asked, anyone may work the trade to learn it"}
@@ -256,6 +256,15 @@ availability:
   - {kind: course, code: carpentry_craft, requires: {knowledge: [carpentry], buildings: [{code: carpentry_workshop}], staff: [carpenter]}, elsewhere: [{where: support}]}
   - {kind: course, code: masonry_craft, requires: {knowledge: [masonry], buildings: [{code: masonry_workshop}], staff: [mason]}, elsewhere: [{where: support}]}
   - {kind: course, code: smithing_craft, requires: {knowledge: [smithing], buildings: [{code: smithy}], staff: [smith]}, elsewhere: [{where: support}]}
+  - {kind: course, code: weaving_craft, requires: {knowledge: [weaving], buildings: [{code: weaving_shed}], staff: [weaver]}, elsewhere: [{where: support}], note: "ADR 0071: the journeyman's class of the craft, taught at its workshop"}
+  - {kind: course, code: pottery_craft, requires: {knowledge: [pottery], buildings: [{code: pottery_kiln}], staff: [potter]}, elsewhere: [{where: support}], note: "ADR 0071: the journeyman's class of the craft, taught at its workshop"}
+  - {kind: course, code: milling_craft, requires: {knowledge: [milling], buildings: [{code: mill}], staff: [miller]}, elsewhere: [{where: support}], note: "ADR 0071: the journeyman's class of the craft, taught at its workshop"}
+  - {kind: course, code: baking_craft, requires: {knowledge: [milling], buildings: [{code: bakery}], staff: [baker]}, elsewhere: [{where: support}], note: "ADR 0071: the journeyman's class of the craft, taught at its workshop"}
+  - {kind: course, code: tanning_craft, requires: {knowledge: [tanning], buildings: [{code: tannery}], staff: [tanner]}, elsewhere: [{where: support}], note: "ADR 0071: the journeyman's class of the craft, taught at its workshop"}
+  - {kind: course, code: forestry_craft, requires: {knowledge: [forestry], buildings: [{code: forester_lodge}], staff: [forester]}, elsewhere: [{where: support}], note: "ADR 0071: the journeyman's class of the craft, taught at its workshop"}
+  - {kind: course, code: herding_craft, requires: {knowledge: [open_range_herding], buildings: [{code: pasture_range}]}, elsewhere: [{where: support}], note: "ADR 0071: the journeyman's class of the craft, taught at its workshop"}
+  - {kind: course, code: farming_craft, requires: {knowledge: [dryland_farming], buildings: [{code: farm_dry}], staff: [farmer]}, elsewhere: [{where: support}], note: "ADR 0071: the journeyman's class of the craft, taught at its workshop"}
+  - {kind: course, code: tailoring_craft, requires: {knowledge: [weaving], buildings: [{code: tailor_shop}], staff: [tailor]}, elsewhere: [{where: support}], note: "ADR 0071: the journeyman's class of the craft, taught at its workshop"}
   - {kind: course, code: registry_clerk, requires: {knowledge: [record_keeping], buildings: [{role: education, tier: 1}], staff: [teacher]}, elsewhere: [{where: support}]}
   - {kind: course, code: surveyor, requires: {knowledge: [land_survey], buildings: [{role: education, tier: 1}], staff: [teacher]}, elsewhere: [{where: support}]}
   - {kind: course, code: credit_analysis, requires: {knowledge: [double_entry_bookkeeping], buildings: [{role: education, tier: 2}], staff: [teacher]}, elsewhere: [{where: support}]}
@@ -517,6 +526,7 @@ availability:
   - {kind: skill, code: weaving, requires: {knowledge: [weaving]}, elsewhere: [{where: support}]}
   - {kind: skill, code: pottery, requires: {knowledge: [pottery]}, elsewhere: [{where: support}]}
   - {kind: skill, code: milling, requires: {knowledge: [milling]}, elsewhere: [{where: support}]}
+  - {kind: skill, code: tanning, requires: {knowledge: [tanning]}, elsewhere: [{where: support}]}
   - {kind: skill, code: tailoring, requires: {knowledge: [weaving]}, elsewhere: [{where: support}]}
   - {kind: skill, code: baking, requires: {knowledge: [milling]}, elsewhere: [{where: support}]}
   - {kind: skill, code: teaching, requires: {knowledge: [basic_literacy]}, elsewhere: [{where: support}]}

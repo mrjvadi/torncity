@@ -504,7 +504,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	h.jobs, h.education = newWorkHandlers(uow, messages, registry, cities,
 		postgres.NewPolicyReader(pool, nil), gametime.Scale(cfg.Game.TimeScale), cfg.Game.IdempotencyTTL)
 	h.education.WithHomeCity(cfg.Settlement.HomeCityCode)
-	h.education.WithExperience(cfg.Settlement.ResearchExperiencePerShift).WithPersonal(personalRules(cfg)).WithTeacherXP(cfg.Settlement.TeacherXPPerClass)
+	h.education.WithExperience(cfg.Settlement.ResearchExperiencePerShift).WithPersonal(personalRules(cfg)).WithTeacherXP(cfg.Settlement.TeacherXPPerClass).WithTeachingRules(settlementcfg.Teaching(cfg.Settlement))
 	h.training = handlers.NewTrainingHandler(uow, uuidGenerator{}, messages, registry, cities, trainingRules(cfg.Training),
 		cfg.Settlement.HomeCityCode, cfg.Game.IdempotencyTTL, nil)
 	h.training.WithTrainer(h.village.TrainerSeat)
@@ -593,6 +593,10 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	h.survival = handlers.NewSurvivalHandler(uow, uuidGenerator{}, messages, registry, worldCache, cities, gametime.Scale(cfg.Game.TimeScale), nil).
 		WithRules(settlementcfg.Survival(cfg.Settlement), h.village, h.village, clockForSurvival)
 	h.village.WithSurvivalFactor(h.survival.ShiftFactor)
+	// The teaching network (docs/adr/0071): apprenticeships, the teacher directory, and their hooks on a shift.
+	h.apprentice = handlers.NewApprenticeHandler(uow, uuidGenerator{}, registry, cities, postgres.NewPlayerSearchRepository(pool), worldCache, nil).
+		WithRules(cfg.Settlement.TeacherXPPerClass, postgres.NewPolicyReader(pool, nil), cfg.Settlement.HomeCityCode)
+	h.village.WithApprentices(h.apprentice)
 	h.profile.WithHealth(gametime.Scale(cfg.Game.TimeScale))
 	h.profile.WithHungerAlert(cfg.Notifications.HungerAlertCooldown)
 	// Factions: what founding one costs and the organised crimes are

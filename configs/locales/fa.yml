@@ -578,6 +578,15 @@ career:
 
 # نام دوره‌ها، با کلید کد محتوا (configs/content/education.yml).
 course:
+  weaving_craft: گواهی شاگردی بافندگی
+  pottery_craft: گواهی شاگردی کوزه‌گری
+  milling_craft: گواهی شاگردی آسیابانی
+  baking_craft: گواهی شاگردی نانوایی
+  tanning_craft: گواهی شاگردی دباغی
+  forestry_craft: گواهی شاگردی جنگل‌داری
+  herding_craft: گواهی شاگردی دامداری
+  farming_craft: گواهی شاگردی کشاورزی
+  tailoring_craft: گواهی شاگردی خیاطی
   officer_training: دورهٔ افسری
   first_aid: کمک‌های اولیه
   herbal_medicine: گیاهان دارویی

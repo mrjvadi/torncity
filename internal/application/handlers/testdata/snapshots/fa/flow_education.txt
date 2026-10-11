@@ -10,6 +10,8 @@
   [📖 کلاس خواندن و نوشتن] → education:view:literacy_class
   [📖 کمک‌های اولیه] → education:view:first_aid
   [📖 گواهینامهٔ رانندگی] → education:view:driving_licence
+  [🛠 شاگردی] → settlement:apprentice.mine
+  [🎓 استادان] → education:teachers:carpentry
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → education:list:1
 
 ━━━ First Aid ━━━
@@ -77,6 +79,8 @@
   [📖 کلاس خواندن و نوشتن] → education:view:literacy_class
   [📖 کمک‌های اولیه] → education:view:first_aid
   [📖 گواهینامهٔ رانندگی] → education:view:driving_licence
+  [🛠 شاگردی] → settlement:apprentice.mine
+  [🎓 استادان] → education:teachers:carpentry
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → education:list:1
 
 ━━━ Profile while studying ━━━
@@ -167,6 +171,8 @@
   ───
   [📖 کلاس خواندن و نوشتن] → education:view:literacy_class
   [📖 گواهینامهٔ رانندگی] → education:view:driving_licence
+  [🛠 شاگردی] → settlement:apprentice.mine
+  [🎓 استادان] → education:teachers:carpentry
   [🔙 بازگشت] → player:profile.get   │   [🔄 به‌روزرسانی] → education:list:1
 
 ━━━ Profile after the course ━━━

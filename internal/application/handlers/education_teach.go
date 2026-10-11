@@ -89,10 +89,21 @@ func (h *EducationHandler) teacherGate(ctx context.Context, tx application.Tx, c
 	}
 	var best *application.CourseTeacher
 	bestLoad := 0
+	craft, _, craftRule := h.craftRule(h.content.Current(), code, h.now())
 	for i := range list {
 		t := list[i]
 		if t.PlayerID != "" && t.PlayerID == studentID {
 			continue
+		}
+		if craftRule && t.Kind != application.TeacherNPC && t.PlayerID != "" {
+			// a teacher of a craft must be good at the craft himself (docs/adr/0071 3.1)
+			lvl, _, err := h.teacherLevels(ctx, tx, t, craft.Craft)
+			if err != nil {
+				return nil, err
+			}
+			if lvl < h.content.Current().TeachingMinLevel() {
+				continue
+			}
 		}
 		if t.Employer == application.EmployerSettlement && !judged {
 			continue

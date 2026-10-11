@@ -505,7 +505,7 @@ building_functions:
     maintenance: {decay_bps_per_day: 60, repair_materials: {timber: 1}, repair_labour: 1}
     links: {from: [pasture_range, woodcutter_yard, well], to: [storehouse]}
     replaces: [tannery]
-    workplace: {private: true, private_name: "دباغ‌خانه (شخصی)", output_target: tanning_output_bps, role: craft, tier: 1, shift: 30m, upkeep: 40, effects: [{target: job_coverage_bps, op: add, value: 100}]}
+    workplace: {private: true, private_name: "دباغ‌خانه (شخصی)", output_target: tanning_output_bps, role: craft, tier: 1, shift: 30m, upkeep: 40, effects: [{target: job_coverage_bps, op: add, value: 100}], trains: {skill: tanning, xp: 20}}
     note: "a hide, a bark of oak or other tannin wood and water soak in a pit until it is leather. Bark is stripped at the woodcutter's camp, hides come off the pasture, water from the well; leather is sold at the market day (garments come with phase B4)"
   - code: herb_garden
     source: "ADR 0069; Plan of St Gall (the physic garden beside the infirmary); Walahfrid Strabo, Hortulus; Banished wiki, Herbalist"

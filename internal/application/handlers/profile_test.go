@@ -237,6 +237,7 @@ func (t *fakeTx) Land() application.LandRepository                 { return nil 
 func (t *fakeTx) Farm() application.FarmRepository                 { return nil }
 func (t *fakeTx) Craft() application.CraftRepository               { return nil }
 func (t *fakeTx) Survival() application.SurvivalRepository         { return nil }
+func (t *fakeTx) Apprentices() application.ApprenticeRepository   { return nil }
 func (t *fakeTx) Research() application.ResearchRepository                       { return nil }
 func (t *fakeTx) Charters() application.CharterRepository                        { return nil }
 

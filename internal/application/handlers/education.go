@@ -67,6 +67,8 @@ type CompleteCourseRequest struct {
 type EducationHandler struct {
 	// teacherXP is the teaching skill a finished class gives its player teacher (WithTeacherXP).
 	teacherXP int64
+	// teachingRules are the rule date of the teacher's skill in a class (WithTeachingRules, ADR 0071).
+	teachingRules application.TeachingRules
 	// personal are the rules of the personal prerequisites (a village class asks the student to read; WithPersonal).
 	personal PersonalRules
 	// experiencePerClass is the education experience a finished class in a founded settlement adds (WithExperience).
@@ -1016,13 +1018,19 @@ func (h *EducationHandler) Complete(ctx context.Context, meta envelope.Metadata,
 		for _, r := range rewards.SkillXP {
 			awards = append(awards, skillAward{Skill: r.Skill, XP: r.XP})
 		}
+		// the teacher's own skill (docs/adr/0071): a craft class gives what its teacher can give
+		awards, issuer, err := h.scaleByTeacher(ctx, tx, snap, e.ID, e.CourseCode, skills, awards, now)
+		if err != nil {
+			return err
+		}
 		gains, err := awardSkillXP(ctx, tx, snap, playerID, skills, awards, now)
 		if err != nil {
 			return err
 		}
 		certified := false
 		if rewards.Certification != "" {
-			if certified, err = tx.Education().Certify(ctx, playerID, rewards.Certification, e.ID, now); err != nil {
+			if certified, err = tx.Education().CertifyVia(ctx, application.CertificateIssue{PlayerID: playerID, CourseCode: rewards.Certification,
+				EnrollmentID: e.ID, IssuedBy: issuer, Route: application.RouteClass, At: now}); err != nil {
 				return err
 			}
 		}

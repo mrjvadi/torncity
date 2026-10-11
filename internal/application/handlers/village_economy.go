@@ -801,6 +801,14 @@ func (h *VillageHandler) startProduction(ctx context.Context, tx application.Tx,
 	if wageOverride >= 0 {
 		wage = wageOverride
 	}
+	if p != nil && h.apprentices != nil {
+		// an apprentice keeps the share of the wage his contract names; the rest stays with the employer (docs/adr/0071)
+		share, err := h.apprentices.WageShareBPS(ctx, tx, p.ID, b.ID, h.now())
+		if err != nil {
+			return err
+		}
+		wage = wage * share / labor.BPS
+	}
 	treasury, err := treasuryBalance(ctx, tx, s.CityID)
 	if err != nil {
 		return err
@@ -1222,7 +1230,13 @@ func (h *VillageHandler) trainOnShift(ctx context.Context, tx application.Tx, sn
 	if err != nil {
 		return err
 	}
-	_, err = awardSkillXP(ctx, tx, snap, sh.PlayerID, skills,
-		[]skillAward{{Skill: player.SkillCode(d.Trains.Skill), XP: d.Trains.XP}}, now)
-	return err
+	if _, err = awardSkillXP(ctx, tx, snap, sh.PlayerID, skills,
+		[]skillAward{{Skill: player.SkillCode(d.Trains.Skill), XP: d.Trains.XP}}, now); err != nil {
+		return err
+	}
+	// an apprentice at his master's workshop learns more from the same shift (docs/adr/0071)
+	if h.apprentices != nil {
+		return h.apprentices.OnShift(ctx, tx, snap, sh.PlayerID, sh.BuildingID, d.Trains.Skill, d.Trains.XP, now)
+	}
+	return nil
 }

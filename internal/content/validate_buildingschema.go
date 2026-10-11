@@ -1334,5 +1334,6 @@ func (l *schemaLint) crafting() {
 		if d.MaxBatches < 1 || d.MaxJobs < 1 {
 			l.bad("crafting: a job has at least one batch and a player at least one job")
 		}
+		l.apprenticeship(d)
 	}
 }

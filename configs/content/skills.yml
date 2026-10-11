@@ -39,6 +39,7 @@ skills:
   - {code: milling,     name: Milling,     category: crafts}
   - {code: baking,      name: Baking,      category: crafts}
   - {code: tailoring,   name: Tailoring,   category: crafts}
+  - {code: tanning,     name: Tanning,     category: crafts}
   - {code: teaching,    name: Teaching,    category: professional}
   # Trained by the training activity (training.start), read by the crimes that
   # need force (crimes.yml skill_weights).

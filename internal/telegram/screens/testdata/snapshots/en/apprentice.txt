@@ -1,0 +1,103 @@
+━━━ Apprentices · an offer, a pool master, an exam to judge ━━━
+(edits message 42) (private in groups)
+<b>🛠 Apprenticeship</b>
+
+✅ The apprenticeship began; work at the master's workshop to learn faster.
+
+Apprentice of Reza at Carpentry workshop (carpentry)
+Term: 28 days - fee: 400 SUP - apprentice's share of the wage: 50%
+offered, waiting to be accepted
+
+Apprentice of the town workshop's master at Carpentry workshop (weaving)
+Term: 28 days - fee: 0 SUP - apprentice's share of the wage: 50%
+running
+Ends at 14:35
+Shifts worked: 2 of 3 needed for the exam
+
+carpenter is your apprentice at Carpentry workshop (carpentry)
+Term: 28 days - fee: 0 SUP - apprentice's share of the wage: 50%
+term over, ready for the exam
+
+Apprentice of Reza at Carpentry workshop (pottery)
+Term: 0 days - fee: 0 SUP - apprentice's share of the wage: 0%
+term over, ready for the exam
+🎓 Has the journeyman certificate
+  ───
+  [✅ Accept (400 SUP)] → settlement:apprentice.accept:a1
+  [🚪 Leave] → settlement:apprentice.leave:a1
+  [🚪 Leave] → settlement:apprentice.leave:a2
+  [🎓 Exam: pass] → settlement:apprentice.exam:a3:pass
+  [❌ Exam: fail] → settlement:apprentice.exam:a3:fail
+  [🛠 Apprentice in carpentry at Carpentry workshop (up to level 2)] → settlement:apprentice.join:w2
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → settlement:apprentice.mine
+
+━━━ Apprentices · nothing yet ━━━
+(edits message 42) (private in groups)
+<b>🛠 Apprenticeship</b>
+
+You have no master and no apprentices.
+  ───
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → settlement:apprentice.mine
+
+━━━ Teachers · a craft with a class, a master, the pool and the city ━━━
+(edits message 42) (private in groups)
+<b>🎓 Teachers</b>
+
+Where can carpentry be learned? (the Carpentry workshop course)
+
+• Here, Ostmarch: Reza - level 5, teaches up to level 4 - fee 800 SUP, 9 seats
+
+• Fenwick Span (120 km): master Reza - level 4, 2 places for apprentices
+
+• Fenwick Span (120 km): the town workshop's master - up to level 2
+
+• Central City: classes always open - fee 800 SUP
+  ───
+  [weaving] → education:teachers:weaving
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → education:teachers:carpentry
+
+━━━ Teachers · nobody near ━━━
+(edits message 42) (private in groups)
+<b>🎓 Teachers</b>
+
+Where can weaving be learned? (the Carpentry workshop course)
+
+No teacher was found near you; the central city always has classes.
+  ───
+  [carpentry] → education:teachers:carpentry
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → education:teachers:weaving
+
+━━━ Apprentice refusal · not_master ━━━
+(edits message 42) (private in groups)
+A master takes apprentices at his own workshop only.
+  ───
+  [🛠 My apprenticeship] → settlement:apprentice.mine
+  [🔙 Back] → player:profile.get
+
+━━━ Apprentice refusal · range ━━━
+(edits message 42) (private in groups)
+The term, the fee or the wage share is outside the allowed range.
+  ───
+  [🛠 My apprenticeship] → settlement:apprentice.mine
+  [🔙 Back] → player:profile.get
+
+━━━ Apprentice refusal · cannot_afford ━━━
+(edits message 42) (private in groups)
+You cannot pay the fee.
+  ───
+  [🛠 My apprenticeship] → settlement:apprentice.mine
+  [🔙 Back] → player:profile.get
+
+━━━ Apprentice refusal · exam_not_ready ━━━
+(edits message 42) (private in groups)
+It is not time for the exam, or not enough shifts were worked.
+  ───
+  [🛠 My apprenticeship] → settlement:apprentice.mine
+  [🔙 Back] → player:profile.get
+
+━━━ Apprentice refusal · too_skilled ━━━
+(edits message 42) (private in groups)
+The town workshop's master has no more to teach you; go to a better master.
+  ───
+  [🛠 My apprenticeship] → settlement:apprentice.mine
+  [🔙 Back] → player:profile.get

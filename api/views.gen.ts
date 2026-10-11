@@ -92,6 +92,44 @@ export interface AppointView {
   player: GovPlayer
 }
 
+export interface ApprenticeJoinLine {
+  workshop: Named
+  craft: string
+  up_to: number
+}
+
+export interface ApprenticeLine {
+  id: string
+  craft: string
+  role: string
+  with: Named
+  workshop: Named
+  status: string
+  npc: boolean
+  fee: number
+  wage_share_bps: number
+  term_days: number
+  ends_at: string | null
+  shifts: number
+  exam_shifts: number
+  extra_xp: number
+  certified: boolean
+  can_accept: boolean
+  can_exam: boolean
+  can_leave: boolean
+  can_dismiss: boolean
+}
+
+export interface ApprenticeRefusalView {
+  kind: string
+}
+
+export interface ApprenticesView {
+  lines: ApprenticeLine[] | null
+  can_join: ApprenticeJoinLine[] | null
+  notice: string
+}
+
 export interface ArmsBuyView {
   country: GovPlace
   offer: ProcureOffer
@@ -5950,6 +5988,19 @@ export interface SurvivalView {
   notice: string
 }
 
+export interface TeacherEntry {
+  kind: string
+  settlement: Named
+  km: number
+  teacher: Named
+  craft_level: number
+  teaching_level: number
+  up_to: number
+  fee: number
+  free_seats: number
+  here: boolean
+}
+
 export interface TeacherLine {
   id: string
   kind: string
@@ -5958,6 +6009,13 @@ export interface TeacherLine {
   max: number
   mine: boolean
   can_end: boolean
+}
+
+export interface TeachersView {
+  craft: string
+  course: Named
+  entries: TeacherEntry[] | null
+  crafts: string[] | null
 }
 
 export interface TeachingView {
@@ -6832,6 +6890,8 @@ export interface ScreenViews {
   appoint_confirm: AppointView
   appoint_done: AppointDoneView
   appoint_refusal: AppointRefusalView
+  apprentice_refusal: ApprenticeRefusalView
+  apprentices: ApprenticesView
   arms_buy: ArmsBuyView
   auction_detail: AuctionDetailView
   auction_new: AuctionNewView
@@ -7105,6 +7165,7 @@ export interface ScreenViews {
   studio: StudioView
   suppliers: SuppliersView
   survival: SurvivalView
+  teachers: TeachersView
   tech: TechView
   trade: TradeDeskView
   trained: TrainedView
@@ -7163,4 +7224,4 @@ export interface ScreenViews {
 }
 
 /** Screens whose response is a refusal: the answer carries an error code instead of ok. */
-export const REFUSAL_SCREENS = ['appoint_refusal', 'auction_refusal', 'bill_refusal', 'company_refusal', 'crime_refusal', 'diplomacy_refusal', 'election_refusal', 'faction_refusal', 'finance_refusal', 'founding_refusal', 'fx_refusal', 'health_refusal', 'item_refusal', 'life_refusal', 'market_refusal', 'military_refusal', 'mission_refusal', 'no_room', 'policy_refused', 'production_refusal', 'property_refusal', 'recruit_refusal', 'refusal', 'sanction_blocked', 'settlement_refusal', 'shop_refusal', 'village_refusal', 'village_shop_refusal', 'war_blocked', 'war_refusal'] as const
+export const REFUSAL_SCREENS = ['appoint_refusal', 'apprentice_refusal', 'auction_refusal', 'bill_refusal', 'company_refusal', 'crime_refusal', 'diplomacy_refusal', 'election_refusal', 'faction_refusal', 'finance_refusal', 'founding_refusal', 'fx_refusal', 'health_refusal', 'item_refusal', 'life_refusal', 'market_refusal', 'military_refusal', 'mission_refusal', 'no_room', 'policy_refused', 'production_refusal', 'property_refusal', 'recruit_refusal', 'refusal', 'sanction_blocked', 'settlement_refusal', 'shop_refusal', 'village_refusal', 'village_shop_refusal', 'war_blocked', 'war_refusal'] as const

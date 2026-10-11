@@ -12,6 +12,8 @@ Page 1 of 2
   [📖 First Aid] → education:view:first_aid
   [📖 Evening Class in Accounting] → education:view:evening_accounting
   [📖 Retail Management] → education:view:retail_management
+  [🛠 Apprenticeship] → settlement:apprentice.mine
+  [🎓 Teachers] → education:teachers:carpentry
   [Next ➡️] → education:list:2
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → education:list:1
 
@@ -29,6 +31,8 @@ Courses you can take here:
 🔒 Retail Management - 2,800 SUP - 8h - from level 4
   ───
   [📖 Retail Management] → education:view:retail_management
+  [🛠 Apprenticeship] → settlement:apprentice.mine
+  [🎓 Teachers] → education:teachers:carpentry
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → education:list:1
 
 ━━━ Education · the course paused in jail ━━━
@@ -42,6 +46,8 @@ Courses you can take here:
 🔒 Retail Management - 2,800 SUP - 8h - from level 4
   ───
   [📖 Retail Management] → education:view:retail_management
+  [🛠 Apprenticeship] → settlement:apprentice.mine
+  [🎓 Teachers] → education:teachers:carpentry
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → education:list:1
 
 ━━━ Education · course finishing ━━━
@@ -53,6 +59,8 @@ Courses you can take here:
 
 There are no new courses for you here right now. More open up as you earn certificates and levels, and in other cities.
   ───
+  [🛠 Apprenticeship] → settlement:apprentice.mine
+  [🎓 Teachers] → education:teachers:carpentry
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → education:list:1
 
 ━━━ Education · nothing new here ━━━
@@ -61,6 +69,8 @@ There are no new courses for you here right now. More open up as you earn certif
 
 There are no new courses for you here right now. More open up as you earn certificates and levels, and in other cities.
   ───
+  [🛠 Apprenticeship] → settlement:apprentice.mine
+  [🎓 Teachers] → education:teachers:carpentry
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → education:list:1
 
 ━━━ Course · can enrol ━━━

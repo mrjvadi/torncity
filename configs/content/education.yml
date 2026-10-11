@@ -77,6 +77,96 @@ courses:
 
   # The clerks of the land registry and the bank (staff roles registrar,
   # surveyor, loan_officer).
+  - code: weaving_craft
+    name: Weaving Journeyman
+    institution: training_center
+    cost: 800
+    duration: 10h
+    min_level: 0
+    prerequisites: [literacy_class]
+    skill_rewards: [{skill: weaving, xp: 200}]
+    certifies: true
+
+  - code: pottery_craft
+    name: Pottery Journeyman
+    institution: training_center
+    cost: 800
+    duration: 10h
+    min_level: 0
+    prerequisites: [literacy_class]
+    skill_rewards: [{skill: pottery, xp: 200}]
+    certifies: true
+
+  - code: milling_craft
+    name: Milling Journeyman
+    institution: training_center
+    cost: 800
+    duration: 10h
+    min_level: 0
+    prerequisites: [literacy_class]
+    skill_rewards: [{skill: milling, xp: 200}]
+    certifies: true
+
+  - code: baking_craft
+    name: Baking Journeyman
+    institution: training_center
+    cost: 800
+    duration: 10h
+    min_level: 0
+    prerequisites: [literacy_class]
+    skill_rewards: [{skill: baking, xp: 200}]
+    certifies: true
+
+  - code: tanning_craft
+    name: Tanning Journeyman
+    institution: training_center
+    cost: 900
+    duration: 10h
+    min_level: 0
+    prerequisites: [literacy_class]
+    skill_rewards: [{skill: tanning, xp: 200}]
+    certifies: true
+
+  - code: forestry_craft
+    name: Forestry Journeyman
+    institution: training_center
+    cost: 700
+    duration: 8h
+    min_level: 0
+    prerequisites: [literacy_class]
+    skill_rewards: [{skill: forestry, xp: 200}]
+    certifies: true
+
+  - code: herding_craft
+    name: Herding Journeyman
+    institution: training_center
+    cost: 700
+    duration: 8h
+    min_level: 0
+    prerequisites: [literacy_class]
+    skill_rewards: [{skill: herding, xp: 200}]
+    certifies: true
+
+  - code: farming_craft
+    name: Farming Journeyman
+    institution: training_center
+    cost: 800
+    duration: 10h
+    min_level: 0
+    prerequisites: [literacy_class]
+    skill_rewards: [{skill: farming, xp: 200}]
+    certifies: true
+
+  - code: tailoring_craft
+    name: Tailoring Journeyman
+    institution: training_center
+    cost: 800
+    duration: 10h
+    min_level: 0
+    prerequisites: [literacy_class]
+    skill_rewards: [{skill: tailoring, xp: 200}]
+    certifies: true
+
   - code: registry_clerk
     name: Registry Clerk
     institution: training_center

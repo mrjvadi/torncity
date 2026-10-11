@@ -184,6 +184,8 @@ type Tx interface {
 	Craft() CraftRepository
 	// Survival is thirst, warmth, garments and sickness (migration 0147, ADR 0070).
 	Survival() SurvivalRepository
+	// Apprentices is the apprenticeships of the teaching network (migration 0148, ADR 0071).
+	Apprentices() ApprenticeRepository
 	// StallKeepers is the keepers stall owners hire (migration 0139, ADR 0062).
 	StallKeepers() StallKeeperRepository
 	// Charters holds each settlement's offices, seats and audit (ADR 0044
