@@ -146,6 +146,8 @@ type file struct {
 	PersonalSources []PersonalSourceDef `yaml:"personal_sources"`
 	// LegacyStageOnly: see Pack.LegacyStageOnly.
 	LegacyStageOnly []string `yaml:"legacy_stage_only"`
+	// StageExceptions: see Pack.StageExceptions.
+	StageExceptions []string `yaml:"stage_exceptions"`
 
 	// The building schema (buildingschema.go).
 	TerrainTags             []TerrainTagDef             `yaml:"terrain_tags"`
@@ -332,6 +334,10 @@ func Load(dir string) (*Pack, error) {
 		if doc.LegacyStageOnly != nil {
 			pack.GrowthLint = true
 			pack.LegacyStageOnly = append(pack.LegacyStageOnly, doc.LegacyStageOnly...)
+		}
+		if doc.StageExceptions != nil {
+			pack.SizeLint = true
+			pack.StageExceptions = append(pack.StageExceptions, doc.StageExceptions...)
 		}
 		pack.TerrainTags = append(pack.TerrainTags, doc.TerrainTags...)
 		pack.StorageClasses = append(pack.StorageClasses, doc.StorageClasses...)

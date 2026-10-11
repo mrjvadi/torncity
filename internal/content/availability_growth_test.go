@@ -155,6 +155,10 @@ func TestShippedLegacyStageOnlyOnlyShrinks(t *testing.T) {
 	if founding > 123 {
 		t.Fatalf("%d rows are open from founding; ADR 0044 Appendix A class A has 123", founding)
 	}
+	const sizeExceptions = 26 // the rows that still name a size at ADR 0072
+	if !pack.SizeLint || len(pack.StageExceptions) > sizeExceptions {
+		t.Fatalf("stage_exceptions must be declared and may only shrink (%d, started with %d)", len(pack.StageExceptions), sizeExceptions)
+	}
 	if len(pack.LegacyStageOnly) > g0 {
 		t.Fatalf("legacy_stage_only grew to %d entries (G0 started with %d): gate the new content instead", len(pack.LegacyStageOnly), g0)
 	}

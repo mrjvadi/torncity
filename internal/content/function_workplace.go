@@ -100,7 +100,7 @@ func (p *Pack) expandFunctionWorkplaces() {
 			gen = append(gen, tb)
 			twins = append(twins, tf)
 			if len(p.Availability) > 0 {
-				p.Availability = append(p.Availability, AvailabilityDef{Kind: "building", Code: tb.Code, Stage: StageVillage, Generated: true})
+				p.Availability = append(p.Availability, AvailabilityDef{Kind: "building", Code: tb.Code, Generated: true})
 			}
 		}
 	}

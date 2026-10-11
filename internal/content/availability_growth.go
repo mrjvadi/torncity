@@ -188,3 +188,41 @@ func (s *Snapshot) GrowthNeeds(t AvailabilityDef, withGrowth bool) (needs Availa
 	}
 	return needs, deferred
 }
+
+// sizeLabel reports a stage that is a settlement size (village, town, city).
+func sizeLabel(stage string) bool {
+	return stage == StageVillage || stage == StageTown || stage == StageCity
+}
+
+// lintStageLabel refuses a size label on a tag that is not a listed exception (ADR 0072).
+func (p *Pack) lintStageLabel(key string, t AvailabilityDef, bad func(string, ...any)) {
+	if !p.SizeLint || !sizeLabel(t.Stage) {
+		return
+	}
+	for _, k := range p.StageExceptions {
+		if k == key {
+			return
+		}
+	}
+	bad("%s: names the settlement size %q: a size is not a gate (ADR 0072); drop the stage and say what the settlement must have", key, t.Stage)
+}
+
+// lintStageExceptions refuses an exception that names nothing, or that has no size label left: the list may only shrink.
+func (p *Pack) lintStageExceptions(tags map[string]AvailabilityDef, bad func(string, ...any)) {
+	if !p.SizeLint {
+		return
+	}
+	seen := map[string]bool{}
+	for _, k := range p.StageExceptions {
+		t, ok := tags[k]
+		switch {
+		case seen[k]:
+			bad("stage_exceptions: %s listed twice", k)
+		case !ok:
+			bad("stage_exceptions: %s is not a tagged entry (remove it)", k)
+		case !sizeLabel(t.Stage):
+			bad("stage_exceptions: %s has no size label now, remove it from the list", k)
+		}
+		seen[k] = true
+	}
+}

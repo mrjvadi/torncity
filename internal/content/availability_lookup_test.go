@@ -20,8 +20,8 @@ func TestServiceTagsOfTheShippedWorld(t *testing.T) {
 			t.Errorf("%s: no availability tag says where it is offered", service)
 			continue
 		}
-		if StageRank(tag.Stage) == 0 && tag.Stage != StageSupport {
-			t.Errorf("%s: stage %q cannot be judged", service, tag.Stage)
+		if StageRank(tag.Stage) == 0 && tag.Stage != StageSupport && !needsAsk(tag.Requires) {
+			t.Errorf("%s: no stage and nothing it requires: it cannot be judged", service)
 		}
 		if len(tag.Elsewhere) == 0 {
 			t.Errorf("%s: the tag names no place to have it when it is missing here", service)

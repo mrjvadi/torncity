@@ -285,6 +285,11 @@ type Pack struct {
 	// declares the list: that pack is held to the no-stage-only rule.
 	LegacyStageOnly []string
 	GrowthLint      bool
+	// StageExceptions lists the tags (kind/code) that may still carry a village, town or city
+	// stage label (ADR 0072): rows whose real gate is a later piece of work. A settlement
+	// size is not a gate; no other row may name one. The list may only shrink.
+	StageExceptions []string
+	SizeLint        bool // availability.yml declares stage_exceptions: no other row may name a size
 	// finance.yml: the finance section, at most one (finance.go;
 	// docs/adr/0026-finance.md).
 	Finance []FinanceDef
