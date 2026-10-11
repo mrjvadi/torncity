@@ -75,6 +75,8 @@ func healthSnapshots(c Context, who people, add func(string, *presenter.Response
 		WarmingOpen: true, CanCure: true, Notice: "river_sick"}))
 	add("Survival · fine, nothing worn", Survival(c, SurvivalView{Founded: true, Thirst: 10, Warmth: 5, WarmthLevel: "fine",
 		Env: &EnvLine{TempC: 21, Season: 2, Hour: 14}, WellOpen: true}))
+	add("Survival · a hot day, thirsty", Survival(c, SurvivalView{Founded: true, Thirst: 80, Warmth: 0, ThirstLevel: 1, WarmthLevel: "hot",
+		Env: &EnvLine{TempC: 36, Season: 2, Hour: 15}, WellOpen: true}))
 	add("Survival · the neutral city", Survival(c, SurvivalView{Notice: "not_founded"}))
 	add("Treat · confirm, first aid at the health house", TreatConfirm(c, TreatConfirmView{Option: house, Remaining: 6 * time.Minute,
 		EndsAt: snapshotNow.Add(5*time.Minute + 6*time.Second)}))

@@ -197,3 +197,56 @@ func (c *Cache) At(seed int64, cal Calendar, p Params, pl Place, t time.Time) En
 	c.mu.Unlock()
 	return e
 }
+
+// Day is the weather of one coming local day: the least and the greatest temperature (centi-degrees) and what the day brings.
+type Day struct {
+	// Offset is how many local days from today (1 is tomorrow).
+	Offset           int
+	MinC100, MaxC100 int
+	Rain, Wind       bool
+	Snap, Spell      bool
+}
+
+// localMidnight is the UTC instant of the start of the local day that t falls in.
+func localMidnight(t time.Time, zone time.Duration) time.Time {
+	l := t.UTC().Add(zone)
+	return time.Date(l.Year(), l.Month(), l.Day(), 0, 0, 0, 0, time.UTC).Add(-zone)
+}
+
+func (c *Cache) orAt(seed int64, cal Calendar, p Params, pl Place, t time.Time) Env {
+	if c != nil {
+		return c.At(seed, cal, p, pl, t)
+	}
+	return At(seed, cal, p, pl, t)
+}
+
+// Forecast is the weather of the next n local days after the one now falls in, read from the same seeded function the
+// present weather comes from: a forecast is a read, not a state. c may be nil.
+func Forecast(seed int64, cal Calendar, p Params, pl Place, now time.Time, n int, c *Cache) []Day {
+	start := localMidnight(now, pl.Zone)
+	out := make([]Day, 0, n)
+	for d := 1; d <= n; d++ {
+		day := Day{Offset: d, MinC100: 1 << 30, MaxC100: -(1 << 30)}
+		base := start.Add(time.Duration(d) * 24 * time.Hour)
+		for h := 0; h < 24; h++ {
+			e := c.orAt(seed, cal, p, pl, base.Add(time.Duration(h)*time.Hour))
+			day.MinC100, day.MaxC100 = min(day.MinC100, e.TempC100), max(day.MaxC100, e.TempC100)
+			day.Rain, day.Wind, day.Snap, day.Spell = e.Rain, e.Wind, e.Snap, e.Spell
+		}
+		out = append(out, day)
+	}
+	return out
+}
+
+// SnapEnd is when the cold snap the present day is in ends: the start of the first local day after it that is not a snap. ok is
+// false when today is no cold snap. It looks at most a week ahead. c may be nil.
+func SnapEnd(seed int64, cal Calendar, p Params, pl Place, now time.Time, c *Cache) (time.Time, bool) {
+	if !c.orAt(seed, cal, p, pl, now).Snap {
+		return time.Time{}, false
+	}
+	end := localMidnight(now, pl.Zone).Add(24 * time.Hour)
+	for i := 0; i < 7 && c.orAt(seed, cal, p, pl, end.Add(12*time.Hour)).Snap; i++ {
+		end = end.Add(24 * time.Hour)
+	}
+	return end, true
+}

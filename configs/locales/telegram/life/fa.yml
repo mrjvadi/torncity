@@ -977,6 +977,8 @@ survival:
     chilly: "کمی سردتان است"
     cold: "سردتان است"
     freezing: "دارید یخ می‌زنید"
+    hot: "هوا گرم است؛ آب و سایه لازم دارید"
+    heatstroke: "خطر گرمازدگی؛ زود آب بخورید و به سایه بروید"
   weather: "🌤 هوای بیرون: {temp} درجه، {season}"
   weather_below: "🌤 هوای بیرون: {temp} درجه زیر صفر، {season}"
   season:

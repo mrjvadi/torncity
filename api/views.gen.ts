@@ -1720,6 +1720,8 @@ export interface EnvLine {
   wind: boolean
   season: number
   hour: number
+  forecast: ForecastDay[] | null
+  cold_snap_until: string | null | null
 }
 
 export interface ErrorView {
@@ -2216,6 +2218,16 @@ export interface ForcesView {
   readiness: number
   upkeep: number
   moving: number
+}
+
+export interface ForecastDay {
+  offset: number
+  min_c: number
+  max_c: number
+  rain: boolean
+  wind: boolean
+  snap: boolean
+  spell: boolean
 }
 
 export interface FoundDraftView {
@@ -5919,6 +5931,7 @@ export interface SupplyOffer {
 
 export interface SurvivalView {
   founded: boolean
+  starts_at: string | null | null
   thirst: number
   warmth: number
   thirst_level: number

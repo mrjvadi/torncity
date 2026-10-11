@@ -598,6 +598,8 @@
       "can_cure": true,
       "carried": 2,
       "env": {
+        "cold_snap_until": null,
+        "forecast": null,
         "hour": 7,
         "rain": true,
         "season": 0,
@@ -616,6 +618,7 @@
       "notice": "river_sick",
       "river": true,
       "sheltered": false,
+      "starts_at": null,
       "thirst": 72,
       "thirst_level": 1,
       "warming_open": true,
@@ -645,6 +648,8 @@
       "can_cure": false,
       "carried": 0,
       "env": {
+        "cold_snap_until": null,
+        "forecast": null,
         "hour": 14,
         "rain": false,
         "season": 2,
@@ -657,11 +662,44 @@
       "notice": "",
       "river": false,
       "sheltered": false,
+      "starts_at": null,
       "thirst": 10,
       "thirst_level": 0,
       "warming_open": false,
       "warmth": 5,
       "warmth_level": "fine",
+      "well_open": true,
+      "worn": null
+    }
+  },
+  {
+    "title": "Survival · a hot day, thirsty",
+    "screen": "survival",
+    "view": {
+      "bag": null,
+      "can_cure": false,
+      "carried": 0,
+      "env": {
+        "cold_snap_until": null,
+        "forecast": null,
+        "hour": 15,
+        "rain": false,
+        "season": 2,
+        "temp_c": 36,
+        "wind": false
+      },
+      "founded": true,
+      "illness": null,
+      "kept": null,
+      "notice": "",
+      "river": false,
+      "sheltered": false,
+      "starts_at": null,
+      "thirst": 80,
+      "thirst_level": 1,
+      "warming_open": false,
+      "warmth": 0,
+      "warmth_level": "hot",
       "well_open": true,
       "worn": null
     }
@@ -680,6 +718,7 @@
       "notice": "not_founded",
       "river": false,
       "sheltered": false,
+      "starts_at": null,
       "thirst": 0,
       "thirst_level": 0,
       "warming_open": false,

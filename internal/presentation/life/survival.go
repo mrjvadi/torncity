@@ -14,12 +14,12 @@ const ScreenSurvival = "survival"
 
 // More addresses the survival screens lead to.
 const (
-	AddrSurvival  = "health:survival"
-	AddrDrink  = "health:drink"
-	AddrWear   = "health:wear"
-	AddrRemove = "health:remove"
-	AddrWarm   = "health:warm"
-	AddrCure   = "health:cure"
+	AddrSurvival = "health:survival"
+	AddrDrink    = "health:drink"
+	AddrWear     = "health:wear"
+	AddrRemove   = "health:remove"
+	AddrWarm     = "health:warm"
+	AddrCure     = "health:cure"
 )
 
 // The sources of a drink (health.drink).
@@ -49,6 +49,9 @@ const (
 	WarmthChilly   = "chilly"
 	WarmthCold     = "cold"
 	WarmthFreezing = "freezing"
+	// WarmthHot and WarmthHeatstroke show instead of fine when the hot band applies (docs/adr/0070).
+	WarmthHot        = "hot"
+	WarmthHeatstroke = "heatstroke"
 )
 
 // EnvLine is the weather where the player stands now.
@@ -57,6 +60,18 @@ type EnvLine struct {
 	TempC        int
 	Rain, Wind   bool
 	Season, Hour int
+	// Forecast is the next local days, from the same seeded weather; ColdSnapUntil is when the cold snap the day is in ends, null when
+	// today is no cold snap.
+	Forecast      []ForecastDay `json:"forecast,omitempty"`
+	ColdSnapUntil *time.Time    `json:"cold_snap_until"`
+}
+
+// ForecastDay is one coming local day: Offset 1 is tomorrow; the least and the greatest temperature in whole degrees.
+type ForecastDay struct {
+	Offset      int
+	MinC, MaxC  int
+	Rain, Wind  bool
+	Snap, Spell bool
 }
 
 // GarmentLine is a garment worn, kept in the wardrobe, or carried in the bag.
@@ -82,6 +97,8 @@ type IllnessLine struct {
 type SurvivalView struct {
 	// Founded says survival applies where the player stands (a founded settlement, after the rule date).
 	Founded bool
+	// StartsAt is the day survival starts counting, set only while Founded is false because the rule date plus its grace has not come.
+	StartsAt *time.Time `json:"starts_at"`
 	// Thirst and Warmth are points of 100, higher worse; ThirstLevel is 0 fine, 1 high, 2 severe; WarmthLevel one of Warmth*.
 	Thirst, Warmth int
 	ThirstLevel    int

@@ -412,8 +412,22 @@ func (h *SurvivalHandler) viewOf(ctx context.Context, tx application.Tx, snap *c
 	v.Founded = true
 	v.Thirst, v.Warmth = int(t.st.ThirstMilli/survival.Milli), int(t.st.WarmthMilli/survival.Milli)
 	v.ThirstLevel, v.WarmthLevel = c.sp.ThirstLevel(t.st.ThirstMilli), warmthName(c.sp.WarmthLevel(t.st.WarmthMilli))
+	if v.WarmthLevel == plife.WarmthFine && t.env.TempC100 > c.sp.HotAboveC100 {
+		v.WarmthLevel = plife.WarmthHot // the hot band applies: water and shade, not wool
+		if t.env.TempC100 > c.def.Survival.HeatstrokeAboveC*100 && v.ThirstLevel == 2 {
+			v.WarmthLevel = plife.WarmthHeatstroke
+		}
+	}
 	e := t.env
 	v.Env = &plife.EnvLine{TempC: e.TempC100 / 100, Rain: e.Rain, Wind: e.Wind, Season: e.Season, Hour: e.Hour}
+	cache := h.envCache(c.def)
+	for _, d := range climate.Forecast(c.seed, c.cal, c.cp, c.place, now, 3, cache) {
+		v.Env.Forecast = append(v.Env.Forecast, plife.ForecastDay{Offset: d.Offset, MinC: d.MinC100 / 100, MaxC: d.MaxC100 / 100,
+			Rain: d.Rain, Wind: d.Wind, Snap: d.Snap, Spell: d.Spell})
+	}
+	if end, ok := climate.SnapEnd(c.seed, c.cal, c.cp, c.place, now, cache); ok {
+		v.Env.ColdSnapUntil = &end
+	}
 	v.Sheltered = now.Before(t.st.ShelterUntil)
 	line := func(g application.Garment) plife.GarmentLine {
 		d, _ := c.def.Garment(g.Item)
@@ -520,6 +534,10 @@ func (h *SurvivalHandler) run(ctx context.Context, meta envelope.Metadata, _ str
 		}
 		if t == nil {
 			view = plife.SurvivalView{Notice: plife.NoticeNotFounded}
+			if r := h.deps.rules; r.Enabled() && !r.On(now) {
+				at := r.StartsAt()
+				view.StartsAt = &at // survival starts counting on this day (the rule date plus its grace)
+			}
 			return nil
 		}
 		notice := ""
