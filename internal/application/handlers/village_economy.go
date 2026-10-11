@@ -1155,12 +1155,19 @@ func (h *VillageHandler) Worked(ctx context.Context, meta envelope.Metadata, req
 			// a player is paid in cash; an NPC's wage leaves the economy (the sink), as a
 			// construction NPC's does
 			toAcct := application.SystemSinkAccountID
+			var payee npcPayee
 			if sh.WorkerKind != application.LaborWorkerNPC {
 				cash, err := tx.Ledger().AccountFor(ctx, application.AccountPlayerCash, sh.PlayerID)
 				if err != nil {
 					return err
 				}
 				toAcct = cash.ID
+			} else {
+				// once the settlement runs on its households the NPC's wage is theirs (ADR 0073)
+				if payee, err = h.npcWagePayee(ctx, tx, sh.SettlementID, "shift:"+sh.ID); err != nil {
+					return err
+				}
+				toAcct = payee.Account
 			}
 			if _, err := tx.Ledger().Post(ctx, application.LedgerTransaction{
 				ID: txID, Reason: application.ReasonSettlementWage, CreatedAt: now,
@@ -1170,6 +1177,9 @@ func (h *VillageHandler) Worked(ctx context.Context, meta envelope.Metadata, req
 					{AccountID: toAcct, Amount: money.FromMinor(pay)},
 				},
 			}); err != nil {
+				return err
+			}
+			if err := h.afterNPCWage(ctx, tx, payee, sh.SettlementID, pay, application.SettlementShiftReference, sh.ID, now); err != nil {
 				return err
 			}
 		}

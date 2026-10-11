@@ -246,11 +246,18 @@ func (h *VillageHandler) SettleKeeperWages(ctx context.Context, tx application.T
 			continue
 		}
 		neg, _ := money.FromMinor(k.DailyWage).Neg()
+		payee, err := h.npcWagePayee(ctx, tx, s.CityID, "stall:"+k.ID) // the keeper is a person of the pool: a household's earner once it is live
+		if err != nil {
+			return err
+		}
 		if _, err := tx.Ledger().Post(ctx, application.LedgerTransaction{
 			ID: txID, Reason: application.ReasonStallKeeperDayWage, ReferenceType: application.StallKeeperWageReference, ReferenceID: k.ID,
-			Entries:   []application.LedgerEntry{{AccountID: acct.ID, Amount: neg}, {AccountID: application.SystemSinkAccountID, Amount: money.FromMinor(k.DailyWage)}},
+			Entries:   []application.LedgerEntry{{AccountID: acct.ID, Amount: neg}, {AccountID: payee.Account, Amount: money.FromMinor(k.DailyWage)}},
 			CreatedAt: now,
 		}); err != nil {
+			return err
+		}
+		if err := h.afterNPCWage(ctx, tx, payee, s.CityID, k.DailyWage, application.StallKeeperWageReference, k.ID, now); err != nil {
 			return err
 		}
 	}

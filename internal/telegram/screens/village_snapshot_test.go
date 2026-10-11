@@ -123,6 +123,16 @@ func villageSnapshots(c Context, who people, add func(string, *presenter.Respons
 		Last:  &village.TradeDayLine{Outcome: "no_clerk", At: snapshotNow},
 	}))
 	add("Trade desk · no market post yet", TradeDesk(g, TradeDeskView{Name: villageNameFor(c), Cap: 400, PriceBPS: 9000}))
+	add("Households · none yet", Households(g, HouseholdsView{Name: villageNameFor(c), Phase: village.HouseholdPhaseNone, Open: true}))
+	add("Households · the dual run, the head may close the city", Households(g, HouseholdsView{Name: villageNameFor(c), Phase: village.HouseholdPhaseDual, Open: true,
+		Living: 4, Persons: 9, Earners: 3, Homes: 7, MoodBPS: 7000, TargetPool: 5, MayAdmit: true}))
+	add("Households · live, with news, a tax and an owner's dwelling", Households(g, HouseholdsView{Name: villageNameFor(c), Phase: village.HouseholdPhaseLive, Open: true,
+		IncomeTaxBPS: 1000, Living: 7, Leaving: 1, Persons: 17, Earners: 6, Homes: 8, MoodBPS: 6200, Worst: "warmth", MayAdmit: true, MayTax: true,
+		TaxPresets: []int64{0, 500, 1000}, RentPresets: []int64{20, 50},
+		News: []village.HouseholdNewsLine{{Kind: "arrived", Detail: "2+1", At: time.Date(2026, 10, 11, 8, 0, 0, 0, time.UTC)},
+			{Kind: "left", Detail: "food", At: time.Date(2026, 10, 11, 9, 0, 0, 0, time.UTC)}},
+		Dwellings: []village.HouseholdDwellingLine{{Building: sampleNamed(c.Lang, "private_cottage", "خانهٔ کوچک", "Cottage"), Slots: 2},
+			{Building: sampleNamed(c.Lang, "private_house", "خانهٔ بزرگ", "House"), Slots: 4, Open: true, Rent: 30, Tenants: 2}}}))
 	library := sampleNamed(c.Lang, "library", "کتابخانه", "Library")
 	lab := sampleNamed(c.Lang, "laboratory", "آزمایشگاه", "Laboratory")
 	wool := sampleNamed(c.Lang, "wool", "پشم", "Wool")

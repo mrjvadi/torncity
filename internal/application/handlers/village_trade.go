@@ -125,6 +125,14 @@ func (h *VillageHandler) SettleTradeDay(ctx context.Context, tx application.Tx, 
 	for _, st := range stacks {
 		stock[st.Item] += st.Qty
 	}
+	// The households' next days of food, water and firewood stay in the stock whatever the head put on sale (ADR 0073 4.5).
+	floor, err := h.householdFloor(ctx, tx, snap, s.CityID, stock)
+	if err != nil {
+		return nil, err
+	}
+	for it, n := range floor {
+		stock[it] = max(stock[it]-n, 0)
+	}
 	plan := trade.Make(stock, tOrders, snap.VillageExportPrices(), residents, h.trade.Rules)
 	d := application.TradeDay{SettlementID: s.CityID, Day: today, Outcome: application.TradeNothing, Residents: residents, Cap: plan.Cap, At: now}
 
@@ -203,11 +211,18 @@ func (h *VillageHandler) SettleTradeDay(ctx context.Context, tx application.Tx, 
 		return nil, err
 	}
 	if d.Wage > 0 {
+		payee, err := h.npcWagePayee(ctx, tx, s.CityID, "clerk")
+		if err != nil {
+			return nil, err
+		}
 		if _, err := tx.Ledger().Post(ctx, application.LedgerTransaction{ID: d.WageTx, Reason: application.ReasonMarketClerkWage, CreatedAt: now,
 			ReferenceType: application.TradeDayReference, ReferenceID: s.CityID, Entries: []application.LedgerEntry{
 				{AccountID: treasury.ID, Amount: money.FromMinor(-d.Wage)},
-				{AccountID: application.SystemSinkAccountID, Amount: money.FromMinor(d.Wage)},
+				{AccountID: payee.Account, Amount: money.FromMinor(d.Wage)},
 			}}); err != nil {
+			return nil, err
+		}
+		if err := h.afterNPCWage(ctx, tx, payee, s.CityID, d.Wage, application.TradeDayReference, s.CityID, now); err != nil {
 			return nil, err
 		}
 	}

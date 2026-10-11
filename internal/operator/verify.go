@@ -222,6 +222,15 @@ func VerifyChecks(v postgres.LedgerVerification, cfg *config.Config) []Check {
 		out.add(t.SurvivalDoubleSlot == 0, fmt.Sprintf("no player wears two garments in one slot (%d do)", t.SurvivalDoubleSlot))
 	}
 
+	if v.Village && v.Households {
+		t := v.VillageInvariants
+		out.add(t.HouseholdWalletBelowZero == 0 && t.HouseholdGoneHolding == 0, fmt.Sprintf("no household wallet is below zero (%d are) and a household that left holds nothing (%d held)", t.HouseholdWalletBelowZero, t.HouseholdGoneHolding))
+		out.add(t.HouseholdFromSource == 0, fmt.Sprintf("the households create no money: none of their transactions draws on the source (%d do)", t.HouseholdFromSource))
+		out.add(t.HouseholdWageToSink == 0, fmt.Sprintf("a settlement that runs on its households pays no NPC wage into the sink (%d do)", t.HouseholdWageToSink))
+		out.add(t.HouseholdUnsettled == 0 && t.HouseholdTickDup == 0, fmt.Sprintf("every living household was settled for its settlement's latest finished day (%d were not), once (%d twice)", t.HouseholdUnsettled, t.HouseholdTickDup))
+		out.add(t.HouseholdItemOrphans == 0 && t.HouseholdShopOrphans == 0, fmt.Sprintf("the food, water and firewood the households used, and what they bought at the shop, name a household (%d, %d off)", t.HouseholdItemOrphans, t.HouseholdShopOrphans))
+	}
+
 	if v.Village && v.Apprentice {
 		t := v.VillageInvariants
 		out.add(t.ApprenticeFeeLedger == t.ApprenticeFeeRows && t.ApprenticeRefundLedger == t.ApprenticeRefundRows, fmt.Sprintf("the fees apprentices paid their masters, and the refunds of dismissals, in the ledger are what the contracts say (%d = %d, %d = %d)", t.ApprenticeFeeLedger, t.ApprenticeFeeRows, t.ApprenticeRefundLedger, t.ApprenticeRefundRows))

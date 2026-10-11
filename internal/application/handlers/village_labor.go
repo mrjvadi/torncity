@@ -158,7 +158,10 @@ func (h *VillageHandler) laborMarket(ctx context.Context, tx application.Tx, sna
 	if err != nil {
 		return laborMarket{}, err
 	}
-	pool := h.labor.PoolSize(housing, residents)
+	pool, err := h.poolSize(ctx, tx, s.CityID, housing, residents)
+	if err != nil {
+		return laborMarket{}, err
+	}
 	force := pool + residents
 	tight := h.labor.Tightness(all+vacancies, force)
 	level := village.MarketBalanced
@@ -1381,6 +1384,7 @@ func (h *VillageHandler) workedSite(ctx context.Context, tx application.Tx, meta
 	if pay > 0 && !local {
 		reason := application.ReasonLaborWage
 		to := application.SystemSinkAccountID
+		var payee npcPayee
 		if sh.WorkerKind == application.LaborWorkerPlayer {
 			cash, err := tx.Ledger().AccountFor(ctx, application.AccountPlayerCash, sh.PlayerID)
 			if err != nil {
@@ -1389,6 +1393,11 @@ func (h *VillageHandler) workedSite(ctx context.Context, tx application.Tx, meta
 			to = cash.ID
 		} else {
 			reason = application.ReasonLaborWageNPC
+			// an NPC's wage goes to the household that holds the seat once the settlement is live (ADR 0073)
+			if payee, err = h.npcWagePayee(ctx, tx, sh.SettlementID, "shift:"+sh.ID); err != nil {
+				return err
+			}
+			to = payee.Account
 		}
 		entries := []application.LedgerEntry{{AccountID: source, Amount: money.FromMinor(-pay)}}
 		if net > 0 {
@@ -1405,6 +1414,9 @@ func (h *VillageHandler) workedSite(ctx context.Context, tx application.Tx, meta
 			ID: txID, Reason: reason, CreatedAt: now,
 			ReferenceType: application.LaborShiftReference, ReferenceID: sh.ID, Entries: entries,
 		}); err != nil {
+			return err
+		}
+		if err := h.afterNPCWage(ctx, tx, payee, sh.SettlementID, net, application.LaborShiftReference, sh.ID, now); err != nil {
 			return err
 		}
 	}

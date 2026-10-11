@@ -86,6 +86,13 @@ func tradeRules(cfg *config.Config) handlers.TradeRules {
 	return handlers.TradeRules{Rules: settlementcfg.Trade(cfg.Settlement), Clock: clock, KeepPresets: cfg.Settlement.ExportKeepPresets}
 }
 
+// householdRules reads the NPC households' tuning (config households.*, game.clock_epoch): the placeholder rule date keeps them off until
+// the deploy sets it (ADR 0073).
+func householdRules(cfg *config.Config) application.HouseholdRules {
+	clock, _ := cfg.GameClock()
+	return settlementcfg.Households(cfg.Households, clock)
+}
+
 // currencyRules is the money rules of a settlement's charter (config currency.*).
 // reserveRules is the rules of the reserve tools: the Reserve Bank's levers resolved through the policy
 // reader, with the configuration only as the fallback, the head's limits and the macro constants.

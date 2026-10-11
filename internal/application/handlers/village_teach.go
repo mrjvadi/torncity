@@ -193,6 +193,16 @@ func (h *VillageHandler) Taught(ctx context.Context, meta envelope.Metadata, req
 				return err
 			}
 		}
+		// The households' day rides the tick too (household_days: one row per settlement and local day).
+		if h.house.Enabled(now) {
+			s, err := tx.Settlements().ByID(ctx, in.SettlementID)
+			if err != nil {
+				return err
+			}
+			if err := h.SettleHouseholdDay(ctx, tx, snap, s, buildings, now); err != nil {
+				return err
+			}
+		}
 		// a day the class taught someone to read is practice in education
 		if next > int64(shareBPS) && capacityBPS > 0 {
 			if s, err := tx.Settlements().ByID(ctx, in.SettlementID); err == nil && h.service.enabled() {

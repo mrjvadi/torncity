@@ -496,14 +496,21 @@ func (h *VillageHandler) settleStorageDay(ctx context.Context, tx application.Tx
 		if err != nil {
 			return nil, err
 		}
+		payee, err := h.npcWagePayee(ctx, tx, settlementID, "storekeeper")
+		if err != nil {
+			return nil, err
+		}
 		if _, err := tx.Ledger().Post(ctx, application.LedgerTransaction{
 			ID: d.LedgerTransactionID, Reason: application.ReasonStorekeeperWage, CreatedAt: now,
 			ReferenceType: application.VillageStorageDayReference, ReferenceID: settlementID,
 			Entries: []application.LedgerEntry{
 				{AccountID: acct.ID, Amount: money.FromMinor(-wages)},
-				{AccountID: application.SystemSinkAccountID, Amount: money.FromMinor(wages)},
+				{AccountID: payee.Account, Amount: money.FromMinor(wages)},
 			},
 		}); err != nil {
+			return nil, err
+		}
+		if err := h.afterNPCWage(ctx, tx, payee, settlementID, wages, application.VillageStorageDayReference, settlementID, now); err != nil {
 			return nil, err
 		}
 	}

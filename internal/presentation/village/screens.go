@@ -669,7 +669,7 @@ func VillageWork(c presentation.Ctx, v WorkView) *presentation.Response {
 
 // SettlementWho is the roster of who is around in the settlement.
 func SettlementWho(c presentation.Ctx, v SettlementWhoView) *presentation.Response {
-	return screenWho.Response(c.Lang, v, back(AddrVillageOverview), refresh(AddrSettlementWho))
+	return screenWho.Response(c.Lang, v, act(AddrHouseholds).Named("village.households"), back(AddrVillageOverview), refresh(AddrSettlementWho))
 }
 
 // VillageCharter is the charter: offices, holders and the viewer's powers. The acts

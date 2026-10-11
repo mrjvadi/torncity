@@ -222,6 +222,7 @@ village:
     trade: "🚚 بازرگان"
     overview: "🏘 نمای شهر"
     who: "👥 اهالی"
+    households: "🏠 خانوارها"
     knowledge: "📚 دانش شهر"
     build: "🏗 ساخت‌وساز"
     progress: "⏳ پیشرفت ساخت"
@@ -1028,6 +1029,46 @@ trade:
     all: "{item} - همه"
     keep: "نگه {n}"
     off: "✖"
+
+households:
+  title: "👨‍👩‍👧 خانوارهای «{name}»"
+  none: "این شهر هنوز خانواری ندارد؛ وقتی خانه و کار باشد، خانوارها می‌آیند."
+  counts: "🏠 {living} خانوار - {persons} نفر - {earners} نفر سرِ کار - جا برای {homes} خانوار"
+  mood: "🙂 رضایت خانوارها: {percent}٪"
+  worst: "⚠️ بیشترین کم‌داشت: {need}"
+  need:
+    food: "غذا"
+    water: "آب"
+    warmth: "هیزم و گرما"
+    shelter: "جا"
+    home: "جا"
+    work: "کار"
+    care: "درمان"
+  phase:
+    dual: "⏳ خانوارها دارند می‌آیند؛ تا وقتی جای کارِ شهر ({target} نفر) پُر شود، همه‌چیز مثل قبل می‌ماند."
+    live: "✅ مردم شهر را خانوارها می‌سازند: مزد کارگرها به کیف خانوارشان می‌رود و خرجشان را از انبار و دکان می‌دهند."
+  tax: "🧾 مالیات بر مزد خانوارها: {percent}٪"
+  admission:
+    open: "🚪 شهر به روی خانوارهای تازه باز است."
+    closed: "🚪 شهر به روی خانوارهای تازه بسته است."
+  news_title: "📰 تازه‌ها:"
+  news:
+    arrived: "• خانواری ({detail}) آمد - {date}، {time}"
+    left: "• خانواری رفت (کم‌داشت: {detail}) - {date}، {time}"
+    notice: "• خانواری اخطار گرفت (کم‌داشت: {detail}) - {date}، {time}"
+    born: "• بچه‌ای به دنیا آمد - {date}، {time}"
+    grown: "• بچه‌ای بزرگ شد - {date}، {time}"
+    grant: "• خزانه به خانوار تازه‌آمده {detail} داد - {date}، {time}"
+  dwellings_title: "🏡 خانه‌های شما:"
+  dwelling:
+    open: "• {building}: اجاره می‌دهید، روزی {rent} - {tenants} خانوار نشسته‌اند"
+    closed: "• {building}: جا برای {slots} خانوار؛ اجاره نمی‌دهید"
+  button:
+    admit: "🚪 باز کردن شهر"
+    close: "🚪 بستن شهر"
+    tax: "مالیات {percent}٪"
+    rent_open: "اجاره {rent}"
+    rent_close: "بستن اجارهٔ {building}"
 
 research:
   title: "🔬 پژوهش‌های «{name}»"

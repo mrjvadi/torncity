@@ -347,12 +347,19 @@ func (h *TrainingHandler) payTrainer(ctx context.Context, tx application.Tx, cit
 	if err != nil {
 		return err
 	}
-	_, err = tx.Ledger().Post(ctx, application.LedgerTransaction{
-		Reason: application.ReasonTrainerWage, ReferenceType: "training", ReferenceID: h.ids.NewID(), CreatedAt: now,
+	payee, err := payeeOf(ctx, tx, city.ID, "trainer") // once the settlement runs on its households the trainer's wage is theirs (ADR 0073)
+	if err != nil {
+		return err
+	}
+	ref := h.ids.NewID()
+	if _, err = tx.Ledger().Post(ctx, application.LedgerTransaction{
+		Reason: application.ReasonTrainerWage, ReferenceType: "training", ReferenceID: ref, CreatedAt: now,
 		Entries: []application.LedgerEntry{
 			{AccountID: treasury.ID, Amount: money.FromMinor(-wage)},
-			{AccountID: application.SystemSinkAccountID, Amount: money.FromMinor(wage)},
+			{AccountID: payee.Account, Amount: money.FromMinor(wage)},
 		},
-	})
-	return err
+	}); err != nil {
+		return err
+	}
+	return withholdWageTax(ctx, tx, payee, city.ID, wage, "training", ref, now)
 }

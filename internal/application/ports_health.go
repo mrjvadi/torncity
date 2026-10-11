@@ -72,12 +72,12 @@ func (s HospitalStay) Admitted(now time.Time) bool {
 
 // Treatment is a hospital_treatments row.
 type Treatment struct {
-	ID            string
-	StayID        string
-	PlayerID      string
-	CityID        string
-	Provider      string
-	CompanyID     string
+	ID        string
+	StayID    string
+	PlayerID  string
+	CityID    string
+	Provider  string
+	CompanyID string
 	// BuildingID is the health house or clinic of a settlement that treated (provider health_house or village_clinic).
 	BuildingID    string
 	Price         int64

@@ -255,6 +255,9 @@ type Config struct {
 	// capability computation that replaces the tier label, run beside it.
 	Growth Growth
 
+	// Households is the NPC households (docs/adr/0073).
+	Households Households
+
 	// Bag, Merchant and Premium are the tuning of ADR 0046: what a player can
 	// carry and how a bag wears, the village shop's daily delivery and prices,
 	// and the constant a village currency is quoted in Nil by.
@@ -1825,6 +1828,47 @@ func Defaults() *Config {
 			ChunkStreamAmplitude:        60,
 			ChunkDepositTilesPerDeposit: 5,
 		},
+		Households: Households{
+			RuleAt:                 "2099-01-01T00:00:00Z",
+			FirewoodItem:           "firewood",
+			PerBatch:               50,
+			CatchupDaysMax:         3,
+			ArrivalsPerDay:         2,
+			VacancyMarginBPS:       1000,
+			ArriveAboveBPS:         5000,
+			LeaveBelowBPS:          3000,
+			LeaveAfterDays:         5,
+			NoticeDays:             2,
+			SatisfactionAlphaBPS:   2000,
+			StartSatisfactionBPS:   7000,
+			BirthAboveBPS:          8000,
+			BirthChanceBPS:         200,
+			DependantWeightBPS:     5000,
+			DependantToEarnerDays:  60,
+			EarnerBPS:              6000,
+			PlayerReserveBPS:       7000,
+			WalletCap:              2000,
+			WelcomeGrant:           300,
+			WelcomeFloor:           1000,
+			FoodPointsPerPerson:    4,
+			WaterMilliPerPerson:    1000,
+			FirewoodMilliPerPerson: 500,
+			StockDays:              2,
+			TickKeepDays:           30,
+			ClinicChanceBPS:        500,
+			WeightFood:             3000,
+			WeightWater:            2500,
+			WeightWarmth:           1500,
+			WeightShelter:          1500,
+			WeightWork:             1000,
+			WeightCare:             500,
+			MaxRent:                200,
+			WelcomeQuietDays:       3,
+			SurplusSpendBPS:        5000,
+			DiscretionaryItems:     []string{"pots"},
+			GraceDays:              14,
+			Compositions:           []string{"1+0:2", "2+0:4", "2+1:3", "2+2:2"},
+		},
 		Growth: Growth{
 			Capabilities:  GrowthAuthoritative,
 			CacheTTL:      5 * time.Second,
@@ -2586,4 +2630,47 @@ type Currency struct {
 	MacroPiMaxBPS              int64         // currency.macro_pi_max_bps: the bound of local inflation per period
 	MacroWTradableBPS          int64         // currency.macro_w_tradable_bps: the weight of tradable goods in the basket
 	InterventionDelay          time.Duration // currency.intervention_delay: how long a request of the head waits
+}
+
+// Households is the tuning of the NPC households (docs/adr/0073-npc-households.md). The households are off until RuleAt.
+type Households struct {
+	RuleAt                 string   // households.rule_at
+	FirewoodItem           string   // households.firewood_item
+	PerBatch               int64    // households.per_batch
+	CatchupDaysMax         int64    // households.catchup_days_max
+	ArrivalsPerDay         int64    // households.arrivals_per_day
+	VacancyMarginBPS       int64    // households.vacancy_margin_bps
+	ArriveAboveBPS         int64    // households.arrive_above_bps
+	LeaveBelowBPS          int64    // households.leave_below_bps
+	LeaveAfterDays         int64    // households.leave_after_days
+	NoticeDays             int64    // households.notice_days
+	SatisfactionAlphaBPS   int64    // households.satisfaction_alpha_bps
+	StartSatisfactionBPS   int64    // households.start_satisfaction_bps
+	BirthAboveBPS          int64    // households.birth_above_bps
+	BirthChanceBPS         int64    // households.birth_chance_bps
+	DependantWeightBPS     int64    // households.dependant_weight_bps
+	DependantToEarnerDays  int64    // households.dependant_to_earner_days
+	EarnerBPS              int64    // households.earner_bps
+	PlayerReserveBPS       int64    // households.player_reserve_bps
+	WalletCap              int64    // households.wallet_cap
+	WelcomeGrant           int64    // households.welcome_grant
+	WelcomeFloor           int64    // households.welcome_floor
+	FoodPointsPerPerson    int64    // households.food_points_per_person_day
+	WaterMilliPerPerson    int64    // households.water_milli_per_person
+	FirewoodMilliPerPerson int64    // households.firewood_milli_per_person
+	StockDays              int64    // households.stock_days
+	TickKeepDays           int64    // households.tick_keep_days
+	ClinicChanceBPS        int64    // households.clinic_chance_bps
+	WeightFood             int64    // households.weight_food
+	WeightWater            int64    // households.weight_water
+	WeightWarmth           int64    // households.weight_warmth
+	WeightShelter          int64    // households.weight_shelter
+	WeightWork             int64    // households.weight_work
+	WeightCare             int64    // households.weight_care
+	MaxRent                int64    // households.max_rent
+	WelcomeQuietDays       int64    // households.welcome_quiet_days: no welcome grant while a household left in this many game days
+	SurplusSpendBPS        int64    // households.surplus_spend_bps
+	DiscretionaryItems     []string // households.discretionary_items
+	GraceDays              int64    // households.grace_days
+	Compositions           []string // households.compositions
 }

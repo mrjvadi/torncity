@@ -174,6 +174,8 @@ type Tx interface {
 	Research() ResearchRepository
 	// Trade holds the head's standing orders and the market days (ADR 0049, migration 0136); see ports_trade.go.
 	Trade() TradeRepository
+	// Household holds the NPC households, their day fences and the settlements' flag (ADR 0073, migration 0151); see ports_household.go.
+	Household() HouseholdRepository
 	// ServiceDays is the daily services of the settlement's posts (migration 0137).
 	ServiceDays() ServiceDayRepository
 	// Land is the deltas of the settlements' trees and rocks and their saplings (migration 0143, ADR 0065).

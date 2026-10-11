@@ -8,6 +8,7 @@
 🟢 Kaveh - online
 🟢 Nilou - travelling
   ───
+  [🏠 Households] → settlement:households
   [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:who
 
 ━━━ Who is around · nobody online ━━━
@@ -18,6 +19,7 @@
 
 Nobody is online right now.
   ───
+  [🏠 Households] → settlement:households
   [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:who
 
 ━━━ Settings · last seen shown to everyone ━━━

@@ -171,6 +171,55 @@ The trader only comes to a market post, and the town has none yet.
   ───
   [🔙 Back] → settlement:materials   │   [🔄 Refresh] → settlement:trade
 
+━━━ Households · none yet ━━━
+(edits message 42)
+👨‍👩‍👧 Households of Korendal
+
+This city has no households yet; they come once there are homes and work.
+  ───
+  [🔙 Back] → settlement:who   │   [🔄 Refresh] → settlement:households
+
+━━━ Households · the dual run, the head may close the city ━━━
+(edits message 42)
+👨‍👩‍👧 Households of Korendal
+
+⏳ Households are arriving; until they fill the city's work (5 people) nothing changes.
+
+🏠 4 households - 9 people - 3 at work - room for 7
+🙂 Household satisfaction: 70%
+
+🚪 The city is open to new households.
+  ───
+  [🚪 Close the city] → settlement:households:close
+  [🔙 Back] → settlement:who   │   [🔄 Refresh] → settlement:households
+
+━━━ Households · live, with news, a tax and an owner's dwelling ━━━
+(edits message 42)
+👨‍👩‍👧 Households of Korendal
+
+✅ The city's people are its households: workers' wages go to their purses and they pay for their needs at the stock and the shop.
+
+🏠 7 households - 17 people - 6 at work - room for 8
+🙂 Household satisfaction: 62%
+⚠️ Most lacking: firewood and warmth
+🧾 Tax on households' wages: 10%
+
+🚪 The city is open to new households.
+
+📰 News:
+• A household (2+1) arrived - 11 October 2026, 11:30
+• A household left (lacked: food) - 11 October 2026, 12:30
+
+🏡 Your homes:
+• Private cottage: room for 2 households; not let
+• Private house: let at 30 SUP a day - 2 households live there
+  ───
+  [🚪 Close the city] → settlement:households:close
+  [Tax 0%] → settlement:households:tax:0   │   [Tax 5%] → settlement:households:tax:500   │   [Tax 10%] → settlement:households:tax:1000
+  [Rent 20 SUP] → settlement:households:rent_open:private_cottage:20   │   [Rent 50 SUP] → settlement:households:rent_open:private_cottage:50
+  [Stop letting Private house] → settlement:households:rent_close:private_house
+  [🔙 Back] → settlement:who   │   [🔄 Refresh] → settlement:households
+
 ━━━ Research desk · a laboratory at work, a library short of paper, a pact offered ━━━
 (edits message 42)
 🔬 Research of Korendal

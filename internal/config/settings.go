@@ -57,6 +57,7 @@ type fileConfig struct {
 	WorldGen      worldgenSettings      `yaml:"worldgen"`
 	Settlement    settlementSettings    `yaml:"settlement"`
 	Growth        growthSettings        `yaml:"growth"`
+	Households    householdsSettings    `yaml:"households"`
 	Bag           bagSettings           `yaml:"bag"`
 	Merchant      merchantSettings      `yaml:"merchant"`
 	Premium       premiumSettings       `yaml:"premium"`
@@ -371,6 +372,48 @@ type growthSettings struct {
 	CacheTTL      *string `yaml:"cache_ttl"`
 	RuinedBPS     *int    `yaml:"ruined_bps"`
 	FlushInterval *string `yaml:"flush_interval"`
+}
+
+type householdsSettings struct {
+	RuleAt                 *string  `yaml:"rule_at"`
+	FirewoodItem           *string  `yaml:"firewood_item"`
+	PerBatch               *int64   `yaml:"per_batch"`
+	CatchupDaysMax         *int64   `yaml:"catchup_days_max"`
+	ArrivalsPerDay         *int64   `yaml:"arrivals_per_day"`
+	VacancyMarginBPS       *int64   `yaml:"vacancy_margin_bps"`
+	ArriveAboveBPS         *int64   `yaml:"arrive_above_bps"`
+	LeaveBelowBPS          *int64   `yaml:"leave_below_bps"`
+	LeaveAfterDays         *int64   `yaml:"leave_after_days"`
+	NoticeDays             *int64   `yaml:"notice_days"`
+	SatisfactionAlphaBPS   *int64   `yaml:"satisfaction_alpha_bps"`
+	StartSatisfactionBPS   *int64   `yaml:"start_satisfaction_bps"`
+	BirthAboveBPS          *int64   `yaml:"birth_above_bps"`
+	BirthChanceBPS         *int64   `yaml:"birth_chance_bps"`
+	DependantWeightBPS     *int64   `yaml:"dependant_weight_bps"`
+	DependantToEarnerDays  *int64   `yaml:"dependant_to_earner_days"`
+	EarnerBPS              *int64   `yaml:"earner_bps"`
+	PlayerReserveBPS       *int64   `yaml:"player_reserve_bps"`
+	WalletCap              *int64   `yaml:"wallet_cap"`
+	WelcomeGrant           *int64   `yaml:"welcome_grant"`
+	WelcomeFloor           *int64   `yaml:"welcome_floor"`
+	FoodPointsPerPerson    *int64   `yaml:"food_points_per_person_day"`
+	WaterMilliPerPerson    *int64   `yaml:"water_milli_per_person"`
+	FirewoodMilliPerPerson *int64   `yaml:"firewood_milli_per_person"`
+	StockDays              *int64   `yaml:"stock_days"`
+	TickKeepDays           *int64   `yaml:"tick_keep_days"`
+	ClinicChanceBPS        *int64   `yaml:"clinic_chance_bps"`
+	WeightFood             *int64   `yaml:"weight_food"`
+	WeightWater            *int64   `yaml:"weight_water"`
+	WeightWarmth           *int64   `yaml:"weight_warmth"`
+	WeightShelter          *int64   `yaml:"weight_shelter"`
+	WeightWork             *int64   `yaml:"weight_work"`
+	WeightCare             *int64   `yaml:"weight_care"`
+	MaxRent                *int64   `yaml:"max_rent"`
+	WelcomeQuietDays       *int64   `yaml:"welcome_quiet_days"`
+	SurplusSpendBPS        *int64   `yaml:"surplus_spend_bps"`
+	DiscretionaryItems     []string `yaml:"discretionary_items"`
+	GraceDays              *int64   `yaml:"grace_days"`
+	Compositions           []string `yaml:"compositions"`
 }
 
 type settlementSettings struct {
@@ -1269,6 +1312,123 @@ var coreSettings = []setting{
 		func(c *Config) *int { return &c.WorldGen.ChunkDepositTilesPerDeposit },
 		func(f *fileConfig) *int { return f.WorldGen.ChunkDepositTilesPerDeposit }),
 
+	stringSetting("households", "rule_at",
+		func(c *Config) *string { return &c.Households.RuleAt },
+		func(f *fileConfig) *string { return f.Households.RuleAt }),
+	stringSetting("households", "firewood_item",
+		func(c *Config) *string { return &c.Households.FirewoodItem },
+		func(f *fileConfig) *string { return f.Households.FirewoodItem }),
+	moneySetting("households", "per_batch",
+		func(c *Config) *int64 { return &c.Households.PerBatch },
+		func(f *fileConfig) *int64 { return f.Households.PerBatch }),
+	moneySetting("households", "catchup_days_max",
+		func(c *Config) *int64 { return &c.Households.CatchupDaysMax },
+		func(f *fileConfig) *int64 { return f.Households.CatchupDaysMax }),
+	moneySetting("households", "arrivals_per_day",
+		func(c *Config) *int64 { return &c.Households.ArrivalsPerDay },
+		func(f *fileConfig) *int64 { return f.Households.ArrivalsPerDay }),
+	moneySetting("households", "vacancy_margin_bps",
+		func(c *Config) *int64 { return &c.Households.VacancyMarginBPS },
+		func(f *fileConfig) *int64 { return f.Households.VacancyMarginBPS }),
+	moneySetting("households", "arrive_above_bps",
+		func(c *Config) *int64 { return &c.Households.ArriveAboveBPS },
+		func(f *fileConfig) *int64 { return f.Households.ArriveAboveBPS }),
+	moneySetting("households", "leave_below_bps",
+		func(c *Config) *int64 { return &c.Households.LeaveBelowBPS },
+		func(f *fileConfig) *int64 { return f.Households.LeaveBelowBPS }),
+	moneySetting("households", "leave_after_days",
+		func(c *Config) *int64 { return &c.Households.LeaveAfterDays },
+		func(f *fileConfig) *int64 { return f.Households.LeaveAfterDays }),
+	moneySetting("households", "notice_days",
+		func(c *Config) *int64 { return &c.Households.NoticeDays },
+		func(f *fileConfig) *int64 { return f.Households.NoticeDays }),
+	moneySetting("households", "satisfaction_alpha_bps",
+		func(c *Config) *int64 { return &c.Households.SatisfactionAlphaBPS },
+		func(f *fileConfig) *int64 { return f.Households.SatisfactionAlphaBPS }),
+	moneySetting("households", "start_satisfaction_bps",
+		func(c *Config) *int64 { return &c.Households.StartSatisfactionBPS },
+		func(f *fileConfig) *int64 { return f.Households.StartSatisfactionBPS }),
+	moneySetting("households", "birth_above_bps",
+		func(c *Config) *int64 { return &c.Households.BirthAboveBPS },
+		func(f *fileConfig) *int64 { return f.Households.BirthAboveBPS }),
+	moneySetting("households", "birth_chance_bps",
+		func(c *Config) *int64 { return &c.Households.BirthChanceBPS },
+		func(f *fileConfig) *int64 { return f.Households.BirthChanceBPS }),
+	moneySetting("households", "dependant_weight_bps",
+		func(c *Config) *int64 { return &c.Households.DependantWeightBPS },
+		func(f *fileConfig) *int64 { return f.Households.DependantWeightBPS }),
+	moneySetting("households", "dependant_to_earner_days",
+		func(c *Config) *int64 { return &c.Households.DependantToEarnerDays },
+		func(f *fileConfig) *int64 { return f.Households.DependantToEarnerDays }),
+	moneySetting("households", "earner_bps",
+		func(c *Config) *int64 { return &c.Households.EarnerBPS },
+		func(f *fileConfig) *int64 { return f.Households.EarnerBPS }),
+	moneySetting("households", "player_reserve_bps",
+		func(c *Config) *int64 { return &c.Households.PlayerReserveBPS },
+		func(f *fileConfig) *int64 { return f.Households.PlayerReserveBPS }),
+	moneySetting("households", "wallet_cap",
+		func(c *Config) *int64 { return &c.Households.WalletCap },
+		func(f *fileConfig) *int64 { return f.Households.WalletCap }),
+	moneySetting("households", "welcome_grant",
+		func(c *Config) *int64 { return &c.Households.WelcomeGrant },
+		func(f *fileConfig) *int64 { return f.Households.WelcomeGrant }),
+	moneySetting("households", "welcome_floor",
+		func(c *Config) *int64 { return &c.Households.WelcomeFloor },
+		func(f *fileConfig) *int64 { return f.Households.WelcomeFloor }),
+	moneySetting("households", "food_points_per_person_day",
+		func(c *Config) *int64 { return &c.Households.FoodPointsPerPerson },
+		func(f *fileConfig) *int64 { return f.Households.FoodPointsPerPerson }),
+	moneySetting("households", "water_milli_per_person",
+		func(c *Config) *int64 { return &c.Households.WaterMilliPerPerson },
+		func(f *fileConfig) *int64 { return f.Households.WaterMilliPerPerson }),
+	moneySetting("households", "firewood_milli_per_person",
+		func(c *Config) *int64 { return &c.Households.FirewoodMilliPerPerson },
+		func(f *fileConfig) *int64 { return f.Households.FirewoodMilliPerPerson }),
+	moneySetting("households", "stock_days",
+		func(c *Config) *int64 { return &c.Households.StockDays },
+		func(f *fileConfig) *int64 { return f.Households.StockDays }),
+	moneySetting("households", "tick_keep_days",
+		func(c *Config) *int64 { return &c.Households.TickKeepDays },
+		func(f *fileConfig) *int64 { return f.Households.TickKeepDays }),
+	moneySetting("households", "clinic_chance_bps",
+		func(c *Config) *int64 { return &c.Households.ClinicChanceBPS },
+		func(f *fileConfig) *int64 { return f.Households.ClinicChanceBPS }),
+	moneySetting("households", "weight_food",
+		func(c *Config) *int64 { return &c.Households.WeightFood },
+		func(f *fileConfig) *int64 { return f.Households.WeightFood }),
+	moneySetting("households", "weight_water",
+		func(c *Config) *int64 { return &c.Households.WeightWater },
+		func(f *fileConfig) *int64 { return f.Households.WeightWater }),
+	moneySetting("households", "weight_warmth",
+		func(c *Config) *int64 { return &c.Households.WeightWarmth },
+		func(f *fileConfig) *int64 { return f.Households.WeightWarmth }),
+	moneySetting("households", "weight_shelter",
+		func(c *Config) *int64 { return &c.Households.WeightShelter },
+		func(f *fileConfig) *int64 { return f.Households.WeightShelter }),
+	moneySetting("households", "weight_work",
+		func(c *Config) *int64 { return &c.Households.WeightWork },
+		func(f *fileConfig) *int64 { return f.Households.WeightWork }),
+	moneySetting("households", "weight_care",
+		func(c *Config) *int64 { return &c.Households.WeightCare },
+		func(f *fileConfig) *int64 { return f.Households.WeightCare }),
+	moneySetting("households", "surplus_spend_bps",
+		func(c *Config) *int64 { return &c.Households.SurplusSpendBPS },
+		func(f *fileConfig) *int64 { return f.Households.SurplusSpendBPS }),
+	stringListSetting("households", "discretionary_items",
+		func(c *Config) *[]string { return &c.Households.DiscretionaryItems },
+		func(f *fileConfig) []string { return f.Households.DiscretionaryItems }),
+	moneySetting("households", "welcome_quiet_days",
+		func(c *Config) *int64 { return &c.Households.WelcomeQuietDays },
+		func(f *fileConfig) *int64 { return f.Households.WelcomeQuietDays }),
+	moneySetting("households", "max_rent",
+		func(c *Config) *int64 { return &c.Households.MaxRent },
+		func(f *fileConfig) *int64 { return f.Households.MaxRent }),
+	moneySetting("households", "grace_days",
+		func(c *Config) *int64 { return &c.Households.GraceDays },
+		func(f *fileConfig) *int64 { return f.Households.GraceDays }),
+	stringListSetting("households", "compositions",
+		func(c *Config) *[]string { return &c.Households.Compositions },
+		func(f *fileConfig) []string { return f.Households.Compositions }),
 	stringSetting("growth", "capabilities",
 		func(c *Config) *string { return &c.Growth.Capabilities },
 		func(f *fileConfig) *string { return f.Growth.Capabilities }),

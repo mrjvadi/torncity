@@ -107,6 +107,8 @@ type VillageHandler struct {
 	research ResearchRules
 	// trade is the market day's rules (village_trade.go).
 	trade TradeRules
+	// house are the NPC households' rules (village_households.go).
+	house application.HouseholdRules
 	// service is the clock of the daily services (village_service.go).
 	service ServiceRules
 	// personal are the rules of the personal prerequisites of a post (village_personal.go).

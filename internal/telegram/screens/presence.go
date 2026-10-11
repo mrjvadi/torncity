@@ -83,6 +83,7 @@ func renderSettlementWho(c Context, v SettlementWhoView) *presenter.Response {
 	}
 
 	kb := keyboards.New()
+	kb.Add(c.T("village.button.households", nil), village.AddrHouseholds)
 	kb.Nav(c.nav(keyboards.Nav{BackData: AddrVillageOverview, RefreshData: AddrSettlementWho}))
 	return c.respond(paragraphs(title, counts, list), kb.Build())
 }
