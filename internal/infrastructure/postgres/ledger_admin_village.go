@@ -184,6 +184,9 @@ type VillageInvariants struct {
 	CareFeeLedger, CareFeeRows            int64
 	CareMedicineJournal, CareMedicineRows int64
 	CareBroken                            int64
+	// Survival (migration 0147, docs/adr/0070): the garments in the item journal and in the wardrobes, and the players with two in a slot.
+	Survival                                                        bool
+	SurvivalGarmentJournal, SurvivalGarmentRows, SurvivalDoubleSlot int64
 	// The tool wear (docs/adr/0050): ToolInputs are the tools the item journal shows leaving the stores as shift inputs,
 	// ToolShiftUnits the tools the shifts recorded as consumed, ToolWearBroken the workplaces whose wear is out of range.
 	ToolInputs, ToolShiftUnits int64
@@ -243,6 +246,7 @@ func (v VillageInvariants) WorkNodesOK() bool {
 		v.ToolInputs == v.ToolShiftUnits && v.ToolWearBroken == 0 &&
 		(!v.Service || (v.ServiceLedger == v.ServiceRows && v.ServiceItems == v.ServiceUsedRows && v.ServiceDayBroken == 0)) &&
 		(!v.Care || (v.CareFeeLedger == v.CareFeeRows && v.CareMedicineJournal == v.CareMedicineRows && v.CareBroken == 0)) &&
+		(!v.Survival || (v.SurvivalGarmentJournal == v.SurvivalGarmentRows && v.SurvivalDoubleSlot == 0)) &&
 		(!v.Trade || (v.TradeLedger == v.TradeRows && v.TradeItems == v.TradeLineUnits && v.TradeDayBroken == 0 && v.TradeWageLedger == v.TradeWageRows)) &&
 		(!v.LevyRefunds || (v.LevyRefundLedger == v.LevyRefundRows && v.LevyRefundMismatched == 0)) &&
 		(!v.Research || (v.ResearchWageLedger == v.ResearchWageRows && v.ResearchWageMismatched == 0 && v.ResearchDayBroken == 0 &&

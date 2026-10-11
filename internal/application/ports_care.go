@@ -19,6 +19,8 @@ const (
 const (
 	ServicePrimaryCare  = "primary_care"
 	ServiceClinicalCare = "clinical_care"
+	// ServiceShelter is the warming house's daily service (docs/adr/0070).
+	ServiceShelter = "shelter"
 )
 
 // ItemMedicineUsed is a medicine a health house or a clinic of a settlement used on a patient: units leaving the settlement's stock.
@@ -67,6 +69,8 @@ type VillageCare struct {
 	SettlementID string
 	House        CareSite
 	Clinic       CareSite
+	// Warming is the warming house (docs/adr/0070).
+	Warming CareSite
 	// Stock is the units of the settlement's stock of the goods care uses, by item.
 	Stock map[string]int64
 	// Refer is the code of the city a patient is sent to for a hospital, "" when none is known.

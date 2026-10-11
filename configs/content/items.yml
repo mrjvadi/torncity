@@ -97,7 +97,7 @@
 version: 1
 
 component_categories: [grain, water, leavening, flavouring, alkaloid, binder, fibre, steel, casing, circuit, battery, gem, metal,
-                       fuel, seed, salt, mineral, ore, oil, crop, wood, wire, resin, board, tool, pottery]
+                       fuel, seed, salt, mineral, ore, oil, crop, wood, wire, resin, board, tool, pottery, garment]
 
 components:
   # --- Bought from NPC suppliers only (production.yml suppliers) -----------
@@ -192,6 +192,14 @@ components:
   - {code: tools, shelf: tools.work, weight_g: 1500, name: Tools, category: tool, base_price: 30, attributes: {quality: 50}, village_buy: true}
   - {code: stone_tools, shelf: tools.work, weight_g: 1800, name: Stone tools, category: tool, base_price: 12, attributes: {quality: 40}, village_buy: true}
   - {code: forged_tools, shelf: tools.work, weight_g: 1500, name: Forged tools, category: tool, base_price: 70, attributes: {quality: 65}, village_buy: true}
+  - {code: hide_wrap, shelf: clothing.outer, weight_g: 1800, name: Hide wrap, category: garment, base_price: 25, attributes: {quality: 35}, village_buy: true}
+  - {code: hide_boots, shelf: clothing.foot, weight_g: 1000, name: Hide boots, category: garment, base_price: 40, attributes: {quality: 40}, village_buy: true}
+  - {code: wool_tunic, shelf: clothing.body, weight_g: 700, name: Wool tunic, category: garment, base_price: 45, attributes: {quality: 45}, village_buy: true}
+  - {code: wool_vest, shelf: clothing.body, weight_g: 600, name: Wool vest, category: garment, base_price: 40, attributes: {quality: 45}, village_buy: true}
+  - {code: wool_cloak, shelf: clothing.outer, weight_g: 1500, name: Wool cloak, category: garment, base_price: 90, attributes: {quality: 50}, village_buy: true}
+  - {code: wool_cap, shelf: clothing.head, weight_g: 200, name: Wool cap, category: garment, base_price: 20, attributes: {quality: 45}, village_buy: true}
+  - {code: wool_mittens, shelf: clothing.hands, weight_g: 250, name: Wool mittens, category: garment, base_price: 22, attributes: {quality: 45}, village_buy: true}
+  - {code: sun_hat, shelf: clothing.head, weight_g: 150, name: Sun hat, category: garment, base_price: 15, attributes: {quality: 40}, village_buy: true}
   - {code: herbs, shelf: materials.seed_crop, weight_g: 300, name: Herbs, category: crop, base_price: 3, attributes: {quality: 40}}
   - {code: bark, shelf: materials.wood, weight_g: 1500, name: Bark, category: wood, base_price: 3, attributes: {quality: 50}}
   - {code: leather, shelf: materials.fibre, weight_g: 2500, name: Leather, category: fibre, base_price: 40, attributes: {quality: 50}, village_sell: true}

@@ -998,6 +998,14 @@ company_type:
 
 # نام قطعه‌ها و مواد، به کد محتوا (configs/content/items.yml).
 component:
+  hide_wrap: "پوشش چرمی"
+  hide_boots: "چکمهٔ چرمی"
+  wool_tunic: "پیراهن پشمی"
+  wool_vest: "جلیقهٔ پشمی"
+  wool_cloak: "شنل پشمی"
+  wool_cap: "کلاه پشمی"
+  wool_mittens: "دستکش پشمی"
+  sun_hat: "کلاه آفتابی"
   herbs: "گیاه دارویی"
   tools: "ابزار"
   stone_tools: "ابزار سنگی"
@@ -1582,6 +1590,8 @@ climate_band:
   cold: "سرد"
   severe: "سرمای سخت"
 staff_role:
+  tailor: "خیاط"
+  hearth_keeper: "گرمخانه‌دار"
   herbalist: "گیاه‌کار"
   apothecary: "عطار"
   teacher: "معلم"
@@ -1624,6 +1634,9 @@ staff_role:
   loan_officer: "کارشناس وام"
   bank_manager: "مدیر شعبهٔ بانک"
 building_function:
+  tailor_shop: "خیاطی"
+  tailor_shop_own: "خیاطی (شخصی)"
+  warming_house: "گرمخانه"
   herb_garden: "باغچهٔ گیاهان دارویی"
   herb_garden_own: "باغچهٔ گیاهان دارویی (شخصی)"
   apothecary: "عطاری"
@@ -1693,6 +1706,14 @@ building_function:
   exchange_house: "صرافی"
   bank: "بانک"
 recipe:
+  hide_wrap: "پوشش چرمی"
+  hide_boots: "چکمهٔ چرمی"
+  wool_tunic: "پیراهن پشمی"
+  wool_vest: "جلیقهٔ پشمی"
+  wool_cloak: "شنل پشمی"
+  wool_cap: "کلاه پشمی"
+  wool_mittens: "دستکش پشمی"
+  sun_hat: "کلاه آفتابی"
   herb_extract: "عصارهٔ گیاهی"
   painkillers: "مسکن"
   first_aid_kit: "جعبهٔ کمک‌های اولیه"

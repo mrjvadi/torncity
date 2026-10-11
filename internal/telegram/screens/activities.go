@@ -76,6 +76,9 @@ func renderHealthHome(c Context, v life.HealthHomeView) *presenter.Response {
 		lines = append(lines, c.T("activities.health.refer", map[string]any{"city": c.CityName(v.Refer.Code, v.Refer.Name)}))
 	}
 	kb := keyboards.New()
+	if btn, ok := keyboards.Button(c.T("activities.health.button_survival", nil), life.AddrSurvival); ok {
+		kb.Row(btn)
+	}
 	kb.Nav(c.nav(keyboards.Nav{BackData: life.AddrActivitiesHub, RefreshData: life.AddrHealthHome}))
 	return c.respond(paragraphs(c.T("activities.health.title", nil), body(lines...)), kb.Build())
 }

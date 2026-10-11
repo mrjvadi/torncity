@@ -29,6 +29,12 @@ func (h *VillageHandler) WithCrafting(r application.CraftRules) *VillageHandler 
 	return h
 }
 
+// WithSurvivalFactor gives a shift the factor thirst, warmth and sickness leave a player's output (docs/adr/0070).
+func (h *VillageHandler) WithSurvivalFactor(f func(ctx context.Context, tx application.Tx, p *application.Player, now time.Time) (int64, error)) *VillageHandler {
+	h.shiftFactor = f
+	return h
+}
+
 // craftKit is the crafting content and the ladder.
 func (h *VillageHandler) craftKit(snap *content.Snapshot) (content.CraftingDef, craft.Tools, bool) {
 	cd, ok := snap.Crafting()

@@ -66,6 +66,16 @@ func healthSnapshots(c Context, who people, add func(string, *presenter.Response
 		Remaining: 6 * time.Minute, EndsAt: snapshotNow.Add(6 * time.Minute),
 		Care: &CareView{CityHospitalGone: true, House: site("health_house", hnames[0], false, false), Clinic: site("clinic", hnames[1], false, false),
 			Refer: Named{Code: "support", Name: hnames[3]}}}))
+	// survival (docs/adr/0070)
+	wornCloak := GarmentLine{ID: "g1", Item: Named{Code: "wool_cloak", Name: map[string]string{"fa": "شنل پشمی", "en": "Wool cloak"}[c.Lang]}, Slot: "outer", Warmth: 2, Left: 90 * 24 * time.Hour}
+	bagCap := GarmentLine{Item: Named{Code: "wool_cap", Name: map[string]string{"fa": "کلاه پشمی", "en": "Wool cap"}[c.Lang]}, Slot: "head", Warmth: 1, Qty: 1}
+	add("Survival · cold and thirsty, a sickness, a well and a warming house", Survival(c, SurvivalView{Founded: true, Thirst: 72, Warmth: 55, ThirstLevel: 1, WarmthLevel: "chilly",
+		Env: &EnvLine{TempC: -3, Rain: true, Wind: true, Season: 0, Hour: 7}, Worn: []GarmentLine{wornCloak}, Bag: []GarmentLine{bagCap},
+		Illness: []IllnessLine{{Kind: "chill", EndsAt: snapshotNow.Add(48 * time.Hour)}}, WellOpen: true, River: true, Carried: 2,
+		WarmingOpen: true, CanCure: true, Notice: "river_sick"}))
+	add("Survival · fine, nothing worn", Survival(c, SurvivalView{Founded: true, Thirst: 10, Warmth: 5, WarmthLevel: "fine",
+		Env: &EnvLine{TempC: 21, Season: 2, Hour: 14}, WellOpen: true}))
+	add("Survival · the neutral city", Survival(c, SurvivalView{Notice: "not_founded"}))
 	add("Treat · confirm, first aid at the health house", TreatConfirm(c, TreatConfirmView{Option: house, Remaining: 6 * time.Minute,
 		EndsAt: snapshotNow.Add(5*time.Minute + 6*time.Second)}))
 	add("Treat · treated at the town clinic", Treated(c, TreatedView{Option: vclinic, Paid: 3200, Method: MethodCash,

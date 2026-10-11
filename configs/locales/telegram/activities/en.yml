@@ -29,6 +29,7 @@ activities:
     empty:
       no_facility: "There is no place of care here. Rest, or go to the central city."
     refer: "For serious treatment, go to {city}."
+    button_survival: "🌡 Thirst and cold"
 
 # The Economy and Society hubs: the entries that exist where the player stands.
 hubs:

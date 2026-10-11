@@ -1048,6 +1048,10 @@ type Settlement struct {
 	// built; CareGraceDays the real days after it before the conjured city hospital is gone (a stay admitted before keeps it).
 	CareRuleAt    string // settlement.care_rule_at
 	CareGraceDays int64  // settlement.care_grace_days
+	// Survival (docs/adr/0070): SurvivalRuleAt (RFC 3339) is when thirst and warmth began to count for the people of founded settlements,
+	// SurvivalGraceDays the real days after it before they drift.
+	SurvivalRuleAt    string // settlement.survival_rule_at
+	SurvivalGraceDays int64  // settlement.survival_grace_days
 	// The teacher's skill in the literacy tick (docs/adr/0057): a class taught by a player with the teaching skill moves
 	// literacy at TeacherBaseBPS plus TeacherPerLevelBPS for each level (never above 10000); a class with no player teacher
 	// at TeacherBaseBPS. A finished class teaches its player teacher TeacherXPPerClass of the teaching skill.
@@ -1912,6 +1916,8 @@ func Defaults() *Config {
 			CraftingGraceDays:                14,
 			CareRuleAt:                       "2026-10-10T22:00:00Z",
 			CareGraceDays:                    14,
+			SurvivalRuleAt:                   "2026-10-11T00:00:00Z",
+			SurvivalGraceDays:                14,
 			TeacherBaseBPS:                   6000,
 			TeacherPerLevelBPS:               150,
 			TeacherXPPerClass:                20,

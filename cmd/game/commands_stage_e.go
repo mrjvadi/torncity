@@ -18,6 +18,12 @@ func (h phaseHandlers) bindStageE() map[string]commandFunc {
 	return map[string]commandFunc{
 		"health.hospital": bare(hh.Hospital),
 		"health.treat":    decoded(hh.Treat),
+		"health.survival": bare(h.survival.Needs),
+		"health.drink":    decoded(h.survival.Drink),
+		"health.wear":     decoded(h.survival.Wear),
+		"health.remove":   decoded(h.survival.Remove),
+		"health.warm":     bare(h.survival.Warm),
+		"health.cure":     bare(h.survival.Cure),
 		"health.clinic":   decoded(hh.Clinic),
 		"health.price":    decoded(hh.Price),
 		"health.open":     decoded(hh.Open),

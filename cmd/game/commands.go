@@ -34,6 +34,7 @@ type phaseHandlers struct {
 	gov         *handlers.GovernanceHandler
 	settlements *handlers.SettlementsHandler
 	village     *handlers.VillageHandler
+	survival    *handlers.SurvivalHandler
 	presence    *handlers.PresenceHandler
 
 	jobs      *handlers.JobsHandler

@@ -378,6 +378,13 @@ var all = []Subscription{
 	{Domain: "training", Action: "home", Origin: FromPlayer},
 	{Domain: "training", Action: "start", Origin: FromPlayer},
 	{Domain: "health", Action: "treat", Origin: FromPlayer},
+	// Survival (docs/adr/0070): the needs screen, a drink, putting on and taking off a garment, the warming house, a treatment of a sickness.
+	{Domain: "health", Action: "survival", Origin: FromPlayer},
+	{Domain: "health", Action: "drink", Origin: FromPlayer},
+	{Domain: "health", Action: "wear", Origin: FromPlayer},
+	{Domain: "health", Action: "remove", Origin: FromPlayer},
+	{Domain: "health", Action: "warm", Origin: FromPlayer},
+	{Domain: "health", Action: "cure", Origin: FromPlayer},
 	{Domain: "health", Action: "clinic", Origin: FromPlayer},
 	{Domain: "health", Action: "price", Origin: FromPlayer},
 	{Domain: "health", Action: "open", Origin: FromPlayer},

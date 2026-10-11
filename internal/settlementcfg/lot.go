@@ -53,6 +53,12 @@ func Care(s config.Settlement) application.CareRules {
 	return application.CareRules{RuleAt: from, GraceDays: s.CareGraceDays}
 }
 
+// Survival turns the survival settings (settlement.survival_*, docs/adr/0070) into the rules of thirst and warmth.
+func Survival(s config.Settlement) application.SurvivalRules {
+	from, _ := time.Parse(time.RFC3339, s.SurvivalRuleAt) // not an instant: survival is off
+	return application.SurvivalRules{RuleAt: from, GraceDays: s.SurvivalGraceDays}
+}
+
 // Craft turns the crafting settings (settlement.crafting_*, docs/adr/0068) into the rules of the tool tiers.
 func Craft(s config.Settlement) application.CraftRules {
 	from, _ := time.Parse(time.RFC3339, s.CraftingRuleAt) // not an instant: the tiers are off

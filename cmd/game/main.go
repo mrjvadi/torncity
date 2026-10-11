@@ -588,6 +588,11 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	h.stageE.health = handlers.NewHealthHandler(uow, uuidGenerator{}, messages, registry, cities,
 		gametime.Scale(cfg.Game.TimeScale), bankLimits, cfg.Game.IdempotencyTTL, nil).
 		WithVillageCare(h.village, settlementcfg.Care(cfg.Settlement)) // ADR 0069: a founded settlement has the care it built
+	// Survival (docs/adr/0070): thirst, warmth, garments and sickness in founded settlements, from the rule date.
+	clockForSurvival, _ := cfg.GameClock()
+	h.survival = handlers.NewSurvivalHandler(uow, uuidGenerator{}, messages, registry, worldCache, cities, gametime.Scale(cfg.Game.TimeScale), nil).
+		WithRules(settlementcfg.Survival(cfg.Settlement), h.village, h.village, clockForSurvival)
+	h.village.WithSurvivalFactor(h.survival.ShiftFactor)
 	h.profile.WithHealth(gametime.Scale(cfg.Game.TimeScale))
 	h.profile.WithHungerAlert(cfg.Notifications.HungerAlertCooldown)
 	// Factions: what founding one costs and the organised crimes are

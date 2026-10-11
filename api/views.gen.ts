@@ -1714,6 +1714,14 @@ export interface EnrolledView {
   method: string
 }
 
+export interface EnvLine {
+  temp_c: number
+  rain: boolean
+  wind: boolean
+  season: number
+  hour: number
+}
+
 export interface ErrorView {
   code: string
   args: Record<string, unknown> | null
@@ -2311,6 +2319,15 @@ export interface FriendsView {
   pages: number
 }
 
+export interface GarmentLine {
+  id: string
+  item: Named
+  slot: string
+  warmth: number
+  left_seconds: number
+  qty: number
+}
+
 export interface GarrisonLine {
   city_code: string
   city: string
@@ -2598,6 +2615,12 @@ export interface HospitalisedView {
 export interface HubView {
   place: ActivityPlace
   entries: ActivityEntry[] | null
+}
+
+export interface IllnessLine {
+  kind: string
+  ends_at: string | null
+  treated: boolean
 }
 
 export interface ImposeView {
@@ -5894,6 +5917,26 @@ export interface SupplyOffer {
   stock: number
 }
 
+export interface SurvivalView {
+  founded: boolean
+  thirst: number
+  warmth: number
+  thirst_level: number
+  warmth_level: string
+  env: EnvLine | null
+  sheltered: boolean
+  worn: GarmentLine[] | null
+  kept: GarmentLine[] | null
+  bag: GarmentLine[] | null
+  illness: IllnessLine[] | null
+  well_open: boolean
+  river: boolean
+  carried: number
+  warming_open: boolean
+  can_cure: boolean
+  notice: string
+}
+
 export interface TeacherLine {
   id: string
   kind: string
@@ -7048,6 +7091,7 @@ export interface ScreenViews {
   strike_report: StrikeReportView
   studio: StudioView
   suppliers: SuppliersView
+  survival: SurvivalView
   tech: TechView
   trade: TradeDeskView
   trained: TrainedView

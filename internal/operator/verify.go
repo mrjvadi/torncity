@@ -216,6 +216,12 @@ func VerifyChecks(v postgres.LedgerVerification, cfg *config.Config) []Check {
 		out.add(t.CareBroken == 0, fmt.Sprintf("every treatment of a health house or a clinic is its village row, of its own kind, with the fee and the medicine it names, and the other way round (%d off)", t.CareBroken))
 	}
 
+	if v.Village && v.Survival {
+		t := v.VillageInvariants
+		out.add(t.SurvivalGarmentJournal == t.SurvivalGarmentRows, fmt.Sprintf("the garments that left the bags, in the item journal, are the garments of the wardrobes (%d = %d)", t.SurvivalGarmentJournal, t.SurvivalGarmentRows))
+		out.add(t.SurvivalDoubleSlot == 0, fmt.Sprintf("no player wears two garments in one slot (%d do)", t.SurvivalDoubleSlot))
+	}
+
 	if v.Village && v.Trade {
 		t := v.VillageInvariants
 		out.add(t.TradeLedger == t.TradeRows && t.TradeDayBroken == 0, fmt.Sprintf("the trader's money in the ledger is what the market days say (%d = %d), each day is its lines, never above its cap, one transaction of source to treasury for the gross and one of treasury to sink for the clerk's wage (%d off)", t.TradeLedger, t.TradeRows, t.TradeDayBroken))

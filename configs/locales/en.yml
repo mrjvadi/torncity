@@ -900,6 +900,14 @@ company_type:
 
 # Components and materials, by content code (configs/content/items.yml).
 component:
+  hide_wrap: "Hide wrap"
+  hide_boots: "Hide boots"
+  wool_tunic: "Wool tunic"
+  wool_vest: "Wool vest"
+  wool_cloak: "Wool cloak"
+  wool_cap: "Wool cap"
+  wool_mittens: "Wool mittens"
+  sun_hat: "Sun hat"
   herbs: "Medicinal herbs"
   tools: "Tools"
   stone_tools: "Stone tools"
@@ -1477,6 +1485,8 @@ climate_band:
   cold: "Cold"
   severe: "Severe cold"
 staff_role:
+  tailor: "Tailor"
+  hearth_keeper: "Hearth keeper"
   herbalist: "Herb gardener"
   apothecary: "Apothecary"
   teacher: "Teacher"
@@ -1519,6 +1529,9 @@ staff_role:
   loan_officer: "Loan officer"
   bank_manager: "Bank manager"
 building_function:
+  tailor_shop: "Tailor shop"
+  tailor_shop_own: "Tailor shop (own)"
+  warming_house: "Warming house"
   herb_garden: "Herb garden"
   herb_garden_own: "Herb garden (own)"
   apothecary: "Apothecary"
@@ -1588,6 +1601,14 @@ building_function:
   exchange_house: "Exchange house"
   bank: "Bank"
 recipe:
+  hide_wrap: "Hide wrap"
+  hide_boots: "Hide boots"
+  wool_tunic: "Wool tunic"
+  wool_vest: "Wool vest"
+  wool_cloak: "Wool cloak"
+  wool_cap: "Wool cap"
+  wool_mittens: "Wool mittens"
+  sun_hat: "Sun hat"
   herb_extract: "Herb extract"
   painkillers: "Painkillers"
   first_aid_kit: "First aid kit"

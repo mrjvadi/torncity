@@ -47,6 +47,8 @@ func (h *VillageHandler) CareHere(ctx context.Context, tx application.Tx, cityID
 			site = &out.House
 		case application.ServiceClinicalCare:
 			site = &out.Clinic
+		case application.ServiceShelter:
+			site = &out.Warming
 		default:
 			continue
 		}

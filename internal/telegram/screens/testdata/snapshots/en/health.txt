@@ -118,6 +118,60 @@ Discharged at 14:41
   ───
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → health:hospital
 
+━━━ Survival · cold and thirsty, a sickness, a well and a warming house ━━━
+(edits message 42) (private in groups)
+<b>🌡 Thirst and cold</b>
+
+🤢 The river water was unsafe and you fell ill. Boil it next time.
+
+💧 Thirst: 72 of 100 - thirsty
+
+🔥 Cold: 55 of 100 - a little chilly
+
+🌤 Outside: 3 degrees below zero, winter
+🌧 It is raining
+💨 It is windy
+
+🤒 Sickness: a chill
+until 14:35
+
+🧥 What you wear:
+Outer layer: Wool cloak (warmth 2, 90 days left)
+  ───
+  [💧 Water from the town well] → health:drink:well
+  [💧 Water from the bag (2)] → health:drink:bag
+  [🔥 Boiled river water] → health:drink:boiled
+  [💧 River water (not boiled)] → health:drink:river
+  [🧥 Put on: Wool cap] → health:wear:wool_cap
+  [🧥 Take off: Wool cloak] → health:remove:outer
+  [🔥 Warm up at the warming house] → health:warm
+  [💊 Treat the sickness] → health:cure
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → health:survival
+
+━━━ Survival · fine, nothing worn ━━━
+(edits message 42) (private in groups)
+<b>🌡 Thirst and cold</b>
+
+💧 Thirst: 10 of 100 - fine
+
+🔥 Cold: 5 of 100 - warm
+
+🌤 Outside: 21 degrees, summer
+
+🧥 What you wear:
+You wear nothing special.
+  ───
+  [💧 Water from the town well] → health:drink:well
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → health:survival
+
+━━━ Survival · the neutral city ━━━
+(edits message 42) (private in groups)
+<b>🌡 Thirst and cold</b>
+
+Thirst and cold do not count in this city; buy water and plain clothes at its market.
+  ───
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → health:survival
+
 ━━━ Treat · confirm, first aid at the health house ━━━
 (edits message 42) (private in groups)
 🩺 Treatment at The health house: free. It takes 54s off the 6m left of your stay.

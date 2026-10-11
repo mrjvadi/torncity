@@ -30,6 +30,7 @@ func init() {
 	Register(life.ScreenHospital, screens.Hospital)
 	Register(life.ScreenTreatConfirm, screens.TreatConfirm)
 	Register(life.ScreenTreated, screens.Treated)
+	Register(life.ScreenSurvival, screens.Survival)
 	Register(life.ScreenClinicDesk, screens.ClinicDesk)
 	Register(life.ScreenHealthRefusal, screens.HealthRefusal)
 	Register(life.ScreenJobStatus, screens.JobStatus)

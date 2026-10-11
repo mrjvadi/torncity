@@ -215,6 +215,12 @@ commands:
   economy.hub: {kind: navigation, icon: "action:player"}
   society.hub: {kind: navigation, icon: "action:player"}
   health.treat: {kind: primary, icon: "action:treat"}
+  health.survival: {kind: secondary, icon: "action:treat"}
+  health.drink: {kind: primary, icon: "action:treat"}
+  health.wear: {kind: primary, icon: "action:treat"}
+  health.remove: {kind: secondary, icon: "action:treat"}
+  health.warm: {kind: primary, icon: "action:treat"}
+  health.cure: {kind: primary, icon: "action:treat"}
   health.clinic: {kind: navigation, icon: "action:health"}
   health.price: {kind: primary, icon: "action:price"}
   health.open: {kind: navigation, icon: "action:health"}

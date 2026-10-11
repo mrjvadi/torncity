@@ -248,6 +248,10 @@ func deletePlayer(t *testing.T, pool *postgres.Pool, playerID string) {
 		`DELETE FROM player_bot_links WHERE player_id = $1::uuid`,
 		// a shift in a working building teaches its trade (docs/adr/0057)
 		`DELETE FROM player_skills WHERE player_id = $1::uuid`,
+		// thirst, warmth, garments and sickness (docs/adr/0070) have no foreign key
+		`DELETE FROM player_survival WHERE player_id = $1::uuid`,
+		`DELETE FROM player_garments WHERE player_id = $1::uuid`,
+		`DELETE FROM player_illness WHERE player_id = $1::uuid`,
 		// A war strike hurts everyone in a city, which gives a player the
 		// test never played a stats row.
 		`DELETE FROM player_stats WHERE player_id = $1::uuid`,

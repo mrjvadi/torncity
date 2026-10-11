@@ -1417,6 +1417,10 @@ settlement:
   # built; what it offers a hurt player is what it built and staffed (health house, clinic). A stay admitted before keeps what it was offered
   care_rule_at: "2026-10-10T22:00:00Z"
   care_grace_days: 14
+  # survival (ADR 0070): from the rule date plus the grace, thirst and warmth drift for the people of founded settlements; a placeholder
+  # until the deploy sets it. The season phase is configs/content/climate.yml weather.year_offset_days.
+  survival_rule_at: "2026-10-11T00:00:00Z"
+  survival_grace_days: 14
   # The teacher's skill in the literacy tick (docs/adr/0057): a class a player with the teaching skill gives moves literacy at
   # teacher_base_bps plus teacher_per_level_bps for each level of the skill (never above 10000); with no player teacher it moves at
   # teacher_base_bps. A finished class teaches its player teacher teacher_xp_per_class points of the skill.
