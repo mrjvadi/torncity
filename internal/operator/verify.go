@@ -231,6 +231,19 @@ func VerifyChecks(v postgres.LedgerVerification, cfg *config.Config) []Check {
 		out.add(t.HouseholdItemOrphans == 0 && t.HouseholdShopOrphans == 0, fmt.Sprintf("the food, water and firewood the households used, and what they bought at the shop, name a household (%d, %d off)", t.HouseholdItemOrphans, t.HouseholdShopOrphans))
 	}
 
+	if v.Village && v.Raids {
+		t := v.VillageInvariants
+		out.add(t.RaidFeeLedger == t.RaidFeeRows, fmt.Sprintf("the filing fees of raids in the ledger are what the raids say (%d = %d)", t.RaidFeeLedger, t.RaidFeeRows))
+		out.add(t.RaidLootCashLedger == t.RaidLootCashRows && t.RaidLootItemJournal == t.RaidLootItemRows,
+			fmt.Sprintf("the cash and goods raids took in the ledger and the item journal are what the loot lines say (%d = %d, %d = %d)", t.RaidLootCashLedger, t.RaidLootCashRows, t.RaidLootItemJournal, t.RaidLootItemRows))
+		out.add(t.RaidTributeLedger == t.RaidTributeRows, fmt.Sprintf("the tribute that ended raids in the ledger is what the raids say (%d = %d)", t.RaidTributeLedger, t.RaidTributeRows))
+		out.add(t.FallCashLedger == t.FallCashRows && t.FallGoodsJournal == t.FallGoodsRows && t.FallStrayLegs == 0,
+			fmt.Sprintf("what falls cost, in cash (%d = %d) and goods (%d = %d), is what the falls say, and only carried cash was taken (%d stray legs)", t.FallCashLedger, t.FallCashRows, t.FallGoodsJournal, t.FallGoodsRows, t.FallStrayLegs))
+		out.add(cfg == nil || t.FallMaxShareBPS <= cfg.Raid.LossCapBPS,
+			fmt.Sprintf("no fall took more than the cap of a player's assets (the largest share %d bps)", t.FallMaxShareBPS))
+		out.add(t.RaidWithoutOutcome == 0 && t.RaidOrphans == 0, fmt.Sprintf("no raid ended with no outcome (%d) and no loot or detection names a missing raid (%d)", t.RaidWithoutOutcome, t.RaidOrphans))
+	}
+
 	if v.Village && v.Apprentice {
 		t := v.VillageInvariants
 		out.add(t.ApprenticeFeeLedger == t.ApprenticeFeeRows && t.ApprenticeRefundLedger == t.ApprenticeRefundRows, fmt.Sprintf("the fees apprentices paid their masters, and the refunds of dismissals, in the ledger are what the contracts say (%d = %d, %d = %d)", t.ApprenticeFeeLedger, t.ApprenticeFeeRows, t.ApprenticeRefundLedger, t.ApprenticeRefundRows))

@@ -123,6 +123,26 @@ func villageSnapshots(c Context, who people, add func(string, *presenter.Respons
 		Last:  &village.TradeDayLine{Outcome: "no_clerk", At: snapshotNow},
 	}))
 	add("Trade desk · no market post yet", TradeDesk(g, TradeDeskView{Name: villageNameFor(c), Cap: 400, PriceBPS: 9000}))
+	add("Raid · not started yet", Raid(g, village.RaidView{Village: villageNameFor(c), StartsAt: &snapshotNow}))
+	other := sampleNamed(c.Lang, "nahr", "نهر", "Nahr")
+	add("Raid · filed against us with a warning, a tribute on the table, and a settled one before", Raid(g, village.RaidView{Village: villageNameFor(c), On: true, May: true, MayOffer: true,
+		Fee: 500, MinLeadHours: 2, MaxLeadHours: 48, WindowMinutes: 30, TributeMin: 100, NPCRaiderWage: 60, MaxNPCRaiders: 20,
+		Mine: []village.RaidLine{
+			{ID: "r1", Side: village.RaidSideDefender, Other: other, Status: "filed", StartAt: snapshotNow.Add(5 * time.Hour), EndAt: snapshotNow.Add(5*time.Hour + 30*time.Minute), Standing: 3,
+				Warned: true, WarnedBy: "watchtower", LeadSecs: 4500, Tribute: 300, CanStand: true, CanOffer: true},
+			{ID: "r2", Side: village.RaidSideAttacker, Other: other, Status: "resolved", StartAt: snapshotNow.Add(-30 * time.Hour), EndAt: snapshotNow.Add(-29 * time.Hour), Joined: 2, Raiders: 4,
+				Outcome: &village.RaidOutcomeLine{Taken: true, Cash: 900, Goods: []village.RaidGoodsLine{{Item: sampleNamed(c.Lang, "wool", "پشم", "Wool"), Qty: 20}}, Buildings: 2, Falls: 1, FellMe: true}},
+		},
+		Targets: []village.RaidTarget{{Settlement: other, DistanceKm: 42, Residents: 7}},
+		Watch: []village.WatchLine{{Kind: "watchtower", Held: true, SightM: 8000}, {Kind: "beacon_chain", Held: false, Idle: "no_supplies", SightM: 8000}}}))
+	add("Raid · no watch", Raid(g, village.RaidView{Village: villageNameFor(c), On: true}))
+	add("Insurance · no fund yet, the head may open one", SettlementInsurance(g, village.SettlementInsuranceView{Village: villageNameFor(c), MayRun: true}))
+	add("Insurance · an open fund with a policy and cover on offer", SettlementInsurance(g, village.SettlementInsuranceView{Village: villageNameFor(c), Open: true, Fund: 1800, ScaleBPS: 9000,
+		Products: []village.SettlementInsuranceProductLine{
+			{Product: sampleNamed(c.Lang, "kit_mutual", "بیمهٔ همراه", "Kit"), Covers: "death_loss", Premium: 31, CoverBPS: 7000, DeductibleBPS: 2000, MaxClaim: 20000, Waiting: 48 * time.Hour, Held: true},
+			{Product: sampleNamed(c.Lang, "home_mutual", "بیمهٔ یورش", "Raid"), Covers: "raid_damage", Premium: 9, PremBPS: 31, CoverBPS: 7000, DeductibleBPS: 2000, MaxClaim: 50000, Waiting: 48 * time.Hour,
+				Targets: []Named{sampleNamed(c.Lang, "private_house", "خانهٔ بزرگ", "House")}}},
+		Policies: []village.SettlementInsurancePolicyLine{{No: 12, Product: sampleNamed(c.Lang, "kit_mutual", "بیمهٔ همراه", "Kit"), Covers: "death_loss", Status: "active", Paid: 140}}}))
 	add("Households · none yet", Households(g, HouseholdsView{Name: villageNameFor(c), Phase: village.HouseholdPhaseNone, Open: true}))
 	add("Households · the dual run, the head may close the city", Households(g, HouseholdsView{Name: villageNameFor(c), Phase: village.HouseholdPhaseDual, Open: true,
 		Living: 4, Persons: 9, Earners: 3, Homes: 7, MoodBPS: 7000, TargetPool: 5, MayAdmit: true}))

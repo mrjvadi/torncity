@@ -362,6 +362,7 @@ finance:
       hospital: "▫️ {product}: {cover}٪ هزینهٔ درمان در بیمارستان، تا {max} در هر بستری - حق بیمه {premium} در هر روز بازی - پوشش پس از {wait}"
       war_damage: "▫️ {product}: {cover}٪ خسارت حمله به ملک، تا {max} در هر حمله - حق بیمه {premium} در هر روز بازی - پوشش پس از {wait}"
       war_damage_valued: "▫️ {product}: {cover}٪ خسارت حمله به ملک، تا {max} در هر حمله - حق بیمه {premium} به‌علاوهٔ {bps}٪ ارزش ملک در هر روز بازی - پوشش پس از {wait}"
+      death_loss: "▫️ {product}: {cover}٪ از آنچه در یورش همراهت از دست می‌دهی (بعد از سهم خودت)، تا {max} - حق بیمه {premium} در هر روز بازی - پوشش پس از {wait}"
     mine: "📄 بیمه‌نامه‌های شما:"
     policy: "▫️ شمارهٔ {no} ({product}): حق بیمه {premium} در هر روز بازی - خسارت گرفته: {paid}"
     policy_property: "▫️ شمارهٔ {no} ({product} برای {pledge}): حق بیمه {premium} در هر روز بازی - خسارت گرفته: {paid}"

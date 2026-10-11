@@ -15,7 +15,14 @@ import (
 
 // premiumOf is a policy's premium for a period: its product's, on the
 // value of the property it insures.
-func premiumOf(ctx context.Context, tx application.Tx, product content.InsuranceDef, p application.InsurancePolicy) (int64, *application.Property, error) {
+func premiumOf(ctx context.Context, tx application.Tx, snap *content.Snapshot, product content.InsuranceDef, p application.InsurancePolicy) (int64, *application.Property, error) {
+	if p.BuildingID != "" {
+		amount := finance.Premium(product.Premium, product.PremiumBPS, buildingValue(ctx, tx, snap, p.BuildingID))
+		return scaledPremium(ctx, tx, p, amount), nil, nil
+	}
+	if p.IssuerKind == content.IssuerSettlement {
+		return scaledPremium(ctx, tx, p, finance.Premium(product.Premium, 0, 0)), nil, nil
+	}
 	if p.PropertyID == "" {
 		return finance.Premium(product.Premium, 0, 0), nil, nil
 	}
@@ -46,13 +53,18 @@ func (h *FinanceHandler) collectPremiums(ctx context.Context, tx application.Tx,
 			continue
 		}
 		product, ok := def.InsuranceProduct(p.Product)
-		amount, pr, err := premiumOf(ctx, tx, product, *p)
+		amount, pr, err := premiumOf(ctx, tx, snap, product, *p)
 		if err != nil {
 			return err
 		}
 		switch {
 		case !ok:
 			if err := h.endPolicy(ctx, tx, meta, p, application.PolicyLapsed, "lapsed", product, 0, now); err != nil {
+				return err
+			}
+			continue
+		case p.BuildingID != "" && !buildingStands(ctx, tx, p.BuildingID):
+			if err := h.endPolicy(ctx, tx, meta, p, application.PolicyPropertyGone, "gone", product, 0, now); err != nil {
 				return err
 			}
 			continue
@@ -190,4 +202,16 @@ func ClaimStrike(ctx context.Context, tx application.Tx, snap *content.Snapshot,
 		}
 	}
 	return nil
+}
+
+// scaledPremium applies the price level a settlement's fund sets to a premium.
+func scaledPremium(ctx context.Context, tx application.Tx, p application.InsurancePolicy, amount int64) int64 {
+	if p.IssuerKind != content.IssuerSettlement {
+		return amount
+	}
+	i, err := tx.Raids().Insurer(ctx, p.CountryID)
+	if err != nil || i == nil {
+		return amount
+	}
+	return max(amount*i.ScaleBPS/finance.BPSWhole, 1)
 }

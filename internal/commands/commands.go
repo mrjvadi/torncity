@@ -463,6 +463,12 @@ var all = []Subscription{
 	{Domain: "settlement", Action: "research", Origin: FromPlayer},
 	{Domain: "settlement", Action: "trade", Origin: FromPlayer},
 	{Domain: "settlement", Action: "households", Origin: FromPlayer},
+	{Domain: "settlement", Action: "raid", Origin: FromPlayer},
+	{Domain: "settlement", Action: "insurance", Origin: FromPlayer},
+	// The scheduler's: a raid's detectors, its window opening and its end (docs/adr/0074).
+	{Domain: "raid", Action: "sighting", Origin: FromScheduler},
+	{Domain: "raid", Action: "open", Origin: FromScheduler},
+	{Domain: "raid", Action: "resolve", Origin: FromScheduler},
 	{Domain: "settlement", Action: "knowledge.buy", Origin: FromPlayer},
 	{Domain: "settlement", Action: "build", Origin: FromPlayer},
 	{Domain: "settlement", Action: "build.lots", Origin: FromPlayer},

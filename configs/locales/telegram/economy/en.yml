@@ -357,6 +357,7 @@ finance:
       hospital: "▫️ {product}: {cover}% of a hospital treatment, up to {max} a stay - {premium} each game day - covers after {wait}"
       war_damage: "▫️ {product}: {cover}% of a strike's damage to the property, up to {max} a strike - {premium} each game day - covers after {wait}"
       war_damage_valued: "▫️ {product}: {cover}% of a strike's damage to the property, up to {max} a strike - {premium} plus {bps}% of its value each game day - covers after {wait}"
+      death_loss: "▫️ {product}: {cover}% of what you lose of the cash and goods you carry when you fall (after your own share), up to {max} - {premium} each game day - covers after {wait}"
     mine: "📄 Your policies:"
     policy: "▫️ No. {no} ({product}): {premium} each game day - paid out: {paid}"
     policy_property: "▫️ No. {no} ({product} on {pledge}): {premium} each game day - paid out: {paid}"

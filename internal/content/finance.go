@@ -37,6 +37,18 @@ const (
 const (
 	CoverHospital  = "hospital"
 	CoverWarDamage = "war_damage"
+	// CoverDeathLoss pays part of what a fall cost of the cash and goods carried; CoverRaidDamage part of the condition a raid took off
+	// a building (docs/adr/0074).
+	CoverDeathLoss  = "death_loss"
+	CoverRaidDamage = "raid_damage"
+)
+
+// The issuers a product can be sold by (docs/adr/0074 5.2): the country's own fund (the neutral city's, the fallback), a settlement's
+// mutual, or a player company.
+const (
+	IssuerCountry    = "country"
+	IssuerSettlement = "settlement"
+	IssuerCompany    = "company"
 )
 
 // FinanceDef is finance.yml's finance section.
@@ -154,6 +166,18 @@ type InsuranceDef struct {
 	MaxClaim int64 `yaml:"max_claim" json:"max_claim"`
 	// Waiting is the GAME time after buying before it pays a claim.
 	Waiting string `yaml:"waiting" json:"waiting"`
+	// DeductibleBPS is the share of a loss the insured bears before the cover counts (docs/adr/0074).
+	DeductibleBPS int64 `yaml:"deductible_bps,omitempty" json:"deductible_bps,omitempty"`
+	// Issuer is who sells it: country (default), settlement (a mutual) or company.
+	Issuer string `yaml:"issuer,omitempty" json:"issuer,omitempty"`
+}
+
+// IssuerOrCountry is the product's issuer, the country's own fund when none is written.
+func (p InsuranceDef) IssuerOrCountry() string {
+	if p.Issuer == "" {
+		return IssuerCountry
+	}
+	return p.Issuer
 }
 
 // StocksDef is the stock exchange's listing rules.
@@ -381,14 +405,20 @@ func (p *Pack) validateFinance(problems *[]error) {
 		if in.Name == "" {
 			*problems = append(*problems, fmt.Errorf("%w: finance %s", ErrMissingDisplayName, where))
 		}
-		if in.Covers != CoverHospital && in.Covers != CoverWarDamage {
-			bad("%s: covers %q is not hospital or war_damage", where, in.Covers)
+		if in.Covers != CoverHospital && in.Covers != CoverWarDamage && in.Covers != CoverDeathLoss && in.Covers != CoverRaidDamage {
+			bad("%s: covers %q is not hospital, war_damage, death_loss or raid_damage", where, in.Covers)
+		}
+		if in.DeductibleBPS < 0 || in.DeductibleBPS >= finance.BPSWhole {
+			bad("%s: deductible %d bps must be under a whole", where, in.DeductibleBPS)
+		}
+		if k := in.IssuerOrCountry(); k != IssuerCountry && k != IssuerSettlement && k != IssuerCompany {
+			bad("%s: issuer %q is not country, settlement or company", where, in.Issuer)
 		}
 		if in.Premium < 0 || in.PremiumBPS < 0 || in.PremiumBPS > finance.BPSWhole || in.Premium+in.PremiumBPS == 0 {
 			bad("%s: premium %d + %d bps must be something", where, in.Premium, in.PremiumBPS)
 		}
-		if in.PremiumBPS > 0 && in.Covers != CoverWarDamage {
-			bad("%s: a premium by value needs something valued (war_damage insures a property)", where)
+		if in.PremiumBPS > 0 && in.Covers != CoverWarDamage && in.Covers != CoverRaidDamage {
+			bad("%s: a premium by value needs something valued (war_damage insures a property, raid_damage a building)", where)
 		}
 		if in.CoverBPS < 1 || in.CoverBPS > finance.BPSWhole || in.MaxClaim < 0 {
 			bad("%s: cover %d bps, max claim %d", where, in.CoverBPS, in.MaxClaim)

@@ -434,6 +434,9 @@ settlement_building:
   smithy: "آهنگری"
   watch_hut: "نگهبانی محله"
   militia_camp: "اردوگاه سواران محلی"
+  lookout_post: "دیده‌بانی"
+  watchtower: "برج دیده‌بانی"
+  beacon_tower: "برج آتش"
   retainer_hall: "تالار محافظان"
   constable_post: "پاسگاه ژاندارمری"
   police_post: "کلانتری"
@@ -1477,6 +1480,10 @@ loan_product:
 insurance_product:
   health: "بیمهٔ درمان"
   property: "بیمهٔ ملک"
+  kit: "بیمهٔ همراه"
+  kit_mutual: "بیمهٔ همراه (صندوق شهر)"
+  home: "بیمهٔ خسارت یورش"
+  home_mutual: "بیمهٔ خسارت یورش (صندوق شهر)"
 # Specialist recruitment (docs/adr/0027-specialist-recruitment.md).
 recruit:
   names:
@@ -1608,6 +1615,8 @@ staff_role:
   health_worker: "بهورز"
   nurse: "پرستار"
   watchman: "نگهبان"
+  militiaman: "سوارکار محلی"
+  retainer: "محافظ"
   scholar: "پژوهشگر"
   market_clerk: "کارمند بازارچه"
   tanner: "دباغ"
@@ -1700,6 +1709,8 @@ building_function:
   granary: "انبار غله"
   storehouse: "انبار"
   watch_post: "نگهبانی محله"
+  militia_hall: "اردوگاه سواران محلی"
+  retainer_house: "تالار محافظان"
   barter_post: "بازارچه"
   iron_pit: "گودال آهن"
   brickworks: "آجرپزی"

@@ -11,6 +11,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/charter"
+	"github.com/mrjvadi/torncity/internal/domain/gametime"
 	"github.com/mrjvadi/torncity/internal/domain/item"
 	"github.com/mrjvadi/torncity/internal/domain/labor"
 	wsettle "github.com/mrjvadi/torncity/internal/domain/settlement"
@@ -109,6 +110,9 @@ type VillageHandler struct {
 	trade TradeRules
 	// house are the NPC households' rules (village_households.go).
 	house application.HouseholdRules
+	// raid are the rules of raids, falls and detection (village_raid.go, docs/adr/0074); raidScale is the game clock's scale for the stay a fall costs.
+	raid      application.RaidRules
+	raidScale gametime.Scale
 	// service is the clock of the daily services (village_service.go).
 	service ServiceRules
 	// personal are the rules of the personal prerequisites of a post (village_personal.go).

@@ -454,6 +454,42 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 			}
 			return h.village.Households(ctx, env.Metadata, req)
 		},
+		"settlement.raid": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageRaidRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.Raid(ctx, env.Metadata, req)
+		},
+		"settlement.insurance": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageInsuranceRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.Insurance(ctx, env.Metadata, req)
+		},
+		// The scheduler's: a raid's detectors, its window opening and its end (docs/adr/0074).
+		"raid.sighting": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.RaidScheduledRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.RaidSighting(ctx, env.Metadata, req)
+		},
+		"raid.open": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.RaidScheduledRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.RaidOpen(ctx, env.Metadata, req)
+		},
+		"raid.resolve": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.RaidScheduledRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.RaidResolve(ctx, env.Metadata, req)
+		},
 		"settlement.research": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			var req handlers.VillageResearchRequest
 			if err := decode(env, &req); err != nil {

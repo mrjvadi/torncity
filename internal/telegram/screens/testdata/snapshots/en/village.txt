@@ -171,6 +171,81 @@ The trader only comes to a market post, and the town has none yet.
   ───
   [🔙 Back] → settlement:materials   │   [🔄 Refresh] → settlement:trade
 
+━━━ Raid · not started yet ━━━
+(edits message 42)
+⚔️ Raids and the watch of Korendal
+
+Raids have not started yet; they begin on 23 September 2026.
+
+No raid is on right now.
+
+The town keeps no watch; a raid will arrive unannounced.
+  ───
+  [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:raid
+
+━━━ Raid · filed against us with a warning, a tribute on the table, and a settled one before ━━━
+(edits message 42)
+⚔️ Raids and the watch of Korendal
+
+Filing a raid costs 500 SUP. It starts between 2 and 48 hours after it is filed and stays open for 30 minutes. Nobody is at risk unless they choose to stand in it.
+
+Your raids
+🛡 The raid of Nahr on your town - filed, starts at 19:35, 3 stand in defence
+🔥 The watch gave word (Watchtower); you have 1h 15m.
+Tribute offered: 300 SUP
+🗡 Your raid on Nahr - over, starts at 08:35, 2 companions and 4 hired hands
+The raid took the town: 900 SUP from the treasury and 1 kinds of goods carried off; 2 buildings damaged and 1 fell.
+You fell and were carried to hospital.
+
+Towns you could raid
+▫️ Nahr - 42 km, 7 people
+
+The town's watch
+👁 Watchtower - on duty today, sees as far as 8,000 m
+👁 Beacon chain - closed today (out of wood or food)
+  ───
+  [🛡 Stand in defence] → settlement:raid:stand:r1
+  [🤝 Offer tribute of 100 SUP] → settlement:raid:offer:r1:100
+  [⚔️ Raid Nahr (in 2 hours)] → settlement:raid:file:nahr:2
+  [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:raid
+
+━━━ Raid · no watch ━━━
+(edits message 42)
+⚔️ Raids and the watch of Korendal
+
+Filing a raid costs 0 SUP. It starts between 0 and 0 hours after it is filed and stays open for 0 minutes. Nobody is at risk unless they choose to stand in it.
+
+No raid is on right now.
+
+The town keeps no watch; a raid will arrive unannounced.
+  ───
+  [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:raid
+
+━━━ Insurance · no fund yet, the head may open one ━━━
+(edits message 42)
+🛡 Insurance of Korendal
+
+This town keeps no insurance fund yet. Whoever may run it can open one; until then the central city's insurance is there.
+  ───
+  [🛡 Open the town's insurance fund] → settlement:insurance:open
+  [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:insurance
+
+━━━ Insurance · an open fund with a policy and cover on offer ━━━
+(edits message 42)
+🛡 Insurance of Korendal
+
+Fund: 1,800 SUP; price level: 90. Claims are paid only as far as the fund holds, and shared in proportion when it falls short.
+
+The fund's cover
+▫️ Carried-goods insurance (town fund): 70% of what you lose carrying cash and goods when you fall in a raid, after your own share (20%), up to 20,000 SUP - 31 SUP each game day - covers after 48h
+▫️ Raid damage insurance (town fund): 70% of a raid's damage to your building, after your own share (20%), up to 50,000 SUP - 9 SUP plus 0.31% of its value each game day - covers after 48h
+
+Your policies
+▫️ No. 12 (Carried-goods insurance (town fund)) - running - paid out: 140 SUP
+  ───
+  [🛡 Raid damage insurance (town fund) for Private house] → settlement:insurance:buy:home_mutual:private_house
+  [🔙 Back] → settlement:overview   │   [🔄 Refresh] → settlement:insurance
+
 ━━━ Households · none yet ━━━
 (edits message 42)
 👨‍👩‍👧 Households of Korendal

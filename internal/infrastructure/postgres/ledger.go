@@ -43,8 +43,9 @@ var ownerTables = map[application.AccountKind]string{
 	application.AccountFactionTreasury: "factions",
 	// A country's national bank and insurance fund, and a player's savings
 	// (migrations/0029_finance).
-	application.AccountNationalBank:  "jurisdictions",
-	application.AccountInsuranceFund: "jurisdictions",
+	application.AccountNationalBank: "jurisdictions",
+	// An insurance fund is a country's, a settlement's mutual or a company's (migration 0152, docs/adr/0074).
+	application.AccountInsuranceFund: "(SELECT id FROM jurisdictions UNION ALL SELECT id FROM cities UNION ALL SELECT id FROM companies) AS issuers",
 	application.AccountPlayerSavings: "players",
 	// A settlement's reserve pot at the Reserve Bank (migration 0127), owned by the settlement.
 	application.AccountReservePot: "cities",

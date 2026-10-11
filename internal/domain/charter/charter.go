@@ -83,6 +83,8 @@ const (
 	TreatyPropose Permission = "treaty.propose"
 	UnionPropose  Permission = "union.propose"
 	RaidDeclare   Permission = "raid.declare"
+	// InsuranceRun opens and runs the settlement's own insurance fund (docs/adr/0074).
+	InsuranceRun Permission = "insurance.run"
 
 	NoticePost Permission = "notice.post"
 
@@ -125,7 +127,7 @@ var catalogue = []Def{
 	{OfficeCreate, "politics", false, true}, {OfficeEdit, "politics", false, true},
 	{OfficeAppoint, "politics", false, true}, {OfficeDismiss, "politics", false, true},
 	{CharterAmend, "politics", false, true},
-	{TreatyPropose, "foreign", false, false}, {UnionPropose, "foreign", false, false}, {RaidDeclare, "foreign", false, false},
+	{TreatyPropose, "foreign", false, false}, {UnionPropose, "foreign", false, false}, {RaidDeclare, "foreign", false, true}, {InsuranceRun, "treasury", false, true},
 	{NoticePost, "info", false, false},
 	{SettingsTimezone, "settings", false, true},
 	{CurrencyCharter, "currency", false, true},

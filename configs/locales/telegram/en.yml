@@ -382,6 +382,7 @@ village:
       treaty_propose: "propose treaties"
       union_propose: "propose unions"
       raid_declare: "declare raids"
+      insurance_run: "run the town's insurance"
       settings_timezone: "set the city's time zone"
       currency_charter: "charter the city's money"
       notice_post: "post notices"

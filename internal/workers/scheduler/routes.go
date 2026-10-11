@@ -108,6 +108,11 @@ const (
 	ActionTypeHospitalDischarge = "hospital_discharge"
 	ActionTypeFactionCrime      = "faction_crime"
 
+	// Raids (docs/adr/0074): a detector's turn at the raiders, the window opening and its end.
+	ActionTypeRaidSighting = "raid_sighting"
+	ActionTypeRaidOpen     = "raid_open"
+	ActionTypeRaidResolve  = "raid_resolve"
+
 	// Stage F (docs/adr/0024): a proposal's vote window ending, and a
 	// city's period ending (its budget, property and rent).
 	ActionTypeLegislatureClose = "legislature_close"
@@ -190,6 +195,10 @@ var routes = map[string]Route{
 
 	ActionTypeHospitalDischarge: {Domain: "health", Action: "discharge"},
 	ActionTypeFactionCrime:      {Domain: "faction", Action: "resolve"},
+
+	ActionTypeRaidSighting: {Domain: "raid", Action: "sighting"},
+	ActionTypeRaidOpen:     {Domain: "raid", Action: "open"},
+	ActionTypeRaidResolve:  {Domain: "raid", Action: "resolve"},
 
 	ActionTypeLegislatureClose: {Domain: "law", Action: "close"},
 	ActionTypeCityPeriod:       {Domain: "city", Action: "settle"},

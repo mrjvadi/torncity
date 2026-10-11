@@ -353,6 +353,9 @@ settlement_building:
   smithy: Smithy
   watch_hut: Watch hut
   militia_camp: Militia camp
+  lookout_post: Lookout post
+  watchtower: Watchtower
+  beacon_tower: Beacon tower
   retainer_hall: Retainer hall
   constable_post: Constable post
   police_post: Police post
@@ -1372,6 +1375,10 @@ loan_product:
 insurance_product:
   health: "Health insurance"
   property: "Property insurance"
+  kit: "Carried-goods insurance"
+  kit_mutual: "Carried-goods insurance (town fund)"
+  home: "Raid damage insurance"
+  home_mutual: "Raid damage insurance (town fund)"
 # Specialist recruitment (docs/adr/0027-specialist-recruitment.md).
 recruit:
   names:
@@ -1503,6 +1510,8 @@ staff_role:
   health_worker: "Health worker"
   nurse: "Nurse"
   watchman: "Watchman"
+  militiaman: "Militiaman"
+  retainer: "Retainer"
   scholar: "Scholar"
   market_clerk: "Market clerk"
   tanner: "Tanner"
@@ -1595,6 +1604,8 @@ building_function:
   granary: "Granary"
   storehouse: "Storehouse"
   watch_post: "Neighbourhood watch post"
+  militia_hall: "Local riders camp"
+  retainer_house: "Retainers hall"
   barter_post: "Market post"
   iron_pit: "Iron pit"
   brickworks: "Brickworks"

@@ -441,6 +441,8 @@ commands:
   settlement.research: {channel: group, client: true}
   settlement.trade: {channel: group, client: true}
   settlement.households: {channel: group, client: true}
+  settlement.raid: {channel: group, client: true}
+  settlement.insurance: {channel: group, client: true}
   settlement.knowledge.buy: {channel: group, client: true}
   settlement.build: {channel: group, client: true}
   settlement.build.lots: {channel: group, client: true}

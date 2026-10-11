@@ -258,6 +258,9 @@ type Config struct {
 	// Households is the NPC households (docs/adr/0073).
 	Households Households
 
+	// Raid is raids, falls and detection (docs/adr/0074).
+	Raid Raid
+
 	// Bag, Merchant and Premium are the tuning of ADR 0046: what a player can
 	// carry and how a bag wears, the village shop's daily delivery and prices,
 	// and the constant a village currency is quoted in Nil by.
@@ -1869,6 +1872,53 @@ func Defaults() *Config {
 			GraceDays:              14,
 			Compositions:           []string{"1+0:2", "2+0:4", "2+1:3", "2+2:2"},
 		},
+		Raid: Raid{
+			RuleAt:               "2099-01-01T00:00:00Z",
+			GraceDays:            14,
+			DeathRuleAt:          "2099-01-01T00:00:00Z",
+			DeathGraceDays:       14,
+			MinLeadHours:         2,
+			MaxLeadHours:         48,
+			WindowMinutes:        30,
+			CooldownHours:        72,
+			MaxPerWeek:           3,
+			ShieldHours:          48,
+			ShieldLootCutBPS:     5000,
+			FoundingGraceDays:    7,
+			GraceRatio:           2,
+			TargetRatioMax:       5,
+			MinTargetValue:       2000,
+			Fee:                  500,
+			LootTreasuryBPS:      300,
+			LootStackBPS:         1000,
+			DamageMaxBPS:         2000,
+			CarryPerRaider:       40,
+			NPCRaiderWage:        60,
+			MaxNPCRaiders:        20,
+			SeatFirepower:        100,
+			SeatArmour:           20,
+			Rounds:               3,
+			DefenderAdvantageBPS: 12000,
+			BaseHitBPS:           5000,
+			HitFloorBPS:          500,
+			HitCeilingBPS:        9500,
+			DeathCashBPS:         2000,
+			DeathGoodsBPS:        2500,
+			GearWearBPS:          2000,
+			LossCapBPS:           1500,
+			FallCooldownHours:    12,
+			StealthBPSPerStep:    1500,
+			StealthSteps:         3,
+			StealthFloorBPS:      4000,
+			NightPenaltyBPS:      1000,
+			BeaconHopMinutes:     3,
+			RelayM:               60000,
+			SpeedFootKmh:         5,
+			SpeedCartKmh:         4,
+			SpeedHorseKmh:        10,
+			SpeedRailKmh:         40,
+			TributeMin:           100,
+		},
 		Growth: Growth{
 			Capabilities:  GrowthAuthoritative,
 			CacheTTL:      5 * time.Second,
@@ -2673,4 +2723,53 @@ type Households struct {
 	DiscretionaryItems     []string // households.discretionary_items
 	GraceDays              int64    // households.grace_days
 	Compositions           []string // households.compositions
+}
+
+// Raid is the tuning of raids, falls and detection (docs/adr/0074-death-insurance-raids-detection.md). Raids start at RuleAt plus GraceDays, falls cost assets from DeathRuleAt plus DeathGraceDays.
+type Raid struct {
+	RuleAt               string // raid.rule_at
+	GraceDays            int64  // raid.grace_days
+	DeathRuleAt          string // raid.death_rule_at
+	DeathGraceDays       int64  // raid.death_grace_days
+	MinLeadHours         int64  // raid.min_lead_hours
+	MaxLeadHours         int64  // raid.max_lead_hours
+	WindowMinutes        int64  // raid.window_minutes
+	CooldownHours        int64  // raid.cooldown_hours
+	MaxPerWeek           int64  // raid.max_per_week
+	ShieldHours          int64  // raid.after_loss_shield_hours
+	ShieldLootCutBPS     int64  // raid.shield_loot_cut_bps
+	FoundingGraceDays    int64  // raid.founding_grace_days
+	GraceRatio           int64  // raid.grace_ratio
+	TargetRatioMax       int64  // raid.target_ratio_max
+	MinTargetValue       int64  // raid.min_target_value
+	Fee                  int64  // raid.fee
+	LootTreasuryBPS      int64  // raid.loot_treasury_bps
+	LootStackBPS         int64  // raid.loot_stack_bps
+	DamageMaxBPS         int64  // raid.damage_max_bps
+	CarryPerRaider       int64  // raid.carry_per_raider
+	NPCRaiderWage        int64  // raid.npc_raider_wage
+	MaxNPCRaiders        int64  // raid.max_npc_raiders
+	SeatFirepower        int64  // raid.seat_firepower
+	SeatArmour           int64  // raid.seat_armour
+	Rounds               int64  // raid.rounds
+	DefenderAdvantageBPS int64  // raid.defender_advantage_bps
+	BaseHitBPS           int64  // raid.base_hit_bps
+	HitFloorBPS          int64  // raid.hit_floor_bps
+	HitCeilingBPS        int64  // raid.hit_ceiling_bps
+	DeathCashBPS         int64  // raid.death_cash_bps
+	DeathGoodsBPS        int64  // raid.death_goods_bps
+	GearWearBPS          int64  // raid.gear_wear_bps
+	LossCapBPS           int64  // raid.loss_cap_bps
+	FallCooldownHours    int64  // raid.fall_cooldown_hours
+	StealthBPSPerStep    int64  // raid.stealth_bps_per_step
+	StealthSteps         int64  // raid.stealth_steps
+	StealthFloorBPS      int64  // raid.stealth_floor_bps
+	NightPenaltyBPS      int64  // raid.night_penalty_bps
+	BeaconHopMinutes     int64  // raid.beacon_hop_minutes
+	RelayM               int64  // raid.relay_m
+	SpeedFootKmh         int64  // raid.speed_foot_kmh
+	SpeedCartKmh         int64  // raid.speed_cart_kmh
+	SpeedHorseKmh        int64  // raid.speed_horse_kmh
+	SpeedRailKmh         int64  // raid.speed_rail_kmh
+	TributeMin           int64  // raid.tribute_min
 }

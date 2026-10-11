@@ -81,7 +81,7 @@ func (h *FinanceHandler) insurance(ctx context.Context, meta envelope.Metadata, 
 			}
 			if pol.Status == application.PolicyActive {
 				insured[pol.Product+"/"+pol.PropertyID] = true
-				if line.Premium, _, err = premiumOf(ctx, tx, product, pol); err != nil {
+				if line.Premium, _, err = premiumOf(ctx, tx, snap, product, pol); err != nil {
 					return err
 				}
 			}
@@ -99,6 +99,9 @@ func (h *FinanceHandler) insurance(ctx context.Context, meta envelope.Metadata, 
 			return err
 		}
 		for _, d := range def.Insurance {
+			if !countryProduct(d) {
+				continue
+			}
 			line := economy.InsuranceProductLine{Product: named(d.Code, d.Name), Covers: d.Covers, Premium: d.Premium,
 				PremBPS: d.PremiumBPS, CoverBPS: d.CoverBPS, MaxClaim: d.MaxClaim,
 				Waiting: h.scale.RealWait(d.WaitingDuration()), Held: insured[d.Code+"/"]}
@@ -124,6 +127,12 @@ func (h *FinanceHandler) insurance(ctx context.Context, meta envelope.Metadata, 
 	return economy.Insurance(presentation.Ctx{Lang: lang}, view), nil
 }
 
+// countryProduct is a product the country's own fund sells through insure.buy: not a mutual's, not a building's (a raid_damage
+// policy insures a building: settlement.insurance buys it).
+func countryProduct(d content.InsuranceDef) bool {
+	return d.IssuerOrCountry() == content.IssuerCountry && d.Covers != content.CoverRaidDamage
+}
+
 // Buy handles insure.buy: without a method, the policy's first premium and
 // the ways to pay it; with one, the policy — its first premium paid for
 // this period, its claims waiting on the game clock.
@@ -137,7 +146,7 @@ func (h *FinanceHandler) Buy(ctx context.Context, meta envelope.Metadata, req Fi
 		return nil, err
 	}
 	product, ok := def.InsuranceProduct(req.Product)
-	if !ok {
+	if !ok || !countryProduct(product) {
 		return h.finish(meta, meta.Language, refuseFinance(economy.FinanceRefusedNoProduct, economy.AddrInsurance))
 	}
 	method := payment.Method(strings.TrimSpace(req.Method))
@@ -186,7 +195,7 @@ func (h *FinanceHandler) Buy(ctx context.Context, meta envelope.Metadata, req Fi
 			}
 			target = &pl
 		}
-		amount, _, err := premiumOf(ctx, tx, product, pol)
+		amount, _, err := premiumOf(ctx, tx, snap, product, pol)
 		if err != nil {
 			return err
 		}

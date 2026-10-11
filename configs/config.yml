@@ -1150,6 +1150,56 @@ worldgen:
 # Organic settlement growth (docs/adr/0044-organic-growth-alliances-countries.md,
 # phases G0 and G1): what a settlement HAS (buildings, research, staff) replaces
 # its tier label as the thing every gate asks.
+# Raids, falls and detection (docs/adr/0074-death-insurance-raids-detection.md, plan B10). The rules start from rule_at (raids) and death_rule_at (falls)
+# plus their grace days; both are placeholders far in the future until the deploy sets them. Content (settlement_raids.yml) holds the detectors;
+# these are the numbers of the fight, the limits and the loss.
+raid:
+  rule_at: "2099-01-01T00:00:00Z"   # raids: a settlement may file or be raided from this instant plus grace_days; a placeholder far in the future until the deploy sets it (ADR 0074)
+  grace_days: 14   # days after rule_at before a raid may be filed
+  death_rule_at: "2099-01-01T00:00:00Z"   # falls cost assets from this instant plus death_grace_days; a placeholder far in the future until the deploy sets it (ADR 0074)
+  death_grace_days: 14   # days after death_rule_at before a fall costs assets
+  min_lead_hours: 2   # the least lead between filing and the start of a raid, hours
+  max_lead_hours: 48   # the most lead between filing and the start of a raid, hours
+  window_minutes: 30   # how long a raid stays open, real minutes
+  cooldown_hours: 72   # hours between two raids of one attacker on one defender
+  max_per_week: 3   # raids on one defender in a real week, from anyone
+  after_loss_shield_hours: 48   # hours after a raid that took loot in which that attacker may not raid again
+  shield_loot_cut_bps: 5000   # the share of loot cut for any raid in the shield
+  founding_grace_days: 7   # days after founding a settlement cannot be raided by one much larger (by time, not presence)
+  grace_ratio: 2   # much larger: the attacker has more than this many times the residents
+  target_ratio_max: 5   # loot is zero when the attacker's wealth is more than this many times the defender's
+  min_target_value: 2000   # a defender with less exposed value (treasury plus stock) is not a legal target, minor units
+  fee: 500   # the filing fee, into the sink, minor units
+  loot_treasury_bps: 300   # the share of the treasury a raid may take
+  loot_stack_bps: 1000   # the share of each storehouse stack a raid may take
+  damage_max_bps: 2000   # the most condition damage a raid does to one building, basis points
+  carry_per_raider: 40   # units of goods one raider can haul away
+  npc_raider_wage: 60   # the wage of one hired raider, from the attacker's treasury into the sink, minor units
+  max_npc_raiders: 20   # the most raiders a raid may hire
+  seat_firepower: 100   # firepower of a seat or a player in a raid fight
+  seat_armour: 20   # armour of a seat or a player in a raid fight
+  rounds: 3   # rounds of fire of a raid fight
+  defender_advantage_bps: 12000   # the defenders' multiplier on their hit chance
+  base_hit_bps: 5000   # hit chance of a unit with no fire control
+  hit_floor_bps: 500   # lowest hit chance
+  hit_ceiling_bps: 9500   # highest hit chance
+  death_cash_bps: 2000   # the share of carried cash a fall loses
+  death_goods_bps: 2500   # the share of each unsecured carried stack a fall loses
+  gear_wear_bps: 2000   # the durability a fall takes off worn gear (recorded; the item is never lost)
+  loss_cap_bps: 1500   # a fall never costs more than this share of the player's net assets
+  fall_cooldown_hours: 12   # a second fall inside this window costs the stay but no assets
+  stealth_bps_per_step: 1500   # the share of a detector's chance each step of concealment takes
+  stealth_steps: 3   # steps of concealment
+  stealth_floor_bps: 4000   # a detector's chance never falls under this share of its base
+  night_penalty_bps: 1000   # basis points off a detector's chance at night
+  beacon_hop_minutes: 3   # minutes a beacon fire takes to pass one hop
+  relay_m: 60000   # the farthest a beacon relays to the next, metres
+  speed_foot_kmh: 5   # raiders on foot, km/h
+  speed_cart_kmh: 4   # raiders with carts, km/h
+  speed_horse_kmh: 10   # raiders on horses, km/h
+  speed_rail_kmh: 40   # raiders by rail, km/h
+  tribute_min: 100   # the least tribute a defender may offer, minor units
+
 # NPC households (docs/adr/0073-npc-households.md, plan B9): the people behind the labour pool. They start from rule_at (a placeholder far in the
 # future until the deploy sets it); a settlement enrolls itself then, runs a dual run, and flips when its households can fill the old pool.
 # The numbers are drafts until the household budget surveys of the ADR are read (ADR 0073 section 15).

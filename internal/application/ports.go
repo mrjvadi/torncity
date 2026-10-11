@@ -176,6 +176,8 @@ type Tx interface {
 	Trade() TradeRepository
 	// Household holds the NPC households, their day fences and the settlements' flag (ADR 0073, migration 0151); see ports_household.go.
 	Household() HouseholdRepository
+	// Raids holds the raids, falls, sight of detectors and settlement insurers (migration 0152, ADR 0074); see ports_raid.go.
+	Raids() RaidRepository
 	// ServiceDays is the daily services of the settlement's posts (migration 0137).
 	ServiceDays() ServiceDayRepository
 	// Land is the deltas of the settlements' trees and rocks and their saplings (migration 0143, ADR 0065).

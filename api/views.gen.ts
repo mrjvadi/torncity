@@ -5093,6 +5093,83 @@ export interface ProposeView {
   ttl_seconds: number
 }
 
+export interface RaidGoodsLine {
+  item: Named
+  qty: number
+}
+
+export interface RaidLine {
+  id: string
+  side: string
+  other: Named
+  status: string
+  start_at: string | null
+  end_at: string | null
+  fee: number
+  raiders: number
+  joined: number
+  standing: number
+  me: boolean
+  tribute: number
+  warned: boolean
+  warned_by: string
+  lead_secs: number
+  outcome: RaidOutcomeLine | null
+  can_join: boolean
+  can_stand: boolean
+  can_offer: boolean
+  can_accept: boolean
+}
+
+export interface RaidNoticeView {
+  kind: string
+  other: string
+  band: string
+  lead_secs: number
+  taken: boolean
+  cash: number
+  falls: number
+  amount: number
+}
+
+export interface RaidOutcomeLine {
+  taken: boolean
+  cash: number
+  goods: RaidGoodsLine[] | null
+  buildings: number
+  damage: number
+  falls: number
+  fell_me: boolean
+  attacker_units: number
+  defender_units: number
+}
+
+export interface RaidTarget {
+  settlement: Named
+  distance_km: number
+  residents: number
+}
+
+export interface RaidView {
+  village: string
+  on: boolean
+  starts_at: string | null | null
+  may: boolean
+  may_offer: boolean
+  fee: number
+  npc_raider_wage: number
+  max_npc_raiders: number
+  tribute_min: number
+  min_lead_hours: number
+  max_lead_hours: number
+  window_minutes: number
+  transports: string[] | null
+  mine: RaidLine[] | null
+  targets: RaidTarget[] | null
+  watch: WatchLine[] | null
+  notice: string
+}
+
 export interface Rank {
   code: string
   name: string
@@ -5677,6 +5754,39 @@ export interface SettlementFoundedView {
   currency_name: string
   currency_code: string
   currency_symbol: string
+}
+
+export interface SettlementInsurancePolicyLine {
+  no: number
+  product: Named
+  covers: string
+  building: Named | null
+  status: string
+  paid: number
+}
+
+export interface SettlementInsuranceProductLine {
+  product: Named
+  covers: string
+  premium: number
+  prem_bps: number
+  cover_bps: number
+  deductible_bps: number
+  max_claim: number
+  waiting_seconds: number
+  held: boolean
+  targets: Named[] | null
+}
+
+export interface SettlementInsuranceView {
+  village: string
+  open: boolean
+  fund: number
+  scale_bps: number
+  may_run: boolean
+  products: SettlementInsuranceProductLine[] | null
+  policies: SettlementInsurancePolicyLine[] | null
+  notice: string
 }
 
 export interface SettlementRefusalView {
@@ -6858,6 +6968,14 @@ export interface WarehouseView {
   next: NextStep | null
 }
 
+export interface WatchLine {
+  building: Named
+  kind: string
+  held: boolean
+  idle: string
+  sight_m: number
+}
+
 export interface WaterWork {
   open: boolean
   condition_bps: number
@@ -7296,6 +7414,7 @@ export interface ScreenViews {
   settlement_construction_progress: ConstructionProgressView
   settlement_found_draft: FoundDraftView
   settlement_founded: SettlementFoundedView
+  settlement_insurance: SettlementInsuranceView
   settlement_knowledge_list: KnowledgeListView
   settlement_land: LandView
   settlement_land_registry: LandRegistryView
@@ -7307,6 +7426,8 @@ export interface ScreenViews {
   settlement_private_confirm: PrivateConfirmView
   settlement_private_lots: PrivateLotsView
   settlement_private_menu: PrivateMenuView
+  settlement_raid: RaidView
+  settlement_raid_notice: RaidNoticeView
   settlement_refusal: SettlementRefusalView
   settlement_road_cancelled: RoadCancelledView
   settlement_road_planned: RoadQuoteView

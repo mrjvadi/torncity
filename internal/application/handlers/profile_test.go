@@ -231,6 +231,7 @@ func (t *fakeTx) VillageShop() application.VillageShopRepository                
 func (t *fakeTx) VillageStorage() application.VillageStorageRepository           { return nil }
 func (t *fakeTx) Trade() application.TradeRepository                             { return nil }
 func (t *fakeTx) Household() application.HouseholdRepository                     { return nil }
+func (t *fakeTx) Raids() application.RaidRepository                              { return nil }
 
 func (t *fakeTx) ServiceDays() application.ServiceDayRepository   { return nil }
 func (t *fakeTx) StallKeepers() application.StallKeeperRepository { return nil }
