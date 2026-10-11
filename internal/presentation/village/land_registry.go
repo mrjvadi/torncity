@@ -94,7 +94,13 @@ type ClaimLine struct {
 	GX, GY      int32
 	ClaimedAt   time.Time
 	PaidThrough time.Time
+	// Rect is the lots of the tile in the layout's grid coordinates (x, y the south-west lot, w and d the extent), for the client to tint
+	// them; nil when the lots could not be placed.
+	Rect *RegRect
 }
+
+// RegRect is a rectangle of lots: the lot at (X, Y) and W lots east, D lots north.
+type RegRect struct{ X, Y, W, D int }
 
 // LandRegistryView is the registry of a settlement: its parcels, zones, claims and what the viewer may do.
 type LandRegistryView struct {

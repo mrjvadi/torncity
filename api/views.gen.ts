@@ -853,6 +853,7 @@ export interface ClaimLine {
   gy: number
   claimed_at: string | null
   paid_through: string | null
+  rect: RegRect | null
 }
 
 export interface ClearOrderView {
@@ -5209,6 +5210,13 @@ export interface RegCell {
   y: number
 }
 
+export interface RegRect {
+  x: number
+  y: number
+  w: number
+  d: number
+}
+
 export interface RentedHomeLine {
   lease_no: number
   property: PropertyLine
@@ -6562,6 +6570,7 @@ export interface VillageRefusalView {
   needs: VillageNeed[] | null
   personal: PersonalNeed[] | null
   obstacles: ObstacleView | null
+  foundation: RegCell | null
 }
 
 export interface VillageRoleLine {

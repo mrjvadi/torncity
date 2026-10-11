@@ -9,6 +9,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/land"
+	"github.com/mrjvadi/torncity/internal/domain/landuse"
 	"github.com/mrjvadi/torncity/internal/domain/settlement"
 	"github.com/mrjvadi/torncity/internal/domain/worldgen"
 )
@@ -100,6 +101,10 @@ type VillageService struct {
 	// Farm and FarmRules add the stage of the farms' crops to the layout (docs/adr/0067); nil Farm leaves them out.
 	Farm      application.FarmReader
 	FarmRules application.FarmRules
+	// Registry and Slope add the slope band and the foundation of each lot to the layout (docs/adr/0072); nil Registry leaves the foundations out and zero
+	// Slope the bands.
+	Registry application.RegistryReader
+	Slope    landuse.Bands
 }
 
 // Place is a point on the planet with the base-LOD chunk holding it.
@@ -247,16 +252,17 @@ type LayoutRing struct {
 
 // LayoutRingLot is one lot of the ring.
 type LayoutRingLot struct {
-	X        int            `json:"x"`
-	Y        int            `json:"y"`
-	HeightM  float64        `json:"height_m"`
-	SlopeM   float64        `json:"slope_m"`
-	Biome    string         `json:"biome,omitempty"`
-	Water    string         `json:"water,omitempty"`
-	Trees    int            `json:"trees"`
-	Rocks    int            `json:"rocks"`
-	Stumps   int            `json:"stumps"`
-	Saplings []LayoutGrowth `json:"saplings,omitempty"`
+	X         int            `json:"x"`
+	Y         int            `json:"y"`
+	HeightM   float64        `json:"height_m"`
+	SlopeM    float64        `json:"slope_m"`
+	Biome     string         `json:"biome,omitempty"`
+	Water     string         `json:"water,omitempty"`
+	Trees     int            `json:"trees"`
+	Rocks     int            `json:"rocks"`
+	Stumps    int            `json:"stumps"`
+	Saplings  []LayoutGrowth `json:"saplings,omitempty"`
+	SlopeBand string         `json:"slope_band,omitempty"`
 }
 
 // LayoutGrowth is a sapling still growing; Stage runs from 0 (planted) to 1 (a tree).
@@ -307,18 +313,20 @@ type LayoutRoadCell struct {
 // LayoutOpenLot is a lot a road opened, with the ground it stands on. Reason is
 // "" (it can be bought and built on), "water" or "steep".
 type LayoutOpenLot struct {
-	X         int      `json:"x"`
-	Y         int      `json:"y"`
-	Buildable bool     `json:"buildable"`
-	Reason    string   `json:"reason,omitempty"`
-	HeightM   float64  `json:"height_m"`
-	SlopeM    float64  `json:"slope_m"`
-	Biome     string   `json:"biome,omitempty"`
-	Water     string   `json:"water,omitempty"`
-	Tags      []string `json:"tags,omitempty"`
-	Trees     int      `json:"trees,omitempty"`
-	Rocks     int      `json:"rocks,omitempty"`
-	Stumps    int      `json:"stumps,omitempty"`
+	X          int      `json:"x"`
+	Y          int      `json:"y"`
+	Buildable  bool     `json:"buildable"`
+	Reason     string   `json:"reason,omitempty"`
+	HeightM    float64  `json:"height_m"`
+	SlopeM     float64  `json:"slope_m"`
+	Biome      string   `json:"biome,omitempty"`
+	Water      string   `json:"water,omitempty"`
+	Tags       []string `json:"tags,omitempty"`
+	Trees      int      `json:"trees,omitempty"`
+	Rocks      int      `json:"rocks,omitempty"`
+	Stumps     int      `json:"stumps,omitempty"`
+	SlopeBand  string   `json:"slope_band,omitempty"`
+	Foundation bool     `json:"foundation,omitempty"`
 }
 
 // LayoutTenure is one owned lot. Owner names the holder; Mine is set when the
@@ -393,6 +401,10 @@ type LayoutLot struct {
 	Stumps     int            `json:"stumps,omitempty"`
 	Saplings   []LayoutGrowth `json:"saplings,omitempty"`
 	Obstructed bool           `json:"obstructed,omitempty"`
+	// SlopeBand is flat, gentle, steep or none (nothing can stand on it) from the settlement's slope bands; empty while the bands are off.
+	SlopeBand string `json:"slope_band,omitempty"`
+	// Foundation says a foundation is laid on the lot (members only; docs/adr/0072).
+	Foundation bool `json:"foundation,omitempty"`
 }
 
 // LayoutLotRef is a lot's coordinates.
@@ -537,6 +549,13 @@ func (v *VillageService) Layout(ctx context.Context, viewerID, settlementID stri
 			return VillageLayout{}, err
 		}
 		mark = application.JoinMarks(mark, roadMark)
+	}
+	foundMark, err := v.addSlope(ctx, &out, s.CityID, viewer.Member)
+	if err != nil {
+		return VillageLayout{}, err
+	}
+	if viewer.Member && v.Citizens != nil {
+		mark = application.JoinMarks(mark, foundMark)
 	}
 	out.Version = layoutVersion(out, mark)
 	if out.Woods != nil {
@@ -712,6 +731,13 @@ func (v *VillageService) LayoutVersions(ctx context.Context, settlementID string
 			}
 			mark = application.JoinMarks(mark, application.LandMark(plans, cells))
 		}
+		if v.Registry != nil {
+			found, err := v.Registry.Foundations(ctx, s.CityID)
+			if err != nil {
+				return application.LayoutVersions{}, 0, err
+			}
+			mark = application.JoinMarks(mark, application.FoundationMark(found))
+		}
 	}
 	lots := v.gridLots(s.GridGrowth)
 	return application.LayoutVersionsWithTenure(s.CityID, s.Tier, s.Name, lots, rows, footprint, mark), lots, nil
@@ -803,4 +829,58 @@ func occupiedBy(rows []application.SettlementBuildingInstance, footprint func(co
 		}
 	}
 	return out
+}
+
+// bandName is the word of a slope band in the layout: flat, gentle, steep, or none for a lot nothing can stand on.
+func bandName(b landuse.Bands, slopeM float64) string {
+	if !b.Valid() {
+		return ""
+	}
+	if band := b.Of(slopeM); band < landuse.BandUnusable {
+		return landuse.BandNames[band]
+	}
+	return "none"
+}
+
+// addSlope puts the slope band of every lot (the grid, the ring and the open land) and, for a member, the foundations into the layout, and
+// returns the mark of the foundations the member version folds in.
+func (v *VillageService) addSlope(ctx context.Context, out *VillageLayout, settlementID string, member bool) (string, error) {
+	for y := range out.Lots {
+		for x := range out.Lots[y] {
+			out.Lots[y][x].SlopeBand = bandName(v.Slope, out.Lots[y][x].SlopeM)
+		}
+	}
+	if out.Ring != nil {
+		for i := range out.Ring.Lots {
+			out.Ring.Lots[i].SlopeBand = bandName(v.Slope, out.Ring.Lots[i].SlopeM)
+		}
+	}
+	if out.Land != nil {
+		for i := range out.Land.Open {
+			out.Land.Open[i].SlopeBand = bandName(v.Slope, out.Land.Open[i].SlopeM)
+		}
+	}
+	if !member || v.Registry == nil {
+		return "", nil
+	}
+	found, err := v.Registry.Foundations(ctx, settlementID)
+	if err != nil {
+		return "", err
+	}
+	have := make(map[[2]int]bool, len(found))
+	for _, f := range found {
+		have[[2]int{f.X, f.Y}] = true
+	}
+	for y := range out.Lots {
+		for x := range out.Lots[y] {
+			out.Lots[y][x].Foundation = have[[2]int{x, y}]
+		}
+	}
+	if out.Land != nil {
+		for i := range out.Land.Open {
+			o := &out.Land.Open[i]
+			o.Foundation = have[[2]int{o.X, o.Y}]
+		}
+	}
+	return application.FoundationMark(found), nil
 }

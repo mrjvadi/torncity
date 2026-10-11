@@ -405,3 +405,6 @@ func (r *RegistryRepository) DropParcelsOfZone(ctx context.Context, zoneID strin
 	}
 	return nil
 }
+
+// NewRegistryReader reads the registry outside a transaction, for the client API.
+func NewRegistryReader(p *Pool) *RegistryRepository { return &RegistryRepository{q: p.shared()} }

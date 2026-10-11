@@ -381,6 +381,12 @@ func TestLandRegistry(t *testing.T) {
 	if r := claim(z1, screens.ResidenceConfirm); !strings.Contains(r.Text, "village.refusal.land_tile_claimed") {
 		t.Fatalf("the same tile claimed twice: %s", r.Text)
 	}
+	// the claim shows its tile as a rectangle of lots, in the layout's coordinates
+	if cl, _ := registry(resident)["claims"].([]any); len(cl) != 1 {
+		t.Fatalf("the registry lists %d claims", len(cl))
+	} else if rect, _ := cl[0].(map[string]any)["rect"].(map[string]any); rect == nil || rect["w"].(float64) < 1 || rect["d"].(float64) < 1 {
+		t.Fatalf("the claim carries no rectangle of lots: %v", cl[0])
+	}
 	// the upkeep: three days later the registry charges three days from the treasury
 	e.clock.Advance(3 * 24 * time.Hour)
 	t2 := treasuryOf(t, pool, cityID)
@@ -432,6 +438,17 @@ func TestLandRegistry(t *testing.T) {
 	}
 	block := []xy{sp, {sp.x + 1, sp.y}, {sp.x, sp.y + 1}, {sp.x + 1, sp.y + 1}}
 	z1 = sp
+	// the refusal names the lot to lay the foundation on
+	if r := placeWith(villageTight, "carpentry_workshop", sp); true {
+		fv, _ := viewOf(t, r)["foundation"].(map[string]any)
+		fx, fy := -1, -1
+		if fv != nil {
+			fx, fy = int(fv["x"].(float64)), int(fv["y"].(float64))
+		}
+		if fv == nil || fx < sp.x || fx > sp.x+1 || fy < sp.y || fy > sp.y+1 {
+			t.Fatalf("the refusal does not name a lot of the footprint: %v", viewOf(t, r))
+		}
+	}
 	if r := placeWith(village, "carpentry_workshop", sp); strings.Contains(r.Text, "land_needs_foundation") {
 		t.Fatalf("with the real bands the same lots are flat: %s", r.Text)
 	}
