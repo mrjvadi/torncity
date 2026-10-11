@@ -686,7 +686,14 @@ func TestADetectorSeesAndABeaconChainRelaysTheNewsInTime(t *testing.T) {
 		t.Helper()
 		e.pool.Raw().Exec(testCtx(t), `DELETE FROM service_days WHERE settlement_id = $1::uuid`, e.cityID)
 		if err := postgres.NewUnitOfWork(e.pool, testDefaultLanguage).Do(testCtx(t), func(ctx context.Context, tx application.Tx) error {
-			d := application.ServiceDay{SettlementID: e.cityID, Day: gametime.Clock(clockOf(t)).DayAtIn(e.clock.Now(), 0), At: e.clock.Now()}
+			// the judged day is the settlement's LOCAL day, and the clock moves a few hours between the steps: the same row stands for
+			// the days around today, so the test does not depend on the hour it runs at
+			def, err := tx.Settlements().ByID(ctx, e.cityID)
+			if err != nil {
+				return err
+			}
+			today := gametime.Clock(clockOf(t)).DayAtIn(e.clock.Now(), def.Zone())
+			var posts []application.ServicePost
 			for _, id := range []string{lookout, far, mid, near} {
 				on := false
 				for _, h := range held {
@@ -698,10 +705,14 @@ func TestADetectorSeesAndABeaconChainRelaysTheNewsInTime(t *testing.T) {
 				} else {
 					p.Idle = application.ServiceIdleNoSupplies
 				}
-				d.Posts = append(d.Posts, p)
+				posts = append(posts, p)
 			}
-			_, err := tx.ServiceDays().RecordDay(ctx, d)
-			return err
+			for off := int64(-2); off <= 2; off++ {
+				if _, err := tx.ServiceDays().RecordDay(ctx, application.ServiceDay{SettlementID: e.cityID, Day: today + off, At: e.clock.Now(), Posts: posts}); err != nil {
+					return err
+				}
+			}
+			return nil
 		}); err != nil {
 			t.Fatal(err)
 		}
