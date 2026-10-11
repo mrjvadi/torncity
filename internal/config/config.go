@@ -1433,9 +1433,10 @@ type Labor struct {
 	ShiftRealMinutes   int64 // labor.shift_real_minutes
 	ReferenceCrew      int64 // labor.reference_crew
 	BaseWage           int64 // labor.base_wage
-	MinWageVillage     int64 // labor.min_wage_village
-	MinWageTown        int64 // labor.min_wage_town
-	MinWageCity        int64 // labor.min_wage_city
+	MinWage            int64 // labor.min_wage: the statutory floor of an NPC wage, the same in every settlement (ADR 0072)
+	MinWageVillage     int64 // labor.min_wage_village: the old key, read only while min_wage is unset (until the rule grace ends)
+	MinWageTown        int64 // labor.min_wage_town: retired, ignored
+	MinWageCity        int64 // labor.min_wage_city: retired, ignored
 	ParticipationBPS   int64 // labor.participation_bps
 	BaseHousing        int64 // labor.base_housing
 	NPCProductivityBPS int64 // labor.npc_productivity_bps
@@ -2011,6 +2012,7 @@ func Defaults() *Config {
 			ShiftRealMinutes:       1,
 			ReferenceCrew:          4,
 			BaseWage:               30,
+			MinWage:                10,
 			MinWageVillage:         10,
 			MinWageTown:            15,
 			MinWageCity:            25,

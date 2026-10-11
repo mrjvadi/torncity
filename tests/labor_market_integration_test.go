@@ -260,7 +260,7 @@ func TestLaborConstructionOnlyThroughShifts(t *testing.T) {
 	if site.Status != "building" || site.DoneMinutes != 0 || site.ProgressBPS != 0 {
 		t.Fatalf("time alone advanced the building: %+v", site)
 	}
-	if site.Job == nil || site.Job.Wage < l.rules.MinWage["village"] || site.Job.Left != 3 {
+	if site.Job == nil || site.Job.Wage < l.rules.MinWage || site.Job.Left != 3 {
 		t.Fatalf("the site's job on the board: %+v", site.Job)
 	}
 	jobWage := site.Job.Wage
@@ -355,7 +355,7 @@ func TestLaborConstructionOnlyThroughShifts(t *testing.T) {
 		t.Errorf("the finished building still has an open job")
 	}
 	npcPaid := l.scalar(`SELECT COALESCE(SUM(wage_paid), 0)::bigint FROM settlement_shifts WHERE building_id = $1::uuid AND worker_kind = 'npc'`, camp)
-	if npcPaid < 2*l.rules.MinWage["village"] {
+	if npcPaid < 2*l.rules.MinWage {
 		t.Errorf("the NPC labourers were paid %d", npcPaid)
 	}
 	if got := l.sink() - sink0; got != npcPaid {
@@ -518,7 +518,7 @@ func TestLaborScarcityAndHousing(t *testing.T) {
 		t.Fatalf("more houses did not lower the wage under the same demand: %d -> %d", tightWage, roomyWage)
 	}
 	// And the wage is never under the village's minimum.
-	if roomyWage < l.rules.MinWage["village"] {
+	if roomyWage < l.rules.MinWage {
 		t.Errorf("the wage %d is under the minimum", roomyWage)
 	}
 }

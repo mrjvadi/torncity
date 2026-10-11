@@ -73,7 +73,6 @@ func standingCodes(buildings []application.SettlementBuildingInstance) map[strin
 // pathContext is what deciding where a missing thing comes from needs.
 type pathContext struct {
 	snap     *content.Snapshot
-	tier     string
 	owned    item.Set
 	caps     item.Set
 	standing map[string]bool
@@ -81,14 +80,10 @@ type pathContext struct {
 	markup   int64
 }
 
-// listed reports whether a building is already on offer to the village: its own
-// tier or below, and its knowledge held (ADR 0033 section 5: nothing else is
-// ever named).
+// listed reports whether a building is already on offer to the village: its
+// knowledge held (ADR 0033 section 5: nothing else is ever named).
 func (pc pathContext) listed(d content.SettlementBuildingDef) bool {
 	def := d.Def()
-	if !def.ListedAt(pc.tier) {
-		return false
-	}
 	for _, k := range def.RequiresKnowledge {
 		if !pc.owned.Has(k) {
 			return false
@@ -224,7 +219,7 @@ func (h *VillageHandler) pathFor(ctx context.Context, tx application.Tx, snap *c
 		return pathContext{}, err
 	}
 	return pathContext{
-		snap: snap, tier: s.Tier, owned: st.Owned, caps: caps, standing: standingCodes(buildings),
+		snap: snap, owned: st.Owned, caps: caps, standing: standingCodes(buildings),
 		stock: stock.Units, markup: h.materialMarkupBPS,
 	}, nil
 }

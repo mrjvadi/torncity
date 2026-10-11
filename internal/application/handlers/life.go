@@ -261,7 +261,7 @@ func (h *LifeHandler) spots(ctx context.Context, tx application.Tx, snap *conten
 	if err != nil {
 		return err
 	}
-	if !here.content && !w.city.IsCityTier() {
+	if !here.content && !w.city.Content() {
 		if view.VillageHome, err = h.villageHome(ctx, tx, snap, p.ID, w.city.ID, now); err != nil {
 			return err
 		}

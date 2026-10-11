@@ -29,18 +29,19 @@ type City struct {
 	JurisdictionID string
 	CostOfLiving   int64
 	Population     int
-	// Tier is the settlement's growth stage: "village", "town" or "city".
-	// A content city, and any row that names none, is "city" (ADR 0028
-	// section 4): the city-only features (the budget, the city period) are
-	// offered to that tier alone.
+	// Tier is the stored label of a founded settlement; a content city has none.
+	// Nothing gates on it (ADR 0044, 0072): ask Content.
 	Tier string
 }
 
-// TierCity is the tier of a content city and of a grown settlement.
+// TierCity is the label the clients still read for every place (the web stops reading it, ADR 0072).
 const TierCity = "city"
 
-// IsCityTier reports whether the city-only features apply to it.
-func (c City) IsCityTier() bool { return c.Tier == "" || c.Tier == TierCity }
+// Content reports whether the place is a content city (the neutral city and the
+// authored ones), not a settlement the players founded. The city-only features
+// (the budget, the city period, the city map) belong to a content city; a
+// founded settlement gets its institutions from its charter.
+func (c City) Content() bool { return c.Tier == "" }
 
 // Stats is a player's live condition.
 type Stats struct {

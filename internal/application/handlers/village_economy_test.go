@@ -13,7 +13,7 @@ import (
 func TestPathNamesTimberSources(t *testing.T) {
 	snap := shippedSnapshot(t)
 	pc := pathContext{
-		snap: snap, tier: "village",
+		snap: snap,
 		owned:    item.Set{"oral_tradition": {}, "communal_watch": {}, "kin_apprenticeship": {}, "barter_ring": {}},
 		caps:     item.Set{"literacy_spread": {}, "local_security": {}, "skilled_labor": {}, "market_access": {}},
 		standing: map[string]bool{"civic_hall": true, "road": true},
@@ -55,7 +55,7 @@ func TestPathNamesTimberSources(t *testing.T) {
 func TestPathNamesKnowledgeAndRoles(t *testing.T) {
 	snap := shippedSnapshot(t)
 	pc := pathContext{
-		snap: snap, tier: "village",
+		snap: snap,
 		owned: item.Set{"oral_tradition": {}, "kin_apprenticeship": {}}, caps: item.Set{},
 		standing: map[string]bool{}, stock: map[string]int64{}, markup: 12_000,
 	}
@@ -65,7 +65,6 @@ func TestPathNamesKnowledgeAndRoles(t *testing.T) {
 		t.Fatalf("needs = %+v, want the carpentry knowledge first, then timber", needs)
 	}
 	school, _ := snap.SettlementBuildingDef("school")
-	pc.tier = "town"
 	var role *screens.VillageNeed
 	for _, n := range pc.placementNeeds(school.Def()) {
 		if n.Kind == screens.NeedBuilding {
@@ -75,11 +74,6 @@ func TestPathNamesKnowledgeAndRoles(t *testing.T) {
 	}
 	if role == nil || len(role.Options) == 0 || role.Options[0].Code != "teaching_circle" {
 		t.Errorf("a school does not name the teaching circle: %+v", role)
-	}
-	for _, m := range pc.snap.SettlementProducers("timber") {
-		if !m.Def().ListedAt("village") {
-			t.Errorf("timber's source %s is not a village building", m.Code)
-		}
 	}
 }
 

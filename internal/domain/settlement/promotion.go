@@ -6,25 +6,6 @@ package settlement
 // what each step asks for, the use case reads what the settlement has, and
 // Evaluate lines the two up as a list a screen can show with progress.
 
-// The settlement tiers, lowest first.
-const (
-	TierVillage = "village"
-	TierTown    = "town"
-	TierCity    = "city"
-)
-
-// NextTier is the tier a settlement of tier grows into, or "" at the top.
-// Anything unrecognised is a village (a founded settlement always has one).
-func NextTier(tier string) string {
-	switch tier {
-	case TierTown:
-		return TierCity
-	case TierCity:
-		return ""
-	}
-	return TierTown
-}
-
 // The kinds of promotion criterion.
 const (
 	CriterionResidents = "residents"

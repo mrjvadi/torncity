@@ -780,6 +780,7 @@ labor:
   shift_real_minutes: 3
   reference_crew: 5
   base_wage: 31
+  min_wage: 12
   min_wage_village: 11
   min_wage_town: 16
   min_wage_city: 26
@@ -1343,6 +1344,7 @@ var envOverrides = map[string]string{
 	"TORN_LABOR_SHIFT_REAL_MINUTES":                        "4",
 	"TORN_LABOR_REFERENCE_CREW":                            "6",
 	"TORN_LABOR_BASE_WAGE":                                 "32",
+	"TORN_LABOR_MIN_WAGE":                                  "13",
 	"TORN_LABOR_MIN_WAGE_VILLAGE":                          "12",
 	"TORN_LABOR_MIN_WAGE_TOWN":                             "17",
 	"TORN_LABOR_MIN_WAGE_CITY":                             "27",

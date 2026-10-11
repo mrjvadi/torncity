@@ -64,7 +64,7 @@ func landlockedOf(ctx context.Context, pool *postgres.Pool, cfg *config.Config, 
 	if err := q.QueryRow(ctx, `SELECT grid_growth FROM cities WHERE id = $1::uuid`, s.ID).Scan(&growth); err != nil {
 		return 0, 0, err
 	}
-	side := wsettle.GridLotsGrown(s.Tier, cfg.Settlement.VillageGridLots, growth)
+	side := wsettle.GridLots(cfg.Settlement.VillageGridLots, growth)
 	cell := w.Cells[s.CellID]
 	lat, lon := wsettle.GridCentreGrown(w, cell.Point.LatDeg, cell.Point.LonDeg, s.ShiftX, s.ShiftY, growth)
 	sampled := wsettle.SampleGrid(w, lat, lon, side, s.CellID)

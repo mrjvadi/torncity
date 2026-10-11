@@ -233,66 +233,17 @@ func (w Work) Workplace() bool { return len(w.Produces) > 0 }
 // MaxShift bounds one shift, GAME time.
 const MaxShift = 24 * time.Hour
 
-// The settlement tiers, smallest first (internal/domain/settlement.Tier*).
-const (
-	SettlementVillage = "village"
-	SettlementTown    = "town"
-	SettlementCity    = "city"
-)
-
-var settlementTierRank = map[string]int{SettlementVillage: 1, SettlementTown: 2, SettlementCity: 3}
-
-// concurrentCaps is how many buildings a settlement of a tier may raise at
-// once (ADR 0028 section 4). The placement and the client's view of "a
-// builder is free" read the same numbers.
-var concurrentCaps = map[string]int{SettlementVillage: 1, SettlementTown: 2, SettlementCity: 4}
-
-// ConcurrentCap is how many buildings a settlement of the tier may raise at
-// once; a tier it does not know raises one.
-func ConcurrentCap(tier string) int {
-	if n, ok := concurrentCaps[tier]; ok {
-		return n
-	}
-	return 1
-}
-
 // CrewCap is how many buildings a settlement may raise at once from what it
 // has: one crew for each homesPerCrew homes (the people who can raise a building),
-// never fewer than the old label's cap, which stays the floor for settlements
-// that were promoted before the ladder was retired. homesPerCrew 0 keeps the
-// label's cap alone.
-func CrewCap(tier string, homes, homesPerCrew int64) int {
-	n := ConcurrentCap(tier)
+// never fewer than one. homesPerCrew 0 keeps the cap at one.
+func CrewCap(homes, homesPerCrew int64) int {
+	n := 1
 	if homesPerCrew > 0 {
 		if c := int(1 + homes/homesPerCrew); c > n {
 			n = c
 		}
 	}
 	return n
-}
-
-// MinSettlementTier is the smallest settlement that may list and build this
-// building (ADR 0033 section 3): a role tier 1 is a village's, tier 2 a town's,
-// tier 3 and up a city's. A row with no role tier (a legacy row) is a
-// village's.
-func (d Def) MinSettlementTier() string {
-	switch {
-	case d.Tier <= 1:
-		return SettlementVillage
-	case d.Tier == 2:
-		return SettlementTown
-	default:
-		return SettlementCity
-	}
-}
-
-// ListedAt reports whether a settlement lists the building as far as its label
-// goes. There is no ladder (owner scope rule 2026-10-02): a building's size says
-// nothing about who may raise it, only its own research, standing buildings and
-// the growth gate do. A settlement with an unknown tier label lists nothing.
-func (d Def) ListedAt(settlementTier string) bool {
-	_, ok := settlementTierRank[settlementTier]
-	return ok
 }
 
 // CanRotate reports whether rotating this building's footprint would

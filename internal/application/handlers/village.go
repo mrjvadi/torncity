@@ -74,11 +74,6 @@ type VillageHandler struct {
 	// PlaceFoundingKit was laid out on, copied in rather than imported so
 	// this package stays free of internal/config like every other handler.
 	villageGridLots int
-	// concurrentBuildCap and gridLotsByTier are ADR 0028 section 4's own
-	// table (village 1 build / 5x5, town 2/9x9, city 4/15x15). Only
-	// "village" is reachable today — promotion is a later phase — but the
-	// table costs nothing to carry in full.
-	concurrentBuildCap map[string]int
 	// homesPerCrew is settlement.build_homes_per_crew.
 	homesPerCrew int64
 	// currencyRules are the money rules of a charter (WithCurrencyRules).
@@ -88,8 +83,7 @@ type VillageHandler struct {
 	// tzCooldown is settlement.timezone_cooldown.
 	tzCooldown time.Duration
 	// charterSet is the phase 2 numbers (settlement.charter_*).
-	charterSet     charter.Settings
-	gridLotsByTier map[string]int
+	charterSet charter.Settings
 
 	// teachPeriod is how often the literacy diffusion tick runs, GAME
 	// time (config education.teach_period or a village-specific default);
@@ -225,8 +219,6 @@ func NewVillageHandler(uow application.UnitOfWork, ids IDGenerator, msgs Transla
 		charterLimits:         rules.CharterLimits,
 		tzCooldown:            rules.TimezoneCooldown,
 		charterSet:            rules.CharterSettings,
-		concurrentBuildCap:    map[string]int{"village": settlementbuilding.ConcurrentCap("village"), "town": settlementbuilding.ConcurrentCap("town"), "city": settlementbuilding.ConcurrentCap("city")},
-		gridLotsByTier:        map[string]int{"village": rules.VillageGridLots, "town": 9, "city": 15},
 		teachPeriod:           rules.TeachPeriod,
 		teachRateBPS:          rules.TeachRateBPS,
 		baseSchoolCapacityBPS: rules.BaseSchoolCapacityBPS,
@@ -247,12 +239,11 @@ func NewVillageHandler(uow application.UnitOfWork, ids IDGenerator, msgs Transla
 	}
 }
 
-// villageHeadOffice is the office ADR 0028 section 4 names for a village's
-// own top office; officeFor extends it to town/city for when promotion
-// exists.
+// villageHeadOffice is the code of a settlement's top office (the founder's;
+// its title is the players' own, ADR 0044).
 const villageHeadOffice = "village_head"
 
-func officeFor(tier string) string { return wsettle.HeadOffice(tier) }
+func officeFor() string { return wsettle.HeadOffice() }
 
 func (h *VillageHandler) screen(meta envelope.Metadata, lang string) presentation.Ctx {
 	return presentation.Ctx{Lang: lang}
@@ -363,7 +354,7 @@ func (h *VillageHandler) settlementOf(ctx context.Context, tx application.Tx, me
 // authorize requires playerID to hold (or act as deputy for) the
 // settlement's own top office.
 func authorizeVillage(ctx context.Context, tx application.Tx, s application.FoundedSettlement, playerID string) error {
-	_, err := application.Authorize(ctx, tx, s.JurisdictionID, officeFor(s.Tier), playerID)
+	_, err := application.Authorize(ctx, tx, s.JurisdictionID, officeFor(), playerID)
 	return err
 }
 
@@ -447,14 +438,10 @@ func (h *VillageHandler) grid(ctx context.Context, tx application.Tx, w *worldge
 	return g, existing, nil
 }
 
-// gridSide is the side, in lots, of a settlement's grid now: the tier's base
-// side plus the expansions it has bought.
+// gridSide is the side, in lots, of a settlement's grid now: the first block
+// plus the expansions it has bought.
 func (h *VillageHandler) gridSide(s application.FoundedSettlement) int {
-	base := h.gridLotsByTier[s.Tier]
-	if base < 1 {
-		base = h.villageGridLots
-	}
-	return base + s.GridGrowth
+	return wsettle.GridLots(h.villageGridLots, s.GridGrowth)
 }
 
 // knowledgeStanding builds the settlementknowledge.Standing a settlement
@@ -814,7 +801,7 @@ func (h *VillageHandler) HomeIfVillage(ctx context.Context, meta envelope.Metada
 // buildCap is how many buildings the settlement may raise at once: one crew for
 // each build_homes_per_crew homes it has, at least what its old label gave.
 func (h *VillageHandler) buildCap(snap *content.Snapshot, s application.FoundedSettlement, buildings []application.SettlementBuildingInstance) int {
-	return settlementbuilding.CrewCap(s.Tier, housingOf(snap, buildings), h.homesPerCrew)
+	return settlementbuilding.CrewCap(housingOf(snap, buildings), h.homesPerCrew)
 }
 
 // buildCapOf is the buildings a settlement may raise at once, from the crews it has staffed

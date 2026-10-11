@@ -2,14 +2,6 @@ package settlement
 
 import "testing"
 
-func TestNextTier(t *testing.T) {
-	for tier, want := range map[string]string{"village": "town", "": "town", "town": "city", "city": ""} {
-		if got := NextTier(tier); got != want {
-			t.Errorf("NextTier(%q) = %q, want %q", tier, got, want)
-		}
-	}
-}
-
 func TestEvaluate(t *testing.T) {
 	rule := TierRule{From: "village", To: "town", Residents: 8, LiteracyBPS: 2000, Buildings: 5,
 		Roles: []RoleNeed{{"food", 1}, {"education", 2}}, KnowledgeLearned: 2, Treasury: 1000}

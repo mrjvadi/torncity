@@ -40,24 +40,9 @@ func TestWorkplaceRefusals(t *testing.T) {
 	}
 }
 
-func TestListedAtIgnoresTheSize(t *testing.T) {
-	for tier := 0; tier <= 4; tier++ {
-		d := Def{Code: "x", Tier: tier}
-		for _, label := range []string{SettlementVillage, SettlementTown, SettlementCity} {
-			if !d.ListedAt(label) {
-				t.Errorf("a level %d building is not listed for a settlement labelled %s: the label gates nothing", tier, label)
-			}
-		}
-	}
-	if (Def{Tier: 1}).ListedAt("moon") {
-		t.Error("an unknown settlement label lists something")
-	}
-}
-
 func TestCanPlaceDoesNotJudgeBySize(t *testing.T) {
 	airport := Def{Code: "airport", Role: "transport", Tier: 3, FootprintW: 1, FootprintH: 1}
 	s := openStanding()
-	s.SettlementTier = SettlementVillage
 	if err := CanPlace(airport, sampleGrid(), 0, 0, s); err != nil {
 		t.Fatalf("the size label refused a building whose own prerequisites hold: %v", err)
 	}

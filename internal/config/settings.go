@@ -104,6 +104,7 @@ type laborSettings struct {
 	ShiftRealMinutes       *int64  `yaml:"shift_real_minutes"`
 	ReferenceCrew          *int64  `yaml:"reference_crew"`
 	BaseWage               *int64  `yaml:"base_wage"`
+	MinWage                *int64  `yaml:"min_wage"`
 	MinWageVillage         *int64  `yaml:"min_wage_village"`
 	MinWageTown            *int64  `yaml:"min_wage_town"`
 	MinWageCity            *int64  `yaml:"min_wage_city"`
@@ -1865,6 +1866,9 @@ var coreSettings = []setting{
 	moneySetting("labor", "base_wage",
 		func(c *Config) *int64 { return &c.Labor.BaseWage },
 		func(f *fileConfig) *int64 { return f.Labor.BaseWage }),
+	moneySetting("labor", "min_wage",
+		func(c *Config) *int64 { return &c.Labor.MinWage },
+		func(f *fileConfig) *int64 { return f.Labor.MinWage }),
 	moneySetting("labor", "min_wage_village",
 		func(c *Config) *int64 { return &c.Labor.MinWageVillage },
 		func(f *fileConfig) *int64 { return f.Labor.MinWageVillage }),

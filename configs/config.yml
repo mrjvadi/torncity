@@ -1556,9 +1556,10 @@ labor:
   shift_real_minutes: 1        # what a shift takes a player, REAL minutes (a sitting stays minutes)
   reference_crew: 4            # workers the content's build time assumes
   base_wage: 30                # NPC wage per shift in a balanced market
-  min_wage_village: 10         # statutory floor per settlement tier
-  min_wage_town: 15
-  min_wage_city: 25
+  min_wage: 10                 # statutory floor of an NPC wage, the same everywhere (no tiers, ADR 0072)
+  min_wage_village: 10         # old key: read only while min_wage is unset
+  min_wage_town: 15            # retired, ignored
+  min_wage_city: 25            # retired, ignored
   participation_bps: 6000      # share of NPC residents who work
   base_housing: 8              # households a settlement has before any home
   npc_productivity_bps: 8500   # an NPC labourer works at 85 %

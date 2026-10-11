@@ -68,17 +68,13 @@ type Standing struct {
 	// RunningBuilds is how many builds are currently queued or under
 	// construction right now.
 	RunningBuilds int
-	// ConcurrentCap is the settlement's own tier's concurrent-build cap
-	// (ADR 0028 section 4: 1 village / 2 town / 4 city).
+	// ConcurrentCap is how many buildings the settlement may raise at once (its crews, CrewCap).
 	ConcurrentCap int
 	// LiteracyShareBPS is the settlement's own current literacy_share (ADR
 	// 0031 section 4.4), 0-10000.
 	LiteracyShareBPS int
 	// Placed lists the complete buildings, for a building that must stand near another (docs/adr/0067).
 	Placed []Placed
-	// SettlementTier is the settlement's own tier ("village", "town",
-	// "city"); empty skips the tier rule (a caller that has none).
-	SettlementTier string
 }
 
 // footprintLots yields every (lx, ly) grid coordinate def's footprint would
