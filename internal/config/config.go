@@ -1829,7 +1829,7 @@ func Defaults() *Config {
 			ChunkDepositTilesPerDeposit: 5,
 		},
 		Households: Households{
-			RuleAt:                 "2099-01-01T00:00:00Z",
+			RuleAt:                 "2026-10-11T21:00:00Z",
 			FirewoodItem:           "firewood",
 			PerBatch:               50,
 			CatchupDaysMax:         3,

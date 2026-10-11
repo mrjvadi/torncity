@@ -1154,7 +1154,7 @@ worldgen:
 # future until the deploy sets it); a settlement enrolls itself then, runs a dual run, and flips when its households can fill the old pool.
 # The numbers are drafts until the household budget surveys of the ADR are read (ADR 0073 section 15).
 households:
-  rule_at: "2099-01-01T00:00:00Z"   # the households start for settlements from this instant; a placeholder far in the future until the deploy sets it (ADR 0073)
+  rule_at: "2026-10-11T21:00:00Z"   # the households start for settlements from this instant; a placeholder far in the future until the deploy sets it (ADR 0073)
   firewood_item: "firewood"   # the fuel a household burns
   per_batch: 50   # households settled in one batch of a settlement-day
   catchup_days_max: 3   # most days a settlement catches up when nobody read it
