@@ -32,7 +32,9 @@ type WeatherDef struct {
 
 // SurvivalDef is the numbers of thirst and warmth, the shelters, the effects and the sicknesses.
 type SurvivalDef struct {
-	HotAboveC        int    `yaml:"hot_above_c" json:"hot_above_c"`
+	HotAboveC int `yaml:"hot_above_c" json:"hot_above_c"`
+	// HeatstrokeAboveC: above this temperature a person who is also severely thirsty is shown as heatstroke (the hot band shows from HotAboveC).
+	HeatstrokeAboveC int    `yaml:"heatstroke_above_c" json:"heatstroke_above_c"`
 	HotThirstBPS     int    `yaml:"hot_thirst_bps" json:"hot_thirst_bps"`
 	DrinkPoints      int    `yaml:"drink_points" json:"drink_points"`
 	DrinkCooldown    string `yaml:"drink_cooldown" json:"drink_cooldown"`
@@ -147,6 +149,9 @@ func (l *schemaLint) survival(c ClimateDef) {
 	if s.DrinkEvery() < 0 || s.ShelterHours < 1 || s.CollapseDamage < 1 || s.CacheEntries < 1 || s.ChillCourseHours < 1 ||
 		s.WaterborneCourseHours < 1 || s.TreatCutPercent < 1 || s.TreatCutPercent > 100 || s.NightFrom < 0 || s.NightFrom > 23 || s.NightTo < 0 || s.NightTo > 23 {
 		l.bad("climate.survival: a duration, a count or a share is out of range")
+	}
+	if s.HeatstrokeAboveC <= s.HotAboveC {
+		l.bad("climate.survival: heatstroke_above_c must be above hot_above_c")
 	}
 	if len(s.Medicines) == 0 || s.BoilItem == "" || s.WaterItem == "" {
 		l.bad("climate.survival: medicines, the boiling fuel and the water good are needed")

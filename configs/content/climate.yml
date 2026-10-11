@@ -53,6 +53,7 @@ climate:
   # Thirst and warmth (internal/domain/survival), the shelters, the effects on a shift, the sicknesses.
   survival:
     hot_above_c: 30
+    heatstroke_above_c: 38
     hot_thirst_bps: 15000
     drink_points: 25
     drink_cooldown: 30s

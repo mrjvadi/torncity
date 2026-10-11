@@ -959,6 +959,8 @@ survival:
     chilly: "a little chilly"
     cold: "cold"
     freezing: "freezing"
+    hot: "hot: you need water and shade"
+    heatstroke: "heatstroke danger: drink and get into the shade"
   weather: "🌤 Outside: {temp} degrees, {season}"
   weather_below: "🌤 Outside: {temp} degrees below zero, {season}"
   season:

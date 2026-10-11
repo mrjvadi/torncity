@@ -164,6 +164,22 @@ You wear nothing special.
   [💧 Water from the town well] → health:drink:well
   [🔙 Back] → player:profile.get   │   [🔄 Refresh] → health:survival
 
+━━━ Survival · a hot day, thirsty ━━━
+(edits message 42) (private in groups)
+<b>🌡 Thirst and cold</b>
+
+💧 Thirst: 80 of 100 - thirsty
+
+🔥 Cold: 0 of 100 - hot: you need water and shade
+
+🌤 Outside: 36 degrees, summer
+
+🧥 What you wear:
+You wear nothing special.
+  ───
+  [💧 Water from the town well] → health:drink:well
+  [🔙 Back] → player:profile.get   │   [🔄 Refresh] → health:survival
+
 ━━━ Survival · the neutral city ━━━
 (edits message 42) (private in groups)
 <b>🌡 Thirst and cold</b>

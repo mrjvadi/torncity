@@ -117,3 +117,32 @@ func TestCacheAgreesAndIsBounded(t *testing.T) {
 		t.Errorf("the cache holds %d entries, bound 8", len(c.data))
 	}
 }
+
+// A forecast is the weather the function gives for the coming local days, and a cold snap names the day it ends.
+func TestForecastAndSnapEnd(t *testing.T) {
+	p := params()
+	pl := Place{Key: 6, BaseC100: 500, LatDeg: 50, PrecipMM: 600, Zone: 3 * time.Hour}
+	now := epoch.Add(40*24*time.Hour + 5*time.Hour)
+	f := Forecast(4, Calendar{epoch}, p, pl, now, 3, nil)
+	if len(f) != 3 || f[0].Offset != 1 || f[0].MinC100 >= f[0].MaxC100 {
+		t.Fatalf("three coming days with a daily range: %+v", f)
+	}
+	if g := Forecast(4, Calendar{epoch}, p, pl, now, 3, NewCache(64)); g[1] != f[1] {
+		t.Errorf("the cache agrees: %+v vs %+v", g[1], f[1])
+	}
+	found := false
+	for d := 0; d < 400 && !found; d++ {
+		at := epoch.Add(time.Duration(d)*24*time.Hour + 12*time.Hour)
+		if end, ok := SnapEnd(4, Calendar{epoch}, p, pl, at, nil); ok {
+			found = true
+			if !end.After(at) || end.Sub(at) > 8*24*time.Hour || end.Add(pl.Zone).Hour() != 0 {
+				t.Errorf("a snap ends at a later local midnight: %v from %v", end, at)
+			}
+		} else if At(4, Calendar{epoch}, p, pl, at).Snap {
+			t.Errorf("a snap day must report its end")
+		}
+	}
+	if !found {
+		t.Error("no cold snap in 400 days at 4 percent")
+	}
+}

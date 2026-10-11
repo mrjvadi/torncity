@@ -146,8 +146,9 @@ func TestSurvivalOnlyCountsInFoundedSettlements(t *testing.T) {
 	if _, err := e.pool.Raw().Exec(testCtx(t), `UPDATE players SET city_id = $2::uuid WHERE id = $1::uuid`, p.ID, e.cityID); err != nil {
 		t.Fatal(err)
 	}
-	if v := e.needs(p); v.Founded {
-		t.Fatalf("before the rule nothing counts: %+v", v)
+	v := e.needs(p)
+	if v.Founded || v.StartsAt == nil || !v.StartsAt.Equal(e.clock.Now().Add(24*time.Hour).AddDate(0, 0, 14)) {
+		t.Fatalf("before the rule nothing counts and the day it starts is named: %+v", v)
 	}
 }
 
@@ -161,6 +162,9 @@ func TestThirstDrinkingAndTheCollapseIntoCare(t *testing.T) {
 	e.needs(p)
 	e.clock.Advance(26 * time.Hour)
 	v := e.needs(p)
+	if v.Env == nil || len(v.Env.Forecast) != 3 || v.Env.Forecast[0].Offset != 1 {
+		t.Fatalf("the weather line carries a three-day forecast: %+v", v.Env)
+	}
 	if v.Thirst < 35 || v.Thirst > 50 {
 		t.Fatalf("a day of thirst is about 40 points: %d", v.Thirst)
 	}

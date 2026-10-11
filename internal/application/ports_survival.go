@@ -46,6 +46,9 @@ type SurvivalRules struct {
 // Enabled reports whether the rule is configured.
 func (r SurvivalRules) Enabled() bool { return !r.RuleAt.IsZero() }
 
+// StartsAt is the day survival starts counting: the rule date plus its grace.
+func (r SurvivalRules) StartsAt() time.Time { return r.RuleAt.AddDate(0, 0, int(max(r.GraceDays, 0))) }
+
 // On reports whether survival applies at now.
 func (r SurvivalRules) On(now time.Time) bool {
 	return r.Enabled() && !now.Before(r.RuleAt.AddDate(0, 0, int(max(r.GraceDays, 0))))
