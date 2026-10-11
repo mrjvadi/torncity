@@ -1,0 +1,343 @@
+[
+  {
+    "title": "Land registry · parcels, zones and claims",
+    "screen": "settlement_land_registry",
+    "view": {
+      "can_claim": true,
+      "can_close_zone": true,
+      "can_lay_foundation": false,
+      "can_zone": true,
+      "claim_cost": 2000,
+      "claim_max_tiles": 0,
+      "claim_upkeep_per_day": 5,
+      "claims": [
+        {
+          "claimed_at": "2026-09-23T11:05:00Z",
+          "face": 1,
+          "gx": 3,
+          "gy": 4,
+          "id": "c1",
+          "paid_through": "2026-11-02T11:05:00Z"
+        }
+      ],
+      "foundation_stone": 0,
+      "foundation_wage": 0,
+      "foundations": 2,
+      "notice": "parcel_joined",
+      "parcel_change_fee": 50,
+      "parcel_max_cells": 60,
+      "parcels": [
+        {
+          "can_join": [
+            "p2"
+          ],
+          "can_split": true,
+          "cells": [
+            {
+              "x": 2,
+              "y": 2
+            },
+            {
+              "x": 3,
+              "y": 2
+            }
+          ],
+          "id": "p1",
+          "mine": true,
+          "owner": {
+            "code": "K7Q2M9A",
+            "name": "سارا"
+          },
+          "treasury": false,
+          "use": "",
+          "zone": {
+            "code": "z1",
+            "name": "کشتزار"
+          }
+        },
+        {
+          "can_join": [
+            "p1"
+          ],
+          "can_split": false,
+          "cells": [
+            {
+              "x": 4,
+              "y": 2
+            }
+          ],
+          "id": "p2",
+          "mine": true,
+          "owner": {
+            "code": "K7Q2M9A",
+            "name": "سارا"
+          },
+          "treasury": false,
+          "use": "",
+          "zone": null
+        },
+        {
+          "can_join": null,
+          "can_split": false,
+          "cells": [
+            {
+              "x": 0,
+              "y": 5
+            }
+          ],
+          "id": "p3",
+          "mine": false,
+          "owner": {
+            "code": "F4R5T6Y",
+            "name": "کاوه"
+          },
+          "treasury": false,
+          "use": "",
+          "zone": null
+        },
+        {
+          "can_join": null,
+          "can_split": false,
+          "cells": [
+            {
+              "x": 6,
+              "y": 6
+            },
+            {
+              "x": 6,
+              "y": 7
+            }
+          ],
+          "id": "p4",
+          "mine": false,
+          "owner": {
+            "code": "",
+            "name": ""
+          },
+          "treasury": true,
+          "use": "",
+          "zone": null
+        }
+      ],
+      "quote": null,
+      "slope_flat_m": 0,
+      "slope_gentle_m": 0,
+      "slope_on": true,
+      "slope_starts_at": null,
+      "slope_unusable_m": 0,
+      "village": "کورندال",
+      "zone_kinds": null,
+      "zone_max_cells": 0,
+      "zone_open_fee": 20,
+      "zones": [
+        {
+          "can_close": true,
+          "cells": 12,
+          "effective": true,
+          "effective_at": null,
+          "id": "z1",
+          "kind": "farm",
+          "name": "کشتزار",
+          "opened_by": {
+            "code": "F4R5T6Y",
+            "name": "کاوه"
+          }
+        },
+        {
+          "can_close": false,
+          "cells": 4,
+          "effective": false,
+          "effective_at": "2026-11-02T11:05:00Z",
+          "id": "z2",
+          "kind": "core",
+          "name": "بازار",
+          "opened_by": {
+            "code": "K7Q2M9A",
+            "name": "سارا"
+          }
+        }
+      ],
+      "zoning_on": true,
+      "zoning_starts_at": null
+    }
+  },
+  {
+    "title": "Land registry · nothing yet, the rules not started",
+    "screen": "settlement_land_registry",
+    "view": {
+      "can_claim": false,
+      "can_close_zone": false,
+      "can_lay_foundation": false,
+      "can_zone": false,
+      "claim_cost": 0,
+      "claim_max_tiles": 0,
+      "claim_upkeep_per_day": 0,
+      "claims": null,
+      "foundation_stone": 0,
+      "foundation_wage": 0,
+      "foundations": 0,
+      "notice": "",
+      "parcel_change_fee": 0,
+      "parcel_max_cells": 0,
+      "parcels": null,
+      "quote": null,
+      "slope_flat_m": 0,
+      "slope_gentle_m": 0,
+      "slope_on": false,
+      "slope_starts_at": "2026-11-02T11:05:00Z",
+      "slope_unusable_m": 0,
+      "village": "کورندال",
+      "zone_kinds": null,
+      "zone_max_cells": 0,
+      "zone_open_fee": 0,
+      "zones": null,
+      "zoning_on": false,
+      "zoning_starts_at": "2026-11-02T11:05:00Z"
+    }
+  },
+  {
+    "title": "Land registry · a foundation quote",
+    "screen": "settlement_land_registry",
+    "view": {
+      "can_claim": false,
+      "can_close_zone": false,
+      "can_lay_foundation": false,
+      "can_zone": false,
+      "claim_cost": 0,
+      "claim_max_tiles": 0,
+      "claim_upkeep_per_day": 0,
+      "claims": null,
+      "foundation_stone": 0,
+      "foundation_wage": 0,
+      "foundations": 0,
+      "notice": "",
+      "parcel_change_fee": 0,
+      "parcel_max_cells": 0,
+      "parcels": null,
+      "quote": {
+        "act": "settlement:foundation.lay",
+        "args": [
+          "3-4"
+        ],
+        "cash": 500,
+        "cells": 1,
+        "lot": {
+          "x": 3,
+          "y": 4
+        },
+        "money": 220,
+        "stone_buy": 3,
+        "stone_have": 5,
+        "stone_need": 8
+      },
+      "slope_flat_m": 0,
+      "slope_gentle_m": 0,
+      "slope_on": false,
+      "slope_starts_at": null,
+      "slope_unusable_m": 0,
+      "village": "کورندال",
+      "zone_kinds": null,
+      "zone_max_cells": 0,
+      "zone_open_fee": 0,
+      "zones": null,
+      "zoning_on": true,
+      "zoning_starts_at": null
+    }
+  },
+  {
+    "title": "Land refusal · land_not_yours",
+    "screen": "village_refusal",
+    "view": {
+      "action": "",
+      "back": {
+        "args": null,
+        "command": ""
+      },
+      "kind": "land_not_yours",
+      "lots": null,
+      "max": 0,
+      "min": 0,
+      "missing": 0,
+      "needs": null,
+      "obstacles": null,
+      "personal": null,
+      "remaining_seconds": 0,
+      "subject": {
+        "code": "",
+        "name": ""
+      }
+    }
+  },
+  {
+    "title": "Land refusal · land_needs_foundation",
+    "screen": "village_refusal",
+    "view": {
+      "action": "",
+      "back": {
+        "args": null,
+        "command": ""
+      },
+      "kind": "land_needs_foundation",
+      "lots": null,
+      "max": 0,
+      "min": 0,
+      "missing": 0,
+      "needs": null,
+      "obstacles": null,
+      "personal": null,
+      "remaining_seconds": 0,
+      "subject": {
+        "code": "",
+        "name": ""
+      }
+    }
+  },
+  {
+    "title": "Land refusal · land_zone_forbids",
+    "screen": "village_refusal",
+    "view": {
+      "action": "",
+      "back": {
+        "args": null,
+        "command": ""
+      },
+      "kind": "land_zone_forbids",
+      "lots": null,
+      "max": 0,
+      "min": 0,
+      "missing": 0,
+      "needs": null,
+      "obstacles": null,
+      "personal": null,
+      "remaining_seconds": 0,
+      "subject": {
+        "code": "",
+        "name": ""
+      }
+    }
+  },
+  {
+    "title": "Land refusal · land_commons",
+    "screen": "village_refusal",
+    "view": {
+      "action": "",
+      "back": {
+        "args": null,
+        "command": ""
+      },
+      "kind": "land_commons",
+      "lots": null,
+      "max": 0,
+      "min": 0,
+      "missing": 0,
+      "needs": null,
+      "obstacles": null,
+      "personal": null,
+      "remaining_seconds": 0,
+      "subject": {
+        "code": "",
+        "name": ""
+      }
+    }
+  }
+]

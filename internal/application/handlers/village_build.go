@@ -84,6 +84,10 @@ func buildingRefusal(err error) *villageRefusal {
 		return refuseVillage(village.VillageOccupied)
 	case stderrors.Is(err, settlementbuilding.ErrObstructed):
 		return refuseVillage(village.VillageObstructed)
+	case stderrors.Is(err, settlementbuilding.ErrNeedsFoundation):
+		return refuseVillage(village.LandNeedsFoundation)
+	case stderrors.Is(err, settlementbuilding.ErrSlopeUnusable):
+		return refuseVillage(village.LandSteepest)
 	case stderrors.Is(err, settlementbuilding.ErrNeedsNear):
 		return refuseVillage(village.VillageNeedsNear)
 	case stderrors.Is(err, settlementbuilding.ErrReservedLot):

@@ -13,7 +13,7 @@ import (
 func TestPathNamesTimberSources(t *testing.T) {
 	snap := shippedSnapshot(t)
 	pc := pathContext{
-		snap: snap,
+		snap:     snap,
 		owned:    item.Set{"oral_tradition": {}, "communal_watch": {}, "kin_apprenticeship": {}, "barter_ring": {}},
 		caps:     item.Set{"literacy_spread": {}, "local_security": {}, "skilled_labor": {}, "market_access": {}},
 		standing: map[string]bool{"civic_hall": true, "road": true},
@@ -55,7 +55,7 @@ func TestPathNamesTimberSources(t *testing.T) {
 func TestPathNamesKnowledgeAndRoles(t *testing.T) {
 	snap := shippedSnapshot(t)
 	pc := pathContext{
-		snap: snap,
+		snap:  snap,
 		owned: item.Set{"oral_tradition": {}, "kin_apprenticeship": {}}, caps: item.Set{},
 		standing: map[string]bool{}, stock: map[string]int64{}, markup: 12_000,
 	}

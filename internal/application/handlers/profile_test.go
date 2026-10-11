@@ -221,7 +221,7 @@ func (t *fakeTx) Worlds() application.WorldRepository                           
 func (t *fakeTx) Settlements() application.SettlementRepository                  { return noSettlements{} }
 func (t *fakeTx) SettlementTreasury() application.SettlementTreasuryRepository   { return nil }
 func (t *fakeTx) Currency() application.CurrencyRepository                       { return nil }
-func (t *fakeTx) FX() application.FXRepository                                       { return nil }
+func (t *fakeTx) FX() application.FXRepository                                   { return nil }
 func (t *fakeTx) Citizens() application.CitizenRepository                        { return nil }
 func (t *fakeTx) SettlementKnowledge() application.SettlementKnowledgeRepository { return nil }
 func (t *fakeTx) SettlementBuildings() application.SettlementBuildingRepository  { return nil }
@@ -229,17 +229,18 @@ func (t *fakeTx) Presence() application.PresenceRepository                      
 func (t *fakeTx) Bags() application.BagRepository                                { return nil }
 func (t *fakeTx) VillageShop() application.VillageShopRepository                 { return nil }
 func (t *fakeTx) VillageStorage() application.VillageStorageRepository           { return nil }
-func (t *fakeTx) Trade() application.TradeRepository { return nil }
+func (t *fakeTx) Trade() application.TradeRepository                             { return nil }
 
-func (t *fakeTx) ServiceDays() application.ServiceDayRepository { return nil }
+func (t *fakeTx) ServiceDays() application.ServiceDayRepository   { return nil }
 func (t *fakeTx) StallKeepers() application.StallKeeperRepository { return nil }
-func (t *fakeTx) Land() application.LandRepository                 { return nil }
-func (t *fakeTx) Farm() application.FarmRepository                 { return nil }
-func (t *fakeTx) Craft() application.CraftRepository               { return nil }
-func (t *fakeTx) Survival() application.SurvivalRepository         { return nil }
+func (t *fakeTx) Land() application.LandRepository                { return nil }
+func (t *fakeTx) Farm() application.FarmRepository                { return nil }
+func (t *fakeTx) Craft() application.CraftRepository              { return nil }
+func (t *fakeTx) Survival() application.SurvivalRepository        { return nil }
 func (t *fakeTx) Apprentices() application.ApprenticeRepository   { return nil }
-func (t *fakeTx) Research() application.ResearchRepository                       { return nil }
-func (t *fakeTx) Charters() application.CharterRepository                        { return nil }
+func (t *fakeTx) Registry() application.RegistryRepository        { return nil }
+func (t *fakeTx) Research() application.ResearchRepository        { return nil }
+func (t *fakeTx) Charters() application.CharterRepository         { return nil }
 
 // Bank reads presence off this transaction's own players and journeys.
 func (t *fakeTx) Bank() application.BankRepository {

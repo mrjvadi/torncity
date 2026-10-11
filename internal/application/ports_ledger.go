@@ -568,6 +568,7 @@ var knownReasons = map[Reason]struct{}{
 	ReasonInterventionBuy: {}, ReasonReserveRelease: {}, ReasonWindDownClaim: {},
 	ReasonCourseFee: {}, ReasonTuition: {}, ReasonTeacherWage: {}, ReasonTeacherWageNPC: {}, ReasonTrainingFee: {}, ReasonTrainerWage: {},
 	ReasonUseChangeFee: {},
+	ReasonParcelChangeFee: {}, ReasonZoneOpenFee: {}, ReasonSettlementClaim: {}, ReasonFoundationWorks: {}, ReasonClaimUpkeep: {},
 }
 
 // Known reports whether r is in the closed set.

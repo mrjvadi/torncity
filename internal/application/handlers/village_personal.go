@@ -145,7 +145,6 @@ func (st personalStanding) postMissing(snap *content.Snapshot, def content.Build
 	return best
 }
 
-
 // workMissing is what the player lacks for a shift at a building type (nil for none), from its function's staff roles.
 func (h *VillageHandler) workMissing(snap *content.Snapshot, st personalStanding, buildingCode string) []village.PersonalNeed {
 	if !h.personal.enabled() {

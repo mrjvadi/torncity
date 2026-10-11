@@ -31,7 +31,9 @@ type seatClaims struct {
 }
 
 // Reserved is the seats the standing posts hold apart from the teachers.
-func (c seatClaims) Reserved() int64 { return c.Shop + c.Keepers + c.Scholars + c.Clerks + c.Services + c.Stalls }
+func (c seatClaims) Reserved() int64 {
+	return c.Shop + c.Keepers + c.Scholars + c.Clerks + c.Services + c.Stalls
+}
 
 // StaffFree is the pool less the teachers: the people the standing posts are filled from.
 func (c seatClaims) StaffFree() int64 { return max(c.Pool-c.Teachers, 0) }

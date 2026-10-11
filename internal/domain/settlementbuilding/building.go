@@ -51,6 +51,10 @@ var (
 	ErrUnbuildableLot = errors.New("settlementbuilding: a lot in the footprint is not buildable")
 	// ErrObstructed means trees or rocks stand on a lot of the footprint: clear it first (docs/adr/0065).
 	ErrObstructed = errors.New("settlementbuilding: trees or rocks stand on a lot in the footprint")
+	// ErrNeedsFoundation means a lot of the footprint is steeper than the building takes unaided: a foundation must be laid on it first (docs/adr/0072).
+	ErrNeedsFoundation = errors.New("settlementbuilding: a lot in the footprint is too steep without a foundation")
+	// ErrSlopeUnusable means a lot of the footprint is too steep for the building even with a foundation.
+	ErrSlopeUnusable = errors.New("settlementbuilding: a lot in the footprint is too steep to build on")
 	// ErrNeedsNear means the building must stand near a terrain tag or a standing building it does not have in reach
 	// (a canal channel near a river, a farm near its water work; docs/adr/0067).
 	ErrNeedsNear = errors.New("settlementbuilding: the building needs something near it that is not there")
@@ -185,6 +189,8 @@ type Def struct {
 	// gate.
 	MinLiteracyShareBPS int
 
+	// SlopeOKBand is the steepest band of lot the building stands on unaided (landuse.Band*; a foundation lifts it by one).
+	SlopeOKBand int
 	// CapExempt frees this building from the concurrent-construction cap
 	// (Standing.ConcurrentCap): it neither waits for a free slot nor holds
 	// one. Content, for the cheap, quick, everywhere-needed pieces (a road)

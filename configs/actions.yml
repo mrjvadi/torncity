@@ -346,6 +346,13 @@ commands:
   settlement.currency.fee: {kind: secondary, icon: "action:bank"}
   settlement.currency.reserve: {kind: primary, icon: "action:bank"}
   settlement.lot.manage: {kind: primary, icon: "action:home"}
+  settlement.land.registry: {kind: secondary, icon: "action:home"}
+  settlement.parcel.join: {kind: primary, icon: "action:home"}
+  settlement.parcel.split: {kind: primary, icon: "action:home"}
+  settlement.zone.open: {kind: primary, icon: "action:build"}
+  settlement.zone.close: {kind: secondary, icon: "action:cancel_build"}
+  settlement.claim: {kind: primary, icon: "action:build"}
+  settlement.foundation.lay: {kind: primary, icon: "action:build"}
   settlement.clear.order: {kind: primary, icon: "action:build"}
   settlement.clear.cancel: {kind: secondary, icon: "action:cancel_build"}
   settlement.farm.sow: {kind: primary, icon: "action:build"}

@@ -4,6 +4,7 @@ import (
 	"context"
 	stderrors "errors"
 	"github.com/mrjvadi/torncity/internal/domain/landroad"
+	"github.com/mrjvadi/torncity/internal/domain/landuse"
 	"strings"
 	"time"
 
@@ -385,6 +386,16 @@ func (h *VillageHandler) BuyLot(ctx context.Context, meta envelope.Metadata, req
 		}
 		if sc.ownedBy(sc.p.ID) >= h.citizen.MaxLotsPerPlayer {
 			return refuseVillage(village.CitizenLotLimit, village.AddrLand)
+		}
+		// the commons are the treasury's and are not sold (docs/adr/0072)
+		if reg := tx.Registry(); reg != nil && h.registry.ZoningOn(now) {
+			zoned, zerr := reg.ZoneCells(ctx, sc.s.CityID, []landuse.Cell{{X: x, Y: y}})
+			if zerr != nil {
+				return zerr
+			}
+			if z, in := zoned[landuse.Cell{X: x, Y: y}]; in && z.Kind == application.ZoneKindCommons {
+				return refuseVillage(village.LandCommons, village.AddrLand)
+			}
 		}
 		// the cap on the private share of the first grid; land the roads opened
 		// is not part of it

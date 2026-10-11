@@ -29,7 +29,7 @@ type City struct {
 	JurisdictionID string
 	CostOfLiving   int64
 	Population     int
-	// Tier is the stored label of a founded settlement; a content city has none.
+	// Tier is the stored label of a founded settlement ("village" for every one, migration 0149); a content city reads as "city" or "".
 	// Nothing gates on it (ADR 0044, 0072): ask Content.
 	Tier string
 }
@@ -41,7 +41,7 @@ const TierCity = "city"
 // authored ones), not a settlement the players founded. The city-only features
 // (the budget, the city period, the city map) belong to a content city; a
 // founded settlement gets its institutions from its charter.
-func (c City) Content() bool { return c.Tier == "" }
+func (c City) Content() bool { return c.Tier == "" || c.Tier == TierCity }
 
 // Stats is a player's live condition.
 type Stats struct {

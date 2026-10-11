@@ -29,17 +29,19 @@ func (g gateCities) ByCode(_ context.Context, code string) (*application.City, e
 	return &c, nil
 }
 
-// TestServiceGate: a village or a town does not offer what the tags start at
-// the city stage, and says where to go; the neutral city, and a grown city,
-// offer it; a service nothing tags is offered everywhere.
+// TestServiceGate: a settlement that has no bank does not offer what the bank
+// carries, and says what it needs and where to go; the neutral city and another
+// content city offer it; a service nothing tags is offered everywhere. The size
+// label asks nothing (ADR 0072): what the settlement has decides.
 func TestServiceGate(t *testing.T) {
 	snap := shippedSnapshot(t)
 	cities := gateCities{
 		"support":  {ID: "c1", Code: "support", Name: "Central", Tier: ""},
 		"hamlet":   {ID: "c2", Code: "hamlet", Name: "Hamlet", Tier: "village"},
 		"township": {ID: "c3", Code: "township", Name: "Township", Tier: "town"},
-		"metro":    {ID: "c4", Code: "metro", Name: "Metro", Tier: "city"},
+		"metro":    {ID: "c4", Code: "metro", Name: "Metro", Tier: ""},
 	}
+	withGrowth(t, GrowthModeAuthoritative, &fakeStanding{st: seededStanding(foundingKit, foundingGrants)}, nil)
 	gate := NewServiceGate(cities, "support")
 	ctx := context.Background()
 
@@ -47,8 +49,8 @@ func TestServiceGate(t *testing.T) {
 	if err != nil || un == nil {
 		t.Fatalf("a village must not offer gold: %v %v", un, err)
 	}
-	if un.Stage != "city" || un.Here != "village" || un.Nearest == nil || un.Nearest.Code != "support" {
-		t.Errorf("the state must name the stage, where the player is and where to go: %+v", un)
+	if un.Here != "village" || un.Nearest == nil || un.Nearest.Code != "support" {
+		t.Errorf("the state must say where the player is and where to go: %+v", un)
 	}
 	if len(un.Requires) == 0 || un.Requires[0].Code != "bank" {
 		t.Errorf("the state must say what the settlement needs: %+v", un.Requires)

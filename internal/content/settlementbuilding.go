@@ -3,6 +3,7 @@ package content
 import (
 	"errors"
 	"fmt"
+	"github.com/mrjvadi/torncity/internal/domain/landuse"
 	"sort"
 	"strings"
 
@@ -88,6 +89,8 @@ type SettlementBuildingDef struct {
 	// TerrainTags/TerrainMode: terrain the footprint itself must satisfy.
 	TerrainTags []string `yaml:"terrain_tags,omitempty" json:"terrain_tags,omitempty"`
 	TerrainMode string   `yaml:"terrain_mode,omitempty" json:"terrain_mode,omitempty"`
+	// SlopeOKBand is the steepest lot the building stands on unaided: flat, gentle (the default) or steep (docs/adr/0072).
+	SlopeOKBand string `yaml:"slope_ok_band,omitempty" json:"slope_ok_band,omitempty"`
 	// Near is what must lie within a radius of the footprint: a lot with a terrain tag, or a standing building (docs/adr/0067).
 	Near *NearDef `yaml:"near,omitempty" json:"near,omitempty"`
 	// CostMoney is minor currency units; CostMaterials is component code
@@ -200,6 +203,7 @@ func (d SettlementBuildingDef) Def() settlementbuilding.Def {
 		RequiresKnowledgeCapability: append([]string(nil), d.RequiresKnowledgeCapability...),
 		TerrainTags:                 append([]string(nil), d.TerrainTags...),
 		TerrainMode:                 settlementbuilding.TerrainMode(d.TerrainMode),
+		SlopeOKBand:                 slopeBandOf(d.SlopeOKBand),
 		CostMoney:                   d.CostMoney,
 		BuildTime:                   t,
 		Upkeep:                      d.Upkeep,
@@ -314,6 +318,11 @@ func (p *Pack) validateSettlementBuildings(problems *[]error) {
 			// building's tier (a village lists tier 1, a town tier 2, a city
 			// 3 and up), so every building says which and what it is.
 			bad("%s %q must declare its role and tier (tier 1 village, 2 town, 3 and 4 city)", where, d.Code)
+		}
+		if d.SlopeOKBand != "" {
+			if _, ok := landuse.BandOf(d.SlopeOKBand); !ok {
+				bad("%s %q slope_ok_band %q is not flat, gentle or steep", where, d.Code, d.SlopeOKBand)
+			}
 		}
 		if d.TerrainMode != "" && d.TerrainMode != "required" {
 			bad("%s %q terrain_mode %q is not \"required\"", where, d.Code, d.TerrainMode)
@@ -498,4 +507,12 @@ func (s *Snapshot) NextRoleTier(role string, tier int) []SettlementBuildingDef {
 		}
 	}
 	return out
+}
+
+// slopeBandOf is the band a content word names; a building that names none stands on a gentle lot unaided.
+func slopeBandOf(name string) int {
+	if b, ok := landuse.BandOf(name); ok {
+		return b
+	}
+	return landuse.BandGentle
 }

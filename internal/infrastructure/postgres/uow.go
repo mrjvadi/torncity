@@ -255,6 +255,9 @@ func (t *tx) Survival() application.SurvivalRepository { return &SurvivalReposit
 // Apprentices returns the apprenticeships (migration 0148).
 func (t *tx) Apprentices() application.ApprenticeRepository { return &ApprenticeRepository{q: t.q} }
 
+// Registry returns the land registry (migration 0150).
+func (t *tx) Registry() application.RegistryRepository { return &RegistryRepository{q: t.q} }
+
 // Farm returns the crops and the mill statute (migration 0144).
 func (t *tx) Farm() application.FarmRepository { return &FarmRepository{q: t.q} }
 

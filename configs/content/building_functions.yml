@@ -302,6 +302,7 @@ building_functions:
     requires: {knowledge: [carpentry]}
     kind: production
     family: craft
+    slope_ok_band: flat
     permit: craft
     zones: [core, industry]
     footprint: [2, 2, 2, 2]
@@ -326,6 +327,7 @@ building_functions:
     requires: {knowledge: [masonry]}
     kind: production
     family: craft
+    slope_ok_band: flat
     permit: craft
     zones: [core, industry]
     footprint: [2, 2, 2, 2]
@@ -349,6 +351,7 @@ building_functions:
     requires: {knowledge: [pottery]}
     kind: production
     family: craft
+    slope_ok_band: flat
     permit: craft
     zones: [core, industry]
     footprint: [2, 2, 2, 2]
@@ -373,6 +376,7 @@ building_functions:
     requires: {knowledge: [smithing]}
     kind: production
     family: craft
+    slope_ok_band: flat
     permit: craft
     zones: [core, industry]
     terrain_tags: [ore_deposit]
@@ -423,6 +427,7 @@ building_functions:
     requires: {knowledge: [bloomery]}
     kind: production
     family: craft
+    slope_ok_band: flat
     permit: craft
     zones: [industry]
     footprint: [2, 2, 2, 2]
@@ -446,6 +451,7 @@ building_functions:
     requires: {knowledge: [weaving]}
     kind: production
     family: craft
+    slope_ok_band: flat
     permit: craft
     zones: [core, industry]
     footprint: [2, 2, 2, 2]
@@ -471,6 +477,7 @@ building_functions:
     requires: {knowledge: [weaving_ii]}
     kind: production
     family: craft
+    slope_ok_band: flat
     permit: craft
     zones: [industry]
     footprint: [2, 2, 2, 2]
@@ -492,6 +499,7 @@ building_functions:
     requires: {knowledge: [tanning]}
     kind: production
     family: craft
+    slope_ok_band: flat
     permit: craft
     zones: [industry]
     footprint: [2, 2, 2, 2]
@@ -605,6 +613,7 @@ building_functions:
     requires: {knowledge: [pottery, masonry]}
     kind: production
     family: craft
+    slope_ok_band: flat
     permit: craft
     zones: [industry]
     footprint: [2, 2, 2, 2]
@@ -627,6 +636,7 @@ building_functions:
     requires: {knowledge: [milling]}
     kind: production
     family: food
+    slope_ok_band: flat
     permit: food
     zones: [farm]
     footprint: [2, 2, 2, 2]
@@ -694,6 +704,7 @@ building_functions:
     requires: {knowledge: [terrace_irrigation]}
     kind: production
     family: food
+    slope_ok_band: steep
     permit: food
     zones: [farm]
     footprint: [3, 3, 3, 3]
@@ -800,6 +811,7 @@ building_functions:
     requires: {knowledge: [terrace_irrigation]}
     kind: service
     family: water
+    slope_ok_band: steep
     zones: [farm]
     footprint: [1, 1, 1, 1]
     owners: [treasury]
@@ -840,6 +852,7 @@ building_functions:
     requires: {knowledge: [milling_ii]}
     kind: production
     family: food
+    slope_ok_band: flat
     permit: food
     zones: [farm]
     footprint: [2, 2, 2, 2]
@@ -862,6 +875,7 @@ building_functions:
     requires: {knowledge: [milling]}
     kind: production
     family: food
+    slope_ok_band: flat
     permit: food
     zones: [core, farm]
     footprint: [2, 2, 2, 2]
@@ -1013,6 +1027,7 @@ building_functions:
     requires: {knowledge: [communal_watch]}
     kind: service
     family: signal
+    slope_ok_band: steep
     zones: [site]
     footprint: [3, 3, 3, 3]
     owners: [treasury]
@@ -1034,6 +1049,7 @@ building_functions:
     requires: {knowledge: [masonry]}
     kind: service
     family: signal
+    slope_ok_band: steep
     zones: [site]
     footprint: [3, 3, 3, 3]
     owners: [treasury]
@@ -1056,6 +1072,7 @@ building_functions:
     planned_knowledge: [signal_fires]
     kind: service
     family: signal
+    slope_ok_band: steep
     zones: [site]
     footprint: [3, 3, 3, 3]
     owners: [treasury]

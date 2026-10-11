@@ -38,7 +38,7 @@ type VillageMarketRules struct {
 	StallsPost, StallsHall                   int
 	StallsPerPlayerPost, StallsPerPlayerHall int
 	DayEveryDays                             int
-	Clock          gametime.Clock
+	Clock                                    gametime.Clock
 }
 
 // WithVillageBook gives the market the village book's stalls, fees and market day.

@@ -279,7 +279,7 @@ func (g *GrowthGate) Decide(site, cityID string, snap *content.Snapshot, caps ws
 	if !compared {
 		return tierAnswer
 	}
-	if capAnswer != tierAnswer {
+	if capAnswer != tierAnswer && tag.Stage != "" { // a row with no size label has no tier answer to disagree with (ADR 0072)
 		g.note(growthKey{cityID, site, tag.Kind, tag.Code}, tierAnswer, capAnswer, missing)
 	}
 	if tag.Stage == "" || g.Authoritative() {

@@ -92,7 +92,7 @@ func TestGrowthDualRead(t *testing.T) {
 	} else if strings.Contains(string(r.View), "not_available") {
 		t.Errorf("off: the readout was refused: %s", r.View)
 	}
-	if un, err := gate.CheckEntry(ctx, snap, cityID, "company_type", "courier"); err != nil || un == nil {
+	if un, err := gate.CheckEntry(ctx, snap, cityID, "item", "sandwich"); err != nil || un == nil {
 		t.Fatalf("off: a fresh village is not offered a town's courier business: %v %v", un, err)
 	}
 	if n := disagreements(); n != 0 {
@@ -107,15 +107,15 @@ func TestGrowthDualRead(t *testing.T) {
 	}
 	// A courier business: the tier (stage town) refuses a village; the capabilities (a road and a market L1,
 	// both in the founding kit) accept. The gate must still answer by the tier.
-	un, err := gate.CheckEntry(ctx, snap, cityID, "company_type", "courier")
+	un, err := gate.CheckEntry(ctx, snap, cityID, "item", "sandwich")
 	if err != nil || un == nil {
 		t.Fatalf("shadow: the tier answer must stay authoritative: %v %v", un, err)
 	}
-	if p := g.Pending(); len(p) != 1 || p[0].Site != "service_gate" || p[0].Code != "courier" || p[0].TierAnswer || !p[0].CapabilityAnswer {
+	if p := g.Pending(); len(p) != 1 || p[0].Site != "service_gate" || p[0].Code != "sandwich" || p[0].TierAnswer || !p[0].CapabilityAnswer {
 		t.Fatalf("shadow: pending = %+v", p)
 	}
 	// the same entry again is a count, not a row
-	if _, err := gate.CheckEntry(ctx, snap, cityID, "company_type", "courier"); err != nil {
+	if _, err := gate.CheckEntry(ctx, snap, cityID, "item", "sandwich"); err != nil {
 		t.Fatal(err)
 	}
 	// a bank is a city thing by tier AND needs the bank building by capability: they agree, nothing is metered
@@ -129,7 +129,7 @@ func TestGrowthDualRead(t *testing.T) {
 		t.Fatalf("shadow: %d disagreements stored, want 2 (one row, seen twice)", n)
 	}
 	// flushing again after more sightings adds to the same row
-	if _, err := gate.CheckEntry(ctx, snap, cityID, "company_type", "courier"); err != nil {
+	if _, err := gate.CheckEntry(ctx, snap, cityID, "item", "sandwich"); err != nil {
 		t.Fatal(err)
 	}
 	// (the gate caches capabilities for the ttl; the tier answer is unchanged, so the same disagreement is seen)
@@ -148,7 +148,7 @@ func TestGrowthDualRead(t *testing.T) {
 	}
 	found := false
 	for _, r := range rows {
-		if r.SettlementID == cityID && r.Kind == "company_type" && r.Code == "courier" && !r.TierAnswer && r.CapabilityAnswer {
+		if r.SettlementID == cityID && r.Kind == "item" && r.Code == "sandwich" && !r.TierAnswer && r.CapabilityAnswer {
 			found = true
 		}
 	}

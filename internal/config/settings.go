@@ -477,6 +477,23 @@ type settlementSettings struct {
 	FarmRuleAt                       *string `yaml:"farm_rule_at"`
 	FarmGraceDays                    *int64  `yaml:"farm_grace_days"`
 	CraftingRuleAt                   *string `yaml:"crafting_rule_at"`
+	ZoneMaxCells                     *int    `yaml:"zone_max_cells"`
+	ZoningRuleAt                     *string `yaml:"zoning_rule_at"`
+	ZoningGraceDays                  *int64  `yaml:"zoning_grace_days"`
+	SlopeRuleAt                      *string `yaml:"slope_rule_at"`
+	SlopeGraceDays                   *int64  `yaml:"slope_grace_days"`
+	SlopeFlatM                       *int    `yaml:"slope_flat_m"`
+	SlopeGentleM                     *int    `yaml:"slope_gentle_m"`
+	SlopeUnusableM                   *int    `yaml:"slope_unusable_m"`
+	ParcelMaxCells                   *int    `yaml:"parcel_max_cells"`
+	ParcelChangeFee                  *int64  `yaml:"parcel_change_fee"`
+	ZoneOpenFee                      *int64  `yaml:"zone_open_fee"`
+	ZoneNoticeMinutes                *int64  `yaml:"zone_notice_minutes"`
+	FoundationStone                  *int64  `yaml:"foundation_stone"`
+	FoundationWage                   *int64  `yaml:"foundation_wage"`
+	ClaimCost                        *int64  `yaml:"claim_cost"`
+	ClaimUpkeep                      *int64  `yaml:"claim_upkeep"`
+	ClaimMaxTiles                    *int    `yaml:"claim_max_tiles"`
 	CraftingGraceDays                *int64  `yaml:"crafting_grace_days"`
 	CareRuleAt                       *string `yaml:"care_rule_at"`
 	CareGraceDays                    *int64  `yaml:"care_grace_days"`
@@ -1642,6 +1659,57 @@ var coreSettings = []setting{
 	moneySetting("settlement", "land_rock_shifts",
 		func(c *Config) *int64 { return &c.Settlement.LandRockShifts },
 		func(f *fileConfig) *int64 { return f.Settlement.LandRockShifts }),
+	limitSetting("settlement", "zone_max_cells",
+		func(c *Config) *int { return &c.Settlement.ZoneMaxCells },
+		func(f *fileConfig) *int { return f.Settlement.ZoneMaxCells }),
+	stringSetting("settlement", "zoning_rule_at",
+		func(c *Config) *string { return &c.Settlement.ZoningRuleAt },
+		func(f *fileConfig) *string { return f.Settlement.ZoningRuleAt }),
+	moneySetting("settlement", "zoning_grace_days",
+		func(c *Config) *int64 { return &c.Settlement.ZoningGraceDays },
+		func(f *fileConfig) *int64 { return f.Settlement.ZoningGraceDays }),
+	stringSetting("settlement", "slope_rule_at",
+		func(c *Config) *string { return &c.Settlement.SlopeRuleAt },
+		func(f *fileConfig) *string { return f.Settlement.SlopeRuleAt }),
+	moneySetting("settlement", "slope_grace_days",
+		func(c *Config) *int64 { return &c.Settlement.SlopeGraceDays },
+		func(f *fileConfig) *int64 { return f.Settlement.SlopeGraceDays }),
+	limitSetting("settlement", "slope_flat_m",
+		func(c *Config) *int { return &c.Settlement.SlopeFlatM },
+		func(f *fileConfig) *int { return f.Settlement.SlopeFlatM }),
+	limitSetting("settlement", "slope_gentle_m",
+		func(c *Config) *int { return &c.Settlement.SlopeGentleM },
+		func(f *fileConfig) *int { return f.Settlement.SlopeGentleM }),
+	limitSetting("settlement", "slope_unusable_m",
+		func(c *Config) *int { return &c.Settlement.SlopeUnusableM },
+		func(f *fileConfig) *int { return f.Settlement.SlopeUnusableM }),
+	limitSetting("settlement", "parcel_max_cells",
+		func(c *Config) *int { return &c.Settlement.ParcelMaxCells },
+		func(f *fileConfig) *int { return f.Settlement.ParcelMaxCells }),
+	moneySetting("settlement", "parcel_change_fee",
+		func(c *Config) *int64 { return &c.Settlement.ParcelChangeFee },
+		func(f *fileConfig) *int64 { return f.Settlement.ParcelChangeFee }),
+	moneySetting("settlement", "zone_open_fee",
+		func(c *Config) *int64 { return &c.Settlement.ZoneOpenFee },
+		func(f *fileConfig) *int64 { return f.Settlement.ZoneOpenFee }),
+	moneySetting("settlement", "zone_notice_minutes",
+		func(c *Config) *int64 { return &c.Settlement.ZoneNoticeMinutes },
+		func(f *fileConfig) *int64 { return f.Settlement.ZoneNoticeMinutes }),
+	moneySetting("settlement", "foundation_stone",
+		func(c *Config) *int64 { return &c.Settlement.FoundationStone },
+		func(f *fileConfig) *int64 { return f.Settlement.FoundationStone }),
+	moneySetting("settlement", "foundation_wage",
+		func(c *Config) *int64 { return &c.Settlement.FoundationWage },
+		func(f *fileConfig) *int64 { return f.Settlement.FoundationWage }),
+	moneySetting("settlement", "claim_cost",
+		func(c *Config) *int64 { return &c.Settlement.ClaimCost },
+		func(f *fileConfig) *int64 { return f.Settlement.ClaimCost }),
+	moneySetting("settlement", "claim_upkeep",
+		func(c *Config) *int64 { return &c.Settlement.ClaimUpkeep },
+		func(f *fileConfig) *int64 { return f.Settlement.ClaimUpkeep }),
+	limitSetting("settlement", "claim_max_tiles",
+		func(c *Config) *int { return &c.Settlement.ClaimMaxTiles },
+		func(f *fileConfig) *int { return f.Settlement.ClaimMaxTiles }),
 	stringSetting("settlement", "farm_rule_at",
 		func(c *Config) *string { return &c.Settlement.FarmRuleAt },
 		func(f *fileConfig) *string { return f.Settlement.FarmRuleAt }),

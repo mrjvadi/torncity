@@ -62,13 +62,13 @@ type VillageHandler struct {
 	shiftFactor func(ctx context.Context, tx application.Tx, p *application.Player, now time.Time) (int64, error)
 	// keeperTerms are the pay a hired stall keeper can be given (config trade.stall_keeper_*, ADR 0062).
 	keeperTerms StallKeeperTerms
-	uow     application.UnitOfWork
-	ids     IDGenerator
-	msgs    Translator
-	content ContentSource
-	worlds  *application.WorldCache
-	cities  application.CityRepository
-	scale   gametimeScale
+	uow         application.UnitOfWork
+	ids         IDGenerator
+	msgs        Translator
+	content     ContentSource
+	worlds      *application.WorldCache
+	cities      application.CityRepository
+	scale       gametimeScale
 
 	// villageGridLots is config.Settlement.VillageGridLots, the same value
 	// PlaceFoundingKit was laid out on, copied in rather than imported so
@@ -84,6 +84,8 @@ type VillageHandler struct {
 	tzCooldown time.Duration
 	// charterSet is the phase 2 numbers (settlement.charter_*).
 	charterSet charter.Settings
+	// registry is the land registry's numbers and rule dates (WithRegistryRules, docs/adr/0072).
+	registry application.RegistryRules
 
 	// teachPeriod is how often the literacy diffusion tick runs, GAME
 	// time (config education.teach_period or a village-specific default);
@@ -385,7 +387,7 @@ func (h *VillageHandler) grid(ctx context.Context, tx application.Tx, w *worldge
 	for y := 0; y < gridLots; y++ {
 		g[y] = make([]settlementbuilding.Lot, gridLots)
 		for x := 0; x < gridLots; x++ {
-			g[y][x] = settlementbuilding.Lot{Buildable: sampled[y][x].Buildable, TerrainTags: sampled[y][x].Tags}
+			g[y][x] = settlementbuilding.Lot{Buildable: sampled[y][x].Buildable, TerrainTags: sampled[y][x].Tags, SlopeM: sampled[y][x].SlopeM}
 		}
 	}
 	// trees and rocks stand on the free lots until they are cleared (docs/adr/0065)
@@ -398,6 +400,18 @@ func (h *VillageHandler) grid(ctx context.Context, tx application.Tx, w *worldge
 				if l.Rocks > 0 {
 					g[p.Y][p.X].TerrainTags = append(g[p.Y][p.X].TerrainTags, "rocky_lot")
 				}
+			}
+		}
+	}
+	// the foundations laid on lots of the first grid (docs/adr/0072)
+	if reg := tx.Registry(); reg != nil {
+		found, ferr := reg.Foundations(ctx, s.CityID)
+		if ferr != nil {
+			return nil, nil, ferr
+		}
+		for _, f := range found {
+			if f.X >= 0 && f.Y >= 0 && f.X < gridLots && f.Y < gridLots {
+				g[f.Y][f.X].Foundation = true
 			}
 		}
 	}

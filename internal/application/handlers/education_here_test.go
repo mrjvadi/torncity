@@ -82,11 +82,15 @@ func TestStageReachesReadsTheTags(t *testing.T) {
 		kind, code, tier string
 		want             bool
 	}{
+		// a size label is no gate (ADR 0072): a tag that names none reaches every settlement, what it needs is the growth gate's question
 		{"mission_board", "village_works", "village", true},
-		{"mission_board", "city_hall", "village", false},
+		{"mission_board", "city_hall", "village", false}, // the neutral city's own boards
 		{"mission_board", "police", "town", false},
 		{"mission", "village_first_lesson", "village", true},
 		{"mission", "first_steps", "village", false},
+		// the rows that still name one keep their ladder until their real prerequisite is built
+		{"office", "mayor", "village", false},
+		{"office", "mayor", "city", true},
 	} {
 		if got := stageReaches(snap, c.kind, c.code, c.tier); got != c.want {
 			t.Errorf("%s %s at %s: got %v, want %v", c.kind, c.code, c.tier, got, c.want)

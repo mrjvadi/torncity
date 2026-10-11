@@ -2,6 +2,7 @@ package content
 
 import (
 	"fmt"
+	"github.com/mrjvadi/torncity/internal/domain/landuse"
 	"sort"
 	"strings"
 )
@@ -456,6 +457,11 @@ func (l *schemaLint) functions() {
 		for _, z := range f.Zones {
 			if !zoneKinds[z] {
 				l.bad("%s: zone %q is not a zone kind", key, z)
+			}
+		}
+		if f.SlopeOKBand != "" {
+			if _, ok := landuse.BandOf(f.SlopeOKBand); !ok {
+				l.bad("%s: slope_ok_band %q is not flat, gentle or steep", key, f.SlopeOKBand)
 			}
 		}
 		if (len(f.TerrainTags) > 0) != (f.TerrainMode != "") || (f.TerrainMode != "" && f.TerrainMode != "required" && f.TerrainMode != "preferred") {

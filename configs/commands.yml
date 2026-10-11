@@ -474,6 +474,13 @@ commands:
   settlement.currency.fee: {channel: group, client: true}
   settlement.currency.reserve: {channel: both, client: true}
   settlement.lot.manage: {channel: both, client: true}
+  settlement.land.registry: {channel: both, client: true}
+  settlement.parcel.join: {channel: both, client: true}
+  settlement.parcel.split: {channel: both, client: true}
+  settlement.zone.open: {channel: both, client: true}
+  settlement.zone.close: {channel: both, client: true}
+  settlement.claim: {channel: both, client: true}
+  settlement.foundation.lay: {channel: both, client: true}
   settlement.clear.order: {channel: both, client: true}
   settlement.clear.cancel: {channel: both, client: true}
   settlement.farm.sow: {channel: both, client: true}

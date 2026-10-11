@@ -1,6 +1,9 @@
 package content
 
-import "errors"
+import (
+	"errors"
+	"sort"
+)
 
 // This file is the ONE content schema of roadmap step 0.5 (ADR 0041 phase W0,
 // ADR 0045 phase B0, ADR 0042 phase T0): the building FUNCTIONS and their
@@ -115,6 +118,16 @@ var ifUnstaffedKinds = map[string]bool{
 }
 
 // Zone kinds a function may stand in (ADR 0042 3.3).
+// ZoneKinds are the kinds a zone may take: the zone kinds of the building functions, and the common land (docs/adr/0072).
+func ZoneKinds() []string {
+	out := []string{"commons"}
+	for k := range zoneKinds {
+		out = append(out, k)
+	}
+	sort.Strings(out)
+	return out
+}
+
 var zoneKinds = map[string]bool{
 	"core": true, "residential": true, "farm": true, "industry": true,
 	"military": true, "port": true, "site": true,
@@ -335,6 +348,8 @@ type BuildingFunctionDef struct {
 	// terrain_tags (river_lot, coastal_lot, harbour_water, highland_tropics).
 	TerrainTags []string `yaml:"terrain_tags,omitempty" json:"terrain_tags,omitempty"`
 	TerrainMode string   `yaml:"terrain_mode,omitempty" json:"terrain_mode,omitempty"`
+	// SlopeOKBand is the steepest lot it stands on unaided: flat, gentle (the default) or steep (docs/adr/0072).
+	SlopeOKBand string `yaml:"slope_ok_band,omitempty" json:"slope_ok_band,omitempty"`
 	// Footprint is the least and greatest size in cells: [minW, minD, maxW, maxD].
 	Footprint [4]int `yaml:"footprint" json:"footprint"`
 	// Owners are the owner kinds that may hold it (ADR 0045 3.1).

@@ -31,7 +31,7 @@ type WorkplaceDef struct {
 	Private bool `yaml:"private,omitempty" json:"private,omitempty"`
 	// PrivateName is the name of the citizen twin ("workshop (own)"); empty: the row's name.
 	PrivateName string `yaml:"private_name,omitempty" json:"private_name,omitempty"`
-	Yard    int  `yaml:"yard,omitempty" json:"yard,omitempty"`
+	Yard        int    `yaml:"yard,omitempty" json:"yard,omitempty"`
 	// Near is a proximity rule the building and its citizen twin keep (docs/adr/0067).
 	Near *NearDef `yaml:"near,omitempty" json:"near,omitempty"`
 	// Grinds marks a mill: a citizen may grind his own grain there for the toll (docs/adr/0067).
@@ -134,7 +134,7 @@ func (f BuildingFunctionDef) privateTwin(pub SettlementBuildingDef) (SettlementB
 		Head: Head{Code: f.Code + PrivateSuffix, Source: f.Source, Evidence: f.Evidence, Requires: f.Requires,
 			PlannedKnowledge: append([]string(nil), f.PlannedKnowledge...)},
 		Name: b.Name, Kind: f.Kind, Family: f.Family, Permit: f.Permit, Zones: append([]string(nil), f.Zones...),
-		TerrainTags: append([]string(nil), f.TerrainTags...), TerrainMode: f.TerrainMode, Footprint: f.Footprint,
+		TerrainTags: append([]string(nil), f.TerrainTags...), TerrainMode: f.TerrainMode, SlopeOKBand: f.SlopeOKBand, Footprint: f.Footprint,
 		Owners: []string{"player"}, Replaces: []string{b.Code}, Staff: append([]StaffSlotDef(nil), f.Staff...), IfUnstaffed: f.IfUnstaffed,
 		Consumes: f.Consumes, Produces: f.Produces, Maintenance: f.Maintenance,
 	}
@@ -159,7 +159,7 @@ func (f BuildingFunctionDef) generatedWorkplace(roleBPS map[string]int) Settleme
 	d := SettlementBuildingDef{
 		Code: w.buildingCode(f.Code), Name: f.Name, Role: w.Role, Tier: max(w.Tier, 1), Generated: true,
 		Footprint:   [2]int{max(f.Footprint[0], 1), max(f.Footprint[1], 1)},
-		TerrainTags: append([]string(nil), f.TerrainTags...), TerrainMode: f.TerrainMode,
+		TerrainTags: append([]string(nil), f.TerrainTags...), TerrainMode: f.TerrainMode, SlopeOKBand: f.SlopeOKBand,
 		OutputTarget: w.OutputTarget, Near: w.Near, Grinds: w.Grinds, Fells: w.Fells, Plants: w.Plants, Upkeep: w.Upkeep, Wage: w.Wage, Effects: append([]EffectDef(nil), w.Effects...), Trains: w.Trains,
 	}
 	if len(f.Levels) > 0 {

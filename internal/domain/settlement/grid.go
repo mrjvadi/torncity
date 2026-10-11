@@ -32,6 +32,8 @@ const slopeThresholdM = 15.0
 // internal/domain/settlementbuilding.Lot needs it.
 type GridLot struct {
 	Buildable bool
+	// SlopeM is the largest drop to a side neighbour, in metres (the band of ADR 0072 is read from it).
+	SlopeM float64
 	// Tags: a biome code (world.yml), "river_lot", "coastal_lot",
 	// "sloped_lot", "ore_deposit" — whichever apply to this lot.
 	Tags []string
@@ -50,7 +52,7 @@ func SampleGrid(w *worldgen.World, centerLat, centerLon float64, gridLots int, c
 	for y := range d.Lots {
 		out[y] = make([]GridLot, len(d.Lots[y]))
 		for x, l := range d.Lots[y] {
-			out[y][x] = GridLot{Buildable: l.Buildable, Tags: l.Tags}
+			out[y][x] = GridLot{Buildable: l.Buildable, Tags: l.Tags, SlopeM: l.SlopeM}
 		}
 	}
 	return out
