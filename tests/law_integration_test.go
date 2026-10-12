@@ -1256,3 +1256,164 @@ func TestAnExposedAgentIsChargedOnlyWhereTheOffenceIsListedAndACourthouseStands(
 		t.Errorf("a settlement that lists espionage and has a courthouse charges the agent, %d cases", n)
 	}
 }
+
+// ---------------------------------------------------------------------------
+// gangs
+// ---------------------------------------------------------------------------
+
+// A gang is a faction that is hidden until its leader declares it or the police find it. A conviction of a member heats the gang and may reveal it; when
+// the linked convictions of its members reach the racketeering count a case of racketeering opens against its leader.
+func TestAGangIsRevealedByAConvictionAndRacketeeringFollowsLinkedOnes(t *testing.T) {
+	e := newLawEnv(t)
+	e.station(e.cityID, "constabulary", "court")
+	e.list("bribery")
+	e.list("racketeering")
+	leader := e.resident("A")
+	members := []*application.Player{e.rich("A", 20_000), e.rich("A", 20_000), e.rich("A", 20_000)}
+	fid := newUUID(t)
+	t.Cleanup(func() {
+		ctx := testCtx(t)
+		_, _ = e.pool.Raw().Exec(ctx, `DELETE FROM law_gangs`)
+		_, _ = e.pool.Raw().Exec(ctx, `DELETE FROM faction_members WHERE faction_id = $1::uuid`, fid)
+		_, _ = e.pool.Raw().Exec(ctx, `DELETE FROM factions WHERE id = $1::uuid`, fid)
+	})
+	if _, err := e.pool.Raw().Exec(testCtx(t), `INSERT INTO factions (id, code, name, name_key, city_id, leader_id, status, founding_fee, content_version, founded_at, updated_at)
+		VALUES ($1::uuid, $2, $3, $3, $4::uuid, $5::uuid, 'active', 0, 1, now(), now())`, fid, "G"+randomTokenUpper(t, 5), "Gang "+randomToken(t, 4), e.cityID, leader.ID); err != nil {
+		t.Fatal(err)
+	}
+	for i, p := range append([]*application.Player{leader}, members...) {
+		rank := "member"
+		if i == 0 {
+			rank = "leader"
+		}
+		if _, err := e.pool.Raw().Exec(testCtx(t), `INSERT INTO faction_members (player_id, faction_id, rank, joined_at, updated_at) VALUES ($1::uuid, $2::uuid, $3, now(), now())`, p.ID, fid, rank); err != nil {
+			t.Fatal(err)
+		}
+	}
+	// the leader marks the faction a gang: hidden by default
+	e.mustLaw(leader, handlers.VillageLawRequest{Action: village.LawActionGangMark})
+	if e.scalarInt(`SELECT count(*) FROM law_gangs WHERE faction_id = $1::uuid AND hidden`, fid) != 1 {
+		t.Fatal("a gang is hidden until it is declared or found")
+	}
+	if kind := e.refused(members[0], handlers.VillageLawRequest{Action: village.LawActionGangMark}); kind != village.LawNotLeader {
+		t.Fatalf("only the leader marks the gang, got %q", kind)
+	}
+	e.retuneLaw(func(r *application.LawRules) { r.T.GangDiscoverBPS, r.T.RacketConvictions = 10_000, 3 })
+	convict := func(p *application.Player) {
+		id := e.newCase("bribery", p, nil, "audit")
+		e.evidence(id, "confession", 40, true)
+		e.evidence(id, "ledger_trace", 30, true)
+		e.evidence(id, "record", 25, true)
+		e.toHearing(id, e.head)
+		e.tick(application.TickLawHearing, id, "wait")
+		if e.scalarInt(`SELECT count(*) FROM law_verdicts WHERE case_id = $1::uuid AND guilty`, id) != 1 {
+			t.Fatal("convicted")
+		}
+	}
+	convict(members[0])
+	if e.scalarInt(`SELECT count(*) FROM law_gangs WHERE faction_id = $1::uuid AND NOT hidden AND revealed_at IS NOT NULL AND heat = $2`, fid, e.rules.T.GangHeatPerConviction) != 1 {
+		t.Fatal("a conviction heats the gang and the police find it")
+	}
+	convict(members[1])
+	if e.scalarInt(`SELECT count(*) FROM law_cases WHERE accused_id = $1::uuid AND offence = 'racketeering'`, leader.ID) != 0 {
+		t.Fatal("two convictions are not a racket")
+	}
+	convict(members[2])
+	if e.scalarInt(`SELECT count(*) FROM law_cases WHERE accused_id = $1::uuid AND offence = 'racketeering' AND source = 'crew'`, leader.ID) != 1 {
+		t.Fatal("three linked convictions open a case of racketeering against the leader")
+	}
+	e.verifyLaw()
+}
+
+// ---------------------------------------------------------------------------
+// the police
+// ---------------------------------------------------------------------------
+
+// A post nobody staffs, feeds or pays gives no patrol: the day's points are made by the open posts and spent by the officers. A patrol notices the acts the game
+// recorded, by a seeded roll that grows with the patrol, and a noticed act opens a case with a witness. An arrest of a case a patrol opened is made on sight;
+// any other needs a warrant, and one made without it spoils the case. The custody clock runs out and the case lapses if nobody charged.
+func TestAPostWithNoStaffPatrolsNothingAndAnArrestNeedsAWarrantOrASight(t *testing.T) {
+	e := newLawEnv(t)
+	ids := e.station(e.cityID, "constabulary")
+	e.list("bribery")
+	patrol := e.officer("A", "police.patrol", "police.arrest", "police.investigate")
+	briber, holder := e.resident("A"), e.resident("A")
+	e.act(briber, holder)
+
+	// no one on the beat: a closed post gives no patrol
+	e.setPost(ids["constabulary"], false)
+	if kind := e.refused(patrol, handlers.VillageLawRequest{Action: village.LawActionPatrol}); kind != village.LawPostClosed {
+		t.Fatalf("a post nobody staffs patrols nothing, got %q", kind)
+	}
+	e.setPost(ids["constabulary"], true)
+	// a resident with no power does not patrol
+	if kind := e.refused(e.resident("A"), handlers.VillageLawRequest{Action: village.LawActionPatrol}); kind == "" {
+		t.Fatal("a resident patrolled")
+	}
+	// the day's points: the four staff seats of a station (three officers and a clerk), ten each, and the station's own twenty
+	v := e.mustLaw(patrol, handlers.VillageLawRequest{Action: village.LawActionOpen})
+	if v.Points != 4*e.rules.T.PointsPerStaff+e.rules.T.StationBasePoints {
+		t.Fatalf("the points an open station gives, got %d", v.Points)
+	}
+	// the roll is pinned to notice
+	e.retuneLaw(func(r *application.LawRules) { r.T.BaseDetectBPS, r.T.DetectCapBPS = 10_000, 10_000 })
+	v = e.mustLaw(patrol, handlers.VillageLawRequest{Action: village.LawActionPatrol})
+	if v.Notice != village.LawNoticePatrolSaw {
+		t.Fatalf("the patrol noticed a recorded act, got %q", v.Notice)
+	}
+	if v.Spent != e.rules.T.PatrolCost || v.Patrol != 1 {
+		t.Fatalf("a patrol shift costs points: spent %d, patrol %d", v.Spent, v.Patrol)
+	}
+	id := e.text(`SELECT id::text FROM law_cases WHERE accused_id = $1::uuid AND offence = 'bribery' AND source = 'patrol'`, briber.ID)
+	if e.scalarInt(`SELECT count(*) FROM law_evidence WHERE case_id = $1::uuid AND kind = 'witness' AND proper`, id) != 1 {
+		t.Fatal("a witness is in the file")
+	}
+	// a second patrol finds the same act already in the file: one case, one witness
+	e.mustLaw(patrol, handlers.VillageLawRequest{Action: village.LawActionPatrol})
+	if e.scalarInt(`SELECT count(*) FROM law_cases WHERE accused_id = $1::uuid AND offence = 'bribery'`, briber.ID) != 1 ||
+		e.scalarInt(`SELECT count(*) FROM law_evidence WHERE case_id = $1::uuid`, id) != 1 {
+		t.Fatal("an act is in a case once")
+	}
+	// the arrest of a case a patrol opened is made on sight, with no warrant
+	e.mustLaw(patrol, handlers.VillageLawRequest{Action: village.LawActionArrest, ID: id})
+	if e.scalarInt(`SELECT count(*) FROM law_cases WHERE id = $1::uuid AND custody_until IS NOT NULL AND custody_building = $2::uuid`, id, ids["constabulary"]) != 1 {
+		t.Fatal("the accused is held in the post's lock-up")
+	}
+	if e.scalarInt(`SELECT count(*) FROM law_evidence WHERE case_id = $1::uuid AND NOT proper`, id) != 0 {
+		t.Fatal("an arrest on sight spoils nothing")
+	}
+	if kind := e.refused(patrol, handlers.VillageLawRequest{Action: village.LawActionArrest, ID: id}); kind != village.LawInCustody {
+		t.Fatalf("held already, got %q", kind)
+	}
+	// the custody clock runs out with no charge: released, the case lapses
+	e.clock.Advance(time.Duration(e.rules.T.CustodyHours+1) * time.Hour)
+	e.tick(application.TickLawCustody, id, "")
+	if e.caseState(id) != "lapsed" || e.scalarInt(`SELECT count(*) FROM law_cases WHERE id = $1::uuid AND custody_until IS NULL`, id) != 1 {
+		t.Fatalf("the custody clock released the accused and the case lapsed: %s", e.caseState(id))
+	}
+	// a case that came by a complaint needs a warrant: an arrest without one spoils the case
+	other := e.resident("A")
+	complainer := e.rich("A", 1000)
+	e.mustLaw(complainer, handlers.VillageLawRequest{Action: village.LawActionComplain, Code: "bribery", Player: other.PublicCode})
+	c2 := e.text(`SELECT id::text FROM law_cases WHERE accused_id = $1::uuid`, other.ID)
+	if e.cash(complainer) != 1000-e.rules.T.ComplaintFee {
+		t.Fatalf("a complaint costs its fee, cash %d", e.cash(complainer))
+	}
+	if e.scalarInt(`SELECT count(*) FROM law_evidence WHERE case_id = $1::uuid`, c2) != 0 {
+		t.Fatal("a complaint tells its author nothing: the case opens with an empty file")
+	}
+	e.mustLaw(patrol, handlers.VillageLawRequest{Action: village.LawActionArrest, ID: c2})
+	if e.scalarInt(`SELECT count(*) FROM law_evidence WHERE case_id = $1::uuid AND NOT proper`, c2) != 1 {
+		t.Fatal("an arrest with no warrant leaves an improper record")
+	}
+	// the points run out
+	e.retuneLaw(func(r *application.LawRules) { r.T.PatrolCost = 1000 })
+	if kind := e.refused(patrol, handlers.VillageLawRequest{Action: village.LawActionPatrol}); kind != village.LawNoPoints {
+		t.Fatalf("a day's points are spent, got %q", kind)
+	}
+	// an offence not on the list is no crime here
+	if kind := e.refused(complainer, handlers.VillageLawRequest{Action: village.LawActionComplain, Code: "forgery", Player: other.PublicCode}); kind != village.LawNotOutlawed {
+		t.Fatalf("an act the charter does not list is no offence, got %q", kind)
+	}
+	e.verifyLaw()
+}
