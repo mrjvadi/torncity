@@ -263,6 +263,8 @@ type Config struct {
 
 	// Mining is deposits, mines, carriage and rail (docs/adr/0075).
 	Mining Mining
+	// Polity is unions, countries, treaties of settlements, tenders and sovereign loans (docs/adr/0076).
+	Polity Polity
 
 	// Bag, Merchant and Premium are the tuning of ADR 0046: what a player can
 	// carry and how a bag wears, the village shop's daily delivery and prices,
@@ -1922,6 +1924,36 @@ func Defaults() *Config {
 			SpeedRailKmh:         40,
 			TributeMin:           100,
 		},
+		Polity: Polity{
+			RuleAt:                "2099-01-01T00:00:00Z",
+			RatifyDays:            14,
+			ExitNoticeDays:        14,
+			CountryMinResidents:   15,
+			LeagueFee:             2000,
+			CountryFee:            10000,
+			MaxDuesBPS:            1000,
+			WeightCapBPS:          4000,
+			MembersMajorityBPS:    5500,
+			PopulationMajorityBPS: 6500,
+			VoteWindowHours:       72,
+			ExpelAfterPeriods:     3,
+			DuesPeriodHours:       168,
+			TreatyCoolingDays:     7,
+			TenderFee:             100,
+			BondBPS:               1000,
+			RetentionBPS:          500,
+			DefectsDays:           7,
+			DebarDays:             14,
+			CoiRefuseFromBPS:      1,
+			TenderMinHours:        24,
+			TenderGraceHours:      72,
+			DebtDefaultAfter:      3,
+			DebtLateFeeBPS:        500,
+			DebtServiceCapBPS:     3000,
+			DebtMaxInstalments:    24,
+			DebtPeriodHours:       168,
+			DebtMaxRateBPS:        3000,
+		},
 		Mining: Mining{
 			RuleAt:                "2026-10-12T12:00:00Z",
 			GraceDays:             14,
@@ -2825,6 +2857,38 @@ type Raid struct {
 	SpeedHorseKmh        int64  // raid.speed_horse_kmh
 	SpeedRailKmh         int64  // raid.speed_rail_kmh
 	TributeMin           int64  // raid.tribute_min
+}
+
+// Polity is the tuning of unions, countries, treaties between settlements, public tenders and sovereign loans (docs/adr/0076). The rules start at RuleAt.
+type Polity struct {
+	RuleAt                string // polity.rule_at
+	RatifyDays            int64  // polity.ratify_days
+	ExitNoticeDays        int64  // polity.exit_notice_days
+	CountryMinResidents   int64  // polity.country_min_residents
+	LeagueFee             int64  // polity.league_fee
+	CountryFee            int64  // polity.country_fee
+	MaxDuesBPS            int64  // polity.max_dues_bps
+	WeightCapBPS          int64  // polity.weight_cap_bps
+	MembersMajorityBPS    int64  // polity.members_majority_bps
+	PopulationMajorityBPS int64  // polity.population_majority_bps
+	VoteWindowHours       int64  // polity.vote_window_hours
+	ExpelAfterPeriods     int64  // polity.expel_after_periods
+	DuesPeriodHours       int64  // polity.dues_period_hours
+	TreatyCoolingDays     int64  // polity.treaty_cooling_days
+	TenderFee             int64  // polity.tender_fee
+	BondBPS               int64  // polity.bond_bps
+	RetentionBPS          int64  // polity.retention_bps
+	DefectsDays           int64  // polity.defects_days
+	DebarDays             int64  // polity.debar_days
+	CoiRefuseFromBPS      int64  // polity.coi_refuse_from_bps
+	TenderMinHours        int64  // polity.tender_min_hours
+	TenderGraceHours      int64  // polity.tender_grace_hours
+	DebtDefaultAfter      int64  // polity.debt_default_after
+	DebtLateFeeBPS        int64  // polity.debt_late_fee_bps
+	DebtServiceCapBPS     int64  // polity.debt_service_cap_bps
+	DebtMaxInstalments    int64  // polity.debt_max_instalments
+	DebtPeriodHours       int64  // polity.debt_period_hours
+	DebtMaxRateBPS        int64  // polity.debt_max_rate_bps
 }
 
 // Mining is the tuning of deposits, mines, carriage and rail (docs/adr/0075-mining-rail-and-ratios.md). Mining starts at RuleAt plus GraceDays.

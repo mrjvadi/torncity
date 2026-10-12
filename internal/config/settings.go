@@ -60,6 +60,7 @@ type fileConfig struct {
 	Households    householdsSettings    `yaml:"households"`
 	Raid          raidSettings          `yaml:"raid"`
 	Mining        miningSettings        `yaml:"mining"`
+	Polity        politySettings        `yaml:"polity"`
 	Bag           bagSettings           `yaml:"bag"`
 	Merchant      merchantSettings      `yaml:"merchant"`
 	Premium       premiumSettings       `yaml:"premium"`
@@ -422,6 +423,37 @@ type raidSettings struct {
 	SpeedHorseKmh        *int64  `yaml:"speed_horse_kmh"`
 	SpeedRailKmh         *int64  `yaml:"speed_rail_kmh"`
 	TributeMin           *int64  `yaml:"tribute_min"`
+}
+
+type politySettings struct {
+	RuleAt                *string `yaml:"rule_at"`
+	RatifyDays            *int64  `yaml:"ratify_days"`
+	ExitNoticeDays        *int64  `yaml:"exit_notice_days"`
+	CountryMinResidents   *int64  `yaml:"country_min_residents"`
+	LeagueFee             *int64  `yaml:"league_fee"`
+	CountryFee            *int64  `yaml:"country_fee"`
+	MaxDuesBPS            *int64  `yaml:"max_dues_bps"`
+	WeightCapBPS          *int64  `yaml:"weight_cap_bps"`
+	MembersMajorityBPS    *int64  `yaml:"members_majority_bps"`
+	PopulationMajorityBPS *int64  `yaml:"population_majority_bps"`
+	VoteWindowHours       *int64  `yaml:"vote_window_hours"`
+	ExpelAfterPeriods     *int64  `yaml:"expel_after_periods"`
+	DuesPeriodHours       *int64  `yaml:"dues_period_hours"`
+	TreatyCoolingDays     *int64  `yaml:"treaty_cooling_days"`
+	TenderFee             *int64  `yaml:"tender_fee"`
+	BondBPS               *int64  `yaml:"bond_bps"`
+	RetentionBPS          *int64  `yaml:"retention_bps"`
+	DefectsDays           *int64  `yaml:"defects_days"`
+	DebarDays             *int64  `yaml:"debar_days"`
+	CoiRefuseFromBPS      *int64  `yaml:"coi_refuse_from_bps"`
+	TenderMinHours        *int64  `yaml:"tender_min_hours"`
+	TenderGraceHours      *int64  `yaml:"tender_grace_hours"`
+	DebtDefaultAfter      *int64  `yaml:"debt_default_after"`
+	DebtLateFeeBPS        *int64  `yaml:"debt_late_fee_bps"`
+	DebtServiceCapBPS     *int64  `yaml:"debt_service_cap_bps"`
+	DebtMaxInstalments    *int64  `yaml:"debt_max_instalments"`
+	DebtPeriodHours       *int64  `yaml:"debt_period_hours"`
+	DebtMaxRateBPS        *int64  `yaml:"debt_max_rate_bps"`
 }
 
 type miningSettings struct {
@@ -1696,6 +1728,90 @@ var coreSettings = []setting{
 	moneySetting("mining", "chain_default_per_hour",
 		func(c *Config) *int64 { return &c.Mining.ChainDefaultPerHour },
 		func(f *fileConfig) *int64 { return f.Mining.ChainDefaultPerHour }),
+	stringSetting("polity", "rule_at",
+		func(c *Config) *string { return &c.Polity.RuleAt },
+		func(f *fileConfig) *string { return f.Polity.RuleAt }),
+	moneySetting("polity", "ratify_days",
+		func(c *Config) *int64 { return &c.Polity.RatifyDays },
+		func(f *fileConfig) *int64 { return f.Polity.RatifyDays }),
+	moneySetting("polity", "exit_notice_days",
+		func(c *Config) *int64 { return &c.Polity.ExitNoticeDays },
+		func(f *fileConfig) *int64 { return f.Polity.ExitNoticeDays }),
+	moneySetting("polity", "country_min_residents",
+		func(c *Config) *int64 { return &c.Polity.CountryMinResidents },
+		func(f *fileConfig) *int64 { return f.Polity.CountryMinResidents }),
+	moneySetting("polity", "league_fee",
+		func(c *Config) *int64 { return &c.Polity.LeagueFee },
+		func(f *fileConfig) *int64 { return f.Polity.LeagueFee }),
+	moneySetting("polity", "country_fee",
+		func(c *Config) *int64 { return &c.Polity.CountryFee },
+		func(f *fileConfig) *int64 { return f.Polity.CountryFee }),
+	moneySetting("polity", "max_dues_bps",
+		func(c *Config) *int64 { return &c.Polity.MaxDuesBPS },
+		func(f *fileConfig) *int64 { return f.Polity.MaxDuesBPS }),
+	moneySetting("polity", "weight_cap_bps",
+		func(c *Config) *int64 { return &c.Polity.WeightCapBPS },
+		func(f *fileConfig) *int64 { return f.Polity.WeightCapBPS }),
+	moneySetting("polity", "members_majority_bps",
+		func(c *Config) *int64 { return &c.Polity.MembersMajorityBPS },
+		func(f *fileConfig) *int64 { return f.Polity.MembersMajorityBPS }),
+	moneySetting("polity", "population_majority_bps",
+		func(c *Config) *int64 { return &c.Polity.PopulationMajorityBPS },
+		func(f *fileConfig) *int64 { return f.Polity.PopulationMajorityBPS }),
+	moneySetting("polity", "vote_window_hours",
+		func(c *Config) *int64 { return &c.Polity.VoteWindowHours },
+		func(f *fileConfig) *int64 { return f.Polity.VoteWindowHours }),
+	moneySetting("polity", "expel_after_periods",
+		func(c *Config) *int64 { return &c.Polity.ExpelAfterPeriods },
+		func(f *fileConfig) *int64 { return f.Polity.ExpelAfterPeriods }),
+	moneySetting("polity", "dues_period_hours",
+		func(c *Config) *int64 { return &c.Polity.DuesPeriodHours },
+		func(f *fileConfig) *int64 { return f.Polity.DuesPeriodHours }),
+	moneySetting("polity", "treaty_cooling_days",
+		func(c *Config) *int64 { return &c.Polity.TreatyCoolingDays },
+		func(f *fileConfig) *int64 { return f.Polity.TreatyCoolingDays }),
+	moneySetting("polity", "tender_fee",
+		func(c *Config) *int64 { return &c.Polity.TenderFee },
+		func(f *fileConfig) *int64 { return f.Polity.TenderFee }),
+	moneySetting("polity", "bond_bps",
+		func(c *Config) *int64 { return &c.Polity.BondBPS },
+		func(f *fileConfig) *int64 { return f.Polity.BondBPS }),
+	moneySetting("polity", "retention_bps",
+		func(c *Config) *int64 { return &c.Polity.RetentionBPS },
+		func(f *fileConfig) *int64 { return f.Polity.RetentionBPS }),
+	moneySetting("polity", "defects_days",
+		func(c *Config) *int64 { return &c.Polity.DefectsDays },
+		func(f *fileConfig) *int64 { return f.Polity.DefectsDays }),
+	moneySetting("polity", "debar_days",
+		func(c *Config) *int64 { return &c.Polity.DebarDays },
+		func(f *fileConfig) *int64 { return f.Polity.DebarDays }),
+	moneySetting("polity", "coi_refuse_from_bps",
+		func(c *Config) *int64 { return &c.Polity.CoiRefuseFromBPS },
+		func(f *fileConfig) *int64 { return f.Polity.CoiRefuseFromBPS }),
+	moneySetting("polity", "tender_min_hours",
+		func(c *Config) *int64 { return &c.Polity.TenderMinHours },
+		func(f *fileConfig) *int64 { return f.Polity.TenderMinHours }),
+	moneySetting("polity", "tender_grace_hours",
+		func(c *Config) *int64 { return &c.Polity.TenderGraceHours },
+		func(f *fileConfig) *int64 { return f.Polity.TenderGraceHours }),
+	moneySetting("polity", "debt_default_after",
+		func(c *Config) *int64 { return &c.Polity.DebtDefaultAfter },
+		func(f *fileConfig) *int64 { return f.Polity.DebtDefaultAfter }),
+	moneySetting("polity", "debt_late_fee_bps",
+		func(c *Config) *int64 { return &c.Polity.DebtLateFeeBPS },
+		func(f *fileConfig) *int64 { return f.Polity.DebtLateFeeBPS }),
+	moneySetting("polity", "debt_service_cap_bps",
+		func(c *Config) *int64 { return &c.Polity.DebtServiceCapBPS },
+		func(f *fileConfig) *int64 { return f.Polity.DebtServiceCapBPS }),
+	moneySetting("polity", "debt_max_instalments",
+		func(c *Config) *int64 { return &c.Polity.DebtMaxInstalments },
+		func(f *fileConfig) *int64 { return f.Polity.DebtMaxInstalments }),
+	moneySetting("polity", "debt_period_hours",
+		func(c *Config) *int64 { return &c.Polity.DebtPeriodHours },
+		func(f *fileConfig) *int64 { return f.Polity.DebtPeriodHours }),
+	moneySetting("polity", "debt_max_rate_bps",
+		func(c *Config) *int64 { return &c.Polity.DebtMaxRateBPS },
+		func(f *fileConfig) *int64 { return f.Polity.DebtMaxRateBPS }),
 	stringSetting("households", "rule_at",
 		func(c *Config) *string { return &c.Households.RuleAt },
 		func(f *fileConfig) *string { return f.Households.RuleAt }),
