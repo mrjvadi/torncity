@@ -2140,7 +2140,7 @@ func Defaults() *Config {
 			BuildHomesPerCrew:                16,
 			CharterMaxOffices:                24,
 			CharterMaxSeats:                  15,
-			CharterMaxPermissions:            64,
+			CharterMaxPermissions:            96,
 			CharterTitleMin:                  2,
 			CharterTitleMax:                  32,
 			CharterElectionTermDays:          14,

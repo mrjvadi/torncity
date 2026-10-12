@@ -239,7 +239,7 @@ func (h *VillageHandler) releaseContractBonds(ctx context.Context, tx applicatio
 
 // tickContractClose is the bids closing: the contract is awarded, or fails with no bid that can stand.
 func (h *VillageHandler) tickContractClose(ctx context.Context, tx application.Tx, meta envelope.Metadata, id string, now time.Time) error {
-	c, err := tx.Projects().ContractByID(ctx, id, true)
+	c, _, err := h.lockContract(ctx, tx, id)
 	if err != nil || c == nil || c.Status != "open" || now.Before(c.ClosesAt) {
 		return err
 	}
@@ -253,7 +253,7 @@ func (h *VillageHandler) contractAwardAct(ctx context.Context, tx application.Tx
 	if !has {
 		return "", refuseVillage(village.VillageNoSettlement)
 	}
-	c, err := tx.Projects().ContractByID(ctx, strings.TrimSpace(req.ID), true)
+	c, _, err := h.lockContract(ctx, tx, strings.TrimSpace(req.ID))
 	if err != nil {
 		return "", err
 	}
@@ -282,7 +282,7 @@ func (h *VillageHandler) contractAwardAct(ctx context.Context, tx application.Tx
 // awardContract picks the winner by the published rule, funds the escrow from the project's fund and starts the work. One conditional update:
 // with any number of replicas calling at once exactly one wins it.
 func (h *VillageHandler) awardContract(ctx context.Context, tx application.Tx, meta envelope.Metadata, c *application.ProjectContract, now time.Time) (bool, error) {
-	pr, err := tx.Projects().ByID(ctx, c.ProjectID, true)
+	pr, err := tx.Projects().ByID(ctx, c.ProjectID, false) // the caller holds its lock
 	if err != nil || pr == nil {
 		return false, err
 	}
@@ -425,12 +425,8 @@ func (h *VillageHandler) contractStageDone(ctx context.Context, tx application.T
 
 // tickContractRelease ends a finished contract: the retention goes to the company, or to the fund if a defect was raised; the bond is returned.
 func (h *VillageHandler) tickContractRelease(ctx context.Context, tx application.Tx, meta envelope.Metadata, id string, now time.Time) error {
-	c, err := tx.Projects().ContractByID(ctx, id, true)
-	if err != nil || c == nil || c.Status != "awarded" {
-		return err
-	}
-	pr, err := tx.Projects().ByID(ctx, c.ProjectID, true)
-	if err != nil || pr == nil || c.StagesPaid < pr.Stages || c.LastStageAt == nil {
+	c, pr, err := h.lockContract(ctx, tx, id)
+	if err != nil || c == nil || c.Status != "awarded" || c.StagesPaid < pr.Stages || c.LastStageAt == nil {
 		return err
 	}
 	if now.Before(tender.RetentionReleaseAt(*c.LastStageAt, int64(c.DefectsDays))) {
@@ -478,12 +474,8 @@ func (h *VillageHandler) tickContractRelease(ctx context.Context, tx application
 // tickContractDue is the deadline of the work: a contractor that has not finished it forfeits its bond, what is left of the escrow returns to
 // the fund, and the company is kept from public works for a time.
 func (h *VillageHandler) tickContractDue(ctx context.Context, tx application.Tx, meta envelope.Metadata, id string, now time.Time) error {
-	c, err := tx.Projects().ContractByID(ctx, id, true)
+	c, pr, err := h.lockContract(ctx, tx, id)
 	if err != nil || c == nil || c.Status != "awarded" || c.DueAt == nil {
-		return err
-	}
-	pr, err := tx.Projects().ByID(ctx, c.ProjectID, true)
-	if err != nil || pr == nil {
 		return err
 	}
 	if c.StagesPaid >= pr.Stages || !tender.Overdue(*c.DueAt, h.polity.TenderGrace, now) {
@@ -555,4 +547,19 @@ func (h *VillageHandler) contractDefect(ctx context.Context, tx application.Tx, 
 		return refuseVillage(village.ProjectNoDefect, village.AddrProject)
 	}
 	return nil
+}
+
+// lockContract locks a project and then its contract: the order every act that touches both takes (a stage completes with the project locked and
+// then pays the contract), so a close of the bids and a stage accepted at once cannot wait for each other.
+func (h *VillageHandler) lockContract(ctx context.Context, tx application.Tx, id string) (*application.ProjectContract, *application.SpecialProject, error) {
+	c, err := tx.Projects().ContractByID(ctx, id, false)
+	if err != nil || c == nil {
+		return nil, nil, err
+	}
+	pr, err := tx.Projects().ByID(ctx, c.ProjectID, true)
+	if err != nil || pr == nil {
+		return nil, nil, err
+	}
+	c, err = tx.Projects().ContractByID(ctx, id, true)
+	return c, pr, err
 }
