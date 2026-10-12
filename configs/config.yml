@@ -1253,6 +1253,38 @@ mining:
   default_rate_per_tonne_km: 40   # the freight rate a new line starts with, minor units per tonne-kilometre
   chain_default_per_hour: 4   # the rate the chain calculator plans for when none is asked, units an hour
 
+# Unions, countries, treaties between settlements, tenders and sovereign loans (docs/adr/0076-unions-countries-contractors-sovereign-loans.md, plan B12).
+# They start from rule_at (a placeholder far in the future until the deploy sets it); every figure is an owner default of 2026-10-12.
+polity:
+  rule_at: "2099-01-01T00:00:00Z"   # the unions, treaties of settlements, tenders and sovereign loans start from this instant; a placeholder far in the future until the deploy sets it (ADR 0076)
+  ratify_days: 14   # real days a union proposal waits for the invited settlements to ratify
+  exit_notice_days: 14   # real days between a member's notice and its leaving a union
+  country_min_residents: 15   # combined residents a country charter needs (a league needs none)
+  league_fee: 2000   # registration fee of a league, minor units, split among the founding treasuries
+  country_fee: 10000   # registration fee of a country, minor units, split among the founding treasuries
+  max_dues_bps: 1000   # the most a union may ask of a member's treasury income each period, basis points
+  weight_cap_bps: 4000   # the most one member weighs in a weighted vote, basis points of the total
+  members_majority_bps: 5500   # double majority: the share of members that must agree, basis points
+  population_majority_bps: 6500   # double majority: the share of the combined population that must agree, basis points
+  vote_window_hours: 72   # real hours a motion between the members stays open
+  expel_after_periods: 3   # dues periods in arrears after which a member may be expelled
+  dues_period_hours: 168   # real hours of one dues period
+  treaty_cooling_days: 7   # real days after a party ends an alliance or a non-aggression pact before it may declare war or a raid on the other
+  tender_fee: 100   # the filing fee of a tender, minor units, treasury to sink
+  bond_bps: 1000   # performance bond a bidder posts, basis points of its price
+  retention_bps: 500   # share of each stage payment held back until the defects period ends, basis points
+  defects_days: 7   # real days after the last stage in which the retention is held
+  debar_days: 14   # real days a contractor that forfeited its bond is kept from public tenders
+  coi_refuse_from_bps: 1   # an awarding official holding at least this share of a bidding company, basis points, may not award to it (1: any stake)
+  tender_min_hours: 24   # the shortest bidding window of a tender, real hours
+  tender_grace_hours: 72   # real hours after the deadline of a stage before the bond is forfeited
+  debt_default_after: 3   # instalments in arrears after which a sovereign loan is in default
+  debt_late_fee_bps: 500   # late fee on a missed instalment, basis points of it
+  debt_service_cap_bps: 3000   # the most a borrower's debt service may be of its income in a period, basis points
+  debt_max_instalments: 24   # the most instalments of a sovereign loan
+  debt_period_hours: 168   # real hours of one instalment period of a sovereign loan
+  debt_max_rate_bps: 3000   # the highest yearly rate a sovereign loan may carry, basis points
+
 # NPC households (docs/adr/0073-npc-households.md, plan B9): the people behind the labour pool. They start from rule_at (a placeholder far in the
 # future until the deploy sets it); a settlement enrolls itself then, runs a dual run, and flips when its households can fill the old pool.
 # The numbers are drafts until the household budget surveys of the ADR are read (ADR 0073 section 15).

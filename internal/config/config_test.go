@@ -704,6 +704,35 @@ mining:
   team_feed_wheat: 3315
   default_rate_per_tonne_km: 3322
   chain_default_per_hour: 3329
+polity:
+  rule_at: "2097-01-01T00:00:00Z"
+  ratify_days: 5002
+  exit_notice_days: 5003
+  country_min_residents: 5004
+  league_fee: 5005
+  country_fee: 5006
+  max_dues_bps: 5007
+  weight_cap_bps: 5008
+  members_majority_bps: 5009
+  population_majority_bps: 5010
+  vote_window_hours: 5011
+  expel_after_periods: 5012
+  dues_period_hours: 5013
+  treaty_cooling_days: 5014
+  tender_fee: 5015
+  bond_bps: 5016
+  retention_bps: 5017
+  defects_days: 5018
+  debar_days: 5019
+  coi_refuse_from_bps: 5020
+  tender_min_hours: 5021
+  tender_grace_hours: 5022
+  debt_default_after: 5023
+  debt_late_fee_bps: 5024
+  debt_service_cap_bps: 5025
+  debt_max_instalments: 5026
+  debt_period_hours: 5027
+  debt_max_rate_bps: 5028
 growth:
   capabilities: off
   cache_ttl: 6s
@@ -1451,6 +1480,34 @@ var envOverrides = map[string]string{
 	"TORN_MINING_TEAM_FEED_WHEAT":           "4315",
 	"TORN_MINING_DEFAULT_RATE_PER_TONNE_KM": "4322",
 	"TORN_MINING_CHAIN_DEFAULT_PER_HOUR":    "4329",
+	"TORN_POLITY_RULE_AT":                   "2096-01-01T00:00:00Z",
+	"TORN_POLITY_RATIFY_DAYS":               "6002",
+	"TORN_POLITY_EXIT_NOTICE_DAYS":          "6003",
+	"TORN_POLITY_COUNTRY_MIN_RESIDENTS":     "6004",
+	"TORN_POLITY_LEAGUE_FEE":                "6005",
+	"TORN_POLITY_COUNTRY_FEE":               "6006",
+	"TORN_POLITY_MAX_DUES_BPS":              "6007",
+	"TORN_POLITY_WEIGHT_CAP_BPS":            "6008",
+	"TORN_POLITY_MEMBERS_MAJORITY_BPS":      "6009",
+	"TORN_POLITY_POPULATION_MAJORITY_BPS":   "6010",
+	"TORN_POLITY_VOTE_WINDOW_HOURS":         "6011",
+	"TORN_POLITY_EXPEL_AFTER_PERIODS":       "6012",
+	"TORN_POLITY_DUES_PERIOD_HOURS":         "6013",
+	"TORN_POLITY_TREATY_COOLING_DAYS":       "6014",
+	"TORN_POLITY_TENDER_FEE":                "6015",
+	"TORN_POLITY_BOND_BPS":                  "6016",
+	"TORN_POLITY_RETENTION_BPS":             "6017",
+	"TORN_POLITY_DEFECTS_DAYS":              "6018",
+	"TORN_POLITY_DEBAR_DAYS":                "6019",
+	"TORN_POLITY_COI_REFUSE_FROM_BPS":       "6020",
+	"TORN_POLITY_TENDER_MIN_HOURS":          "6021",
+	"TORN_POLITY_TENDER_GRACE_HOURS":        "6022",
+	"TORN_POLITY_DEBT_DEFAULT_AFTER":        "6023",
+	"TORN_POLITY_DEBT_LATE_FEE_BPS":         "6024",
+	"TORN_POLITY_DEBT_SERVICE_CAP_BPS":      "6025",
+	"TORN_POLITY_DEBT_MAX_INSTALMENTS":      "6026",
+	"TORN_POLITY_DEBT_PERIOD_HOURS":         "6027",
+	"TORN_POLITY_DEBT_MAX_RATE_BPS":         "6028",
 
 	"TORN_GROWTH_CAPABILITIES":   "shadow",
 	"TORN_GROWTH_CACHE_TTL":      "6s",

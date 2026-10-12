@@ -137,7 +137,7 @@ settlement_buildings:
 
   - code: barracks
     name: "پادگان"
-    waits_for: "B12: armies belong to countries (every military action refuses a settlement without a country); a barracks that only opens an empty hub is not offered"
+    # ADR 0076 8: the army is the army of a country the players founded; the hub shows only to an office holder of that country's charter
     role: military
     tier: 2
     footprint: [4, 4]

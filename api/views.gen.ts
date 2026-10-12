@@ -1548,6 +1548,58 @@ export interface DashboardView {
   jail: ProfileJail | null
 }
 
+export interface DebtLoanLine {
+  id: string
+  lender: Named
+  borrower: Named
+  lender_kind: string
+  borrower_kind: string
+  status: string
+  principal: number
+  rate_bps: number
+  periods: number
+  paid: number
+  arrears: number
+  instalment: number
+  owed: number
+  fees_due: number
+  next_due_at: string | null | null
+  expires_at: string | null
+  mine: string
+  may_accept: boolean
+  may_withdraw: boolean
+  may_restructure: boolean
+  may_write_off: boolean
+}
+
+export interface DebtRecordLine {
+  party: Named
+  taken: number
+  repaid: number
+  late: number
+  defaulted: number
+}
+
+export interface DebtView {
+  village: string
+  open: boolean
+  party: Named
+  party_kind: string
+  may_lend: boolean
+  may_borrow: boolean
+  may_restructure: boolean
+  loans: DebtLoanLine[] | null
+  targets: Named[] | null
+  record: DebtRecordLine
+  others: DebtRecordLine[] | null
+  lendable: number
+  income: number
+  service: number
+  max_instalments: number
+  max_rate_bps: number
+  notice: string
+}
+
 export interface DeclareView {
   unavailable: Unavailable | null
   country: GovPlace
@@ -6111,6 +6163,42 @@ export interface SettlementRefusalView {
   name: string
 }
 
+export interface SettlementTreatyKindLine {
+  kind: Named
+  alliance: boolean
+  non_aggression: boolean
+  passage: boolean
+  tariff_discount_bps: number
+}
+
+export interface SettlementTreatyLine {
+  no: number
+  kind: Named
+  other: Named
+  status: string
+  mine: boolean
+  proposed_at: string | null
+  expires_at: string | null
+  ended_at: string | null | null
+  passage: boolean
+  alliance: boolean
+  cooling_until: string | null | null
+}
+
+export interface SettlementTreatyView {
+  village: string
+  open: boolean
+  party: Named
+  party_kind: string
+  may_propose: boolean
+  may_sign: boolean
+  may_end: boolean
+  treaties: SettlementTreatyLine[] | null
+  kinds: SettlementTreatyKindLine[] | null
+  targets: Named[] | null
+  notice: string
+}
+
 export interface SettlementWhoView {
   name: string
   online: WhoLine[] | null
@@ -6666,6 +6754,79 @@ export interface TechView {
   gap: SkillGap | null
 }
 
+export interface TenderBidLine {
+  id: string
+  company: Named
+  price: number
+  days: number
+  record: number
+  bond: number
+  status: string
+  mine: boolean
+}
+
+export interface TenderCompanyLine {
+  company: Named
+  record: number
+  debarred_until: string | null | null
+}
+
+export interface TenderLine {
+  id: string
+  building: Named
+  settlement: Named
+  payer: Named
+  payer_kind: string
+  status: string
+  rule: string
+  budget_cap: number
+  bond_bps: number
+  retention_bps: number
+  defects_days: number
+  due_days: number
+  closes_at: string | null
+  company: Named | null
+  price: number
+  due_at: string | null | null
+  stages_paid: number
+  retention_held: number
+  work_done: number
+  work_required: number
+  bids: TenderBidLine[] | null
+  stages: TenderStageLine[] | null
+  may_bid: boolean
+  may_cancel: boolean
+  may_award: boolean
+}
+
+export interface TenderSiteLine {
+  building: Named
+  work_required: number
+  work_done: number
+}
+
+export interface TenderStageLine {
+  stage: number
+  paid: number
+  held: number
+  at: string | null
+}
+
+export interface TenderView {
+  village: string
+  open: boolean
+  may_tender: boolean
+  may_accept: boolean
+  tenders: TenderLine[] | null
+  board: TenderLine[] | null
+  sites: TenderSiteLine[] | null
+  companies: TenderCompanyLine[] | null
+  fee: number
+  bond_bps: number
+  retention_bps: number
+  notice: string
+}
+
 export interface TermsView {
   village: string
   settlement_id: string
@@ -6929,6 +7090,133 @@ export interface Unavailable {
   here: string
   requires: NeedBuilding[] | null
   nearest: Named | null
+}
+
+export interface UnionAuditLine {
+  action: string
+  at: string | null
+  office: string
+}
+
+export interface UnionBallotLine {
+  id: string
+  kind: string
+  subject: Named
+  target: string
+  closes_at: string | null
+  yes: number
+  no: number
+  signatures: number
+  need: number
+  petition: boolean
+  may_vote: boolean
+  voted: boolean
+}
+
+export interface UnionDetail {
+  id: string
+  name: string
+  kind: string
+  members: number
+  delegations: string[] | null
+  purse: number
+  vote_mode: string
+  exit_rule: string
+  dues_fixed: number
+  dues_share: number
+  my_status: string
+  roster: UnionMemberLine[] | null
+  offices: UnionOfficeLine[] | null
+  motions: UnionMotionLine[] | null
+  ballots: UnionBallotLine[] | null
+  audit: UnionAuditLine[] | null
+  held: string[] | null
+  may_office: boolean
+  may_appoint: boolean
+  may_dismiss: boolean
+  may_admit: boolean
+  may_expel: boolean
+  may_vote_member: boolean
+  may_leave: boolean
+  may_accede: boolean
+}
+
+export interface UnionInviteLine {
+  settlement: Named
+  decision: string
+}
+
+export interface UnionLine {
+  id: string
+  name: string
+  kind: string
+  members: number
+  delegations: string[] | null
+  purse: number
+  vote_mode: string
+  exit_rule: string
+  dues_fixed: number
+  dues_share: number
+  my_status: string
+}
+
+export interface UnionMemberLine {
+  settlement: Named
+  status: string
+  residents: number
+  arrears: number
+  joined_at: string | null
+  notice_ends: string | null | null
+  paid: number
+}
+
+export interface UnionMotionLine {
+  id: string
+  kind: string
+  subject: Named
+  closes_at: string | null
+  yes: number
+  no: number
+  my_vote: string
+  may_vote: boolean
+}
+
+export interface UnionOfficeLine {
+  id: string
+  title: string
+  seats: number
+  acquisition: string
+  grants: CharterGrantView[] | null
+  holders: Named[] | null
+}
+
+export interface UnionProposalLine {
+  id: string
+  name: string
+  kind: string
+  delegations: string[] | null
+  deadline: string | null
+  fee: number
+  mine: boolean
+  invites: UnionInviteLine[] | null
+  may_ratify: boolean
+  needs_assembly: boolean
+  ballot: UnionBallotLine | null
+}
+
+export interface UnionView {
+  village: string
+  open: boolean
+  open_at: string | null
+  may_propose: boolean
+  may_ratify: boolean
+  country_min_residents: number
+  unions: UnionLine[] | null
+  proposals: UnionProposalLine[] | null
+  detail: UnionDetail | null
+  targets: Named[] | null
+  classes: string[] | null
+  notice: string
 }
 
 export interface UpgradeCapacityLine {
@@ -7730,6 +8018,7 @@ export interface ScreenViews {
   settlement_building_view: BuildingView
   settlement_chain: ChainView
   settlement_construction_progress: ConstructionProgressView
+  settlement_debt: DebtView
   settlement_found_draft: FoundDraftView
   settlement_founded: SettlementFoundedView
   settlement_haul: HaulView
@@ -7753,7 +8042,10 @@ export interface ScreenViews {
   settlement_road_cancelled: RoadCancelledView
   settlement_road_planned: RoadQuoteView
   settlement_road_quote: RoadQuoteView
+  settlement_tender: TenderView
   settlement_terms: TermsView
+  settlement_treaty: SettlementTreatyView
+  settlement_union: UnionView
   settlement_who: SettlementWhoView
   shift_started: ShiftStartedView
   shift_worked: ShiftWorkedView

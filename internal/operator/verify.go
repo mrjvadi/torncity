@@ -244,6 +244,18 @@ func VerifyChecks(v postgres.LedgerVerification, cfg *config.Config) []Check {
 		out.add(t.RaidWithoutOutcome == 0 && t.RaidOrphans == 0, fmt.Sprintf("no raid ended with no outcome (%d) and no loot or detection names a missing raid (%d)", t.RaidWithoutOutcome, t.RaidOrphans))
 	}
 
+	if v.Village && v.Polity {
+		t := v.VillageInvariants
+		out.add(t.UnionDuesLedger == t.UnionDuesRows, fmt.Sprintf("the dues the members paid their unions in the ledger are what the dues rows say (%d = %d)", t.UnionDuesLedger, t.UnionDuesRows))
+		out.add(t.UnionPayoutLedger == t.UnionPayoutRows, fmt.Sprintf("what unions paid out to members who left or when they ended, in the ledger, is what the payout rows say (%d = %d)", t.UnionPayoutLedger, t.UnionPayoutRows))
+		out.add(t.TenderEscrowBroken == 0, fmt.Sprintf("every tender's escrow holds exactly the unpaid price, the retention and the bonds it should (%d do not)", t.TenderEscrowBroken))
+		out.add(t.DebtDisbursedLedger == t.DebtDisbursedRows && t.DebtRepaidLedger == t.DebtRepaidRows && t.DebtPenaltyLedger == t.DebtFeesRows,
+			fmt.Sprintf("loans between polities create no money: what was lent (%d = %d), repaid (%d = %d) and charged as late fees (%d = %d) in the ledger is what the loan rows say",
+				t.DebtDisbursedLedger, t.DebtDisbursedRows, t.DebtRepaidLedger, t.DebtRepaidRows, t.DebtPenaltyLedger, t.DebtFeesRows))
+		out.add(t.CountryParentBroken == 0 && t.SettlementTwoCountries == 0, fmt.Sprintf("every member of a country sits under it (%d do not) and no settlement is in two countries (%d are)", t.CountryParentBroken, t.SettlementTwoCountries))
+		out.add(t.UnionNoManager == 0 && t.UnionCeilingBroken == 0 && t.UnionNoFounded == 0, fmt.Sprintf("every active union has a held office manager (%d have none), no office holds a power its members never delegated (%d do) and every union has its founding in the log (%d have not)", t.UnionNoManager, t.UnionCeilingBroken, t.UnionNoFounded))
+	}
+
 	if v.Village && v.Mining {
 		t := v.VillageInvariants
 		out.add(t.MineTaken == t.MineExtracted && t.MineShiftMismatch == 0, fmt.Sprintf("the ore taken from the deposits is what the shifts brought up (%d = %d, %d extraction rows off their shift)", t.MineTaken, t.MineExtracted, t.MineShiftMismatch))

@@ -124,12 +124,15 @@ type TreatyTypeDef struct {
 	NonAggression     bool   `yaml:"non_aggression,omitempty" json:"non_aggression,omitempty"`
 	ArmsPartner       bool   `yaml:"arms_partner,omitempty" json:"arms_partner,omitempty"`
 	TariffDiscountBPS int64  `yaml:"tariff_discount_bps,omitempty" json:"tariff_discount_bps,omitempty"`
+	// Passage and BeaconRelay are what the treaty lets its parties do (docs/adr/0076 7.3).
+	Passage     bool `yaml:"passage,omitempty" json:"passage,omitempty"`
+	BeaconRelay bool `yaml:"beacon_relay,omitempty" json:"beacon_relay,omitempty"`
 }
 
 // Type converts the definition.
 func (d TreatyTypeDef) Type() diplomacy.TreatyType {
 	return diplomacy.TreatyType{Code: d.Code, MutualDefence: d.MutualDefence, NonAggression: d.NonAggression,
-		ArmsPartner: d.ArmsPartner, TariffDiscountBPS: d.TariffDiscountBPS}
+		ArmsPartner: d.ArmsPartner, TariffDiscountBPS: d.TariffDiscountBPS, Passage: d.Passage, BeaconRelay: d.BeaconRelay}
 }
 
 // actionCodePattern is an action code: its level, a dot, a name.

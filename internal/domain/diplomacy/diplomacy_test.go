@@ -154,3 +154,39 @@ func TestPartnersAndTariff(t *testing.T) {
 		t.Errorf("tariff without a treaty = %d, want 2000", got)
 	}
 }
+
+func TestCoolingBlocksOnlyTheBreakerForADefenceOrNonAggressionPact(t *testing.T) {
+	now := time.Date(2026, 10, 20, 12, 0, 0, 0, time.UTC)
+	types := map[string]TreatyType{"alliance": {Code: "alliance", MutualDefence: true, BeaconRelay: true}, "trade": {Code: "trade"}}
+	broken := Treaty{ID: "t1", Kind: "alliance", Proposer: "a", Partner: "b", Status: Terminated, EndedBy: "a", EndedAt: now.Add(-2 * 24 * time.Hour)}
+	until, cooling := CoolingUntil([]Treaty{broken}, types, "a", "b", 7*24*time.Hour, now)
+	if !cooling || !until.Equal(broken.EndedAt.Add(7*24*time.Hour)) {
+		t.Fatalf("the breaker must cool until a week after the end: %v %v", until, cooling)
+	}
+	if _, cooling := CoolingUntil([]Treaty{broken}, types, "b", "a", 7*24*time.Hour, now); cooling {
+		t.Fatal("the party that was left must not be blocked")
+	}
+	if _, cooling := CoolingUntil([]Treaty{broken}, types, "a", "b", 7*24*time.Hour, now.Add(6*24*time.Hour)); cooling {
+		t.Fatal("after the week the breaker may act")
+	}
+	trade := Treaty{ID: "t2", Kind: "trade", Proposer: "a", Partner: "b", Status: Terminated, EndedBy: "a", EndedAt: now.Add(-time.Hour)}
+	if _, cooling := CoolingUntil([]Treaty{trade}, types, "a", "b", 7*24*time.Hour, now); cooling {
+		t.Fatal("ending a trade agreement must not cool anyone")
+	}
+}
+
+func TestAlliedAndPassageNeedATreatyInForce(t *testing.T) {
+	now := time.Date(2026, 10, 20, 12, 0, 0, 0, time.UTC)
+	types := map[string]TreatyType{"alliance": {Code: "alliance", BeaconRelay: true}, "passage": {Code: "passage", Passage: true}}
+	ts := []Treaty{{ID: "1", Kind: "alliance", Proposer: "a", Partner: "b", Status: Active}, {ID: "2", Kind: "passage", Proposer: "a", Partner: "c", Status: Proposed, ExpiresAt: now.Add(time.Hour)}}
+	if !Allied(ts, types, "b", "a", now) || Allied(ts, types, "a", "c", now) {
+		t.Fatal("only the active alliance relays beacons")
+	}
+	if MayPass(ts, types, "a", "c", now) {
+		t.Fatal("a proposed passage treaty must not open the way")
+	}
+	ts[1].Status = Active
+	if !MayPass(ts, types, "c", "a", now) {
+		t.Fatal("an active passage treaty must open the way both ways")
+	}
+}

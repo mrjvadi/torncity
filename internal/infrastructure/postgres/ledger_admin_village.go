@@ -210,6 +210,16 @@ type VillageInvariants struct {
 	HouseholdWalletBelowZero, HouseholdGoneHolding, HouseholdFromSource       int64
 	HouseholdWageToSink, HouseholdUnsettled, HouseholdItemOrphans             int64
 	HouseholdShopOrphans, HouseholdTickDup                                    int64
+	// Unions, countries, tenders and loans between polities (migration 0154, docs/adr/0076): dues and payouts in the ledger against the rows,
+	// escrows against what their tenders say, loans disbursed and repaid in the ledger against the rows, members of a country not under its
+	// jurisdiction, active unions with no held manager, offices over the delegation ceiling, unions with no founding line in the log, settlements
+	// in two countries.
+	Polity                                                                  bool
+	UnionDuesLedger, UnionDuesRows, UnionPayoutLedger, UnionPayoutRows      int64
+	TenderEscrowBroken, DebtDisbursedLedger, DebtDisbursedRows              int64
+	DebtRepaidLedger, DebtRepaidRows, DebtPenaltyLedger, DebtFeesRows       int64
+	CountryParentBroken, UnionNoManager, UnionCeilingBroken, UnionNoFounded int64
+	SettlementTwoCountries                                                  int64
 	// Mining, carriage and rail (migration 0153, docs/adr/0075): the ore taken from the deposits against the extraction rows and the shifts,
 	// the largest share of a deposit's reserve taken (basis points of the reserve), goods that left a store for the road against goods that
 	// arrived and goods in the open loads, cart loads with no arrival scheduled, sections that hold more trains than they can, sections held by
@@ -281,6 +291,9 @@ func (v VillageInvariants) WorkNodesOK() bool {
 		(!v.Survival || (v.SurvivalGarmentJournal == v.SurvivalGarmentRows && v.SurvivalDoubleSlot == 0)) &&
 		(!v.Mining || (v.MineTaken == v.MineExtracted && v.MineShiftMismatch == 0 && v.HaulOut-v.HaulIn == v.HaulOnRoad && v.HaulCartNoAction == 0 &&
 			v.RailOverheld == 0 && v.RailHeldIdle == 0 && v.FreightBroken == 0)) &&
+		(!v.Polity || (v.UnionDuesLedger == v.UnionDuesRows && v.UnionPayoutLedger == v.UnionPayoutRows && v.TenderEscrowBroken == 0 &&
+			v.DebtDisbursedLedger == v.DebtDisbursedRows && v.DebtRepaidLedger == v.DebtRepaidRows && v.DebtPenaltyLedger == v.DebtFeesRows &&
+			v.CountryParentBroken == 0 && v.UnionNoManager == 0 && v.UnionCeilingBroken == 0 && v.UnionNoFounded == 0 && v.SettlementTwoCountries == 0)) &&
 		(!v.Raids || (v.RaidFeeLedger == v.RaidFeeRows && v.RaidLootCashLedger == v.RaidLootCashRows && v.RaidLootItemJournal == v.RaidLootItemRows &&
 			v.RaidTributeLedger == v.RaidTributeRows && v.FallCashLedger == v.FallCashRows && v.FallGoodsJournal == v.FallGoodsRows && v.FallStrayLegs == 0 &&
 			v.RaidWithoutOutcome == 0 && v.RaidOrphans == 0)) &&

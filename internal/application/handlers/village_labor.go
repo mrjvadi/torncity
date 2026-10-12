@@ -462,6 +462,19 @@ func (h *VillageHandler) startLaborShiftBody(ctx context.Context, tx application
 		if bal < wage {
 			return refuseVillage(village.LaborEmployerBroke, back)
 		}
+	} else if job.EmployerKind == application.LaborEmployerCompany {
+		// a contractor's crew is paid by the company (docs/adr/0076 10.4): its treasury must hold the wage
+		acct, err := tx.Ledger().AccountFor(ctx, application.AccountCompanyTreasury, job.EmployerID)
+		if err != nil {
+			return err
+		}
+		bal, err := tx.Ledger().Balance(ctx, acct.ID)
+		if err != nil {
+			return err
+		}
+		if bal.Minor() < wage {
+			return refuseVillage(village.LaborEmployerBroke, back)
+		}
 	} else if wage > 0 {
 		cash, err := tx.Ledger().AccountFor(ctx, application.AccountPlayerCash, job.EmployerID)
 		if err != nil {
@@ -1341,7 +1354,7 @@ func (h *VillageHandler) workedSite(ctx context.Context, tx application.Tx, meta
 	localPay := application.LocalPayment{SettlementID: sh.SettlementID, PlayerID: sh.PlayerID, Direction: application.LocalPay,
 		Flow: application.ReasonLaborWage, SUP: pay, RefType: application.LaborShiftReference, RefID: sh.ID, At: now}
 	local := false
-	if sh.PayerKind != application.LaborEmployerPlayer && sh.WorkerKind == application.LaborWorkerPlayer && pay > 0 {
+	if sh.PayerKind == application.LaborEmployerSettlement && sh.WorkerKind == application.LaborWorkerPlayer && pay > 0 {
 		dry := localPay
 		dry.DryRun = true
 		r, err := application.PayLocal(ctx, tx, h.ids.NewID, dry)
@@ -1355,6 +1368,19 @@ func (h *VillageHandler) workedSite(ctx context.Context, tx application.Tx, meta
 		acct, err := tx.Ledger().AccountFor(ctx, application.AccountPlayerEscrow, sh.PayerID)
 		if err != nil {
 			return err
+		}
+		source = acct.ID
+	} else if sh.PayerKind == application.LaborEmployerCompany {
+		acct, err := tx.Ledger().AccountFor(ctx, application.AccountCompanyTreasury, sh.PayerID)
+		if err != nil {
+			return err
+		}
+		bal, err := accountBalance(ctx, tx, acct)
+		if err != nil {
+			return err
+		}
+		if bal < pay {
+			pay = bal
 		}
 		source = acct.ID
 	} else {
@@ -1468,6 +1494,12 @@ func (h *VillageHandler) workedSite(ctx context.Context, tx application.Tx, meta
 					}
 				}
 			}
+		}
+	}
+	if ok {
+		// a site that belongs to a contractor pays the stages the work has reached (docs/adr/0076 10.4)
+		if err := h.tenderProgress(ctx, tx, meta, sh.BuildingID, now); err != nil {
+			return err
 		}
 	}
 	if err := appendVillageEvent(ctx, tx, meta, "shift_done", s.CityID, map[string]any{

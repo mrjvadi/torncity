@@ -310,12 +310,18 @@ type Treaty struct {
 	EndedBy        string
 	EndedOffice    string
 	EndedAt        *time.Time
+	// EndedParty is the party (a jurisdiction) that ended the treaty; empty while it stands (migration 0154).
+	EndedParty string
 }
 
 // Rule is the treaty as the rules take it.
 func (t Treaty) Rule() diplomacy.Treaty {
-	return diplomacy.Treaty{ID: t.ID, Kind: t.Kind, Proposer: t.ProposerID, Partner: t.PartnerID, Status: t.Status,
-		ExpiresAt: t.ExpiresAt}
+	r := diplomacy.Treaty{ID: t.ID, Kind: t.Kind, Proposer: t.ProposerID, Partner: t.PartnerID, Status: t.Status,
+		ExpiresAt: t.ExpiresAt, EndedBy: t.EndedParty}
+	if t.EndedAt != nil {
+		r.EndedAt = *t.EndedAt
+	}
+	return r
 }
 
 // Diplomacy event kinds, as diplomacy_events spells them.

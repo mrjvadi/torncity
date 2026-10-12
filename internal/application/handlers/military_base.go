@@ -57,6 +57,12 @@ func militaryOpenAt(ctx context.Context, uow application.UnitOfWork, cities appl
 			return err
 		}
 		open = here.hasBarracks()
+		if open && !here.content {
+			// a founded settlement's army is its country's: only an office holder of a player country sees it (docs/adr/0076 8)
+			if open, err = countryPowerAt(ctx, tx, city.ID, p); err != nil {
+				return err
+			}
+		}
 		return nil
 	})
 	return open, err
@@ -89,4 +95,14 @@ func (h *VillageHandler) MilitaryOpen(ctx context.Context, meta envelope.Metadat
 		return errors.NotFound("there is no such place here")
 	}
 	return nil
+}
+
+// countryPowerAt says the player holds, in the charter of the player country the settlement belongs to, a power over its forces or its war.
+// A settlement in no player country (it sits under the commons) has no army to see.
+func countryPowerAt(ctx context.Context, tx application.Tx, settlementID string, p *application.Player) (bool, error) {
+	u, err := tx.Unions().CountryOf(ctx, settlementID)
+	if err != nil || u == nil {
+		return false, err
+	}
+	return clearedUnion(ctx, tx, u, p)
 }

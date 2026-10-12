@@ -23,7 +23,7 @@ func TestShippedMilitary(t *testing.T) {
 			t.Errorf("action %s is not shipped", code)
 		}
 	}
-	if len(snap.Branches()) != 4 || len(snap.ForceClasses()) == 0 || len(snap.TreatyTypes()) != 3 {
+	if len(snap.Branches()) != 4 || len(snap.ForceClasses()) == 0 || len(snap.TreatyTypes()) != 4 {
 		t.Fatalf("branches %d, classes %d, treaty types %d", len(snap.Branches()), len(snap.ForceClasses()), len(snap.TreatyTypes()))
 	}
 	for _, c := range snap.ForceClasses() {

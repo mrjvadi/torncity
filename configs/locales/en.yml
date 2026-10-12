@@ -904,6 +904,7 @@ company_type:
   factory: Factory
   mine: Mine
   farm: Farm
+  works_contractor: "Building contractor"
   aerospace: "Aerospace manufacturer"
   land_systems: "Land systems manufacturer"
   missile_works: "Missile works"

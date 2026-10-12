@@ -153,6 +153,9 @@ type VillageHandler struct {
 	laborHire []int64
 	laborWage []int64
 
+	// polity are the rules of unions, countries, treaties, tenders and sovereign loans (WithPolity, docs/adr/0076).
+	polity application.PolityRules
+
 	idempotencyTTL time.Duration
 	now            func() time.Time
 }

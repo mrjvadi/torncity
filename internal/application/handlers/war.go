@@ -61,6 +61,15 @@ type WarHandler struct {
 	// legislature puts a declaration its body must approve to a vote
 	// (docs/adr/0024-property-and-politics.md).
 	legislature *LegislatureHandler
+	// cooling is how long a country that ended an alliance or a non-aggression pact may not declare a war on the other
+	// (config polity.treaty_cooling_days, docs/adr/0076 7.2); zero: no cooling.
+	cooling time.Duration
+}
+
+// WithCooling sets the cooling-off after a treaty of defence or non-aggression was ended by one party.
+func (h *WarHandler) WithCooling(d time.Duration) *WarHandler {
+	h.cooling = d
+	return h
 }
 
 // WithLegislature lets a declaration that needs a body's approval go to its
@@ -747,7 +756,6 @@ func (h *WarHandler) declareNow(ctx context.Context, tx application.Tx, snap *co
 	meta envelope.Metadata, country, target *application.Jurisdiction, ground, playerID, officeCode string,
 	breaking []application.Treaty, allies []application.Jurisdiction, now time.Time,
 ) error {
-	_ = snap
 	if err := lockCountries(ctx, tx, country.ID, target.ID); err != nil {
 		return err
 	}
@@ -761,6 +769,23 @@ func (h *WarHandler) declareNow(ctx context.Context, tx application.Tx, snap *co
 	}
 	if err := war.CheckDeclare(country.ID, target.ID, rules); err != nil {
 		return refuseWar(mview.WarRefusedAtWar, country, mview.AddrWarBoard, country.Code)
+	}
+	if h.cooling > 0 {
+		between, err := tx.Diplomacy().TreatiesBetween(ctx, country.ID, target.ID)
+		if err != nil {
+			return err
+		}
+		ts := make([]diplomacy.Treaty, len(between))
+		for i, t := range between {
+			ts[i] = t.Rule()
+		}
+		types := map[string]diplomacy.TreatyType{}
+		for _, d := range snap.TreatyTypes() {
+			types[d.Code] = d.Type()
+		}
+		if _, cooling := diplomacy.CoolingUntil(ts, types, country.ID, target.ID, h.cooling, now); cooling {
+			return refuseWar(mview.WarRefusedCooling, country, mview.AddrWarBoard, country.Code)
+		}
 	}
 	w := application.War{ID: h.ids.NewID(), AttackerID: country.ID, DefenderID: target.ID, Ground: ground,
 		DeclaredBy: playerID, DeclaredOffice: officeCode, DeclaredAt: now, ActiveAt: now.Add(h.rules.DeclarationNotice),

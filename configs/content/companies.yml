@@ -288,7 +288,27 @@ company_types:
     elasticity_bps: 14000
     stocked: [crop, fibre, wood]
 
+  # A building contractor does public works for a government by tender (docs/adr/0076 10): its income is the price of the tenders it wins, never
+  # the NPC market (the category below is declared with a demand of zero, so no NPC buys from it). Its crew works the site of the building it won.
+  - code: works_contractor
+    name: Building contractor
+    category: public_works
+    place: industrial_zone
+    careers: [workshop, logistics]
+    founding_fee: 30000
+    upkeep: 600
+    max_staff: 8
+    unit_price: 1
+    base_units: 0
+    units_per_shift: 1
+    staff_target: 4
+    min_quality_bps: 2500
+    price_min_bps: 6000
+    price_max_bps: 16000
+    elasticity_bps: 10000
+
 company_demand:
+  - {category: public_works,  per_thousand: 0}
   - {category: groceries,     per_thousand: 5}
   - {category: meals,         per_thousand: 4}
   - {category: repairs,       per_thousand: 1}

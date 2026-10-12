@@ -217,7 +217,11 @@ func (h *VillageHandler) RaidSighting(ctx context.Context, meta envelope.Metadat
 		roll := raid.Roll(row.Seed, "detect:"+post.b.ID)
 		detected := held && raid.Detected(chance, roll)
 		// told: by a runner from the post, or at once along a chain of open beacons
-		hops, delay := h.relayDelay(buildings, posts, day, *post)
+		allied, err := h.alliedBeacons(ctx, tx, snap, defender)
+		if err != nil {
+			return err
+		}
+		hops, delay := h.relayDelay(buildings, posts, day, *post, allied...)
 		toldAt := now.Add(delay)
 		lead := row.StartAt.Sub(toldAt)
 		fresh, err := tx.Raids().RecordDetection(ctx, application.RaidDetection{RaidID: row.ID, BuildingID: post.b.ID, Code: post.det.Code, ChanceBPS: chance,
@@ -267,7 +271,7 @@ func lotMetres(a, b application.SettlementBuildingInstance) float64 {
 
 // relayDelay is the time a sighting takes to reach the settlement's centre (its civic hall): the length of the walk of a runner from
 // the post at the pace of the foot, or the hops of a chain of open beacons within the relay distance of one another, a hop each.
-func (h *VillageHandler) relayDelay(buildings []application.SettlementBuildingInstance, posts []detectorPost, day *application.ServiceDay, from detectorPost) (hops int, delay time.Duration) {
+func (h *VillageHandler) relayDelay(buildings []application.SettlementBuildingInstance, posts []detectorPost, day *application.ServiceDay, from detectorPost, allied ...raid.Beacon) (hops int, delay time.Duration) {
 	centre := from.b
 	for _, b := range buildings {
 		if b.TypeCode == "civic_hall" && b.Holds() {
@@ -286,6 +290,8 @@ func (h *VillageHandler) relayDelay(buildings []application.SettlementBuildingIn
 			nodes = append(nodes, raid.Beacon{ID: p.b.ID, X: x, Y: y, Held: true})
 		}
 	}
+	// the open beacons of allies relay too, where an alliance is in force (docs/adr/0074 R7, docs/adr/0076 7.3)
+	nodes = append(nodes, allied...)
 	srcBeacon := from.beacon()
 	los := func(a, b raid.Beacon) bool {
 		if (a.ID == "src" && b.ID == "centre") || (a.ID == "centre" && b.ID == "src") {

@@ -495,7 +495,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 			}).
 			WithLabor(laborRules(cfg.Labor), cfg.Labor.HirePresets, cfg.Labor.WagePresets).
 			WithActivities(activityRules(cfg)).
-			WithShop(shopRules(cfg)).WithStorage(storageRules(cfg)).WithResearch(researchRules(cfg)).WithTrade(tradeRules(cfg)).WithHouseholds(householdRules(cfg)).WithRaids(settlementcfg.Raid(cfg.Raid), gametime.Scale(cfg.Game.TimeScale)).WithMining(settlementcfg.Mining(cfg.Mining)).WithRealItems(realItemRules(cfg)).WithService(serviceRules(cfg)).WithPersonal(personalRules(cfg)).WithTeacherRules(teacherRules(cfg)).WithStallKeeper(stallKeeperTerms(cfg)).WithLand(settlementcfg.Land(cfg.Settlement)).WithFarm(settlementcfg.Farm(cfg.Settlement)).WithCrafting(settlementcfg.Craft(cfg.Settlement)).WithCurrencyRules(currencyRules(cfg, postgres.NewPolicyReader(pool, nil))).
+			WithShop(shopRules(cfg)).WithStorage(storageRules(cfg)).WithResearch(researchRules(cfg)).WithTrade(tradeRules(cfg)).WithHouseholds(householdRules(cfg)).WithRaids(settlementcfg.Raid(cfg.Raid), gametime.Scale(cfg.Game.TimeScale)).WithMining(settlementcfg.Mining(cfg.Mining)).WithPolity(settlementcfg.Polity(cfg.Polity)).WithRealItems(realItemRules(cfg)).WithService(serviceRules(cfg)).WithPersonal(personalRules(cfg)).WithTeacherRules(teacherRules(cfg)).WithStallKeeper(stallKeeperTerms(cfg)).WithLand(settlementcfg.Land(cfg.Settlement)).WithFarm(settlementcfg.Farm(cfg.Settlement)).WithCrafting(settlementcfg.Craft(cfg.Settlement)).WithCurrencyRules(currencyRules(cfg, postgres.NewPolicyReader(pool, nil))).
 			WithLotRules(lotRules).
 			WithRegistryRules(settlementcfg.Registry(cfg.Settlement)),
 	}
@@ -583,7 +583,7 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 	// dice; who declares and who launches are offices.
 	h.war = handlers.NewWarHandler(uow, uuidGenerator{}, messages, registry, cities,
 		postgres.NewPolicyReader(pool, nil), gametime.Scale(cfg.Game.TimeScale), warRules(cfg.War),
-		cfg.Game.IdempotencyTTL, nil).WithServiceGate(serviceGate)
+		cfg.Game.IdempotencyTTL, nil).WithServiceGate(serviceGate).WithCooling(settlementcfg.Polity(cfg.Polity).TreatyCooling)
 	// Stage E (docs/adr/0023): health and hospitals on the game clock; what
 	// a hospital charges and how well it treats are content.
 	h.stageE.health = handlers.NewHealthHandler(uow, uuidGenerator{}, messages, registry, cities,

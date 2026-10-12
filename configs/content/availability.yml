@@ -603,6 +603,7 @@ availability:
   - {kind: company_type, code: tech_studio, requires: {buildings: [{role: craft, tier: 3}]}, elsewhere: [{where: support}]}
   - {kind: company_type, code: factory, requires: {buildings: [{code: factory}]}, elsewhere: [{where: support}]}
   - {kind: company_type, code: mine, requires: {buildings: [{code: mine}]}, elsewhere: [{where: support}]}
+  - {kind: company_type, code: works_contractor, requires: {knowledge: [masonry, carpentry], buildings: [{role: craft, tier: 1}]}, elsewhere: [{where: support}], note: "ADR 0076 10.2: does public works by tender; its crew builds the site it won"}
   - {kind: company_type, code: farm, requires: {buildings: [{role: food, tier: 1}]}, elsewhere: [{where: support}]}
   - {kind: company_type, code: aerospace, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: defence sector; needs a defence licence (country.defence_licence)}
   - {kind: company_type, code: land_systems, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: defence sector; needs a defence licence (country.defence_licence)}
@@ -678,9 +679,10 @@ availability:
   - {kind: force_class, code: sam_short, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: needs the defence industry behind it}
   - {kind: force_class, code: sam_medium, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: needs the defence industry behind it}
   - {kind: force_class, code: sam_long, stage: country, requires: {buildings: [{role: craft, tier: 4}]}, note: needs the defence industry behind it}
-  - {kind: treaty_type, code: alliance, stage: country, growth: {deferred: charter, row: 358, note: "ADR 0044 section 6: a charter office or permission (phase G2)"}, requires: {}}
-  - {kind: treaty_type, code: non_aggression, stage: country, growth: {deferred: charter, row: 359, note: "ADR 0044 section 6: a charter office or permission (phase G2)"}, requires: {}}
-  - {kind: treaty_type, code: trade_agreement, stage: country, growth: {deferred: charter, row: 360, note: "ADR 0044 section 6: a charter office or permission (phase G2)"}, requires: {}}
+  - {kind: treaty_type, code: alliance, requires: {knowledge: [record_keeping], buildings: [{code: civic_hall}]}, note: "ADR 0076 7.1: a settlement, a union or a country signs; the signing settlement keeps records and has a hall"}
+  - {kind: treaty_type, code: non_aggression, requires: {knowledge: [record_keeping], buildings: [{code: civic_hall}]}, note: "ADR 0076 7.1: a settlement, a union or a country signs; the signing settlement keeps records and has a hall"}
+  - {kind: treaty_type, code: passage, requires: {knowledge: [record_keeping], buildings: [{code: civic_hall}]}, note: "ADR 0076 7.3: roads and rails over each other's claims"}
+  - {kind: treaty_type, code: trade_agreement, requires: {knowledge: [record_keeping], buildings: [{code: civic_hall}]}, note: "ADR 0076 7.1: a settlement, a union or a country signs; the signing settlement keeps records and has a hall"}
 
   # ---- achievements (personal; unlocked by doing the thing, so the stage is the stage of that thing)
   - {kind: achievement, code: first_shift, growth: {open: true, founding: true, row: 361}, requires: {}}

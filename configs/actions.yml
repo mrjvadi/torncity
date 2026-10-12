@@ -324,6 +324,10 @@ commands:
   settlement.insurance: {kind: navigation, icon: "action:insurance"}
   settlement.mining: {kind: navigation, icon: "action:mining"}
   settlement.haul: {kind: navigation, icon: "action:haul"}
+  settlement.union: {kind: navigation, icon: "action:union"}
+  settlement.treaty: {kind: navigation, icon: "action:treaty"}
+  settlement.tender: {kind: navigation, icon: "action:tender"}
+  settlement.debt: {kind: navigation, icon: "action:debt"}
   settlement.rail: {kind: navigation, icon: "action:rail"}
   settlement.chain: {kind: navigation, icon: "action:chain"}
   settlement.knowledge.buy: {kind: primary, icon: "action:buy"}

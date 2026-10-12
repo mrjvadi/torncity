@@ -1002,6 +1002,7 @@ company_type:
   factory: کارخانه
   mine: معدن
   farm: مزرعه
+  works_contractor: "شرکت پیمانکاری ساختمان"
   aerospace: "صنایع هوافضا"
   land_systems: "صنایع سامانه‌های زمینی"
   missile_works: "صنایع موشکی"

@@ -299,7 +299,7 @@ func (r *DiplomacyRepository) SanctionsBetween(ctx context.Context, a, b string)
 
 const treatyColumns = `id::text, no, kind, proposer_id::text, partner_id::text, status, proposed_by::text, proposed_office,
        proposed_at, expires_at, COALESCE(decided_by::text, ''), COALESCE(decided_office, ''), decided_at,
-       COALESCE(ended_by::text, ''), COALESCE(ended_office, ''), ended_at`
+       COALESCE(ended_by::text, ''), COALESCE(ended_office, ''), ended_at, COALESCE(ended_party::text, '')`
 
 func scanTreaty(row pgx.Row) (*application.Treaty, error) {
 	var (
@@ -307,7 +307,7 @@ func scanTreaty(row pgx.Row) (*application.Treaty, error) {
 		status string
 	)
 	if err := row.Scan(&t.ID, &t.No, &t.Kind, &t.ProposerID, &t.PartnerID, &status, &t.ProposedBy, &t.ProposedOffice,
-		&t.ProposedAt, &t.ExpiresAt, &t.DecidedBy, &t.DecidedOffice, &t.DecidedAt, &t.EndedBy, &t.EndedOffice, &t.EndedAt); err != nil {
+		&t.ProposedAt, &t.ExpiresAt, &t.DecidedBy, &t.DecidedOffice, &t.DecidedAt, &t.EndedBy, &t.EndedOffice, &t.EndedAt, &t.EndedParty); err != nil {
 		return nil, err
 	}
 	t.Status = diplomacy.Status(status)
@@ -392,10 +392,10 @@ func (r *DiplomacyRepository) SaveTreaty(ctx context.Context, t application.Trea
 	}
 	_, err := r.q.Exec(ctx,
 		`UPDATE treaties SET status = $2, decided_by = $3::uuid, decided_office = $4, decided_at = $5,
-		        ended_by = $6::uuid, ended_office = $7, ended_at = $8
+		        ended_by = $6::uuid, ended_office = $7, ended_at = $8, ended_party = $9::uuid
 		  WHERE id = $1::uuid`,
 		t.ID, string(t.Status), nullable(t.DecidedBy), nullable(t.DecidedOffice), t.DecidedAt,
-		nullable(t.EndedBy), nullable(t.EndedOffice), t.EndedAt)
+		nullable(t.EndedBy), nullable(t.EndedOffice), t.EndedAt, nullable(t.EndedParty))
 	if violates(err, sqlstateUniqueViolation, treatiesOneOpenIdx) {
 		return application.ErrTreatyOpen
 	}

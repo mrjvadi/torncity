@@ -237,6 +237,9 @@ type Treaty struct {
 	Status   Status
 	// ExpiresAt is when an unanswered proposal lapses.
 	ExpiresAt time.Time
+	// EndedBy and EndedAt are the party that ended the treaty and when; empty and zero while it stands or if it never did.
+	EndedBy string
+	EndedAt time.Time
 }
 
 // StatusAt is the treaty's status at now: a proposal nobody answered by its
@@ -317,6 +320,10 @@ type TreatyType struct {
 	NonAggression     bool
 	ArmsPartner       bool
 	TariffDiscountBPS int64
+	// Passage lets the parties lay roads and rails over each other's claims (docs/adr/0076 7.3).
+	Passage bool
+	// BeaconRelay lets the parties' beacons carry each other's sightings (docs/adr/0074 R7, docs/adr/0076 7.3).
+	BeaconRelay bool
 }
 
 // Partners reports whether a and b have a treaty in force of a type for

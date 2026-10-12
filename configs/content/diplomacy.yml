@@ -16,8 +16,12 @@
 #   arms_partner         a party may buy the other's arms under an arms
 #                        export policy of "partners" (country.arms_exports 1).
 #   tariff_discount_bps  how much of the border tariff (country.border_tariff)
-#                        trade between the parties is spared. Nothing charges
-#                        the tariff yet; the discount is ready for it.
+#                        trade between the parties is spared (handlers/tariff.go
+#                        charges it).
+#   passage              the parties may lay roads and rails over each other's
+#                        claims (docs/adr/0076 7.3).
+#   beacon_relay         the parties' beacons carry each other's sightings
+#                        (docs/adr/0074, docs/adr/0076 7.3).
 #
 # sanction_grounds — why a country sanctions another: the reason a sanction
 #   records, publicly. Its words are diplomacy.ground.<code>.
@@ -25,8 +29,10 @@
 version: 1
 
 treaty_types:
-  - {code: alliance,        name: Military alliance,      mutual_defence: true, arms_partner: true}
+  - {code: alliance,        name: Military alliance,      mutual_defence: true, arms_partner: true, beacon_relay: true}
   - {code: non_aggression,  name: Non-aggression pact,    non_aggression: true}
   - {code: trade_agreement, name: Trade agreement,        tariff_discount_bps: 10000}
+  # passage lets the parties lay roads and rails over each other's claims, with the toll of the line's owner (docs/adr/0076 7.3)
+  - {code: passage,         name: Passage treaty,         passage: true}
 
 sanction_grounds: [aggression, proliferation, terrorism, human_rights, unfair_trade, retaliation]

@@ -227,6 +227,9 @@ func (h *VillageHandler) railDraft(ctx context.Context, tx application.Tx, snap 
 		}
 		return nil, err
 	}
+	if err := h.passageCheck(ctx, tx, snap, aSet, bSet, route.Tiles, village.AddrRail); err != nil {
+		return nil, err
+	}
 	w, err := h.world(ctx)
 	if err != nil {
 		return nil, err

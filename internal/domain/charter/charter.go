@@ -82,7 +82,30 @@ const (
 
 	TreatyPropose Permission = "treaty.propose"
 	UnionPropose  Permission = "union.propose"
-	RaidDeclare   Permission = "raid.declare"
+	// The foreign powers of a union, a country and a settlement (docs/adr/0076 9.1): ratifying a union, admitting and expelling its
+	// members, signing and ending a treaty, declaring and ending a war, closing a border, setting customs, imposing a sanction.
+	UnionRatify    Permission = "union.ratify"
+	UnionAdmit     Permission = "union.admit"
+	UnionExpel     Permission = "union.expel"
+	TreatySign     Permission = "treaty.sign"
+	TreatyEnd      Permission = "treaty.end"
+	WarDeclare     Permission = "war.declare"
+	WarPeace       Permission = "war.peace"
+	BorderClose    Permission = "border.close"
+	CustomsSet     Permission = "customs.set"
+	SanctionImpose Permission = "sanction.impose"
+	// The defence of a country: command by branch (the limit is a mask of the branches), procurement, the defence licence.
+	MilitaryCommand Permission = "military.command"
+	MilitaryProcure Permission = "military.procure"
+	MilitaryLicence Permission = "military.licence"
+	// Sovereign loans between polities (the limit is the most one loan may be).
+	DebtBorrow      Permission = "debt.borrow"
+	DebtLend        Permission = "debt.lend"
+	DebtRestructure Permission = "debt.restructure"
+	// Public works by tender: posting a tender (the limit is its budget cap) and accepting a finished stage.
+	WorksTender Permission = "works.tender"
+	WorksAccept Permission = "works.accept"
+	RaidDeclare Permission = "raid.declare"
 	// InsuranceRun opens and runs the settlement's own insurance fund (docs/adr/0074).
 	InsuranceRun Permission = "insurance.run"
 	// MineRun surveys deposits and orders the works of the mines; RailDraw draws and runs railways; HaulOrder keeps carts and sends
@@ -132,7 +155,13 @@ var catalogue = []Def{
 	{OfficeCreate, "politics", false, true}, {OfficeEdit, "politics", false, true},
 	{OfficeAppoint, "politics", false, true}, {OfficeDismiss, "politics", false, true},
 	{CharterAmend, "politics", false, true},
-	{TreatyPropose, "foreign", false, false}, {UnionPropose, "foreign", false, false}, {RaidDeclare, "foreign", false, true}, {InsuranceRun, "treasury", false, true}, {MineRun, "land", false, true}, {RailDraw, "land", false, true}, {HaulOrder, "treasury", false, true},
+	{TreatyPropose, "foreign", false, true}, {UnionPropose, "foreign", false, true},
+	{UnionRatify, "foreign", false, true}, {UnionAdmit, "foreign", false, true}, {UnionExpel, "foreign", false, true},
+	{TreatySign, "foreign", false, true}, {TreatyEnd, "foreign", false, true}, {WarDeclare, "foreign", false, true}, {WarPeace, "foreign", false, true},
+	{BorderClose, "foreign", false, false}, {CustomsSet, "foreign", false, false}, {SanctionImpose, "foreign", false, true},
+	{MilitaryCommand, "defence", false, true}, {MilitaryProcure, "defence", true, true}, {MilitaryLicence, "defence", false, true},
+	{DebtBorrow, "money", true, true}, {DebtLend, "money", true, true}, {DebtRestructure, "money", false, true},
+	{WorksTender, "works", true, true}, {WorksAccept, "works", false, true}, {RaidDeclare, "foreign", false, true}, {InsuranceRun, "treasury", false, true}, {MineRun, "land", false, true}, {RailDraw, "land", false, true}, {HaulOrder, "treasury", false, true},
 	{NoticePost, "info", false, false},
 	{SettingsTimezone, "settings", false, true},
 	{CurrencyCharter, "currency", false, true},
@@ -153,13 +182,45 @@ func Catalogue() []Def { return append([]Def(nil), catalogue...) }
 // Lookup returns a permission's definition.
 func Lookup(p Permission) (Def, bool) { d, ok := byCode[p]; return d, ok }
 
-// AllPermissions is every permission with no limit: what the founder's office holds.
+// unionOnly are the powers a settlement cannot hold, only a union or a country: admitting and expelling members, war, borders, customs,
+// sanctions and the armed forces (docs/adr/0076 9.1). A settlement's charter neither holds nor shows them.
+var unionOnly = map[Permission]bool{
+	UnionAdmit: true, UnionExpel: true, WarDeclare: true, WarPeace: true, BorderClose: true, CustomsSet: true, SanctionImpose: true,
+	MilitaryCommand: true, MilitaryProcure: true, MilitaryLicence: true,
+}
+
+// UnionOnly reports a permission only a union's charter may hold.
+func UnionOnly(p Permission) bool { return unionOnly[p] }
+
+// AllPermissions is every permission with no limit that a settlement can hold: what the founder's office holds.
 func AllPermissions() []Grant {
+	out := make([]Grant, 0, len(catalogue))
+	for _, d := range catalogue {
+		if unionOnly[d.Code] {
+			continue
+		}
+		out = append(out, Grant{Permission: d.Code})
+	}
+	return out
+}
+
+// AllUnionPermissions is every permission with no limit that a union's charter can hold.
+func AllUnionPermissions() []Grant {
 	out := make([]Grant, 0, len(catalogue))
 	for _, d := range catalogue {
 		out = append(out, Grant{Permission: d.Code})
 	}
 	return out
+}
+
+// NormaliseGrantsForSettlement is NormaliseGrants for a settlement's charter, which refuses the powers only a union may hold.
+func NormaliseGrantsForSettlement(in []Grant) ([]Grant, error) {
+	for _, g := range in {
+		if unionOnly[g.Permission] {
+			return nil, fmt.Errorf("%w: %s", ErrUnknownGrant, g.Permission)
+		}
+	}
+	return NormaliseGrants(in)
 }
 
 // Grant is one permission with its limit; a limit of 0 means no ceiling.
