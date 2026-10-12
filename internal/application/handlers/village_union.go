@@ -904,7 +904,7 @@ func (h *VillageHandler) unionDetail(ctx context.Context, tx application.Tx, id 
 		return nil, err
 	}
 	if u == nil {
-		return nil, refuseVillage(village.UnionNoUnion, village.AddrUnion)
+		return nil, nil // the id named a proposal, a ballot or a motion: there is no union page to open
 	}
 	status := ""
 	if has {
