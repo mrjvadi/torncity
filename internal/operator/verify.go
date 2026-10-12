@@ -256,6 +256,23 @@ func VerifyChecks(v postgres.LedgerVerification, cfg *config.Config) []Check {
 		out.add(t.UnionNoManager == 0 && t.UnionCeilingBroken == 0 && t.UnionNoFounded == 0, fmt.Sprintf("every active union has a held office manager (%d have none), no office holds a power its members never delegated (%d do) and every union has its founding in the log (%d have not)", t.UnionNoManager, t.UnionCeilingBroken, t.UnionNoFounded))
 	}
 
+	if v.Village && v.Special {
+		t := v.VillageInvariants
+		out.add(t.ProjectGiftLedger == t.ProjectGiftRows, fmt.Sprintf("the gifts to the funds of great works in the ledger are what the gift rows say (%d = %d)", t.ProjectGiftLedger, t.ProjectGiftRows))
+		out.add(t.ProjectStagesBroken == 0 && t.ProjectCancelledFunds == 0, fmt.Sprintf("every great work has its stages one after the other and none is ever undone (%d do not), and a cancelled work leaves nothing in its fund (%d do)", t.ProjectStagesBroken, t.ProjectCancelledFunds))
+		out.add(t.ProjectEscrowBroken == 0, fmt.Sprintf("every contract's escrow of a great work holds exactly the bonds, the unpaid price and the winner's bond it should (%d do not)", t.ProjectEscrowBroken))
+		out.add(t.IntelFeeLedger == t.IntelFeeRows && t.IntelWageLedger == t.IntelWageRows && t.SabotageCostLedger == t.SabotageCostRows,
+			fmt.Sprintf("the bureaus' fees (%d = %d), the agents' wages (%d = %d) and the cost of sabotage (%d = %d) in the ledger are what the operations say", t.IntelFeeLedger, t.IntelFeeRows, t.IntelWageLedger, t.IntelWageRows, t.SabotageCostLedger, t.SabotageCostRows))
+		out.add(t.IntelReportBlown == 0 && t.IntelReportFigures == 0, fmt.Sprintf("no report came from a blown operation (%d) and no report field holds a figure (%d do)", t.IntelReportBlown, t.IntelReportFigures))
+		out.add(t.IntelNoExpulsion == 0, fmt.Sprintf("every operation a post noticed ended with the agent put out (%d did not)", t.IntelNoExpulsion))
+		out.add(cfg == nil || t.SabotageMaxWeek <= cfg.Intel.SabotageWeeklyLimit, fmt.Sprintf("no sponsor did more sabotage in a week than the limit (the most %d)", t.SabotageMaxWeek))
+		out.add(t.LicenceEscrowBroken == 0 && t.LicenceAwardLedger == t.LicenceAwardRows && t.LicenceAuctionManyWinners == 0,
+			fmt.Sprintf("every licence escrow holds the standing bids or the held fee and nothing else (%d do not), the prices of auctions in the ledger are what the auctions say (%d = %d), no auction has two winners (%d do)", t.LicenceEscrowBroken, t.LicenceAwardLedger, t.LicenceAwardRows, t.LicenceAuctionManyWinners))
+		out.add(t.LicenceRevokedNoCause == 0, fmt.Sprintf("every revoked licence says why (%d do not)", t.LicenceRevokedNoCause))
+		out.add(t.LicenceStaleLive == 0, fmt.Sprintf("no live licence is long past its term (%d are)", t.LicenceStaleLive))
+		out.add(cfg == nil || t.LicenceMaxShareBPS <= cfg.Licence.MaxShareBPS, fmt.Sprintf("no holder has more than the allowed share of a kind (the largest %d bps)", t.LicenceMaxShareBPS))
+	}
+
 	if v.Village && v.Mining {
 		t := v.VillageInvariants
 		out.add(t.MineTaken == t.MineExtracted && t.MineShiftMismatch == 0, fmt.Sprintf("the ore taken from the deposits is what the shifts brought up (%d = %d, %d extraction rows off their shift)", t.MineTaken, t.MineExtracted, t.MineShiftMismatch))
