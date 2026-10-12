@@ -1377,6 +1377,147 @@ building_functions:
     needs_research: [shift_hours, food_points, wage_bps, upkeep, cost_materials, build_hours]
     note: "the higher school: lecturers, a library and a workshop under one roof, three projects at a time. It stands only on a school tradition and a laboratory, and it eats the most paper and fuel."
 
+  # ---- special projects and the intelligence bureau (docs/adr/0077). The six works are raised by a special project and stand in the service
+  # day as a post (no lot of the map): keepers and fuel are paid every local day; a work nobody keeps or pays stands idle, never destroyed. ----
+  - code: intelligence_office
+    source: "ADR 0077 6.1"
+    evidence: D
+    name: "دفتر اطلاعات"
+    requires: {knowledge: [field_craft, record_keeping]}
+    kind: service
+    family: governance
+    zones: [core]
+    footprint: [2, 2, 2, 2]
+    owners: [treasury]
+    levels:
+      - {level: 1, requires: {knowledge: [field_craft, record_keeping]}, cost_money: 1500, cost_materials: {timber: 6, paper: 4}, build_hours: 3}
+    staff:
+      - {role: analyst, slots: 1, shift_hours: 6}
+      - {role: handler, slots: 1, shift_hours: 6}
+    if_unstaffed: idle
+    consumes: {inputs: {paper: 1}, food_points: 2}
+    produces: {service: intelligence, daily: true}
+    links: {from: [civic_hall]}
+    ledger_reasons: [service_wage, intel_op_fee]
+    replaces: [intelligence_office]
+    note: "the analyst turns what the agents bring into a banded report and the handler sets the requirements and pays the agents: the intelligence cycle, kept by two clerks from the pool, paid by the treasury, with paper from the stock. A day it is open (staffed, paid, with paper) its agents may work; closed, they cannot. Without agents it produces nothing."
+  - code: great_beacon
+    source: "ADR 0077 4.2; ADR 0074 7.2"
+    evidence: D
+    name: "فانوس بزرگ"
+    requires: {knowledge: [communal_watch, signal_fires, masonry]}
+    kind: service
+    family: signal
+    zones: [site]
+    footprint: [2, 2, 2, 2]
+    owners: [treasury]
+    levels:
+      - {level: 1, requires: {knowledge: [communal_watch, signal_fires, masonry]}, cost_money: 0}
+    staff: [{role: beacon_keeper, slots: 2, shift_hours: 8}]
+    if_unstaffed: idle
+    consumes: {fuel: {firewood: 3}, food_points: 8}
+    produces: {service: relay, daily: true, field: security}
+    coverage: {bins: 256, observer_height_m: 24, claim_base_m: 500, claim_cap_m: 1000, sight_m: 20000}
+    ledger_reasons: [service_wage]
+    replaces: [great_beacon]
+    note: "a lighthouse or a great signal tower: two keepers burn three loads of wood a day and it sees 20 km and relays like a beacon; the draft sight and height are stand-ins until the territory model is calibrated. Unkept or unfed it sees nothing."
+  - code: city_wall
+    source: "ADR 0077 4.2; ADR 0074 7.1"
+    evidence: D
+    name: "حصار شهر"
+    requires: {knowledge: [mounted_militia, masonry]}
+    kind: service
+    family: security
+    zones: [core]
+    footprint: [2, 2, 2, 2]
+    owners: [treasury]
+    levels:
+      - {level: 1, requires: {knowledge: [mounted_militia, masonry]}, cost_money: 0}
+    staff: [{role: militiaman, slots: 8, shift_hours: 4}]
+    if_unstaffed: idle
+    consumes: {fuel: {firewood: 2}, food_points: 8}
+    produces: {service: garrison, daily: true, field: security}
+    ledger_reasons: [service_wage]
+    replaces: [city_wall]
+    note: "a wall with a gate: eight men of the roll stand on it and at the gate on a day it is open (fed, paid, with a fire) and count as garrison seats in a raid; a wall nobody mans stops nobody."
+  - code: great_library
+    source: "ADR 0077 4.2; ADR 0048"
+    evidence: D
+    name: "کتابخانهٔ بزرگ"
+    requires: {knowledge: [basic_literacy, masonry]}
+    kind: service
+    family: research
+    zones: [core]
+    footprint: [2, 2, 2, 2]
+    owners: [treasury]
+    levels:
+      - {level: 1, requires: {knowledge: [basic_literacy, masonry]}, cost_money: 0}
+    staff: [{role: scholar, slots: 3, shift_hours: 6}]
+    if_unstaffed: idle
+    consumes: {inputs: {wool: 1}, food_points: 2}
+    produces: {service: research_slot}
+    research: {slots: 2, min_staff: 2, bonus_bps: 1500, upkeep: {paper: 2, firewood: 1}}
+    ledger_reasons: [scholar_wage, scholar_wage_npc]
+    replaces: [great_library]
+    note: "a great library: three scholars read, copy and teach from a long stock of books, two research projects at a time while two scholars work; it eats paper and fuel every day."
+  - code: aqueduct
+    source: "ADR 0077 4.2; ADR 0070"
+    evidence: D
+    name: "قنات آب شهر"
+    requires: {knowledge: [masonry, canal_irrigation]}
+    kind: service
+    family: water
+    zones: [core]
+    footprint: [2, 2, 2, 2]
+    owners: [treasury]
+    levels:
+      - {level: 1, requires: {knowledge: [masonry, canal_irrigation]}, cost_money: 0}
+    staff: [{role: water_master, slots: 2, shift_hours: 4}]
+    if_unstaffed: idle
+    consumes: {inputs: {clay: 1}, food_points: 2}
+    produces: {service: water_supply, daily: true, field: water_infra}
+    ledger_reasons: [service_wage]
+    replaces: [aqueduct]
+    note: "a channel that brings water into the town: two water masters keep the turns and puddle the leaks with clay; on a day it runs the households drink from it and spend no water of the stock. Unkept it runs dry."
+  - code: great_canal
+    source: "ADR 0077 4.2; ADR 0067"
+    evidence: D
+    name: "کانال بزرگ"
+    requires: {knowledge: [masonry, canal_irrigation]}
+    kind: service
+    family: water
+    zones: [farm]
+    footprint: [2, 2, 2, 2]
+    owners: [treasury]
+    levels:
+      - {level: 1, requires: {knowledge: [masonry, canal_irrigation]}, cost_money: 0}
+    staff: [{role: water_master, slots: 2, shift_hours: 4}]
+    if_unstaffed: idle
+    consumes: {inputs: {timber: 1}, food_points: 2}
+    produces: {service: farm_water, daily: true, field: water_infra}
+    ledger_reasons: [service_wage]
+    replaces: [great_canal]
+    note: "a main canal that waters the fields no small work reaches: two water masters keep its sluices on a day it runs, and a farm that no water work serves is served by it. Without its masters the sluices stay shut."
+  - code: great_temple
+    source: "ADR 0077 4.2"
+    evidence: D
+    name: "معبد بزرگ"
+    requires: {knowledge: [temple_school, masonry]}
+    kind: service
+    family: hospitality
+    zones: [core]
+    footprint: [2, 2, 2, 2]
+    owners: [treasury]
+    levels:
+      - {level: 1, requires: {knowledge: [temple_school, masonry]}, cost_money: 0}
+    staff: [{role: hearth_keeper, slots: 2, shift_hours: 6}]
+    if_unstaffed: idle
+    consumes: {fuel: {firewood: 2}, food_points: 4}
+    produces: {service: pilgrimage, daily: true}
+    ledger_reasons: [service_wage]
+    replaces: [great_temple]
+    note: "a place of pilgrimage: two keepers tend its fires and lamps and feed the visitors; on a market day pilgrims come with goods to sell, so the travelling trader's load grows by a fixed amount while it is kept."
+
   # ---- the market day (ADR 0049): the settlement earns from its surplus ----
   - code: barter_post
     source: "ADR 0049"

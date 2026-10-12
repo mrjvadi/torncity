@@ -392,6 +392,13 @@ biome:
 # Founding kit building names, keyed on the building's content code
 # (docs/adr/0028-world-and-settlements.md section 7).
 settlement_building:
+  intelligence_office: "دفتر اطلاعات"
+  great_beacon: "فانوس بزرگ"
+  city_wall: "حصار شهر"
+  great_library: "کتابخانهٔ بزرگ"
+  aqueduct: "قنات آب شهر"
+  great_canal: "کانال بزرگ"
+  great_temple: "معبد بزرگ"
   road: جاده
   civic_hall: "شهرداری"
   private_cottage: "کلبه"
@@ -1599,6 +1606,7 @@ module_kind:
   pump: "تلمبهٔ معدن"
   vent_shaft: "چاه هواکش"
 settlement_raid_detector:
+  great_beacon: "فانوس بزرگ"
   lookout: "دیده‌بان"
   watchtower: "برج دیده‌بانی"
   border_post: "پاسگاه مرزی"
@@ -1611,6 +1619,8 @@ climate_band:
   cold: "سرد"
   severe: "سرمای سخت"
 staff_role:
+  analyst: "گزارشگر دفتر"
+  handler: "سرپرست مأموران"
   tailor: "خیاط"
   hearth_keeper: "گرمخانه‌دار"
   herbalist: "گیاه‌کار"
@@ -1661,6 +1671,13 @@ staff_role:
   stationmaster: "رئیس ایستگاه"
   loader: "باربر ایستگاه"
 building_function:
+  intelligence_office: "دفتر اطلاعات"
+  great_beacon: "فانوس بزرگ"
+  city_wall: "حصار شهر"
+  great_library: "کتابخانهٔ بزرگ"
+  aqueduct: "قنات آب شهر"
+  great_canal: "کانال بزرگ"
+  great_temple: "معبد بزرگ"
   tailor_shop: "خیاطی"
   tailor_shop_own: "خیاطی (شخصی)"
   warming_house: "گرمخانه"

@@ -24,7 +24,7 @@ func TestShippedBuildingSchema(t *testing.T) {
 		t.Fatalf("schema rows: %d functions, %d recipes, %d modules, %d classes",
 			len(p.BuildingFunctions), len(p.Recipes), len(p.ModuleKinds), len(p.StorageClasses))
 	}
-	if len(p.Climate) != 1 || len(p.SettlementRaids) != 1 || len(p.RoadPlanner) != 1 || len(p.SettlementRaidDetectors) != 6 {
+	if len(p.Climate) != 1 || len(p.SettlementRaids) != 1 || len(p.RoadPlanner) != 1 || len(p.SettlementRaidDetectors) != 7 {
 		t.Fatalf("singletons: climate %d raid %d planner %d detectors %d",
 			len(p.Climate), len(p.SettlementRaids), len(p.RoadPlanner), len(p.SettlementRaidDetectors))
 	}

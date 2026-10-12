@@ -36,8 +36,8 @@ func TestBuildingSchemaSnapshotLookups(t *testing.T) {
 	if r, ok := snap.SettlementRaid(); !ok || r.MaxLeadHours != 48 || r.GraceDays != 7 {
 		t.Fatalf("raid %+v", r)
 	}
-	if len(snap.SettlementRaidDetectors()) != 6 {
-		t.Fatal("six detectors")
+	if len(snap.SettlementRaidDetectors()) != 7 {
+		t.Fatal("seven detectors")
 	}
 	if c, ok := snap.RoadClass("track"); !ok || c.MaxGradeBPS != 1200 {
 		t.Fatalf("track %+v", c)

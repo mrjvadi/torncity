@@ -315,6 +315,13 @@ biome:
 # Founding kit building names, keyed on the building's content code
 # (docs/adr/0028-world-and-settlements.md section 7).
 settlement_building:
+  intelligence_office: "Intelligence office"
+  great_beacon: "Great beacon"
+  city_wall: "City wall"
+  great_library: "Great library"
+  aqueduct: "Aqueduct"
+  great_canal: "Great canal"
+  great_temple: "Great temple"
   road: Road
   civic_hall: Civic hall
   private_cottage: Private cottage
@@ -1494,6 +1501,7 @@ module_kind:
   pump: "Mine pump"
   vent_shaft: "Ventilation shaft"
 settlement_raid_detector:
+  great_beacon: "Great beacon"
   lookout: "Lookout"
   watchtower: "Watchtower"
   border_post: "Border post"
@@ -1506,6 +1514,8 @@ climate_band:
   cold: "Cold"
   severe: "Severe cold"
 staff_role:
+  analyst: "Bureau analyst"
+  handler: "Agents' handler"
   tailor: "Tailor"
   hearth_keeper: "Hearth keeper"
   herbalist: "Herb gardener"
@@ -1556,6 +1566,13 @@ staff_role:
   stationmaster: "Stationmaster"
   loader: "Station loader"
 building_function:
+  intelligence_office: "Intelligence office"
+  great_beacon: "Great beacon"
+  city_wall: "City wall"
+  great_library: "Great library"
+  aqueduct: "Aqueduct"
+  great_canal: "Great canal"
+  great_temple: "Great temple"
   tailor_shop: "Tailor shop"
   tailor_shop_own: "Tailor shop (own)"
   warming_house: "Warming house"

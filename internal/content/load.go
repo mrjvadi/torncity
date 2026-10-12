@@ -168,6 +168,9 @@ type file struct {
 	RailClasses             []RailClassDef              `yaml:"rail_classes"`
 	HaulModes               []HaulModeDef               `yaml:"haul_modes"`
 	Rail                    *RailDef                    `yaml:"rail"`
+	SpecialProjects         []SpecialProjectDef         `yaml:"special_projects"`
+	IntelOps                []IntelOpDef                `yaml:"intel_ops"`
+	LicenceKinds            []LicenceKindDef            `yaml:"licence_kinds"`
 
 	// World generation (world.yml): the biomes, resource-geology rules and
 	// naming material worldgen.Generate reads. See worldgen.go. These are
@@ -368,6 +371,9 @@ func Load(dir string) (*Pack, error) {
 		}
 		pack.RailClasses = append(pack.RailClasses, doc.RailClasses...)
 		pack.HaulModes = append(pack.HaulModes, doc.HaulModes...)
+		pack.SpecialProjects = append(pack.SpecialProjects, doc.SpecialProjects...)
+		pack.IntelOps = append(pack.IntelOps, doc.IntelOps...)
+		pack.LicenceKinds = append(pack.LicenceKinds, doc.LicenceKinds...)
 		if doc.Rail != nil {
 			pack.Rail = append(pack.Rail, *doc.Rail)
 		}

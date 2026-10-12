@@ -1,0 +1,83 @@
+# Special projects (docs/adr/0077 4, plan B13): long public works of 3 to 9 stages, each stage asking materials delivered to the site, crew-hours
+# worked on it, a least time and, for the later ones, more research. A finished work stands as a service post (building_functions.yml): its
+# keepers are paid and its fuel burnt every local day, and a work nobody keeps stands idle, never destroyed. Every number is a draft (evidence D)
+# until a balance run; real works took generations, here they take days (the game clock does the rest).
+#
+# Fields: code, source, evidence, requires, name (the locale is what a player reads), function (the building function it stands as), effect (the
+# system that reads a held work: detector, garrison, research, household_water, farm_water, trade_footfall), amount (the size of the effect where
+# it has one), stages [{materials, labour_hours, min_hours, knowledge}].
+
+version: 1
+
+special_projects:
+  - code: great_beacon
+    source: "ADR 0077 4.2"
+    evidence: D
+    name: "فانوس بزرگ"
+    requires: {knowledge: [communal_watch, signal_fires, masonry]}
+    function: great_beacon
+    effect: detector
+    stages:
+      - {materials: {stone: 40, timber: 10}, labour_hours: 24, min_hours: 12}
+      - {materials: {stone: 60, timber: 10}, labour_hours: 32, min_hours: 12}
+      - {materials: {stone: 60, brick: 20}, labour_hours: 32, min_hours: 12, knowledge: [masonry_ii]}
+      - {materials: {stone: 30, bar_iron: 6, firewood: 20}, labour_hours: 16, min_hours: 12}
+  - code: city_wall
+    source: "ADR 0077 4.2"
+    evidence: D
+    name: "حصار شهر"
+    requires: {knowledge: [mounted_militia, masonry]}
+    function: city_wall
+    effect: garrison
+    stages:
+      - {materials: {stone: 60, timber: 10}, labour_hours: 40, min_hours: 12}
+      - {materials: {stone: 80}, labour_hours: 48, min_hours: 12}
+      - {materials: {stone: 80, brick: 20}, labour_hours: 48, min_hours: 12, knowledge: [masonry_ii]}
+      - {materials: {stone: 40, plank: 20, bar_iron: 8}, labour_hours: 24, min_hours: 12}
+  - code: great_library
+    source: "ADR 0077 4.2"
+    evidence: D
+    name: "کتابخانهٔ بزرگ"
+    requires: {knowledge: [basic_literacy, masonry]}
+    function: great_library
+    effect: research
+    stages:
+      - {materials: {stone: 30, timber: 20}, labour_hours: 24, min_hours: 12}
+      - {materials: {brick: 30, plank: 20}, labour_hours: 32, min_hours: 12}
+      - {materials: {plank: 30, paper: 40}, labour_hours: 24, min_hours: 12}
+  - code: aqueduct
+    source: "ADR 0077 4.2"
+    evidence: D
+    name: "قنات آب شهر"
+    requires: {knowledge: [masonry, canal_irrigation]}
+    function: aqueduct
+    effect: household_water
+    amount: 40
+    stages:
+      - {materials: {stone: 40, clay: 20}, labour_hours: 32, min_hours: 12}
+      - {materials: {stone: 50, brick: 20, clay: 20}, labour_hours: 40, min_hours: 12}
+      - {materials: {stone: 40, clay: 30}, labour_hours: 32, min_hours: 12, knowledge: [masonry_ii]}
+  - code: great_canal
+    source: "ADR 0077 4.2"
+    evidence: D
+    name: "کانال بزرگ"
+    requires: {knowledge: [masonry, canal_irrigation]}
+    function: great_canal
+    effect: farm_water
+    stages:
+      - {materials: {timber: 20, stone: 20}, labour_hours: 48, min_hours: 12}
+      - {materials: {stone: 40, clay: 20}, labour_hours: 56, min_hours: 12}
+      - {materials: {stone: 40, timber: 20, plank: 10}, labour_hours: 48, min_hours: 12}
+      - {materials: {stone: 30, bar_iron: 4}, labour_hours: 24, min_hours: 12}
+  - code: great_temple
+    source: "ADR 0077 4.2"
+    evidence: D
+    name: "معبد بزرگ"
+    requires: {knowledge: [temple_school, masonry]}
+    function: great_temple
+    effect: trade_footfall
+    amount: 20
+    stages:
+      - {materials: {stone: 50, timber: 10}, labour_hours: 32, min_hours: 12}
+      - {materials: {stone: 60, brick: 30}, labour_hours: 40, min_hours: 12}
+      - {materials: {brick: 40, plank: 20, cloth: 10}, labour_hours: 32, min_hours: 12, knowledge: [masonry_ii]}

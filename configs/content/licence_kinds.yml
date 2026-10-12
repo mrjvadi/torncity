@@ -1,0 +1,50 @@
+# Kinds of right a settlement may grant (docs/adr/0077 7): a licence is a recorded, priced, time-limited right with a duty. Nothing is licensed
+# by default: a kind is licensed in a settlement only when its charter creates the requirement (licence.set_kind), after a grace. `gate` is the
+# action that stops without the licence once it is required; a row with no gate is in the register only (its reader waits for the system it
+# gates: the toll collection of the railways and the contractor classes of public works).
+#
+# Fields: code, source, evidence, requires, name, target (an exclusive right is over one named thing: deposit, link or craft), gate (stall, pit,
+# craft), transferable (the default for this kind), duty (what the holder owes).
+
+version: 1
+
+licence_kinds:
+  - code: stall_right
+    source: "ADR 0077 7.2"
+    evidence: D
+    name: "حق غرفه در بازارچه"
+    requires: {knowledge: [record_keeping]}
+    gate: stall
+    transferable: true
+    duty: "keep the stall open and pay the fee of the term"
+  - code: craft_privilege
+    source: "ADR 0077 7.2"
+    evidence: D
+    name: "امتیاز یک پیشه"
+    requires: {knowledge: [record_keeping, craft_guild_charter]}
+    target: craft
+    gate: craft
+    duty: "work the craft in the settlement and take apprentices"
+  - code: concession
+    source: "ADR 0077 7.2"
+    evidence: D
+    name: "امتیاز بهره‌برداری"
+    requires: {knowledge: [record_keeping]}
+    target: deposit
+    gate: pit
+    duty: "work the deposit safely and pay the royalty on what it yields"
+  - code: toll_franchise
+    source: "ADR 0077 7.2"
+    evidence: D
+    name: "امتیاز عوارض راه"
+    requires: {knowledge: [record_keeping]}
+    target: link
+    duty: "keep the link in repair and remit the settlement's share of the toll"
+    note: "in the register only: the reader of the road and rail toll waits for a collector (docs/adr/0077 15, slice L2)"
+  - code: works_class
+    source: "ADR 0077 7.2"
+    evidence: D
+    name: "رتبهٔ پیمانکاری"
+    requires: {knowledge: [record_keeping]}
+    duty: "do the public works awarded and keep the bond"
+    note: "in the register only: the classes of public works are derived from research today (docs/adr/0076 10.2)"

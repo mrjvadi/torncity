@@ -511,6 +511,20 @@ knowledge:
     provides: [local_security]
     cost: 1800
     time: 14h
+  - code: field_craft
+    field: security
+    name: "کار میدانی و گزارش"
+    requires: [record_keeping, communal_watch]
+    provides: [local_security]
+    cost: 3500
+    time: 24h
+  - code: subversion_craft
+    field: security
+    name: "کار نهانی"
+    requires: [field_craft]
+    provides: [local_security]
+    cost: 6000
+    time: 48h
   - code: formal_constabulary
     field: security
     name: "ژاندارمری رسمی"
