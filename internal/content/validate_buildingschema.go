@@ -423,7 +423,7 @@ func (l *schemaLint) moduleKinds() {
 			l.bad("%s: a module without build_shifts is not offered to build; waits_for must say which plan item gives it a reader", key)
 		case m.BuildShifts > 0 && m.WaitsFor != "":
 			l.bad("%s: a module that is built does not wait for anything: remove waits_for", key)
-		case m.BuildShifts > 0 && len(m.Provides) == 0 && len(m.StandsFor) == 0 && m.Effect != "warmth_shelter" && m.Effect != "lookout_platform" && m.Effect != "signal_fire":
+		case m.BuildShifts > 0 && len(m.Provides) == 0 && len(m.StandsFor) == 0 && m.Effect != "warmth_shelter" && m.Effect != "lookout_platform" && m.Effect != "signal_fire" && !mineModuleEffects[m.Effect]:
 			l.bad("%s: a module with a cost needs a reader (provides, or an effect the rules read): a cost without one is decoration", key)
 		}
 		l.needs(key, m.Requires)
@@ -983,6 +983,17 @@ func (l *schemaLint) rail() {
 		if h.CapacityKG < 1 {
 			l.bad("%s: capacity_kg must be positive", key)
 		}
+		if h.Kind != "cart" && h.Kind != "rail" {
+			l.bad("%s: kind is cart or rail", key)
+		}
+		if h.Kind == "cart" && (len(h.BuildMaterials) == 0 || h.BuildHours < 1 || h.Surface == "") {
+			l.bad("%s: a cart is built of materials in hours and runs on a road class", key)
+		}
+		for it := range h.BuildMaterials {
+			if !l.itemKnown(it) {
+				l.bad("%s: unknown build material %q", key, it)
+			}
+		}
 		l.needs(key, h.Requires)
 	}
 	seen := map[string]bool{}
@@ -997,9 +1008,20 @@ func (l *schemaLint) rail() {
 		if c.MaxGradeBPS == 0 && !hasResearch(c.NeedsResearch, "max_grade_bps") {
 			l.bad("%s: no grade limit: set max_grade_bps or list it in needs_research (the router refuses a class without one)", key)
 		}
-		for it := range c.MaterialsPerKM {
+		if c.SpeedKmh < 1 || c.WagonKG < 1 || c.MaxConsistKG < c.WagonKG || c.LotMinutes < 1 || c.LotWorkHours < 1 || c.MaxTrains < 1 || c.TeamPrice < 0 {
+			l.bad("%s: a rail class names its speed, wagon and consist weight, the minutes and hours of a lot, the trains it carries", key)
+		}
+		if len(c.LotMaterials) == 0 || len(c.WagonMaterials) == 0 || c.WagonHours < 1 {
+			l.bad("%s: a rail class names what a lot of track and a wagon take", key)
+		}
+		for it := range c.LotMaterials {
 			if !l.itemKnown(it) {
-				l.bad("%s: unknown material %q", key, it)
+				l.bad("%s: unknown track material %q", key, it)
+			}
+		}
+		for it := range c.WagonMaterials {
+			if !l.itemKnown(it) {
+				l.bad("%s: unknown wagon material %q", key, it)
 			}
 		}
 		l.needs(key, c.Requires)
@@ -1343,4 +1365,10 @@ func (l *schemaLint) crafting() {
 		}
 		l.apprenticeship(d)
 	}
+}
+
+// mineModuleEffects are the module effects the mine reads (docs/adr/0075 5): the shaft levels, the hoists, the ore bin, the adit,
+// the pump and the ventilation shaft of a minehead are read by the state of the mine (mine_state), not by a provides number.
+var mineModuleEffects = map[string]bool{
+	"shaft_level": true, "hoist": true, "hoist_gin": true, "ore_bin": true, "adit": true, "pump": true, "vent_shaft": true,
 }

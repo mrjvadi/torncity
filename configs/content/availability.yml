@@ -113,9 +113,9 @@ staff_roles:
   - {code: beacon_keeper, skill: vigilance, wage_bps: 10000, personal: [{kind: level, min: 1}], support_npc: true, note: "ADR 0042 8.9"}
   - {code: shopkeeper, building: {code: general_store}, skill: trade, wage_bps: 11000, personal: [{kind: literacy}], support_npc: true, note: "ADR 0046 5.1: the NPC citizen who keeps the village shop (the founding stall too); a player may hold the post later (ADR 0046 M5)"}
   - {code: stall_keeper, building: {code: barter_post}, skill: trade, wage_bps: 10000, support_npc: true, note: "ADR 0062: the NPC citizen a stall owner hires to mind the stall while he is away; he holds a pool seat and takes trade.stall_keeper_share_bps of each sale made then, out of the seller's proceeds (stall_keeper_wage); a player does not hold the post"}
-  - {code: miner, skill: "", support_npc: true, note: "ADR 0045 8.3 names the face miner; prerequisite, skill and wage class are not written (needs research)"}
-  - {code: mine_hauler, skill: "", support_npc: true, note: "ADR 0045 8.3 (hand-cart hauler); prerequisite, skill and wage class not written (needs research)"}
-  - {code: timberman, skill: "", support_npc: true, note: "ADR 0045 8.3; prerequisite, skill and wage class not written (needs research)"}
+  - {code: miner, building: {code: mine}, skill: mining, wage_bps: 12000, personal: [{kind: level, min: 1}], support_npc: true, note: "ADR 0075 5.2: the face; a heavy raw trade (a skilled trade earns 13000 to 15000)"}
+  - {code: mine_hauler, building: {code: mine}, skill: strength, wage_bps: 10000, personal: [{kind: level, min: 1}], support_npc: true, note: "ADR 0075 5.2: the hand-cart from the face to the bin"}
+  - {code: timberman, building: {code: mine}, skill: carpentry, wage_bps: 13000, personal: [{kind: skill, code: carpentry, min: 1}], support_npc: true, note: "ADR 0075 5.2: sets the props; no timberman and the levels' props rot unmended"}
   # First stage of the accepted missing-prerequisites research (2026-10-03 2.5, 5.5, 6.5).
   # `building: {code}` binds a role to one building function. A certificate whose course is
   # not in education.yml yet is a planned_personal entry (the neutral city teaches it: support_npc).
@@ -131,7 +131,11 @@ staff_roles:
   - {code: bank_manager, building: {code: bank}, personal: [{kind: skill, code: management, min: 3}, {kind: skill, code: finance, min: 3}], support_npc: true, note: "RESEARCH 2026-10-03 6.5"}
   - {code: scholar, building: {role: research, tier: 1}, skill: scholarship, wage_bps: 13000, personal: [{kind: literacy}], support_npc: true, note: "ADR 0048: the reader, the experimenter, the lecturer; a player holds the post by taking it, an NPC of the labour pool fills the rest"}
   - {code: market_clerk, building: {code: barter_post}, skill: trade, wage_bps: 11000, personal: [{kind: literacy}], support_npc: true, note: "ADR 0049: the clerk of the market weighs, records and takes the tolls; paid per market day on which a trader came"}
-  - {code: banksman, skill: "", support_npc: true, note: "ADR 0045 8.3 (the hoist's banksman); prerequisite, skill and wage class not written (needs research)"}
+  - {code: pumper, building: {code: mine}, skill: mining, wage_bps: 11000, personal: [{kind: level, min: 1}], support_npc: true, note: "ADR 0075 5.3: works the gin pump that keeps a level dry"}
+  - {code: prospector, building: {code: mine}, skill: mining, wage_bps: 13000, personal: [{kind: skill, code: mining, min: 1}], support_npc: true, note: "ADR 0075 4.1: surveys a deposit for its grade and its quantity (a command of the office, the holder must meet this list)"}
+  - {code: stationmaster, building: {code: rail_station}, wage_bps: 12000, personal: [{kind: literacy}], support_npc: true, note: "ADR 0075 7.3: keeps the timetable and the platform"}
+  - {code: loader, building: {code: rail_station}, skill: strength, wage_bps: 10000, personal: [{kind: level, min: 1}], support_npc: true, note: "ADR 0075 7.3: loads and unloads the wagons"}
+  - {code: banksman, building: {code: mine}, wage_bps: 11000, personal: [{kind: literacy}], support_npc: true, note: "ADR 0075 5.2: at the shaft top he signals the hoist and tallies the baskets; below the surface nothing is lifted without him"}
 
 # Personal prerequisites that no certifying course provides yet.
 personal_sources:
@@ -183,7 +187,8 @@ availability:
   - {kind: building, code: manufactory}
   - {kind: building, code: factory}
   - {kind: building, code: small_pit, growth: {open: true, founding: true, row: 23}}
-  - {kind: building, code: mine}
+  - {kind: building, code: mine, requires: {knowledge: [prospecting]}}
+  - {kind: building, code: rail_station, requires: {knowledge: [wagonway]}}
   - {kind: building, code: canal_channel}
   - {kind: building, code: shaft_well}
   - {kind: building, code: terrace_works}
@@ -273,6 +278,14 @@ availability:
   - {kind: knowledge, code: printing}
   - {kind: knowledge, code: charcoal_burning, elsewhere: [{where: support}]}
   - {kind: knowledge, code: bloomery}
+  - {kind: knowledge, code: prospecting, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: timbering, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: drainage, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: ventilation}
+  - {kind: knowledge, code: mine_pumping}
+  - {kind: knowledge, code: wagonway, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: iron_rail}
+  - {kind: knowledge, code: railway_operations}
   - {kind: knowledge, code: tanning}
   - {kind: knowledge, code: papermaking, elsewhere: [{where: support}]}
 
@@ -431,7 +444,15 @@ availability:
   - {kind: component, code: copper_wire, requires: {buildings: [{role: extraction, tier: 2}]}}
   - {kind: component, code: resin, growth: {open: true, founding: true, row: 193}, requires: {}}
   - {kind: component, code: silica, growth: {open: true, founding: true, row: 194}, requires: {}}
-  - {kind: component, code: iron_ore, requires: {buildings: [{role: extraction, tier: 2}]}}
+  - {kind: component, code: iron_ore, requires: {buildings: [{role: extraction, tier: 1}]}}
+  - {kind: component, code: iron_ore_lean, requires: {buildings: [{role: extraction, tier: 1}]}, note: "ADR 0075: ore of a lean deposit (grade under 35 percent)"}
+  - {kind: component, code: iron_ore_rich, requires: {buildings: [{role: extraction, tier: 1}]}, note: "ADR 0075: ore of a rich deposit (grade from 50 percent)"}
+  - {kind: component, code: bar_iron, requires: {knowledge: [smithing], buildings: [{code: smithy}]}, note: "ADR 0068: refined from a bloom at the smithy"}
+  - {kind: component, code: timber_prop, requires: {buildings: [{code: carpentry_workshop}]}, note: "ADR 0075: the carpentry shop's props for a mine"}
+  - {kind: component, code: splint, requires: {buildings: [{code: carpentry_workshop}]}, note: "ADR 0075: the light of a mine, split from timber"}
+  - {kind: component, code: sleeper, requires: {knowledge: [wagonway], buildings: [{code: carpentry_workshop}]}, note: "ADR 0075: laid under a track"}
+  - {kind: component, code: wooden_rail, requires: {knowledge: [wagonway], buildings: [{code: carpentry_workshop}]}, note: "ADR 0075: the wooden rail of a wagonway"}
+  - {kind: component, code: rail, requires: {knowledge: [iron_rail], buildings: [{code: smithy}]}, note: "ADR 0075: the iron rail, forged from bar iron"}
   - {kind: component, code: crude_oil, requires: {buildings: [{role: extraction, tier: 2}]}}
   - {kind: component, code: wheat, growth: {open: true, founding: true, row: 197}, requires: {}, elsewhere: [{where: support}], note: "bought from Support by a village (village_buy), the food of its hired crews"}
   - {kind: component, code: cotton, growth: {open: true, founding: true, row: 198}, requires: {}}
@@ -557,6 +578,7 @@ availability:
   - {kind: skill, code: carpentry, growth: {open: true}, requires: {knowledge: [carpentry]}, elsewhere: [{where: support}]}
   - {kind: skill, code: masonry, growth: {open: true}, requires: {knowledge: [masonry]}, elsewhere: [{where: support}]}
   - {kind: skill, code: smithing, growth: {open: true}, requires: {knowledge: [smithing]}, elsewhere: [{where: support}]}
+  - {kind: skill, code: mining, growth: {open: true}, requires: {knowledge: [prospecting]}, elsewhere: [{where: support}]}
   - {kind: skill, code: strength, growth: {open: true, founding: true}, requires: {}, elsewhere: [{where: support}], note: "trained by training.start: bodyweight exercise needs no building"}
   - {kind: skill, code: farming, growth: {open: true, founding: true}, requires: {}, elsewhere: [{where: support}]}
   - {kind: skill, code: forestry, growth: {open: true, founding: true}, requires: {}, elsewhere: [{where: support}]}

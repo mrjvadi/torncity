@@ -64,6 +64,8 @@ type SettlementBuildingDef struct {
 	Fells    bool `yaml:"fells,omitempty" json:"fells,omitempty"`
 	Plants   bool `yaml:"plants,omitempty" json:"plants,omitempty"`
 	Quarries bool `yaml:"quarries,omitempty" json:"quarries,omitempty"`
+	// Mining says the crew digs a deposit of the world (docs/adr/0075): the iron pit works its surface, the minehead its shafts.
+	Mining *MiningDef `yaml:"mining,omitempty" json:"mining,omitempty"`
 	// Grazes says the crew needs open lots round the building to graze the herd (docs/adr/0067): fewer than the farming
 	// pasture's lots in reach and the shift is refused; the grazed lots do not regrow trees.
 	Grazes bool `yaml:"grazes,omitempty" json:"grazes,omitempty"`

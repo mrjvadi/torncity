@@ -1,19 +1,67 @@
 version: 1
-# Rail and hauling (roadmap step 0.5; ADR 0045 8.4, 8.5, phase B7). DEFINED IN THE
-# SCHEMA, NO ROWS (owner, 2026-10-03: rail items belong to ADR 0045 B6 and B7).
-# The Go types and the lint exist (internal/content/buildingschema.go:
-# RailClassDef, HaulModeDef, RailDef); the rows are written when the rail phase
-# starts, so nothing here can gate or unlock anything before then.
+# Carriage and rail (docs/adr/0075-mining-rail-and-ratios.md sections 6 and 7; ADR 0045 8.4, 8.5). Every number is a draft (evidence D) until
+# `admin economy verify` has proved the ledger and the conservation of goods in transit; the real basis is in the ADR (Tanfield, Alloa,
+# Preston, Ballochney: 1.5 to 2.5 t wagons, a horse and a driver; gauge followed the wagons).
 #
-# What the rows will need (needs research, none of it is invented here):
-#   haul modes: capacity per carrier (ADR 0045 8.4: porter 30 kg, horse cart on dirt
-#     1 t, on gravel 1.5 t, on macadam 2.5 t, wooden wagonway 8 t, iron rail with a
-#     horse 15 t, steam train 30 t and more);
-#   rail classes: wagonway (rail_i), iron rail (rail_ii), steam rail (steam_power), each
-#     with its grade limit ("a gentler slope limit", no number in the ADR), materials
-#     per km, bridge span, and the charter permission rail.draw (ADR 0044 G2);
-#   rail rules: stop kinds (station, siding, passing loop), freight per tonne-kilometre,
-#     train speed, schedule length and trains-per-route caps, who may own a line
-#     (open question 6), stationmaster, signalman, train driver and fireman roles and
-#     the knowledge railway_operations and block_signalling (research 2026-10-03 12).
-#   rail items: rail, sleeper (recipes 23 and 24 of ADR 0045 4.3), the minehead's rail siding module.
+# haul_modes: what a carrier carries on a surface. A cart is built of materials in hours (kind cart) and runs on a road class of
+# roads.yml; a rail mode is the consist a team draws on a rail class (kind rail).
+# rail_classes: the track. Materials and hours are for each 30 m lot; a lot is laid in lot_minutes. A wagon is built of wagon_materials in
+# wagon_hours; a draught team is bought from the neutral city's stock market (team_price, into the sink) and eats team_feed_wheat a leg
+# (config mining.team_feed_wheat).
+
+haul_modes:
+  - {code: cart_path,  name: "گاری روی راه مالرو", source: "ADR 0045 8.4", evidence: D, requires: {knowledge: [carpentry]}, capacity_kg: 600, surface: path, kind: cart, build_materials: {timber: 8, plank: 4}, build_hours: 4, note: "a handcart or an ox cart on a path carries about 600 kg (ADR: a porter 30 kg, a cart on dirt 1 t)"}
+  - {code: cart_track, name: "گاری روی جادهٔ خاکی", source: "ADR 0045 8.4", evidence: D, requires: {knowledge: [carpentry, masonry]}, capacity_kg: 1000, surface: track, kind: cart, build_materials: {timber: 10, plank: 6, bar_iron: 1}, build_hours: 6, note: "a horse cart on a dirt road carries 1 t (ADR 0045 8.4)"}
+  - {code: wagon_wooden, name: "قطار ریل چوبی", source: "ADR 0045 8.4, Tanfield, Alloa", evidence: D, requires: {knowledge: [wagonway]}, capacity_kg: 8000, surface: wagonway, kind: rail, note: "one team draws 8 t on a wooden wagonway (ADR 0045 8.4); a wagon holds 2 t (Tanfield 2.5 t, Alloa 1.5 t, Preston 2 t)"}
+  - {code: wagon_iron, name: "قطار ریل آهنی", source: "ADR 0045 8.4, Middleton", evidence: D, requires: {knowledge: [iron_rail]}, capacity_kg: 15000, surface: iron_rail, kind: rail, note: "one team draws 15 t on an iron rail (ADR 0045 8.4)"}
+
+rail_classes:
+  - code: wagonway
+    name: "ریل چوبی"
+    source: "ADR 0045 8.5, 0075 7.2"
+    evidence: D
+    requires: {knowledge: [wagonway]}
+    max_grade_bps: 300
+    bridge_max_span_m: 20
+    haul: wagon_wooden
+    speed_kmh: 5
+    wagon_kg: 2000
+    max_consist_kg: 8000
+    lot_materials: {sleeper: 2, wooden_rail: 1, stone: 1}
+    lot_work_hours: 2
+    lot_minutes: 6
+    decay_bps_per_day: 40
+    max_trains: 4
+    wagon_materials: {timber: 6, plank: 4}
+    wagon_hours: 4
+    team_price: 1800
+    note: "wooden rails on sleepers, a horse team, the gauge of the wagons (Alloa 3 ft 3 in, Preston 4 ft 3 in); a gentle grade because wagonways ran the loaded wagons downhill (ADR 0075 2.2)"
+  - code: iron_rail
+    name: "ریل آهنی"
+    source: "ADR 0045 8.5, 0075 7.2"
+    evidence: D
+    requires: {knowledge: [iron_rail]}
+    max_grade_bps: 200
+    bridge_max_span_m: 30
+    haul: wagon_iron
+    speed_kmh: 8
+    wagon_kg: 3000
+    max_consist_kg: 15000
+    lot_materials: {sleeper: 2, rail: 1, stone: 1}
+    lot_work_hours: 3
+    lot_minutes: 8
+    decay_bps_per_day: 20
+    max_trains: 8
+    wagon_materials: {timber: 6, plank: 4, bar_iron: 2}
+    wagon_hours: 6
+    team_price: 1800
+    note: "iron edge rails (Middleton, from about 1799) on the same sleepers; 15 t a team, a longer wagon"
+
+rail:
+  code: rail
+  source: "ADR 0045 8.5, 0075 7"
+  evidence: D
+  requires: {knowledge: [railway_operations]}
+  stop_kinds: [station, siding, loop]
+  freight_unit: tonne_km
+  owners: [treasury, player, union]

@@ -91,6 +91,12 @@ type SettlementShift struct {
 	FarmCycle, FarmPhase, CustomFor string
 	// Recipe is the recipe the shift made ("" the station's standard shift; docs/adr/0068).
 	Recipe string
+	// StaffRole is the post of a mine a shift filled (miner, mine_hauler, timberman, banksman, pumper; docs/adr/0075), MineLimit what
+	// held its output down (face, hoist, haul), DepositID, DepositDepth and DepositReserve the deposit it digs, the depth of its
+	// workings and the world's reserve of the deposit when it began. "" and 0 for any other shift.
+	StaffRole, MineLimit, DepositID string
+	DepositDepth                    int
+	DepositReserve                  int64
 	// Board is the food the hands of a citizen's own workplace ate out of the owner's home store (item reason board_eaten).
 	Board        map[string]int64
 	GameActionID string

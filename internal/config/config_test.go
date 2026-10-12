@@ -655,6 +655,53 @@ raid:
   speed_horse_kmh: 1297
   speed_rail_kmh: 1304
   tribute_min: 1311
+mining:
+  rule_at: "2095-01-01T00:00:00Z"
+  grace_days: 3007
+  reserve_divisor: 3014
+  surface_share_bps: 3021
+  shaft1_share_bps: 3028
+  shaft2_share_bps: 3035
+  deep_share_bps: 3042
+  thin_below_bps: 3049
+  thin_floor_bps: 3056
+  lean_below_permille: 3063
+  rich_from_permille: 3070
+  lean_out_bps: 3077
+  medium_out_bps: 3084
+  rich_out_bps: 3091
+  shaft1_depth_m: 3098
+  shaft2_depth_m: 3105
+  hoist_windlass_kg_min: 3112
+  hoist_gin_kg_min: 3119
+  hoist_depth_ref_m: 3133
+  hauler_kg_min: 3140
+  unmade_way_bps: 3147
+  adit_gradient: 3154
+  min_condition_bps: 3161
+  water_limit_bps: 3168
+  wear_per_shift_bps: 3175
+  wear_per_day_bps: 3182
+  inflow_per_day_bps: 3189
+  adit_outflow_bps: 3196
+  pump_gin_outflow_bps: 3203
+  set_props_gain_bps: 3217
+  set_props_items: 3224
+  works_shift_wage: 3231
+  survey_fee: 3238
+  min_surface_days: 3245
+  ore_unit_g: 3252
+  cart_broken_bps: 3259
+  cart_speed_kmh: 3266
+  road_link_lot_minutes: 3273
+  road_link_lot_stone: 3280
+  road_link_lot_hours: 3287
+  rail_work_hour_wage: 3294
+  rail_worn_bps: 3301
+  stuck_hours: 3308
+  team_feed_wheat: 3315
+  default_rate_per_tonne_km: 3322
+  chain_default_per_hour: 3329
 growth:
   capabilities: off
   cache_ttl: 6s
@@ -1353,6 +1400,53 @@ var envOverrides = map[string]string{
 	"TORN_RAID_SPEED_HORSE_KMH":         "2299",
 	"TORN_RAID_SPEED_RAIL_KMH":          "2306",
 	"TORN_RAID_TRIBUTE_MIN":             "2313",
+
+	"TORN_MINING_RULE_AT":                   "2094-01-01T00:00:00Z",
+	"TORN_MINING_GRACE_DAYS":                "4007",
+	"TORN_MINING_RESERVE_DIVISOR":           "4014",
+	"TORN_MINING_SURFACE_SHARE_BPS":         "4021",
+	"TORN_MINING_SHAFT1_SHARE_BPS":          "4028",
+	"TORN_MINING_SHAFT2_SHARE_BPS":          "4035",
+	"TORN_MINING_DEEP_SHARE_BPS":            "4042",
+	"TORN_MINING_THIN_BELOW_BPS":            "4049",
+	"TORN_MINING_THIN_FLOOR_BPS":            "4056",
+	"TORN_MINING_LEAN_BELOW_PERMILLE":       "4063",
+	"TORN_MINING_RICH_FROM_PERMILLE":        "4070",
+	"TORN_MINING_LEAN_OUT_BPS":              "4077",
+	"TORN_MINING_MEDIUM_OUT_BPS":            "4084",
+	"TORN_MINING_RICH_OUT_BPS":              "4091",
+	"TORN_MINING_SHAFT1_DEPTH_M":            "4098",
+	"TORN_MINING_SHAFT2_DEPTH_M":            "4105",
+	"TORN_MINING_HOIST_WINDLASS_KG_MIN":     "4112",
+	"TORN_MINING_HOIST_GIN_KG_MIN":          "4119",
+	"TORN_MINING_HOIST_DEPTH_REF_M":         "4133",
+	"TORN_MINING_HAULER_KG_MIN":             "4140",
+	"TORN_MINING_UNMADE_WAY_BPS":            "4147",
+	"TORN_MINING_ADIT_GRADIENT":             "4154",
+	"TORN_MINING_MIN_CONDITION_BPS":         "4161",
+	"TORN_MINING_WATER_LIMIT_BPS":           "4168",
+	"TORN_MINING_WEAR_PER_SHIFT_BPS":        "4175",
+	"TORN_MINING_WEAR_PER_DAY_BPS":          "4182",
+	"TORN_MINING_INFLOW_PER_DAY_BPS":        "4189",
+	"TORN_MINING_ADIT_OUTFLOW_BPS":          "4196",
+	"TORN_MINING_PUMP_GIN_OUTFLOW_BPS":      "4203",
+	"TORN_MINING_SET_PROPS_GAIN_BPS":        "4217",
+	"TORN_MINING_SET_PROPS_ITEMS":           "4224",
+	"TORN_MINING_WORKS_SHIFT_WAGE":          "4231",
+	"TORN_MINING_SURVEY_FEE":                "4238",
+	"TORN_MINING_MIN_SURFACE_DAYS":          "4245",
+	"TORN_MINING_ORE_UNIT_G":                "4252",
+	"TORN_MINING_CART_BROKEN_BPS":           "4259",
+	"TORN_MINING_CART_SPEED_KMH":            "4266",
+	"TORN_MINING_ROAD_LINK_LOT_MINUTES":     "4273",
+	"TORN_MINING_ROAD_LINK_LOT_STONE":       "4280",
+	"TORN_MINING_ROAD_LINK_LOT_HOURS":       "4287",
+	"TORN_MINING_RAIL_WORK_HOUR_WAGE":       "4294",
+	"TORN_MINING_RAIL_WORN_BPS":             "4301",
+	"TORN_MINING_STUCK_HOURS":               "4308",
+	"TORN_MINING_TEAM_FEED_WHEAT":           "4315",
+	"TORN_MINING_DEFAULT_RATE_PER_TONNE_KM": "4322",
+	"TORN_MINING_CHAIN_DEFAULT_PER_HOUR":    "4329",
 
 	"TORN_GROWTH_CAPABILITIES":   "shadow",
 	"TORN_GROWTH_CACHE_TTL":      "6s",

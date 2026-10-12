@@ -173,6 +173,7 @@ var moduleEffects = map[string]bool{
 	"barn": true, "shaft_level": true, "hoist": true, "ore_bin": true, "rail_siding": true,
 	"signal_fire": true, "lookout_platform": true, "foundation": true, "storeroom": true,
 	"vault": true, "record_vault": true, "transient_bed": true,
+	"adit": true, "pump": true, "vent_shaft": true, "hoist_gin": true,
 }
 
 // ModuleKindDef is one kind of module the owner puts inside a lot (ADR 0045
@@ -634,8 +635,24 @@ type RailClassDef struct {
 	BridgeMaxSpanM int    `yaml:"bridge_max_span_m,omitempty" json:"bridge_max_span_m,omitempty"`
 	// Haul is the haul mode (HaulModeDef code) that runs on it.
 	Haul string `yaml:"haul" json:"haul"`
-	// Materials per km (item -> quantity): rails, sleepers, ballast of gravel.
-	MaterialsPerKM map[string]int `yaml:"materials_per_km,omitempty" json:"materials_per_km,omitempty"`
+	// SpeedKmh is the pace of a train on the class; WagonKG what one wagon holds; MaxConsistKG what one draught team draws
+	// (docs/adr/0075 7.2, 7.3).
+	SpeedKmh     int `yaml:"speed_kmh,omitempty" json:"speed_kmh,omitempty"`
+	WagonKG      int `yaml:"wagon_kg,omitempty" json:"wagon_kg,omitempty"`
+	MaxConsistKG int `yaml:"max_consist_kg,omitempty" json:"max_consist_kg,omitempty"`
+	// LotMaterials are the goods one 30 m lot of track takes (item -> quantity); LotWorkHours the builders' hours; LotMinutes
+	// the minutes laying it lasts.
+	LotMaterials map[string]int `yaml:"lot_materials,omitempty" json:"lot_materials,omitempty"`
+	LotWorkHours int            `yaml:"lot_work_hours,omitempty" json:"lot_work_hours,omitempty"`
+	LotMinutes   int            `yaml:"lot_minutes,omitempty" json:"lot_minutes,omitempty"`
+	// DecayBPSPerDay is the wear of the track in a day; MaxTrains the most trains a line of the class carries.
+	DecayBPSPerDay int `yaml:"decay_bps_per_day,omitempty" json:"decay_bps_per_day,omitempty"`
+	MaxTrains      int `yaml:"max_trains,omitempty" json:"max_trains,omitempty"`
+	// WagonMaterials and WagonHours are what building one wagon of the class takes.
+	WagonMaterials map[string]int `yaml:"wagon_materials,omitempty" json:"wagon_materials,omitempty"`
+	WagonHours     int            `yaml:"wagon_hours,omitempty" json:"wagon_hours,omitempty"`
+	// TeamPrice is what a draught team costs from the neutral city's stock market, into the sink; TeamFeedWheat what it eats a leg.
+	TeamPrice int64 `yaml:"team_price,omitempty" json:"team_price,omitempty"`
 }
 
 // HaulModeDef is one rung of the hauling ladder (ADR 0045 8.4): the capacity a
@@ -646,6 +663,11 @@ type HaulModeDef struct {
 	CapacityKG int    `yaml:"capacity_kg" json:"capacity_kg"`
 	// Surface is the road class or rail class the mode runs on ("" = anywhere).
 	Surface string `yaml:"surface,omitempty" json:"surface,omitempty"`
+	// Kind is cart (a carrier of the road, built from BuildMaterials) or rail (a consist on a rail class).
+	Kind string `yaml:"kind,omitempty" json:"kind,omitempty"`
+	// BuildMaterials and BuildHours are what making one carrier takes.
+	BuildMaterials map[string]int `yaml:"build_materials,omitempty" json:"build_materials,omitempty"`
+	BuildHours     int            `yaml:"build_hours,omitempty" json:"build_hours,omitempty"`
 }
 
 // RailDef is rail.yml's rules block (ADR 0045 8.5): what the simulation and

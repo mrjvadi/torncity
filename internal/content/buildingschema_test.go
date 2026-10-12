@@ -28,14 +28,16 @@ func TestShippedBuildingSchema(t *testing.T) {
 		t.Fatalf("singletons: climate %d raid %d planner %d detectors %d",
 			len(p.Climate), len(p.SettlementRaids), len(p.RoadPlanner), len(p.SettlementRaidDetectors))
 	}
-	// the owner's decision of 2026-10-03: rail is defined in the schema, no rows
-	if len(p.RailClasses)+len(p.HaulModes)+len(p.Rail) != 0 {
-		t.Fatalf("rail rows shipped before ADR 0045 B7: %d %d %d", len(p.RailClasses), len(p.HaulModes), len(p.Rail))
+	// ADR 0075 (B11): the rail rows exist now, two classes, four haul modes and the rules block
+	if len(p.RailClasses) != 2 || len(p.HaulModes) != 4 || len(p.Rail) != 1 {
+		t.Fatalf("rail rows: %d classes, %d haul modes, %d rules", len(p.RailClasses), len(p.HaulModes), len(p.Rail))
 	}
+	found := false
 	for _, f := range p.BuildingFunctions {
-		if f.Code == "rail_station" {
-			t.Fatal("rail_station is phase B7")
-		}
+		found = found || f.Code == "rail_station"
+	}
+	if !found {
+		t.Fatal("rail_station is a function row (ADR 0075 7.3)")
 	}
 
 	// The first stage of the accepted research is in: inn, land registry, bank with exchange house.
@@ -82,7 +84,7 @@ func TestShippedSchemaOpenItemsOnlyShrink(t *testing.T) {
 		open.PlannedSkills > maxPlannedSkills || open.Deferred > maxDeferred {
 		t.Errorf("the open items grew: %+v", open)
 	}
-	wantKnowledge := []string{"drainage", "prospecting", "roadcraft", "timbering", "ventilation"}
+	wantKnowledge := []string{"roadcraft"}
 	sort.Strings(wantKnowledge)
 	if strings.Join(open.PlannedKnowledge, ",") != strings.Join(wantKnowledge, ",") {
 		t.Errorf("planned knowledge changed:\n got  %v\n want %v", open.PlannedKnowledge, wantKnowledge)

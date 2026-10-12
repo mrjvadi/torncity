@@ -1593,6 +1593,10 @@ module_kind:
   record_vault: "اتاق اسناد"
   vault: "خزانهٔ بانک"
   ore_bin: "صندوق سنگ معدن"
+  hoist_gin: "بالابر اسبی"
+  adit: "تونل زه‌کش"
+  pump: "تلمبهٔ معدن"
+  vent_shaft: "چاه هواکش"
 settlement_raid_detector:
   lookout: "دیده‌بان"
   watchtower: "برج دیده‌بانی"
@@ -1651,6 +1655,10 @@ staff_role:
   teller: "صندوقدار بانک"
   loan_officer: "کارشناس وام"
   bank_manager: "مدیر شعبهٔ بانک"
+  pumper: "تلمبه‌چی معدن"
+  prospector: "کانه‌یاب"
+  stationmaster: "رئیس ایستگاه"
+  loader: "باربر ایستگاه"
 building_function:
   tailor_shop: "خیاطی"
   tailor_shop_own: "خیاطی (شخصی)"
@@ -1725,6 +1733,7 @@ building_function:
   land_registry: "دفتر ثبت املاک"
   exchange_house: "صرافی"
   bank: "بانک"
+  rail_station: "ایستگاه ریل"
 recipe:
   hide_wrap: "پوشش چرمی"
   hide_boots: "چکمهٔ چرمی"
@@ -1757,6 +1766,11 @@ recipe:
   bar_iron: "شمش آهن"
   rope: "طناب"
   bandage: "باند"
+  timber_props: "چوب‌بست"
+  splints: "چوب‌کبریت معدن"
+  sleepers: "تراورس"
+  wooden_rails: "ریل چوبی"
+  iron_rails: "ریل آهنی"
 road_class:
   path: "راه مالرو"
   track: "جادهٔ خاکی"

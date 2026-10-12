@@ -232,6 +232,9 @@ func (t *fakeTx) VillageStorage() application.VillageStorageRepository          
 func (t *fakeTx) Trade() application.TradeRepository                             { return nil }
 func (t *fakeTx) Household() application.HouseholdRepository                     { return nil }
 func (t *fakeTx) Raids() application.RaidRepository                              { return nil }
+func (t *fakeTx) Mines() application.MineRepository                              { return nil }
+func (t *fakeTx) Haul() application.HaulRepository                               { return nil }
+func (t *fakeTx) Rail() application.RailRepository                               { return nil }
 
 func (t *fakeTx) ServiceDays() application.ServiceDayRepository   { return nil }
 func (t *fakeTx) StallKeepers() application.StallKeeperRepository { return nil }

@@ -387,20 +387,6 @@ settlement_buildings:
     wage: 50
     tool_wear_bps: 250
 
-  - code: mine
-    name: "معدن"
-    waits_for: "B11: mining (shafts, a crew, timbering, hauling, ore); the legacy mine only adds a percentage and is not offered"
-    role: extraction
-    tier: 2
-    footprint: [3, 3]
-    requires_building_role: {role: extraction, tier: 1}
-    terrain_tags: [ore_deposit]
-    terrain_mode: required
-    cost_money: 8000
-    build_time: 6h
-    upkeep: 80
-    effects: [{target: job_coverage_bps, op: add, value: 300}]
-
   # ---------------------------------------------------------------------
   # water_infra — one per arable_farming branch held (tier 1 only, v1). Each is a daily service: a water master is on duty
   # (building_functions.yml, kind service), the work decays and is repaired by labour (ADR 0067). `near` says where it may

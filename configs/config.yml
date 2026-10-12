@@ -1200,6 +1200,57 @@ raid:
   speed_rail_kmh: 40   # raiders by rail, km/h
   tribute_min: 100   # the least tribute a defender may offer, minor units
 
+# Mining, carriage and rail (docs/adr/0075-mining-rail-and-ratios.md, plan B11). Mining starts from rule_at plus grace_days (a placeholder far in the
+# future until the deploy sets it); every figure is a draft (evidence D) until the verifier has proved it. Content (rail.yml, building_functions.yml) holds the
+# classes and the modules; these are the numbers.
+mining:
+  rule_at: "2099-01-01T00:00:00Z"   # mining and rail start from this instant plus grace_days; a placeholder far in the future until the deploy sets it (ADR 0075)
+  grace_days: 14   # days after rule_at before an iron pit draws on its deposit (it digs as before until then)
+  reserve_divisor: 2   # the world's abstract reserve divided by this is the ore a deposit holds
+  surface_share_bps: 500   # share of a deposit a pit reaches (surface, to 3 m)
+  shaft1_share_bps: 2500   # share of the first timbered shaft level (to 30 m)
+  shaft2_share_bps: 4000   # share of the second level (to 60 m)
+  deep_share_bps: 3000   # share of the deeper ground (waits for steam, not reachable yet)
+  thin_below_bps: 2000   # below this share left a face thins
+  thin_floor_bps: 3000   # the yield a face falls to as its last ore goes, basis points
+  lean_below_permille: 350   # a grade below this is lean ore
+  rich_from_permille: 500   # a grade from this is rich ore
+  lean_out_bps: 8000   # output factor of lean ore
+  medium_out_bps: 10000   # output factor of medium ore
+  rich_out_bps: 12000   # output factor of rich ore
+  shaft1_depth_m: 30   # depth of the first shaft level, metres
+  shaft2_depth_m: 60   # depth of the second shaft level, metres
+  hoist_windlass_kg_min: 8   # kg a minute a windlass lifts at the surface
+  hoist_gin_kg_min: 32   # kg a minute a horse gin lifts at the surface
+  hoist_depth_ref_m: 30   # a hoist lifts this much less the deeper it works: capacity x ref / (ref + depth)
+  hauler_kg_min: 10   # kg a minute one hauler carries by hand cart from the face to the bin
+  unmade_way_bps: 5000   # the pace of a hauler on ground with no road
+  adit_gradient: 150   # an adit rises one metre in this many metres
+  min_condition_bps: 3000   # a level whose props stand below this is unsafe and closes
+  water_limit_bps: 6000   # a level fuller of water than this is flooded and closes
+  wear_per_shift_bps: 20   # condition a level loses in each working shift
+  wear_per_day_bps: 30   # condition a level loses a day by itself (rot, ground pressure)
+  inflow_per_day_bps: 600   # water a level takes in a day
+  adit_outflow_bps: 1200   # water an adit carries away a day
+  pump_gin_outflow_bps: 900   # water a horse-gin pump lifts a day
+  set_props_gain_bps: 1200   # condition a timberman's shift gives back
+  set_props_items: 2   # timber props a timberman's shift sets
+  works_shift_wage: 65   # the wage of one builder shift of a mine module, minor units
+  survey_fee: 300   # the fee of surveying a deposit, into the sink
+  min_surface_days: 30   # a live pit must hold ore for this many days of full work at the rule date (the verifier checks it)
+  ore_unit_g: 25000   # grams of one unit of ore (a sack)
+  cart_broken_bps: 3000   # a road or track below this condition halves the pace
+  cart_speed_kmh: 8   # the pace of a loaded cart on a made road, km/h
+  road_link_lot_minutes: 4   # minutes to lay one 30 m lot of a road between settlements
+  road_link_lot_stone: 2   # stone for one 30 m lot of a road between settlements
+  road_link_lot_hours: 1   # builder hours for one 30 m lot of a road between settlements
+  rail_work_hour_wage: 110   # the wage of one builder hour on a railway, minor units
+  rail_worn_bps: 6000   # track under this condition slows a train to half pace
+  stuck_hours: 6   # a train that waits this long for track raises rail.stuck once
+  team_feed_wheat: 1   # wheat a draught team eats on each leg
+  default_rate_per_tonne_km: 40   # the freight rate a new line starts with, minor units per tonne-kilometre
+  chain_default_per_hour: 4   # the rate the chain calculator plans for when none is asked, units an hour
+
 # NPC households (docs/adr/0073-npc-households.md, plan B9): the people behind the labour pool. They start from rule_at (a placeholder far in the
 # future until the deploy sets it); a settlement enrolls itself then, runs a dual run, and flips when its households can fill the old pool.
 # The numbers are drafts until the household budget surveys of the ADR are read (ADR 0073 section 15).
