@@ -182,13 +182,45 @@ func Catalogue() []Def { return append([]Def(nil), catalogue...) }
 // Lookup returns a permission's definition.
 func Lookup(p Permission) (Def, bool) { d, ok := byCode[p]; return d, ok }
 
-// AllPermissions is every permission with no limit: what the founder's office holds.
+// unionOnly are the powers a settlement cannot hold, only a union or a country: admitting and expelling members, war, borders, customs,
+// sanctions and the armed forces (docs/adr/0076 9.1). A settlement's charter neither holds nor shows them.
+var unionOnly = map[Permission]bool{
+	UnionAdmit: true, UnionExpel: true, WarDeclare: true, WarPeace: true, BorderClose: true, CustomsSet: true, SanctionImpose: true,
+	MilitaryCommand: true, MilitaryProcure: true, MilitaryLicence: true,
+}
+
+// UnionOnly reports a permission only a union's charter may hold.
+func UnionOnly(p Permission) bool { return unionOnly[p] }
+
+// AllPermissions is every permission with no limit that a settlement can hold: what the founder's office holds.
 func AllPermissions() []Grant {
+	out := make([]Grant, 0, len(catalogue))
+	for _, d := range catalogue {
+		if unionOnly[d.Code] {
+			continue
+		}
+		out = append(out, Grant{Permission: d.Code})
+	}
+	return out
+}
+
+// AllUnionPermissions is every permission with no limit that a union's charter can hold.
+func AllUnionPermissions() []Grant {
 	out := make([]Grant, 0, len(catalogue))
 	for _, d := range catalogue {
 		out = append(out, Grant{Permission: d.Code})
 	}
 	return out
+}
+
+// NormaliseGrantsForSettlement is NormaliseGrants for a settlement's charter, which refuses the powers only a union may hold.
+func NormaliseGrantsForSettlement(in []Grant) ([]Grant, error) {
+	for _, g := range in {
+		if unionOnly[g.Permission] {
+			return nil, fmt.Errorf("%w: %s", ErrUnknownGrant, g.Permission)
+		}
+	}
+	return NormaliseGrants(in)
 }
 
 // Grant is one permission with its limit; a limit of 0 means no ceiling.

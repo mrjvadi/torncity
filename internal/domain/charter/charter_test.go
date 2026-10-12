@@ -31,8 +31,19 @@ func TestEveryPermissionIsInTheCatalogueOnce(t *testing.T) {
 		}
 		seen[d.Code] = true
 	}
-	if len(AllPermissions()) != len(seen) {
-		t.Error("AllPermissions differs from the catalogue")
+	if len(AllUnionPermissions()) != len(seen) {
+		t.Error("AllUnionPermissions differs from the catalogue")
+	}
+	for _, g := range AllPermissions() {
+		if UnionOnly(g.Permission) {
+			t.Errorf("a settlement's founder office must not hold the union-only %s", g.Permission)
+		}
+	}
+	if _, err := NormaliseGrantsForSettlement([]Grant{{Permission: WarDeclare}}); err == nil {
+		t.Error("a settlement may not be given the power to declare war")
+	}
+	if _, err := NormaliseGrants([]Grant{{Permission: WarDeclare}}); err != nil {
+		t.Errorf("a union may: %v", err)
 	}
 	for _, p := range []Permission{RoadDraw, StorageTake, PublicBuild, TreasurySpend, OfficeEdit, CharterAmend} {
 		if d, ok := Lookup(p); !ok || !d.Active {
