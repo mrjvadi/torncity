@@ -1490,6 +1490,8 @@ type CharterPermissionView struct {
 	Group   string `json:"group"`
 	Limited bool   `json:"limited,omitempty"`
 	Active  bool   `json:"active"`
+	// Class is the delegation a union office needs before it may hold the permission (empty: no delegation).
+	Class string `json:"class,omitempty"`
 }
 
 // CharterPersonView names a player by display name and public code, never an id.

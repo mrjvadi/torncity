@@ -520,6 +520,15 @@ func (h *VillageHandler) treatyView(ctx context.Context, tx application.Tx, snap
 		ty := types[t.Kind]
 		line := village.SettlementTreatyLine{No: t.No, Kind: named(t.Kind, t.Kind), Other: named(oj.Code, oj.Name), Status: string(t.Rule().StatusAt(now)), Mine: t.ProposerID == pt.jurisdiction,
 			ProposedAt: t.ProposedAt, ExpiresAt: t.ExpiresAt, EndedAt: t.EndedAt, Passage: ty.Passage, Alliance: ty.MutualDefence}
+		switch t.EndedParty {
+		case "":
+		case pt.jurisdiction:
+			n := pt.name
+			line.EndedParty = &n
+		case otherID:
+			n := named(oj.Code, oj.Name)
+			line.EndedParty = &n
+		}
 		if until, cooling := diplomacy.CoolingUntil(rules, types, pt.jurisdiction, otherID, h.polity.TreatyCooling, now); cooling && t.Kind != "" {
 			u := until
 			line.CoolingUntil = &u
@@ -536,8 +545,19 @@ func (h *VillageHandler) treatyView(ctx context.Context, tx application.Tx, snap
 	for _, f := range founded {
 		if f.JurisdictionID != pt.jurisdiction {
 			v.Targets = append(v.Targets, named(f.Code, f.Name))
+			v.Parties = append(v.Parties, village.TreatyPartyLine{Party: named(f.Code, f.Name), Kind: "settlement"})
 		}
 	}
+	unions, err := tx.Unions().Active(ctx)
+	if err != nil {
+		return v, err
+	}
+	for _, u := range unions {
+		if u.JurisdictionID != pt.jurisdiction {
+			v.Parties = append(v.Parties, village.TreatyPartyLine{Party: named(u.ID, u.Name), Kind: u.Kind})
+		}
+	}
+	v.CoolingDays = int64(h.polity.TreatyCooling / (24 * time.Hour))
 	return v, nil
 }
 

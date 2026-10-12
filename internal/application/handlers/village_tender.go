@@ -915,7 +915,7 @@ func (h *VillageHandler) tenderView(ctx context.Context, tx application.Tx, s ap
 				if job, err := tx.SettlementTreasury().JobOfBuildingKind(ctx, b.ID, application.LaborKindConstruction); err != nil || job == nil || job.EmployerKind != application.LaborEmployerSettlement {
 					continue
 				}
-				v.Sites = append(v.Sites, village.TenderSiteLine{Building: named(b.ID, h.buildingName(b.TypeCode)), WorkRequired: b.WorkRequired, WorkDone: b.WorkDone})
+				v.Sites = append(v.Sites, village.TenderSiteLine{ID: b.ID, Building: named(b.TypeCode, h.buildingName(b.TypeCode)), WorkRequired: b.WorkRequired, WorkDone: b.WorkDone})
 			}
 		}
 	}
