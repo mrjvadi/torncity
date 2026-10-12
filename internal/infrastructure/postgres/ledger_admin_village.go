@@ -207,6 +207,14 @@ type VillageInvariants struct {
 	HouseholdWalletBelowZero, HouseholdGoneHolding, HouseholdFromSource       int64
 	HouseholdWageToSink, HouseholdUnsettled, HouseholdItemOrphans             int64
 	HouseholdShopOrphans, HouseholdTickDup                                    int64
+	// Mining, carriage and rail (migration 0153, docs/adr/0075): the ore taken from the deposits against the extraction rows and the shifts,
+	// the largest share of a deposit's reserve taken (basis points of the reserve), goods that left a store for the road against goods that
+	// arrived and goods in the open loads, cart loads with no arrival scheduled, sections that hold more trains than they can, sections held by
+	// a train that is not running, freight bookings whose fee is not in the ledger.
+	Mining                                                       bool
+	MineTaken, MineExtracted, MineShiftMismatch, MineMaxTakenBPS int64
+	HaulOut, HaulIn, HaulOnRoad, HaulCartNoAction                int64
+	RailOverheld, RailHeldIdle, FreightBroken                    int64
 	// The tool wear (docs/adr/0050): ToolInputs are the tools the item journal shows leaving the stores as shift inputs,
 	// ToolShiftUnits the tools the shifts recorded as consumed, ToolWearBroken the workplaces whose wear is out of range.
 	ToolInputs, ToolShiftUnits int64
@@ -267,6 +275,8 @@ func (v VillageInvariants) WorkNodesOK() bool {
 		(!v.Service || (v.ServiceLedger == v.ServiceRows && v.ServiceItems == v.ServiceUsedRows && v.ServiceDayBroken == 0)) &&
 		(!v.Care || (v.CareFeeLedger == v.CareFeeRows && v.CareMedicineJournal == v.CareMedicineRows && v.CareBroken == 0)) &&
 		(!v.Survival || (v.SurvivalGarmentJournal == v.SurvivalGarmentRows && v.SurvivalDoubleSlot == 0)) &&
+		(!v.Mining || (v.MineTaken == v.MineExtracted && v.MineShiftMismatch == 0 && v.HaulOut-v.HaulIn == v.HaulOnRoad && v.HaulCartNoAction == 0 &&
+			v.RailOverheld == 0 && v.RailHeldIdle == 0 && v.FreightBroken == 0)) &&
 		(!v.Raids || (v.RaidFeeLedger == v.RaidFeeRows && v.RaidLootCashLedger == v.RaidLootCashRows && v.RaidLootItemJournal == v.RaidLootItemRows &&
 			v.RaidTributeLedger == v.RaidTributeRows && v.FallCashLedger == v.FallCashRows && v.FallGoodsJournal == v.FallGoodsRows && v.FallStrayLegs == 0 &&
 			v.RaidWithoutOutcome == 0 && v.RaidOrphans == 0)) &&

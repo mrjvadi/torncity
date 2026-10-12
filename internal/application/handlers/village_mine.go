@@ -434,7 +434,7 @@ func (h *VillageHandler) mineTrim(ctx context.Context, tx application.Tx, sh *ap
 		return nil, nil
 	}
 	items := materialCodes(made)
-	dep, err := tx.Mines().LockDeposit(ctx, sh.DepositID, resource, now)
+	dep, err := tx.Mines().LockDeposit(ctx, sh.DepositID, resource, sh.DepositReserve, now)
 	if err != nil {
 		return nil, err
 	}

@@ -152,7 +152,7 @@ type NodeStat struct {
 // MineRepository is the mine's port. Reach it through Tx.Mines.
 type MineRepository interface {
 	// LockDeposit makes the deposit's row on first sight and locks it for the rest of the transaction; it returns what was taken.
-	LockDeposit(ctx context.Context, id, resource string, at time.Time) (OreDeposit, error)
+	LockDeposit(ctx context.Context, id, resource string, reserve int64, at time.Time) (OreDeposit, error)
 	// Deposit reads a deposit without locking it (zero Taken for a deposit nobody touched).
 	Deposit(ctx context.Context, id string) (OreDeposit, error)
 	// Take adds to what was taken from a deposit (the caller has the row locked and has trimmed the quantity to what is left).

@@ -19,8 +19,8 @@ type MineRepository struct{ q querier }
 var _ application.MineRepository = (*MineRepository)(nil)
 
 // LockDeposit makes the deposit's row on first sight and locks it.
-func (r *MineRepository) LockDeposit(ctx context.Context, id, resource string, at time.Time) (application.OreDeposit, error) {
-	if _, err := r.q.Exec(ctx, `INSERT INTO ore_deposits (deposit_id, resource, taken, updated_at) VALUES ($1, $2, 0, $3) ON CONFLICT DO NOTHING`, id, resource, at.UTC()); err != nil {
+func (r *MineRepository) LockDeposit(ctx context.Context, id, resource string, reserve int64, at time.Time) (application.OreDeposit, error) {
+	if _, err := r.q.Exec(ctx, `INSERT INTO ore_deposits (deposit_id, resource, reserve, taken, updated_at) VALUES ($1, $2, $3, 0, $4) ON CONFLICT DO NOTHING`, id, resource, reserve, at.UTC()); err != nil {
 		return application.OreDeposit{}, fmt.Errorf("postgres: making the deposit: %w", err)
 	}
 	d := application.OreDeposit{ID: id}

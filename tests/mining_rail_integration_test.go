@@ -118,6 +118,26 @@ func (e *mineEnv) cleanMining(cities ...string) {
 	}
 }
 
+// verifyMining runs the verifier's mining rules (docs/adr/0075 14) over the database.
+func (e *mineEnv) verifyMining() {
+	e.t.Helper()
+	lv, err := postgres.NewEconomyAdmin(e.pool).VerifyLedger(testCtx(e.t), 10)
+	if err != nil {
+		e.t.Fatal(err)
+	}
+	s := lv.VillageInvariants
+	if !s.Mining {
+		e.t.Fatal("the verifier does not see the mining tables")
+	}
+	if s.MineTaken != s.MineExtracted || s.MineShiftMismatch != 0 || s.HaulOut-s.HaulIn != s.HaulOnRoad || s.HaulCartNoAction != 0 || s.RailOverheld != 0 || s.RailHeldIdle != 0 || s.FreightBroken != 0 {
+		e.t.Errorf("the mining invariants: %+v", s)
+	}
+	reach := e.rules.Rules.Cumulative(mining.DepthShaft2)
+	if s.MineMaxTakenBPS*e.rules.Rules.ReserveDivisor > reach {
+		e.t.Errorf("a deposit gave %d bps of its reserve, more than %d bps of capacity reach", s.MineMaxTakenBPS, reach)
+	}
+}
+
 // crew is a resident with a trade of his own: one player, one shift at a time.
 func (e *mineEnv) crew() *application.Player { return e.scholar() }
 
@@ -255,6 +275,7 @@ func TestMiningDepositDepletesInSmallStepsAndByBand(t *testing.T) {
 	if steps < 4 || biggest > 2500 {
 		t.Errorf("the yield fell in %d steps, the biggest %d basis points: a face must thin, not close overnight", steps, biggest)
 	}
+	e.verifyMining()
 }
 
 // Before the grace is over the pit digs as it always did: nothing comes off the deposit.
@@ -361,7 +382,7 @@ func TestAnUnsafeMineClosesAndTheTimbermanReopensIt(t *testing.T) {
 	e.mineState(mine, 1, application.MineWindlass, map[int][2]int64{1: {1_000, 0}})
 	// the surface is worked out
 	surface := e.rules.Rules.Reachable(e.dep.Reserve, mining.DepthSurface)
-	if _, err := e.pool.Raw().Exec(testCtx(t), `INSERT INTO ore_deposits (deposit_id, resource, taken, updated_at) VALUES ($1, 'iron', $2, now()) ON CONFLICT (deposit_id) DO UPDATE SET taken = $2`, e.dep.ID, surface); err != nil {
+	if _, err := e.pool.Raw().Exec(testCtx(t), `INSERT INTO ore_deposits (deposit_id, resource, reserve, taken, updated_at) VALUES ($1, 'iron', $3, $2, now()) ON CONFLICT (deposit_id) DO UPDATE SET taken = $2`, e.dep.ID, surface, e.dep.Reserve); err != nil {
 		t.Fatal(err)
 	}
 	e.stock("splint", 8)
@@ -597,12 +618,9 @@ func TestAConsignmentConservesGoodsInTransit(t *testing.T) {
 	if st := e.scalar(`SELECT count(*) FROM haul_orders WHERE from_settlement = $1::uuid AND status = 'delivered'`, e.cityID); st != 1 {
 		t.Error("the consignment is not delivered")
 	}
-	// the in-transit sum the verifier uses is zero again
-	if s := haul.NewBook(); s == nil {
-		t.Fatal("the pure book")
-	}
 	_ = otherMeta
 	_ = otherHead
+	e.verifyMining()
 }
 
 type railFixture struct {
@@ -768,6 +786,7 @@ func TestTrainLegsAreIdempotentAndSingleTrackHoldsOneTrain(t *testing.T) {
 	if e.trainState(t2).status != application.TrainWaiting {
 		t.Error("the second train is not waiting")
 	}
+	e.verifyMining()
 }
 
 // Trains asking for the same sections at once: the stored reservation lets exactly one hold them, whichever replica asks first.
@@ -914,4 +933,5 @@ func TestFreightFeeIsPaidToTheLineOwnerAndRefundedOnCancel(t *testing.T) {
 	if e.scalar(`SELECT count(*) FROM haul_orders WHERE from_settlement = $1::uuid AND status = 'delivered'`, other) != 1 {
 		t.Error("the booking is not delivered")
 	}
+	e.verifyMining()
 }

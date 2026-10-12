@@ -151,7 +151,7 @@ func (h *VillageHandler) survey(ctx context.Context, tx application.Tx, meta env
 				return err
 			}
 		}
-		if _, err := tx.Mines().LockDeposit(ctx, dep.ID, res, now); err != nil {
+		if _, err := tx.Mines().LockDeposit(ctx, dep.ID, res, dep.Reserve, now); err != nil {
 			return err
 		}
 		est := h.mining.Rules.Capacity(dep.Reserve)

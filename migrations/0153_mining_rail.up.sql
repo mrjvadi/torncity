@@ -14,6 +14,7 @@ BEGIN;
 CREATE TABLE ore_deposits (
     deposit_id text        PRIMARY KEY,
     resource   text        NOT NULL,
+    reserve    bigint      NOT NULL DEFAULT 0,
     taken      bigint      NOT NULL DEFAULT 0,
     updated_at timestamptz NOT NULL,
     CONSTRAINT ore_deposits_taken_check CHECK (taken >= 0)
