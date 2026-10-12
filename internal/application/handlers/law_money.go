@@ -77,11 +77,11 @@ func (h *VillageHandler) lawLaunder(ctx context.Context, tx application.Tx, lc *
 	b := application.LawBatch{ID: h.ids.NewID(), CompanyID: co.ID, OwnerID: lc.p.ID, Amount: amount, Fee: lc.t.LaunderFee(amount), Day: h.lawDay(lc), At: lc.now}
 	due := lc.now.Add(time.Duration(lc.t.LaunderStageHours) * time.Hour)
 	b.StageDue = &due
-	pot, err := lawAcct(ctx, tx, application.AccountEscrowBlack, b.ID)
-	if err != nil {
+	if err := tx.Law().InsertBatch(ctx, b); err != nil {
 		return "", err
 	}
-	if err := tx.Law().InsertBatch(ctx, b); err != nil {
+	pot, err := lawAcct(ctx, tx, application.AccountEscrowBlack, b.ID)
+	if err != nil {
 		return "", err
 	}
 	if err := lawPost(ctx, tx, lc, application.ReasonLaunder, application.LawBatchReference, b.ID, d.ID, pot.ID, amount); err != nil {

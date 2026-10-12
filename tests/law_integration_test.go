@@ -941,3 +941,318 @@ func TestTheFencesTheBustAndTheMatureSwitch(t *testing.T) {
 	}
 	e.verifyLaw()
 }
+
+// ---------------------------------------------------------------------------
+// customs
+// ---------------------------------------------------------------------------
+
+// A load that crosses is declared with what the carrier says and what he carries. At an open customs house the duty on the declared value is due and an
+// inspection is rolled, its chance growing with the inspectors and the size of the load; found, what was not declared is seized into the destination's stock,
+// a penalty is taken (a part of it to the police purse) and a case of smuggling opens with the inspection as evidence. A shut customs house looks at nothing.
+func TestTheCustomsRollsOnAnUndeclaredManifest(t *testing.T) {
+	e := newLawEnv(t)
+	ids := e.station(e.cityID, "constabulary", "customs")
+	e.list("smuggling")
+	trader := e.rich("B", 5000)
+	e.carry(trader, "bread", 5)
+	always := func(r *application.LawRules) { r.T.InspectBaseBPS, r.T.InspectCapBPS = 10_000, 10_000 }
+	never := func(r *application.LawRules) { r.T.InspectBaseBPS, r.T.InspectPerInspectorBPS, r.T.InspectSizeBPS = 0, 0, 0 }
+	dest := e.codeOf(e.cityID)
+
+	// the declaration cannot name what is not carried
+	if kind := e.refused(trader, handlers.VillageLawRequest{Action: village.LawActionDeclare, Code: dest, Items: "bread:9", Carry: "bread:5"}); kind != village.LawBadArgs {
+		t.Fatalf("one cannot declare what one does not carry, got %q", kind)
+	}
+	if kind := e.refused(trader, handlers.VillageLawRequest{Action: village.LawActionDeclare, Code: dest, Items: "bread:2", Carry: "bread:50"}); kind != village.LawNoGoods {
+		t.Fatalf("one cannot carry what one does not have, got %q", kind)
+	}
+	e.retuneLaw(always)
+	e.mustLaw(trader, handlers.VillageLawRequest{Action: village.LawActionDeclare, Code: dest, Items: "bread:2", Carry: "bread:5"})
+	load := e.text(`SELECT id::text FROM law_loads WHERE owner_id = $1::uuid`, trader.ID)
+	cash, treasury, stock := e.cash(trader), e.cityCash(e.cityID), e.stockOf(e.cityID, "bread")
+	v := e.mustLaw(trader, handlers.VillageLawRequest{Action: village.LawActionCross, ID: load})
+	if v.Notice != village.LawNoticeSeized {
+		t.Fatalf("an inspected load with goods not declared is seized, got %q", v.Notice)
+	}
+	// duty on the declared 80, penalty on the undeclared 120: half of it, of which the police purse has 30 percent
+	duty, penalty := e.rules.T.Duty(80), e.rules.T.Penalty(120)
+	if cash-e.cash(trader) != duty+penalty {
+		t.Fatalf("the carrier paid the duty and the penalty: %d", cash-e.cash(trader))
+	}
+	share := e.rules.T.PoliceShare(penalty)
+	if e.cityCash(e.cityID)-treasury != duty+penalty-share {
+		t.Fatalf("the treasury had the duty and the rest of the penalty: %d", e.cityCash(e.cityID)-treasury)
+	}
+	if e.scalarInt(`SELECT COALESCE(sum(balance), 0)::bigint FROM accounts WHERE kind = 'police_purse' AND owner_id = $1::uuid`, e.cityID) != share {
+		t.Fatal("the police have their share")
+	}
+	if e.stockOf(e.cityID, "bread")-stock != 3 || e.carried(trader, "bread") != 2 {
+		t.Fatalf("the three undeclared loaves were seized: stock %d, carried %d", e.stockOf(e.cityID, "bread")-stock, e.carried(trader, "bread"))
+	}
+	if e.scalarInt(`SELECT count(*) FROM law_cases WHERE accused_id = $1::uuid AND offence = 'smuggling' AND source = 'customs'`, trader.ID) != 1 ||
+		e.scalarInt(`SELECT count(*) FROM law_evidence WHERE kind = 'inspection' AND proper`) != 1 {
+		t.Fatal("a case of smuggling with the inspection as proper evidence")
+	}
+	// crossing the same load twice does nothing twice
+	if kind := e.refused(trader, handlers.VillageLawRequest{Action: village.LawActionCross, ID: load}); kind != village.LawNoLoad {
+		t.Fatalf("a load crosses once, got %q", kind)
+	}
+	// a load that is fully declared is inspected and passes
+	e.mustLaw(trader, handlers.VillageLawRequest{Action: village.LawActionDeclare, Code: dest, Items: "bread:2", Carry: "bread:2"})
+	l2 := e.text(`SELECT id::text FROM law_loads WHERE owner_id = $1::uuid AND status = 'declared'`, trader.ID)
+	if v := e.mustLaw(trader, handlers.VillageLawRequest{Action: village.LawActionCross, ID: l2}); v.Notice != village.LawNoticeInspectedClean {
+		t.Fatalf("a load declared whole passes inspection, got %q", v.Notice)
+	}
+	// a chance of nothing: the undeclared goods pass, and it stays a recorded act
+	e.retuneLaw(never)
+	e.mustLaw(trader, handlers.VillageLawRequest{Action: village.LawActionDeclare, Code: dest, Items: "bread:1", Carry: "bread:2"})
+	l3 := e.text(`SELECT id::text FROM law_loads WHERE owner_id = $1::uuid AND status = 'declared'`, trader.ID)
+	cash = e.cash(trader)
+	if v := e.mustLaw(trader, handlers.VillageLawRequest{Action: village.LawActionCross, ID: l3}); v.Notice != village.LawNoticeCrossed {
+		t.Fatalf("an uninspected load crosses, got %q", v.Notice)
+	}
+	if e.carried(trader, "bread") != 2 || e.cash(trader) != cash-e.rules.T.Duty(40) {
+		t.Fatal("nothing was seized and the duty on what was declared was paid")
+	}
+	// a shut customs house collects nothing and looks at nothing, however sure the roll
+	e.retuneLaw(always)
+	e.setPost(ids["customs"], false)
+	e.mustLaw(trader, handlers.VillageLawRequest{Action: village.LawActionDeclare, Code: dest, Items: "bread:1", Carry: "bread:2"})
+	l4 := e.text(`SELECT id::text FROM law_loads WHERE owner_id = $1::uuid AND status = 'declared'`, trader.ID)
+	cash = e.cash(trader)
+	if v := e.mustLaw(trader, handlers.VillageLawRequest{Action: village.LawActionCross, ID: l4}); v.Notice != village.LawNoticeCrossed || e.cash(trader) != cash {
+		t.Fatal("a shut customs house collects nothing and seizes nothing")
+	}
+	// the police can find the act of an uninspected load later: the investigation finds the record of the load
+	officer := e.officer("A", "police.investigate")
+	id := e.newCase("smuggling", trader, nil, "complaint")
+	e.mustLaw(officer, handlers.VillageLawRequest{Action: village.LawActionInvestigate, ID: id})
+	if e.scalarInt(`SELECT count(*) FROM law_evidence WHERE case_id = $1::uuid AND kind = 'record'`, id) < 1 {
+		t.Fatal("the act of an undeclared load is found among the recorded acts")
+	}
+	e.verifyLaw()
+}
+
+// ---------------------------------------------------------------------------
+// bribery and audits
+// ---------------------------------------------------------------------------
+
+// A bribe lowers one rung of the law for the briber for a term, and never to nothing: the cap of the tuning holds whatever was asked. The holder may take it
+// or refuse; taking it moves money into his dirty balance and leaves a record. An integrity audit rolls over the bribes still standing, a day older each day;
+// a bribe found is forfeited, and a case opens against both.
+func TestABribeLowersARungButNeverToNothingAndAnAuditFindsIt(t *testing.T) {
+	e := newLawEnv(t)
+	e.station(e.cityID, "constabulary", "court")
+	e.list("bribery")
+	e.earn(e.cityID, 5000)
+	judge := e.officer("A", "court.warrant")
+	officer := e.officer("A", "police.warrant_ask")
+	auditor := e.officer("A", "audit.integrity")
+	accused := e.rich("A", 5000)
+
+	// the offer: below the least is refused, and a holder of no such power is not offered
+	if kind := e.refused(accused, handlers.VillageLawRequest{Action: village.LawActionBribe, Player: judge.PublicCode, Kind: "warrant", Amount: "10", Bps: "10000"}); kind != village.LawBribeSmall {
+		t.Fatalf("too little, got %q", kind)
+	}
+	if kind := e.refused(accused, handlers.VillageLawRequest{Action: village.LawActionBribe, Player: officer.PublicCode, Kind: "warrant", Amount: "600", Bps: "10000"}); kind != village.LawNotHolder {
+		t.Fatalf("an officer does not sign warrants, got %q", kind)
+	}
+	// the same evidence is enough for a warrant before the bribe and not after it
+	id := e.newCase("bribery", accused, nil, "audit")
+	e.evidence(id, "confession", 40, true)
+	e.evidence(id, "record", 25, true)
+	e.mustLaw(officer, handlers.VillageLawRequest{Action: village.LawActionWarrantAsk, ID: id})
+	w1 := e.text(`SELECT id::text FROM law_warrants WHERE case_id = $1::uuid ORDER BY at LIMIT 1`, id)
+	e.mustLaw(accused, handlers.VillageLawRequest{Action: village.LawActionBribe, Player: judge.PublicCode, Kind: "warrant", Amount: "600", Bps: "10000"})
+	b := e.text(`SELECT id::text FROM law_bribes WHERE briber_id = $1::uuid`, accused.ID)
+	if eff := e.scalarInt(`SELECT effect_bps FROM law_bribes WHERE id = $1::uuid`, b); eff != e.rules.T.BribeMaxEffectBPS || eff >= 10_000 {
+		t.Fatalf("a bribe never lowers a rung to nothing: asked 10000, got %d", eff)
+	}
+	cash := e.cash(accused)
+	if cash != 5000 {
+		t.Fatal("nothing moves until the holder answers")
+	}
+	// the judge refuses once: nothing moved
+	b0 := newUUID(t)
+	if _, err := e.pool.Raw().Exec(testCtx(t), `INSERT INTO law_bribes (id, settlement_id, briber_id, holder_id, rung, effect_bps, amount, dirty, status, offered_at)
+		VALUES ($1::uuid, $2::uuid, $3::uuid, $4::uuid, 'warrant', 3000, 700, false, 'offered', now())`, b0, e.cityID, accused.ID, judge.ID); err != nil {
+		t.Fatal(err)
+	}
+	e.mustLaw(judge, handlers.VillageLawRequest{Action: village.LawActionBribeRefuse, ID: b0})
+	if e.text(`SELECT status FROM law_bribes WHERE id = $1::uuid`, b0) != "refused" || e.cash(accused) != 5000 {
+		t.Fatal("a refused bribe moves nothing")
+	}
+	// he takes the other one: the money goes into his dirty balance
+	e.mustLaw(judge, handlers.VillageLawRequest{Action: village.LawActionBribeAccept, ID: b})
+	if e.dirty(judge) != 600 || e.cash(accused) != 4400 {
+		t.Fatalf("the money moved into the dirty balance: %d, %d", e.dirty(judge), e.cash(accused))
+	}
+	if kind := e.refused(judge, handlers.VillageLawRequest{Action: village.LawActionWarrantSign, ID: w1}); kind != village.LawWeakEvidence {
+		t.Fatalf("the same file counts for less to the judge who took the money, got %q", kind)
+	}
+	// it is a waiting bribe, with a term; the same judge signs for another who has not paid
+	other := e.rich("A", 0)
+	id2 := e.newCase("bribery", other, nil, "audit")
+	e.evidence(id2, "confession", 40, true)
+	e.evidence(id2, "record", 25, true)
+	e.mustLaw(officer, handlers.VillageLawRequest{Action: village.LawActionWarrantAsk, ID: id2})
+	w2 := e.text(`SELECT id::text FROM law_warrants WHERE case_id = $1::uuid`, id2)
+	e.mustLaw(judge, handlers.VillageLawRequest{Action: village.LawActionWarrantSign, ID: w2})
+
+	// the audit: with the roll pinned to find, the bribe is found; the money is forfeited and both are charged
+	e.retuneLaw(func(r *application.LawRules) { r.T.AuditBaseBPS, r.T.AuditCapBPS = 10_000, 10_000 })
+	treasury := e.cityCash(e.cityID)
+	if v := e.mustLaw(auditor, handlers.VillageLawRequest{Action: village.LawActionAudit, Player: judge.PublicCode}); v.Notice != village.LawNoticeAuditFound {
+		t.Fatalf("the audit finds the bribe, got %q", v.Notice)
+	}
+	if e.text(`SELECT status FROM law_bribes WHERE id = $1::uuid`, b) != "found" || e.dirty(judge) != 0 {
+		t.Fatal("the bribe is found and forfeited out of the dirty balance")
+	}
+	if e.cityCash(e.cityID)-treasury != 600-e.rules.T.AuditCost {
+		t.Fatalf("the forfeit comes to the treasury, less the audit's fee: %d", e.cityCash(e.cityID)-treasury)
+	}
+	if e.scalarInt(`SELECT count(*) FROM law_cases WHERE offence = 'bribery' AND source = 'audit' AND accused_id IN ($1::uuid, $2::uuid)`, judge.ID, accused.ID) != 2 {
+		t.Fatal("a case against the holder and one against the briber")
+	}
+	if kind := e.refused(auditor, handlers.VillageLawRequest{Action: village.LawActionAudit, Player: judge.PublicCode}); kind != village.LawAuditedToday {
+		t.Fatalf("one audit of one person a day, got %q", kind)
+	}
+	// an audit of someone who took nothing finds nothing
+	if v := e.mustLaw(auditor, handlers.VillageLawRequest{Action: village.LawActionAudit, Player: officer.PublicCode}); v.Notice != village.LawNoticeAuditClean {
+		t.Fatalf("a clean audit, got %q", v.Notice)
+	}
+	e.verifyLaw()
+}
+
+// ---------------------------------------------------------------------------
+// laundering
+// ---------------------------------------------------------------------------
+
+// Dirty cash is turned clean only through a front, in states that take game time and risk being noticed; the fee leaves the economy and the rest becomes the
+// front's money. A batch noticed midway is frozen and forfeited. The finance office reads the ledger: clean money that came by laundering and is out of
+// proportion with the business's own sales is an anomaly, evidence in a case.
+func TestLaunderingPassesStatesIsFrozenWhenNoticedAndIsFoundByTheBooks(t *testing.T) {
+	e := newLawEnv(t)
+	e.station(e.cityID, "constabulary")
+	e.list("laundering")
+	e.earn(e.cityID, 5000)
+	owner := e.rich("A", 1000)
+	grant(t, e.pool, application.AccountPlayerDirty, owner.ID, 5000)
+	co := e.companyFor(owner, e.cityID, 0)
+	code := e.companyCode(co)
+	auditor := e.officer("A", "audit.books")
+	e.retuneLaw(func(r *application.LawRules) { r.T.LaunderExposureBPS, r.T.BustPatrolBPS = 0, 0 })
+
+	// only the owner's business in this settlement can be a front
+	if kind := e.refused(e.resident("A"), handlers.VillageLawRequest{Action: village.LawActionFront, Code: code}); kind != village.LawNoCompany {
+		t.Fatalf("a business that is not his, got %q", kind)
+	}
+	if kind := e.refused(owner, handlers.VillageLawRequest{Action: village.LawActionLaunder, Code: code, Amount: "1000"}); kind != village.LawNoFront {
+		t.Fatalf("a business that is not a front takes nothing, got %q", kind)
+	}
+	e.mustLaw(owner, handlers.VillageLawRequest{Action: village.LawActionFront, Code: code})
+	if kind := e.refused(owner, handlers.VillageLawRequest{Action: village.LawActionLaunder, Code: code, Amount: "9000"}); kind != village.LawNoMoney {
+		t.Fatalf("more than he holds dirty, got %q", kind)
+	}
+	e.mustLaw(owner, handlers.VillageLawRequest{Action: village.LawActionLaunder, Code: code, Amount: "1000"})
+	b := e.text(`SELECT id::text FROM law_launder_batches WHERE owner_id = $1::uuid`, owner.ID)
+	if e.dirty(owner) != 4000 || e.scalarInt(`SELECT COALESCE(sum(balance), 0)::bigint FROM accounts WHERE kind = 'escrow_black' AND owner_id = $1::uuid`, b) != 1000 {
+		t.Fatal("the dirty cash leaves for a pot while the batch is passing")
+	}
+	// the stages: placed, layered, integrated, each only when its time has come
+	e.tick(application.TickLawBatch, b, "")
+	if e.text(`SELECT state FROM law_launder_batches WHERE id = $1::uuid`, b) != "placed" {
+		t.Fatal("a stage waits for its time")
+	}
+	stage := time.Duration(e.rules.T.LaunderStageHours+1) * time.Hour
+	e.clock.Advance(stage)
+	e.tick(application.TickLawBatch, b, "")
+	if e.text(`SELECT state FROM law_launder_batches WHERE id = $1::uuid`, b) != "layered" {
+		t.Fatal("layered")
+	}
+	e.tick(application.TickLawBatch, b, "") // too soon again
+	e.clock.Advance(stage)
+	e.tick(application.TickLawBatch, b, "")
+	e.tick(application.TickLawBatch, b, "") // a second delivery changes nothing
+	if e.text(`SELECT state FROM law_launder_batches WHERE id = $1::uuid`, b) != "integrated" {
+		t.Fatal("integrated")
+	}
+	fee := e.rules.T.LaunderFee(1000)
+	if e.companyCash(co) != 1000-fee {
+		t.Fatalf("the front has the rest as clean money: %d", e.companyCash(co))
+	}
+	// a batch that is noticed midway is frozen: the pot is forfeited, the police have a share
+	e.retuneLaw(func(r *application.LawRules) { r.T.LaunderExposureBPS = 10_000 })
+	treasury := e.cityCash(e.cityID)
+	e.mustLaw(owner, handlers.VillageLawRequest{Action: village.LawActionLaunder, Code: code, Amount: "2000"})
+	b2 := e.text(`SELECT id::text FROM law_launder_batches WHERE owner_id = $1::uuid AND state = 'placed'`, owner.ID)
+	e.clock.Advance(stage)
+	e.tick(application.TickLawBatch, b2, "")
+	if e.text(`SELECT state FROM law_launder_batches WHERE id = $1::uuid`, b2) != "frozen" {
+		t.Fatal("a batch noticed is frozen")
+	}
+	share := e.rules.T.PoliceShare(2000)
+	if e.cityCash(e.cityID)-treasury != 2000-share || e.scalarInt(`SELECT COALESCE(sum(balance), 0)::bigint FROM accounts WHERE kind = 'police_purse' AND owner_id = $1::uuid`, e.cityID) != share {
+		t.Fatal("the pot is forfeited to the treasury less the police share")
+	}
+	if e.companyCash(co) != 1000-fee {
+		t.Fatal("a frozen batch reaches the front not at all")
+	}
+	// the books: the front's sales are nothing, what came by laundering is out of proportion: an anomaly, evidence in a case
+	v := e.mustLaw(auditor, handlers.VillageLawRequest{Action: village.LawActionAuditBooks, Code: code})
+	if v.Notice != village.LawNoticeAuditAnomaly {
+		t.Fatalf("the books show an anomaly, got %q", v.Notice)
+	}
+	if e.scalarInt(`SELECT count(*) FROM law_cases c JOIN law_evidence e ON e.case_id = c.id WHERE c.accused_id = $1::uuid AND c.offence = 'laundering' AND e.kind = 'ledger_trace'`, owner.ID) != 1 {
+		t.Fatal("a case of laundering with the ledger trace")
+	}
+	// a business with its own sales in proportion shows nothing
+	honest := e.rich("A", 100)
+	co2 := e.companyFor(honest, e.cityID, 0)
+	if v := e.mustLaw(auditor, handlers.VillageLawRequest{Action: village.LawActionAuditBooks, Code: e.companyCode(co2)}); v.Notice != village.LawNoticeAuditClean {
+		t.Fatalf("a business that is no front shows nothing, got %q", v.Notice)
+	}
+	e.verifyLaw()
+}
+
+// ---------------------------------------------------------------------------
+// the exposed agent is a charge only where it is listed and a courthouse stands
+// ---------------------------------------------------------------------------
+
+func espionageCases(t *testing.T, list, courthouse bool) int64 {
+	t.Helper()
+	e := newLawEnv(t)
+	e.pinChance(0) // every operation is blown
+	e.retune(func(r *application.SpecialRules) { r.Intel.DetectBPS, r.Intel.AttributionBPS = 10_000, 0 })
+	agent, agentID := e.agentOf()
+	e.watchOf(e.attCity)
+	e.know(e.attCity, "written_law", "record_keeping", "field_craft", "formal_constabulary")
+	if courthouse {
+		e.put(e.attCity, "courthouse")
+	}
+	if list {
+		e.mustLaw(e.att, handlers.VillageLawRequest{Action: village.LawActionOffence, Code: "espionage"})
+	}
+	if v := e.mustIntel(agent, handlers.VillageIntelRequest{Action: village.IntelActionOp, ID: agentID, Code: "survey_stock"}); v.Notice != village.IntelNoticeExposed {
+		t.Fatalf("the agent is exposed, got %q", v.Notice)
+	}
+	n := e.scalarInt(`SELECT count(*) FROM law_cases WHERE accused_id = $1::uuid AND offence = 'espionage' AND settlement_id = $2::uuid AND source = 'trace'`, agent.ID, e.attCity)
+	if n > 0 {
+		if e.scalarInt(`SELECT count(*) FROM law_evidence e JOIN law_cases c ON c.id = e.case_id WHERE c.accused_id = $1::uuid AND e.kind = 'intel_trace' AND e.proper`, agent.ID) != 1 {
+			t.Fatal("the trace is the evidence")
+		}
+	}
+	return n
+}
+
+func TestAnExposedAgentIsChargedOnlyWhereTheOffenceIsListedAndACourthouseStands(t *testing.T) {
+	if n := espionageCases(t, false, true); n != 0 {
+		t.Errorf("a settlement that does not list espionage charges nobody, %d cases", n)
+	}
+	if n := espionageCases(t, true, false); n != 0 {
+		t.Errorf("a settlement with no courthouse charges nobody, %d cases", n)
+	}
+	if n := espionageCases(t, true, true); n != 1 {
+		t.Errorf("a settlement that lists espionage and has a courthouse charges the agent, %d cases", n)
+	}
+}

@@ -20,10 +20,10 @@ func (a *EconomyAdmin) verifyLaw(ctx context.Context, v *LedgerVerification) err
 		sql  string
 	}{
 		// the dirty balance pays nothing legal and clean money never comes out of it except by laundering: every entry on a dirty account carries a reason
-		// of the short list for its direction
+		// of the short list for its direction (the operator's own grant is the one way in that is not a game act)
 		{&s.LawDirtyStray, "dirty entries with a reason of their own", `SELECT count(*) FROM ledger_entries e JOIN accounts a ON a.id = e.account_id
 			WHERE a.kind = 'player_dirty' AND ((e.amount < 0 AND e.reason NOT IN ('bribe', 'black_trade', 'escrow_hold', 'launder', 'forfeiture', 'forfeiture_police_share', 'bribe_forfeit'))
-				OR (e.amount > 0 AND e.reason NOT IN ('bribe', 'black_trade', 'escrow_scam', 'escrow_refund')))`},
+				OR (e.amount > 0 AND e.reason NOT IN ('bribe', 'black_trade', 'escrow_scam', 'escrow_refund', 'admin_grant')))`},
 		// a pot of the board holds exactly what the held escrow or the unfinished batch it belongs to holds, and nothing after
 		{&s.LawPotBroken, "pots of the hidden board", `SELECT (SELECT count(*) FROM law_escrows e LEFT JOIN accounts a ON a.kind = 'escrow_black' AND a.owner_id = e.id
 				WHERE COALESCE(a.balance, 0) <> CASE WHEN e.status = 'held' THEN e.amount + e.fee ELSE 0 END)
