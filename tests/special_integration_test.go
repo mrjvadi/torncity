@@ -13,6 +13,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/application/handlers"
 	"github.com/mrjvadi/torncity/internal/config"
+	"github.com/mrjvadi/torncity/internal/domain/raid"
 	"github.com/mrjvadi/torncity/internal/infrastructure/postgres"
 	"github.com/mrjvadi/torncity/internal/presentation"
 	"github.com/mrjvadi/torncity/internal/presentation/village"
@@ -1022,12 +1023,12 @@ func TestSabotageIsCappedAndNeverTouchesBuildingsPeopleOrHouses(t *testing.T) {
 	}
 	// the things sabotage may not reach
 	for _, c := range []struct{ kind, ref string }{
-		{"blind_post", house},          // a house is not a watch post
-		{"skip_service_day", house},    // nor a service post
-		{"delay_work", house},          // nor a work
-		{"delay_work", newUUID(t)},     // a work that is not there
-		{"spoil_stock", "plutonium"},   // a stack the store does not hold
-		{"burn_down", house},           // there is no such act
+		{"blind_post", house},        // a house is not a watch post
+		{"skip_service_day", house},  // nor a service post
+		{"delay_work", house},        // nor a work
+		{"delay_work", newUUID(t)},   // a work that is not there
+		{"spoil_stock", "plutonium"}, // a stack the store does not hold
+		{"burn_down", house},         // there is no such act
 	} {
 		if kind := sab(c.kind, c.ref); kind == "" {
 			t.Fatalf("%s on %s was done, it must not be", c.kind, c.ref)
@@ -1097,7 +1098,7 @@ func TestSabotageIsCappedAndNeverTouchesBuildingsPeopleOrHouses(t *testing.T) {
 	if kind := sab("skip_service_day", lookout); kind != "" {
 		t.Fatalf("skipping a day of a service post is allowed, got %q", kind)
 	}
-	e.clock.Advance(26 * time.Hour) // today was judged already (the act itself looked at the watch): the skip falls on the next day
+	e.clock.Advance(26 * time.Hour)                                                   // today was judged already (the act itself looked at the watch): the skip falls on the next day
 	e.mustIntel(e.att, handlers.VillageIntelRequest{Action: village.IntelActionOpen}) // judges B's day
 	if post := e.postOf(e.lastDay(e.attCity), lookout); post == nil || post.Held || post.Idle != application.ServiceIdleSabotaged {
 		t.Fatalf("the skipped day finds the post shut by sabotage: %+v", post)
@@ -1532,4 +1533,82 @@ func TestNoOneHoldsMoreThanTheShareCapOfAKind(t *testing.T) {
 		t.Fatalf("no holder is above the cap: %d", v.VillageInvariants.LicenceMaxShareBPS)
 	}
 	e.verifySpecial()
+}
+
+// dayWith records a judged day (and the days round it) of a settlement with the given posts.
+func (e *specialEnv) dayWith(city string, posts ...application.ServicePost) {
+	e.t.Helper()
+	err := postgres.NewUnitOfWork(e.pool, testDefaultLanguage).Do(testCtx(e.t), func(ctx context.Context, tx application.Tx) error {
+		s, err := tx.Settlements().ByID(ctx, city)
+		if err != nil {
+			return err
+		}
+		today := clockOf(e.t).DayAtIn(e.clock.Now(), s.Zone())
+		for off := int64(-3); off <= 3; off++ {
+			if _, err := tx.ServiceDays().RecordDay(ctx, application.ServiceDay{SettlementID: city, Day: today + off, At: e.clock.Now(), Posts: posts}); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		e.t.Fatal(err)
+	}
+}
+
+// A great beacon that is kept is a detector like any tower: the raid schedules its sighting and it sees by its chance. Blinded by sabotage a post
+// sees less: the same seed that was seen is not seen.
+func TestAKeptGreatBeaconSeesRaidersAndABlindedPostSeesLess(t *testing.T) {
+	e := newSpecialEnv(t, nil)
+	work := e.finishedWork(e.cityID, "great_beacon", 4)
+	e.dayWith(e.cityID, application.ServicePost{BuildingID: work, Service: "relay", Held: true, Staff: 2})
+	id := e.file("3", "5")
+	found := false
+	for _, a := range e.actions(id, "raid_sighting") {
+		found = found || strings.Contains(string(a.Payload), work)
+	}
+	if !found {
+		t.Fatal("the raid schedules a sighting for the great beacon, like for any detector")
+	}
+	// a seed whose roll lies between the blinded chance (70 percent of 9800) and the open one: seen open, unseen blind
+	var seed int64
+	for s := int64(1); ; s++ {
+		if r := raid.Roll(s, "detect:"+work); r >= 6900 && r < 9700 {
+			seed = s
+			break
+		}
+	}
+	e.pool.Raw().Exec(testCtx(t), `UPDATE settlement_raids SET seed = $2 WHERE id = $1::uuid`, id, seed)
+	// the post is blinded: an act of a sponsor (B) against this town, through its agent
+	agent := e.resident("A")
+	agentRow, act := newUUID(t), newUUID(t)
+	if _, err := e.pool.Raw().Exec(testCtx(t), `INSERT INTO intel_agents (id, player_id, sponsor_id, target_id, status, offered_by, cover_since, created_at) VALUES ($1::uuid, $2::uuid, $3::uuid, $4::uuid, 'active', $2::uuid, now(), now())`,
+		agentRow, agent.ID, e.attCity, e.cityID); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := e.pool.Raw().Exec(testCtx(t), `INSERT INTO sabotage_acts (id, sponsor_id, target_id, agent_id, kind, ref_type, ref_id, amount, unit, cost, repair, at) VALUES ($1::uuid, $2::uuid, $3::uuid, $4::uuid, 'blind_post', 'building', $5, 3000, 'bps', 400, 'recovers', now())`,
+		act, e.attCity, e.cityID, agentRow, work); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := e.pool.Raw().Exec(testCtx(t), `INSERT INTO sabotage_effects (act_id, kind, building_id, until, bps) VALUES ($1::uuid, 'blind_post', $2::uuid, now() + interval '1 day', 3000)`, act, work); err != nil {
+		t.Fatal(err)
+	}
+	// 70 percent of 9800 is 6860: a roll above it is not seen
+	e.clock.Advance(2 * time.Hour)
+	if _, err := e.village.RaidSighting(testCtx(t), e.sched("raid.sighting"), handlers.RaidScheduledRequest{ActionID: newUUID(t), ActorID: e.att.ID, ReferenceID: id,
+		Payload: []byte(`{"raid_id":"` + id + `","building_id":"` + work + `"}`)}); err != nil {
+		t.Fatal(err)
+	}
+	var detected bool
+	var chance int64
+	if err := e.pool.Raw().QueryRow(testCtx(t), `SELECT detected, chance_bps FROM settlement_raid_detections WHERE raid_id = $1::uuid AND building_id = $2::uuid`, id, work).Scan(&detected, &chance); err != nil {
+		t.Fatal(err)
+	}
+	if detected || chance > 7000 {
+		t.Fatalf("a blinded great beacon sees less: detected %v at %d", detected, chance)
+	}
+	// the same post unblinded sees (the roll is under the open chance)
+	if raid.Detected(9800, raid.Roll(seed, "detect:"+work)) != true {
+		t.Fatal("the seed is one that the open post sees")
+	}
 }
