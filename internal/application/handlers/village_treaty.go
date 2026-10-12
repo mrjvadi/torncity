@@ -166,7 +166,7 @@ func (h *VillageHandler) treatyPropose(ctx context.Context, tx application.Tx, m
 	if !ok {
 		return refuseVillage(village.TreatyNoKind, village.AddrTreaty)
 	}
-	if err := lockPair(ctx, tx, pt.jurisdiction, other.jurisdiction); err != nil {
+	if err := lockParties(ctx, tx, pt.jurisdiction, other.jurisdiction); err != nil {
 		return err
 	}
 	if err := tx.Diplomacy().ExpireTreaties(ctx, pt.jurisdiction, other.jurisdiction, now); err != nil {
@@ -230,7 +230,7 @@ func (h *VillageHandler) treatyAnswer(ctx context.Context, tx application.Tx, me
 	if err != nil {
 		return "", err
 	}
-	if err := lockPair(ctx, tx, t.ProposerID, t.PartnerID); err != nil {
+	if err := lockParties(ctx, tx, t.ProposerID, t.PartnerID); err != nil {
 		return "", err
 	}
 	if t, err = tx.Diplomacy().TreatyByNo(ctx, t.No, true); err != nil {
@@ -271,7 +271,7 @@ func (h *VillageHandler) treatyEnd(ctx context.Context, tx application.Tx, meta 
 	if err != nil {
 		return "", err
 	}
-	if err := lockPair(ctx, tx, t.ProposerID, t.PartnerID); err != nil {
+	if err := lockParties(ctx, tx, t.ProposerID, t.PartnerID); err != nil {
 		return "", err
 	}
 	if t, err = tx.Diplomacy().TreatyByNo(ctx, t.No, true); err != nil {
@@ -537,4 +537,16 @@ func (h *VillageHandler) treatyView(ctx context.Context, tx application.Tx, snap
 		}
 	}
 	return v, nil
+}
+
+// lockParties takes both parties' diplomacy locks, the lower id first. A party is any jurisdiction: a settlement's, a union's, a country's.
+func lockParties(ctx context.Context, tx application.Tx, a, b string) error {
+	first, second := a, b
+	if second < first {
+		first, second = second, first
+	}
+	if err := tx.Unions().LockParty(ctx, first); err != nil {
+		return err
+	}
+	return tx.Unions().LockParty(ctx, second)
 }

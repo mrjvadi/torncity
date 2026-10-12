@@ -171,6 +171,8 @@ type UnionDues struct {
 type UnionRepository interface {
 	// Lock serialises the acts on one union for the rest of the transaction.
 	Lock(ctx context.Context, unionID string) error
+	// LockParty serialises the diplomacy of one party (a settlement's, a union's or a country's jurisdiction) for the rest of the transaction.
+	LockParty(ctx context.Context, jurisdictionID string) error
 	// Unions and members.
 	Insert(ctx context.Context, u Union) error
 	ByID(ctx context.Context, id string, lock bool) (*Union, error)

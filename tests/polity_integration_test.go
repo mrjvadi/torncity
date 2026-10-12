@@ -13,6 +13,8 @@ import (
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/application/handlers"
 	"github.com/mrjvadi/torncity/internal/config"
+	"github.com/mrjvadi/torncity/internal/domain/roads"
+	"github.com/mrjvadi/torncity/internal/domain/worldgen"
 	"github.com/mrjvadi/torncity/internal/infrastructure/postgres"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/presentation"
@@ -105,6 +107,9 @@ func (e *polityEnv) truncatePolity() {
 		`ALTER TABLE sovereign_loan_events ENABLE TRIGGER sovereign_loan_events_no_change`,
 		`DELETE FROM jurisdictions WHERE kind IN ('league', 'country') AND content_version_id IS NULL`,
 		`DELETE FROM settlement_claims WHERE settlement_id IN ($1::uuid, $2::uuid, $3::uuid)`,
+		`ALTER TABLE diplomacy_events DISABLE TRIGGER diplomacy_events_append_only`,
+		`DELETE FROM diplomacy_events WHERE treaty_id IN (SELECT id FROM treaties WHERE proposer_id IN (SELECT jurisdiction_id FROM cities WHERE id IN ($1::uuid, $2::uuid, $3::uuid)) OR partner_id IN (SELECT jurisdiction_id FROM cities WHERE id IN ($1::uuid, $2::uuid, $3::uuid)))`,
+		`ALTER TABLE diplomacy_events ENABLE TRIGGER diplomacy_events_append_only`,
 		`DELETE FROM treaties WHERE proposer_id IN (SELECT jurisdiction_id FROM cities WHERE id IN ($1::uuid, $2::uuid, $3::uuid)) OR partner_id IN (SELECT jurisdiction_id FROM cities WHERE id IN ($1::uuid, $2::uuid, $3::uuid))`,
 		`DELETE FROM company_shareholders WHERE company_id IN (SELECT id FROM companies WHERE type_code = 'works_contractor')`,
 		`DELETE FROM companies WHERE type_code = 'works_contractor'`,
@@ -647,4 +652,139 @@ func grantsFor(delegations string) []string {
 		}
 	}
 	return out
+}
+
+func (e *polityEnv) treaty(p *application.Player, req handlers.VillageTreatyRequest) (village.SettlementTreatyView, string) {
+	e.t.Helper()
+	resp, err := e.village.Treaty(testCtx(e.t), e.metaOf(p, "settlement.treaty", "treaty"), req)
+	if err != nil {
+		e.t.Fatalf("treaty %s: %v", req.Action, err)
+	}
+	if resp.Screen == village.ScreenTreaty {
+		var v village.SettlementTreatyView
+		if err := presentation.DecodeView(resp.View, &v); err != nil {
+			e.t.Fatal(err)
+		}
+		return v, ""
+	}
+	return village.SettlementTreatyView{}, refusalKind(e.t, resp.View)
+}
+
+func (e *polityEnv) mustTreaty(p *application.Player, req handlers.VillageTreatyRequest) village.SettlementTreatyView {
+	e.t.Helper()
+	v, kind := e.treaty(p, req)
+	if kind != "" {
+		e.t.Fatalf("treaty %s was refused: %s", req.Action, kind)
+	}
+	return v
+}
+
+// signTreaty has one settlement propose a kind of treaty to another and the other accept it; it returns the treaty's number.
+func (e *polityEnv) signTreaty(from *application.Player, to *application.Player, toCode, kind string) string {
+	e.t.Helper()
+	e.mustTreaty(from, handlers.VillageTreatyRequest{Action: village.TreatyActionPropose, Kind: kind, Code: toCode})
+	no := e.text(`SELECT no::text FROM treaties WHERE kind = $1 AND status = 'proposed' ORDER BY no DESC LIMIT 1`, kind)
+	e.mustTreaty(to, handlers.VillageTreatyRequest{Action: village.TreatyActionAccept, No: no})
+	return no
+}
+
+// A treaty a party broke cools that party: for the cooling days it may not raid the one it left, while the one it left may. A treaty of
+// defence between two settlements keeps them from raiding each other (ADR 0076 7.2).
+func TestATreatyBreakCoolsTheBreakerAndRefusesWarAndRaids(t *testing.T) {
+	e := newPolityEnv(t, nil)
+	codeA, codeB := e.codeOf(e.cityID), e.codeOf(e.attCity)
+	no := e.signTreaty(e.head, e.att, codeB, "alliance")
+	if e.text(`SELECT status FROM treaties WHERE no = $1::bigint`, no) != "active" {
+		t.Fatal("the alliance is in force")
+	}
+	// allies do not raid each other, either way
+	_, resp := e.raidAs(e.head, false, handlers.VillageRaidRequest{Action: village.RaidActionFile, Code: codeB})
+	raidRefused(t, resp, village.RaidTreaty)
+	_, resp = e.raidAs(e.att, true, handlers.VillageRaidRequest{Action: village.RaidActionFile, Code: codeA})
+	raidRefused(t, resp, village.RaidTreaty)
+	// A ends the alliance: it is on the public record, with the party that ended it
+	e.mustTreaty(e.head, handlers.VillageTreatyRequest{Action: village.TreatyActionEnd, No: no})
+	if e.text(`SELECT status FROM treaties WHERE no = $1::bigint`, no) != "terminated" || e.text(`SELECT COALESCE(ended_party::text, '') FROM treaties WHERE no = $1::bigint`, no) !=
+		e.text(`SELECT jurisdiction_id::text FROM cities WHERE id = $1::uuid`, e.cityID) {
+		t.Fatal("the treaty ended, by A")
+	}
+	if e.scalarInt(`SELECT count(*) FROM diplomacy_events WHERE kind = 'treaty_terminated' AND treaty_id = (SELECT id FROM treaties WHERE no = $1::bigint)`, no) != 1 {
+		t.Fatal("the break is on the public record")
+	}
+	// the 7-day cooling-off: A may not raid B; B, who was left, may
+	_, resp = e.raidAs(e.head, false, handlers.VillageRaidRequest{Action: village.RaidActionFile, Code: codeB})
+	raidRefused(t, resp, village.RaidCooling)
+	_, resp = e.raidAs(e.att, true, handlers.VillageRaidRequest{Action: village.RaidActionFile, Code: codeA})
+	if resp.Screen != village.ScreenRaid {
+		t.Fatalf("the one who was left may raid: %s", resp.Screen)
+	}
+	e.clock.Advance(7*24*time.Hour + time.Hour)
+	_, resp = e.raidAs(e.head, false, handlers.VillageRaidRequest{Action: village.RaidActionFile, Code: codeB})
+	if k := refusalKind(t, resp.View); k == village.RaidCooling || k == village.RaidTreaty {
+		t.Fatalf("after the cooling A is free to act, got %q", k)
+	}
+	// ending a treaty twice, or ending another's: refused
+	if _, kind := e.treaty(e.head, handlers.VillageTreatyRequest{Action: village.TreatyActionEnd, No: no}); kind != village.TreatyState {
+		t.Fatalf("an ended treaty cannot end again: %q", kind)
+	}
+	if _, kind := e.treaty(e.headC, handlers.VillageTreatyRequest{Action: village.TreatyActionEnd, No: no}); kind != village.TreatyNotParty {
+		t.Fatalf("a third party cannot end it: %q", kind)
+	}
+}
+
+// A road over another settlement's claim needs a passage treaty with it (ADR 0042 4.10, 0076 7.3).
+func TestAWayOverAnotherSettlementsClaimNeedsAPassageTreaty(t *testing.T) {
+	e := newPolityEnv(t, nil)
+	cfg := config.Defaults()
+	mining := settlementcfg.Mining(cfg.Mining)
+	mining.RuleAt = e.clock.Now().Add(-48 * time.Hour)
+	mining.From = mining.RuleAt
+	e.village.WithMining(mining)
+	w, _ := e.foundingEnv.world(t)
+	var tiles []worldgen.TileID
+	e.village.WithRouter(func(ctx context.Context, w *worldgen.World, from, to int32, class roads.Class) (roads.Route, error) {
+		pt := w.Cells[from].Point
+		t0 := w.TileOfLatLon(pt.LatDeg, pt.LonDeg)
+		out := []worldgen.TileID{t0}
+		for i := 0; i < 8; i++ {
+			t0 = w.Offset(t0, 1, 0)
+			out = append(out, t0)
+		}
+		tiles = out
+		return roads.Route{Tiles: out, LengthM: 8 * w.TileLengthM()}, nil
+	})
+	_ = w
+	link := func() string {
+		resp, err := e.village.Haul(testCtx(t), e.as(e.head, "settlement.haul", "haul"), handlers.VillageHaulRequest{Action: village.HaulActionLink, Code: e.codeOf(e.attCity), N: "path"})
+		if err != nil {
+			t.Fatal(err)
+		}
+		return refusalKind(t, resp.View)
+	}
+	if k := link(); k == village.HaulNoPassage {
+		t.Fatal("nobody holds those tiles: no passage is needed")
+	}
+	if len(tiles) == 0 {
+		t.Fatal("the router was not asked")
+	}
+	face, gx, gy := tiles[3].Parts()
+	if _, err := e.pool.Raw().Exec(testCtx(t), `INSERT INTO settlement_claims (id, settlement_id, tile_face, tile_gx, tile_gy, claimed_by, claimed_at, paid_through, ledger_transaction_id)
+		VALUES (gen_random_uuid(), $1::uuid, $2, $3, $4, $5::uuid, now(), now() + interval '30 days', gen_random_uuid())`, e.cityC, face, gx, gy, e.headC.ID); err != nil {
+		t.Fatal(err)
+	}
+	if k := link(); k != village.HaulNoPassage {
+		t.Fatalf("C holds a tile of the way and A has no passage with C: %q", k)
+	}
+	e.signTreaty(e.head, e.headC, e.codeOf(e.cityC), "passage")
+	if k := link(); k == village.HaulNoPassage {
+		t.Fatal("with a passage treaty the way is open")
+	}
+	// a passage treaty with B does not open C's land
+	e.mustTreaty(e.head, handlers.VillageTreatyRequest{Action: village.TreatyActionEnd, No: e.text(`SELECT no::text FROM treaties WHERE kind = 'passage' AND status = 'active' ORDER BY no DESC LIMIT 1`)})
+	if k := link(); k != village.HaulNoPassage {
+		t.Fatalf("an ended passage treaty closes the way again: %q", k)
+	}
+	if _, err := e.pool.Raw().Exec(testCtx(t), `DELETE FROM settlement_claims WHERE settlement_id = $1::uuid`, e.cityC); err != nil {
+		t.Fatal(err)
+	}
 }

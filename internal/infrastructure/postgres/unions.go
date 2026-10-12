@@ -928,3 +928,11 @@ func (r *UnionRepository) ClaimOwners(ctx context.Context, tiles []application.T
 	}
 	return out, rows.Err()
 }
+
+// LockParty takes a transaction-scoped advisory lock keyed by a party's jurisdiction.
+func (r *UnionRepository) LockParty(ctx context.Context, jurisdictionID string) error {
+	if _, err := r.q.Exec(ctx, `SELECT pg_advisory_xact_lock(hashtextextended('party:' || $1, 0))`, jurisdictionID); err != nil {
+		return fmt.Errorf("postgres: locking a party: %w", err)
+	}
+	return nil
+}
