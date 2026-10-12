@@ -252,6 +252,11 @@ func (t *tx) Mines() application.MineRepository { return &MineRepository{q: t.q}
 func (t *tx) Haul() application.HaulRepository  { return &HaulRepository{q: t.q} }
 func (t *tx) Rail() application.RailRepository  { return &RailRepository{q: t.q} }
 
+// Unions, Tenders and Debts return the polity repositories (migration 0154).
+func (t *tx) Unions() application.UnionRepository  { return &UnionRepository{q: t.q} }
+func (t *tx) Tenders() application.TenderRepository { return &TenderRepository{q: t.q} }
+func (t *tx) Debts() application.DebtRepository     { return &DebtRepository{q: t.q} }
+
 // Raids returns the raids and falls (migration 0152).
 func (t *tx) Raids() application.RaidRepository { return &RaidRepository{q: t.q} }
 
