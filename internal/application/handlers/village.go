@@ -158,6 +158,8 @@ type VillageHandler struct {
 
 	// special are the rules of special projects, intelligence and the licence market (WithSpecial, docs/adr/0077).
 	special application.SpecialRules
+	// law are the rules of police, courts, informants, the hidden board, laundering and customs (WithLaw, docs/adr/0078).
+	law application.LawRules
 
 	idempotencyTTL time.Duration
 	now            func() time.Time

@@ -517,6 +517,13 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 			}
 			return h.village.Intel(ctx, env.Metadata, req)
 		},
+		"settlement.law": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageLawRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.Law(ctx, env.Metadata, req)
+		},
 		"settlement.licence": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			var req handlers.VillageLicenceRequest
 			if err := decode(env, &req); err != nil {

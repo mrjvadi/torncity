@@ -62,6 +62,9 @@ func (a *EconomyAdmin) verifyCare(ctx context.Context, v *LedgerVerification) er
 	if err := a.verifySpecial(ctx, v); err != nil {
 		return err
 	}
+	if err := a.verifyLaw(ctx, v); err != nil {
+		return err
+	}
 	return a.verifyMining(ctx, v)
 }
 

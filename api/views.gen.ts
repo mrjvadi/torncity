@@ -3613,6 +3613,227 @@ export interface LaunchView {
   estimate: Estimate | null
 }
 
+export interface LawBatchLine {
+  id: string
+  state: string
+  amount: number
+  stage_due: string | null | null
+}
+
+export interface LawBoard {
+  known: boolean
+  standing: number
+  broker: boolean
+  rep: number
+  broker_cap: number
+  listings: LawListingLine[] | null
+  escrows: LawEscrowLine[] | null
+  dirty: number
+}
+
+export interface LawBribeLine {
+  id: string
+  rung: string
+  status: string
+  effect_bps: number
+  amount: number
+  dirty: boolean
+  mine: boolean
+  may_answer: boolean
+  term_end: string | null | null
+}
+
+export interface LawCaseDetail {
+  line: LawCaseLine
+  model: string
+  evidence: LawEvidenceLine[] | null
+  warrants: string[] | null
+  verdicts: LawVerdictLine[] | null
+  sentences: LawSentenceLine[] | null
+  appeals: string[] | null
+  total: number
+  quality: number
+  may_investigate: boolean
+  may_ask_warrant: boolean
+  may_sign: boolean
+  may_arrest: boolean
+  may_charge: boolean
+  may_drop: boolean
+  may_defend: boolean
+  may_verdict: boolean
+  may_appeal: boolean
+  may_decide: boolean
+  may_appeal_as: string
+}
+
+export interface LawCaseLine {
+  id: string
+  no: number
+  offence: Named
+  accused: Named
+  state: string
+  source: string
+  strength: number
+  custody: boolean
+  at: string | null
+}
+
+export interface LawEscrowLine {
+  id: string
+  status: string
+  amount: number
+  fee: number
+  qty: number
+  item: Named
+  buyer: boolean
+  broker: boolean
+  mine: boolean
+  due_at: string | null
+}
+
+export interface LawEvidenceLine {
+  id: string
+  kind: string
+  strength: number
+  proper: boolean
+  excluded: boolean
+}
+
+export interface LawFrontLine {
+  company: Named
+  batches: LawBatchLine[] | null
+}
+
+export interface LawInformantLine {
+  id: string
+  reliability: number
+  state: string
+  mine: boolean
+  rotate_due: boolean
+  since: string | null
+  source: Named
+}
+
+export interface LawListingLine {
+  id: string
+  item: Named
+  qty: number
+  price: number
+  fence: boolean
+  mine: boolean
+  min_standing: number
+}
+
+export interface LawLoadLine {
+  id: string
+  status: string
+  to: Named
+  declared: Record<string, number> | null
+  carried: Record<string, number> | null
+  inspected: boolean
+  duty: number
+  penalty: number
+  may_cross: boolean
+}
+
+export interface LawMays {
+  set: boolean
+  patrol: boolean
+  investigate: boolean
+  arrest: boolean
+  warrant_ask: boolean
+  warrant_sign: boolean
+  charge: boolean
+  drop: boolean
+  defence: boolean
+  judge: boolean
+  appeal_hear: boolean
+  pardon: boolean
+  informants: boolean
+  audit_integrity: boolean
+  audit_books: boolean
+}
+
+export interface LawOffenceLine {
+  code: string
+  name: string
+  class: string
+  sentences: string[] | null
+  listed: boolean
+  max_fine: number
+  max_jail_hours: number
+  max_ban_days: number
+  effective_at: string | null
+  available: boolean
+}
+
+export interface LawOpen {
+  police: boolean
+  courts: boolean
+  black: boolean
+  customs: boolean
+  launder: boolean
+}
+
+export interface LawPostLine {
+  service: string
+  building: Named
+  stands: boolean
+  open: boolean
+  cells: number
+  held: number
+}
+
+export interface LawSentenceLine {
+  id: string
+  kind: string
+  status: string
+  ban: string
+  fine: number
+  fine_paid: number
+  jail_hours: number
+  ban_days: number
+  cell: number
+  ends_at: string | null | null
+  bail: number
+  may_bail: boolean
+  may_pardon: boolean
+}
+
+export interface LawVerdictLine {
+  instance: number
+  guilty: boolean
+  npc: boolean
+  defence: boolean
+  total: number
+  effective: number
+  quality: number
+  at: string | null
+}
+
+export interface LawView {
+  village: string
+  open: LawOpen
+  mature: boolean
+  model: string
+  mays: LawMays
+  posts: LawPostLine[] | null
+  points: number
+  spent: number
+  patrol: number
+  offences: LawOffenceLine[] | null
+  cases: LawCaseLine[] | null
+  case: LawCaseDetail | null
+  mine: LawSentenceLine[] | null
+  informants: LawInformantLine[] | null
+  bribes: LawBribeLine[] | null
+  captured: boolean
+  board: LawBoard
+  fronts: LawFrontLine[] | null
+  loads: LawLoadLine[] | null
+  notice: string
+}
+
 export interface LeverEditView {
   place: GovPlace
   lever: GovLever
@@ -8388,6 +8609,7 @@ export interface ScreenViews {
   settlement_knowledge_list: KnowledgeListView
   settlement_land: LandView
   settlement_land_registry: LandRegistryView
+  settlement_law: LawView
   settlement_licence: LicenceView
   settlement_lot_access: LotAccessView
   settlement_lot_buy_confirm: LotBuyView

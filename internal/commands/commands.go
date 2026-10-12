@@ -476,6 +476,7 @@ var all = []Subscription{
 	{Domain: "settlement", Action: "project", Origin: FromPlayer},
 	{Domain: "settlement", Action: "intel", Origin: FromPlayer},
 	{Domain: "settlement", Action: "licence", Origin: FromPlayer},
+	{Domain: "settlement", Action: "law", Origin: FromPlayer},
 	{Domain: "polity", Action: "tick", Origin: FromScheduler},
 	{Domain: "settlement", Action: "rail", Origin: FromPlayer},
 	{Domain: "settlement", Action: "chain", Origin: FromPlayer},

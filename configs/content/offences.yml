@@ -1,0 +1,114 @@
+version: 1
+# The closed catalogue of offences a settlement may outlaw (docs/adr/0078 3.5). An act is a crime in a settlement only if its charter lists the
+# offence (the permission law.set); where it is not listed the act is legal there. Each row names a class, the sentences it may carry and the
+# bounds a charter and a judge work inside. The rows describe NOTHING about how an act is done: they are names and limits, not instructions.
+# Every figure is a draft (evidence D) until a balance run.
+offences:
+  - code: theft
+    source: "ADR 0078 3.5"
+    evidence: D
+    name: "دزدی"
+    class: petty
+    sentences: [caution, fine, restitution, ban, jail]
+    max_fine: 3000
+    max_jail_hours: 24
+    max_ban_days: 14
+    requires: {knowledge: [written_law]}
+  - code: fraud
+    source: "ADR 0078 3.5"
+    evidence: D
+    name: "کلاهبرداری"
+    class: serious
+    sentences: [fine, restitution, ban, jail, forfeiture]
+    max_fine: 8000
+    max_jail_hours: 72
+    max_ban_days: 60
+    requires: {knowledge: [written_law]}
+  - code: assault
+    source: "ADR 0078 3.5"
+    evidence: D
+    name: "ضرب و جرح"
+    class: serious
+    sentences: [caution, fine, ban, jail]
+    max_fine: 5000
+    max_jail_hours: 72
+    max_ban_days: 30
+    requires: {knowledge: [written_law]}
+  - code: smuggling
+    source: "ADR 0078 3.8"
+    evidence: D
+    name: "قاچاق"
+    class: serious
+    sentences: [fine, ban, jail, forfeiture]
+    max_fine: 10000
+    max_jail_hours: 96
+    max_ban_days: 60
+    requires: {knowledge: [written_law, customs_duty]}
+  - code: forgery
+    source: "ADR 0078 3.8"
+    evidence: D
+    name: "جعل سند"
+    class: serious
+    sentences: [fine, ban, jail, forfeiture]
+    max_fine: 8000
+    max_jail_hours: 72
+    max_ban_days: 60
+    requires: {knowledge: [written_law]}
+  - code: bribery
+    source: "ADR 0078 3.10"
+    evidence: D
+    name: "رشوه"
+    class: serious
+    sentences: [fine, ban, jail, forfeiture]
+    max_fine: 12000
+    max_jail_hours: 96
+    max_ban_days: 90
+    requires: {knowledge: [written_law]}
+  - code: laundering
+    source: "ADR 0078 3.10"
+    evidence: D
+    name: "پول‌شویی"
+    class: grave
+    sentences: [fine, ban, jail, forfeiture]
+    max_fine: 20000
+    max_jail_hours: 168
+    max_ban_days: 180
+    requires: {knowledge: [written_law, record_keeping]}
+  - code: false_evidence
+    source: "ADR 0078 3.7"
+    evidence: D
+    name: "شهادت و گزارش دروغ"
+    class: serious
+    sentences: [fine, ban, jail]
+    max_fine: 6000
+    max_jail_hours: 72
+    max_ban_days: 90
+    requires: {knowledge: [written_law]}
+  - code: espionage
+    source: "ADR 0078 3.11; ADR 0077 6.6"
+    evidence: D
+    name: "جاسوسی"
+    class: grave
+    sentences: [fine, ban, jail]
+    max_fine: 15000
+    max_jail_hours: 168
+    max_ban_days: 365
+    requires: {knowledge: [written_law, field_craft]}
+  - code: racketeering
+    source: "ADR 0078 3.12; ADR 0035 5.2"
+    evidence: D
+    name: "اخاذی سازمان‌یافته"
+    class: grave
+    sentences: [fine, ban, jail, forfeiture]
+    max_fine: 25000
+    max_jail_hours: 240
+    max_ban_days: 365
+    requires: {knowledge: [written_law]}
+  - code: contempt
+    source: "ADR 0078 3.5"
+    evidence: D
+    name: "بی‌احترامی به دادگاه"
+    class: petty
+    sentences: [caution, fine]
+    max_fine: 1000
+    requires: {knowledge: [written_law]}

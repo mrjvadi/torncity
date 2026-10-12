@@ -47,7 +47,7 @@ version: 1
 # lint demand its removal, and the shipped-content test pins its size.
 legacy_stage_only: []
 
-# ADR 0072: a settlement size (village, town, city) is not a gate. These 26 rows are the only ones that still
+# ADR 0072: a settlement size (village, town, city) is not a gate. These 24 rows are the only ones that still
 # name one; each waits for a real prerequisite that is built later (a transport building, the charter offices,
 # the shop line of a founded settlement, the achievement). The list may only shrink (the lint refuses a new
 # size label and a stale entry). docs/adr/0072-parcels-zones-and-tier-retirement.md section 3.4.
@@ -55,9 +55,7 @@ stage_exceptions:
   - achievement/entrepreneur
   - item/bag_frame
   - item/bag_hiking
-  - item/card_skimmer
   - item/coffee
-  - item/fake_documents
   - item/first_aid_kit
   - item/jewellery
   - item/lockpick_set
@@ -112,6 +110,15 @@ staff_roles:
   - {code: retainer, wage_bps: 12000, personal: [{kind: level, min: 1}], support_npc: true, note: "ADR 0074: a sworn retainer kept by the settlement"}
   - {code: analyst, building: {code: intelligence_office}, wage_bps: 13000, personal: [{kind: literacy}], support_npc: true, note: "ADR 0077 6.1: turns what the agents bring into a banded report; an NPC of the pool or a player"}
   - {code: handler, building: {code: intelligence_office}, wage_bps: 14000, personal: [{kind: literacy}], support_npc: true, note: "ADR 0077 6.1: sets the requirements and pays the agents; an NPC of the pool or a player"}
+  - {code: constable, building: {code: constable_post}, skill: vigilance, wage_bps: 11000, personal: [{kind: level, min: 1}], support_npc: true, note: "ADR 0078 3.3: keeps the beat and the lock-up; an NPC of the pool or a player"}
+  - {code: police_officer, building: {code: police_post}, skill: vigilance, wage_bps: 12000, personal: [{kind: level, min: 1}], support_npc: true, note: "ADR 0078 3.3: patrol and case work at the station; an NPC of the pool or a player"}
+  - {code: desk_clerk, building: {code: police_post}, wage_bps: 11000, personal: [{kind: literacy}], support_npc: true, note: "ADR 0078 3.3: takes complaints and keeps the custody book"}
+  - {code: court_clerk, building: {code: courthouse}, wage_bps: 12000, personal: [{kind: literacy}], support_npc: true, note: "ADR 0078 3.3: keeps the register of cases"}
+  - {code: bailiff, building: {code: courthouse}, wage_bps: 11000, personal: [{kind: level, min: 1}], support_npc: true, note: "ADR 0078 3.3: keeps order in the room and serves the summons"}
+  - {code: warder, building: {code: jail}, wage_bps: 11000, personal: [{kind: level, min: 1}], support_npc: true, note: "ADR 0078 3.6: one for a few cells"}
+  - {code: jail_cook, building: {code: jail}, wage_bps: 10000, support_npc: true, note: "ADR 0078 3.6: feeds the prisoners"}
+  - {code: customs_inspector, building: {code: customs_house}, wage_bps: 12000, personal: [{kind: literacy}], support_npc: true, note: "ADR 0078 3.8: looks at a load against its declaration"}
+  - {code: customs_clerk, building: {code: customs_house}, wage_bps: 11000, personal: [{kind: literacy}], support_npc: true, note: "ADR 0078 3.8: keeps the declarations"}
   - {code: beacon_keeper, skill: vigilance, wage_bps: 10000, personal: [{kind: level, min: 1}], support_npc: true, note: "ADR 0042 8.9"}
   - {code: shopkeeper, building: {code: general_store}, skill: trade, wage_bps: 11000, personal: [{kind: literacy}], support_npc: true, note: "ADR 0046 5.1: the NPC citizen who keeps the village shop (the founding stall too); a player may hold the post later (ADR 0046 M5)"}
   - {code: stall_keeper, building: {code: barter_post}, skill: trade, wage_bps: 10000, support_npc: true, note: "ADR 0062: the NPC citizen a stall owner hires to mind the stall while he is away; he holds a pool seat and takes trade.stall_keeper_share_bps of each sale made then, out of the seller's proceeds (stall_keeper_wage); a player does not hold the post"}
@@ -175,6 +182,9 @@ availability:
   - {kind: building, code: retainer_hall}
   - {kind: building, code: constable_post}
   - {kind: building, code: police_post, elsewhere: [{where: support}]}
+  - {kind: building, code: courthouse}
+  - {kind: building, code: jail}
+  - {kind: building, code: customs_house}
   - {kind: building, code: training_ground}
   - {kind: building, code: carpentry_workshop}
   - {kind: building, code: masonry_workshop}
@@ -269,6 +279,9 @@ availability:
   - {kind: knowledge, code: mounted_militia, growth: {open: true, founding: true, row: 76}, elsewhere: [{where: support}]}
   - {kind: knowledge, code: sworn_retainers, growth: {open: true, founding: true, row: 77}, elsewhere: [{where: support}]}
   - {kind: knowledge, code: formal_constabulary, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: written_law, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: penal_custody, elsewhere: [{where: support}]}
+  - {kind: knowledge, code: customs_duty, elsewhere: [{where: support}]}
   - {kind: knowledge, code: signal_fires, elsewhere: [{where: support}]}
   - {kind: knowledge, code: craft_guild_charter, elsewhere: [{where: support}]}
   - {kind: knowledge, code: temple_school, growth: {open: true, founding: true, row: 80}, elsewhere: [{where: support}]}
@@ -398,8 +411,8 @@ availability:
   - {kind: item, code: gloves, growth: {open: true, founding: true, row: 151}, requires: {}, elsewhere: [{where: support}]}
   - {kind: item, code: ski_mask, stage: town, growth: {open: true, row: 152}, requires: {}, elsewhere: [{where: support}], note: "underworld gear, ADR 0035"}
   - {kind: item, code: running_shoes, stage: town, growth: {open: true, row: 153}, requires: {}, elsewhere: [{where: support}]}
-  - {kind: item, code: fake_documents, stage: city, growth: {open: true, row: 154}, requires: {}, note: "no legal source; black market not built (ADR 0035), behind the operator 18+ switch"}
-  - {kind: item, code: card_skimmer, stage: city, growth: {open: true, row: 155}, requires: {}, note: "no legal source; black market not built (ADR 0035), behind the operator 18+ switch"}
+  - {kind: item, code: fake_documents, requires: {knowledge: [periodic_market], buildings: [{role: market, tier: 1}]}, note: "ADR 0078 3.8: sold by the fences of the hidden board (shadow_supply.yml) to a player with enough underworld standing; no city shop sells it"}
+  - {kind: item, code: card_skimmer, requires: {knowledge: [periodic_market], buildings: [{role: market, tier: 1}]}, note: "ADR 0078 3.8: sold by the fences of the hidden board (shadow_supply.yml) to a player with enough underworld standing; no city shop sells it"}
   - {kind: item, code: phone, requires: {buildings: [{role: craft, tier: 3}]}, elsewhere: [{where: support}]}
   - {kind: item, code: watch, stage: town, growth: {open: true, row: 157}, requires: {}, elsewhere: [{where: support}]}
   - {kind: item, code: car_stereo, requires: {buildings: [{role: craft, tier: 3}]}, elsewhere: [{where: support}]}

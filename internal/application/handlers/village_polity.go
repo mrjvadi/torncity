@@ -94,7 +94,8 @@ func (h *VillageHandler) PolityTick(ctx context.Context, meta envelope.Metadata,
 		case application.TickLicenceExpiry:
 			return h.tickLicenceExpiry(ctx, tx, meta, pl.ID, now)
 		}
-		return nil
+		_, err := h.lawTick(ctx, tx, meta, pl.Kind, pl.ID, pl.Aux, now)
+		return err
 	})
 	return nil, err
 }

@@ -331,6 +331,7 @@ commands:
   settlement.project: {kind: navigation, icon: "action:project"}
   settlement.intel: {kind: navigation, icon: "action:intel"}
   settlement.licence: {kind: navigation, icon: "action:licence"}
+  settlement.law: {kind: navigation, icon: "action:law"}
   settlement.rail: {kind: navigation, icon: "action:rail"}
   settlement.chain: {kind: navigation, icon: "action:chain"}
   settlement.knowledge.buy: {kind: primary, icon: "action:buy"}

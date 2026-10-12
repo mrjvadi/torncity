@@ -57,6 +57,10 @@ var ownerTables = map[application.AccountKind]string{
 	application.AccountProjectFund:   "special_projects",
 	application.AccountProjectEscrow: "project_contracts",
 	application.AccountLicenceEscrow: "(SELECT id FROM licence_auctions UNION ALL SELECT id FROM licence_applications) AS escrows",
+	// A player's dirty balance, the pot of a trade on the hidden board or a batch of dirty cash, and a settlement's police purse (migration 0157, ADR 0078).
+	application.AccountPlayerDirty: "players",
+	application.AccountEscrowBlack: "(SELECT id FROM law_escrows UNION ALL SELECT id FROM law_launder_batches) AS pots",
+	application.AccountPolicePurse: "cities",
 	// A holder's balance in a currency that is not the neutral one: the owner is a player, a
 	// settlement or a company (migration 0127, docs/adr/0029 section 5.2).
 	application.AccountForeignHolding: "(SELECT id FROM players UNION ALL SELECT id FROM cities UNION ALL SELECT id FROM companies) AS holders",

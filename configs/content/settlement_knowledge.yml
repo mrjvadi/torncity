@@ -532,6 +532,27 @@ knowledge:
     provides: [local_security]
     cost: 7000
     time: 50h
+  # Law (docs/adr/0078): written rules a court can apply, the keeping of prisoners, and the duty on goods that cross a border.
+  - code: written_law
+    field: security
+    name: "قانون مکتوب"
+    requires: [record_keeping, formal_constabulary]
+    provides: [local_security]
+    cost: 6000
+    time: 40h
+  - code: penal_custody
+    field: security
+    name: "نگهداری زندانی"
+    requires: [written_law]
+    provides: [local_security]
+    cost: 5000
+    time: 36h
+  - code: customs_duty
+    field: market
+    name: "حقوق گمرکی"
+    requires: [record_keeping, periodic_market]
+    cost: 5000
+    time: 36h
 
   # ---------------------------------------------------------------------
   # skilled_labor — kin_apprenticeship is the founding grant above; three

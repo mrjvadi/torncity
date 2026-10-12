@@ -1,0 +1,24 @@
+version: 1
+# What the hidden board's NPC fences put up each local day (docs/adr/0078 3.8). A row names a good that ALREADY exists in items.yml and is marked
+# black_market there (no city shop sells it); the fences are the source those goods never had. A settlement has the supply only where the row's
+# requirement stands, and a player sees the board only with enough underworld standing. The price is the base price plus a premium: the price of
+# having no legal source and no contract. Every figure is a draft (evidence D).
+shadow_supply:
+  - code: forged_documents_fence
+    source: "ADR 0078 3.8"
+    evidence: D
+    item: fake_documents
+    offence: forgery
+    daily: 2
+    premium_bps: 3000
+    min_standing: 10
+    requires: {knowledge: [periodic_market], buildings: [{role: market, tier: 1}]}
+  - code: card_skimmer_fence
+    source: "ADR 0078 3.8"
+    evidence: D
+    item: card_skimmer
+    offence: fraud
+    daily: 1
+    premium_bps: 4000
+    min_standing: 20
+    requires: {knowledge: [periodic_market], buildings: [{role: market, tier: 1}]}

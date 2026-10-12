@@ -1401,6 +1401,116 @@ building_functions:
     ledger_reasons: [service_wage, intel_op_fee]
     replaces: [intelligence_office]
     note: "the analyst turns what the agents bring into a banded report and the handler sets the requirements and pays the agents: the intelligence cycle, kept by two clerks from the pool, paid by the treasury, with paper from the stock. A day it is open (staffed, paid, with paper) its agents may work; closed, they cannot. Without agents it produces nothing."
+  # ---- law (docs/adr/0078 3.3). The staff are hired through the labour market and paid by the treasury; a post nobody staffs, feeds or pays
+  # stands idle and does nothing. The offices that decide (a constable, a prosecutor, a judge) are the charter's, never a staff slot. ----
+  - code: constable_post
+    source: "ADR 0078 3.3; ADR 0074 7.1"
+    evidence: D
+    name: "پاسگاه ژاندارمری"
+    requires: {knowledge: [formal_constabulary]}
+    kind: service
+    family: security
+    zones: [core, residential]
+    footprint: [1, 1, 1, 1]
+    owners: [treasury]
+    levels:
+      - {level: 1, requires: {knowledge: [formal_constabulary]}, cost_money: 900, build_hours: 2}
+    staff: [{role: constable, slots: 2, shift_hours: 6}]
+    if_unstaffed: idle
+    consumes: {fuel: {firewood: 1}, food_points: 4}
+    produces: {service: constabulary, daily: true, field: security}
+    links: {from: [civic_hall]}
+    ledger_reasons: [service_wage]
+    replaces: [constable_post]
+    note: "a constable and a deputy keep the beat and a two-cell lock-up (custody only, never a sentence): each day it is open (staffed, fed, paid) it gives patrol points and a place to hold an arrested person until the custody clock runs out. Closed, nobody patrols and nobody can be held."
+  - code: police_post
+    source: "ADR 0078 3.3; ADR 0035 15"
+    evidence: D
+    name: "کلانتری"
+    requires: {knowledge: [record_keeping, formal_constabulary], buildings: [{role: security, tier: 1}]}
+    kind: service
+    family: security
+    zones: [core]
+    footprint: [2, 2, 2, 2]
+    owners: [treasury]
+    levels:
+      - {level: 1, requires: {knowledge: [record_keeping, formal_constabulary], buildings: [{role: security, tier: 1}]}, cost_money: 5000, build_hours: 4}
+    staff:
+      - {role: police_officer, slots: 3, shift_hours: 6}
+      - {role: desk_clerk, slots: 1, shift_hours: 6}
+    if_unstaffed: idle
+    consumes: {inputs: {paper: 1}, fuel: {firewood: 1}, food_points: 8}
+    produces: {service: constabulary, daily: true, field: security}
+    links: {from: [civic_hall, constable_post]}
+    ledger_reasons: [service_wage]
+    replaces: [police_post]
+    note: "a station: officers on beats, a desk that takes complaints, an evidence store and cells for custody. Open (staffed, fed, paid, with paper) it gives more patrol and investigation points than a post; closed, no case moves and nobody can be held. It holds no sentence: a sentence is served in a jail."
+  - code: courthouse
+    source: "ADR 0078 3.3, 3.5"
+    evidence: D
+    name: "دادگاه"
+    requires: {knowledge: [written_law, record_keeping], buildings: [{code: civic_hall}]}
+    kind: service
+    family: governance
+    zones: [core]
+    footprint: [2, 2, 2, 2]
+    owners: [treasury]
+    levels:
+      - {level: 1, requires: {knowledge: [written_law, record_keeping], buildings: [{code: civic_hall}]}, cost_money: 2500, cost_materials: {timber: 8, paper: 4}, build_hours: 3}
+    staff:
+      - {role: court_clerk, slots: 1, shift_hours: 6}
+      - {role: bailiff, slots: 1, shift_hours: 6}
+    if_unstaffed: idle
+    consumes: {inputs: {paper: 1}, fuel: {firewood: 1}, food_points: 4}
+    produces: {service: court, daily: true}
+    links: {from: [civic_hall]}
+    ledger_reasons: [service_wage]
+    replaces: [courthouse]
+    note: "the room where a trial can sit: a clerk keeps the register of cases and the bailiff keeps order and serves the summons. The judge, the prosecutor and the defence are offices of the charter, not staff. A day it is open a hearing may be held; closed, no trial sits and nobody can be sentenced."
+  - code: jail
+    source: "ADR 0078 3.6"
+    evidence: D
+    name: "زندان"
+    requires: {knowledge: [penal_custody, written_law], buildings: [{code: courthouse}]}
+    kind: service
+    family: security
+    zones: [core]
+    footprint: [2, 2, 2, 2]
+    owners: [treasury]
+    levels:
+      - {level: 1, requires: {knowledge: [penal_custody, written_law], buildings: [{code: courthouse}]}, cost_money: 4000, cost_materials: {timber: 10, stone: 10}, build_hours: 5}
+    staff:
+      - {role: warder, slots: 2, shift_hours: 8}
+      - {role: jail_cook, slots: 1, shift_hours: 8}
+    if_unstaffed: idle
+    consumes: {fuel: {firewood: 2}, food_points: 10}
+    produces: {service: custody, daily: true, field: security}
+    links: {from: [courthouse]}
+    ledger_reasons: [service_wage, jail_food]
+    replaces: [jail]
+    note: "cells for sentences: a warder per few cells and a cook; each prisoner eats at the treasury's cost every day. Open it takes new prisoners up to its cells; closed (no warder, no wage, no food) it takes none, and the prisoners it holds are let go at the next day's judgement, never starved."
+  - code: customs_house
+    source: "ADR 0078 3.8"
+    evidence: D
+    name: "گمرک"
+    requires: {knowledge: [customs_duty, record_keeping], buildings: [{role: market, tier: 1}]}
+    kind: service
+    family: governance
+    zones: [core]
+    footprint: [2, 2, 2, 2]
+    owners: [treasury]
+    levels:
+      - {level: 1, requires: {knowledge: [customs_duty, record_keeping], buildings: [{role: market, tier: 1}]}, cost_money: 2000, cost_materials: {timber: 6, paper: 4}, build_hours: 3}
+    staff:
+      - {role: customs_inspector, slots: 2, shift_hours: 6}
+      - {role: customs_clerk, slots: 1, shift_hours: 6}
+    if_unstaffed: idle
+    consumes: {inputs: {paper: 1}, food_points: 6}
+    produces: {service: customs, daily: true}
+    links: {from: [barter_post]}
+    ledger_reasons: [service_wage, border_tariff, customs_penalty]
+    replaces: [customs_house]
+    note: "inspectors look at a declared load against what it carries; the clerk keeps the declarations. Open, a load that crosses is inspected by a roll that grows with the inspectors and the size of the load; closed, nothing is inspected and the tariff on a load goes unpaid."
   - code: great_beacon
     source: "ADR 0077 4.2; ADR 0074 7.2"
     evidence: D

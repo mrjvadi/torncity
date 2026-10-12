@@ -554,6 +554,8 @@ func refuseCharter(err error) error {
 		kind = village.CharterLastManager
 	case stderrors.Is(err, charter.ErrHeadOffice):
 		kind = village.CharterHeldOffice
+	case stderrors.Is(err, charter.ErrSeparation):
+		kind = village.LawSeparation
 	case stderrors.Is(err, charter.ErrAcquisition):
 		kind = village.CharterAcquisition
 	case stderrors.Is(err, charter.ErrSeatsFull):
@@ -635,6 +637,12 @@ func (h *VillageHandler) CharterOfficeSave(ctx context.Context, meta envelope.Me
 		}
 		req.Office = resolveOffice(st, req.Office)
 		lim := h.limits()
+		// the legal model of the settlement decides whether one office may both charge and judge (docs/adr/0078 3.2)
+		if model, err := tx.Law().Model(ctx, s.CityID); err != nil {
+			return err
+		} else {
+			lim.Inquisitorial = model == "inquisitorial"
+		}
 		grants, err := charter.NormaliseGrantsForSettlement(grantsOf(req.Grants))
 		if err != nil {
 			return refuseCharter(err)
@@ -987,6 +995,12 @@ func (h *VillageHandler) charterSeat(ctx context.Context, meta envelope.Metadata
 				return err
 			} else if recalled {
 				return refuseVillage(village.CharterRecalledRecent, village.AddrVillageCharter)
+			}
+			// a sentence of a ban from office keeps a person out of every seat while it runs (docs/adr/0078 3.5)
+			if banned, err := tx.Law().Banned(ctx, whom, s.CityID, BanOffice, now); err != nil {
+				return err
+			} else if banned {
+				return refuseVillage(village.LawBanned, village.AddrVillageCharter)
 			}
 			ok, err := tx.Charters().Seat(ctx, application.CharterSeat{ID: h.ids.NewID(), OfficeID: target.ID, HolderID: whom, AppointedBy: p.ID, Since: now})
 			if err != nil {

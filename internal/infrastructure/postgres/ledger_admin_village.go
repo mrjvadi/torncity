@@ -232,6 +232,17 @@ type VillageInvariants struct {
 	IntelReportFigures, IntelNoExpulsion, SabotageMaxWeek, LicenceEscrowBroken     int64
 	LicenceAwardLedger, LicenceAwardRows, LicenceRevokedNoCause, LicenceStaleLive  int64
 	LicenceAuctionManyWinners, LicenceMaxShareBPS                                  int64
+	// Police, courts, informants, the hidden board, laundering and customs (migration 0157, docs/adr/0078 3.16): dirty entries with a reason of their own,
+	// pots of the board that hold the wrong amount, released trades, fines, customs penalties and laundering fees in the ledger against the rows, jail sentences
+	// with no cell, cells with two prisoners, sentences with no guilty verdict, verdicts of a case never heard, appeal verdicts with no appeal, warrants resting on
+	// tips alone, accepted bribes with no money moved, the largest effect of a bribe, mature listings while the switch is off, informants with no first contact
+	// and cases whose stages skip.
+	Law                                                                         bool
+	LawDirtyStray, LawPotBroken, LawTradeLedger, LawTradeRows, LawFineLedger    int64
+	LawFineRows, LawPenaltyLedger, LawPenaltyRows, LawLaunderFeeLedger          int64
+	LawLaunderFeeRows, LawJailNoCell, LawCellShared, LawSentenceNoVerdict       int64
+	LawVerdictNoHearing, LawAppealNoAppeal, LawWarrantTipsOnly, LawBribeNoMoney int64
+	LawBribeMaxEffect, LawMatureOff, LawInformantNoRecord, LawStagesBroken      int64
 	// Mining, carriage and rail (migration 0153, docs/adr/0075): the ore taken from the deposits against the extraction rows and the shifts,
 	// the largest share of a deposit's reserve taken (basis points of the reserve), goods that left a store for the road against goods that
 	// arrived and goods in the open loads, cart loads with no arrival scheduled, sections that hold more trains than they can, sections held by
@@ -307,6 +318,10 @@ func (v VillageInvariants) WorkNodesOK() bool {
 			v.IntelFeeLedger == v.IntelFeeRows && v.IntelWageLedger == v.IntelWageRows && v.SabotageCostLedger == v.SabotageCostRows && v.IntelReportBlown == 0 &&
 			v.IntelReportFigures == 0 && v.IntelNoExpulsion == 0 && v.LicenceEscrowBroken == 0 && v.LicenceAwardLedger == v.LicenceAwardRows && v.LicenceRevokedNoCause == 0 &&
 			v.LicenceAuctionManyWinners == 0)) &&
+		(!v.Law || (v.LawDirtyStray == 0 && v.LawPotBroken == 0 && v.LawTradeLedger == v.LawTradeRows && v.LawFineLedger == v.LawFineRows &&
+			v.LawPenaltyLedger == v.LawPenaltyRows && v.LawLaunderFeeLedger == v.LawLaunderFeeRows && v.LawJailNoCell == 0 && v.LawCellShared == 0 &&
+			v.LawSentenceNoVerdict == 0 && v.LawVerdictNoHearing == 0 && v.LawAppealNoAppeal == 0 && v.LawWarrantTipsOnly == 0 && v.LawBribeNoMoney == 0 &&
+			v.LawMatureOff == 0 && v.LawInformantNoRecord == 0 && v.LawStagesBroken == 0)) &&
 		(!v.Polity || (v.UnionDuesLedger == v.UnionDuesRows && v.UnionPayoutLedger == v.UnionPayoutRows && v.TenderEscrowBroken == 0 &&
 			v.DebtDisbursedLedger == v.DebtDisbursedRows && v.DebtRepaidLedger == v.DebtRepaidRows && v.DebtPenaltyLedger == v.DebtFeesRows &&
 			v.CountryParentBroken == 0 && v.UnionNoManager == 0 && v.UnionCeilingBroken == 0 && v.UnionNoFounded == 0 && v.SettlementTwoCountries == 0)) &&

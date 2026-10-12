@@ -456,6 +456,8 @@ commands:
   settlement.project: {channel: group, client: true}
   settlement.intel: {channel: group, client: true}
   settlement.licence: {channel: group, client: true}
+  # Police, courts, informants, the hidden board, laundering and customs (docs/adr/0078).
+  settlement.law: {channel: group, client: true}
   settlement.knowledge.buy: {channel: group, client: true}
   settlement.build: {channel: group, client: true}
   settlement.build.lots: {channel: group, client: true}

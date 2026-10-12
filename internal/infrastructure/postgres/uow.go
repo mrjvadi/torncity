@@ -258,6 +258,7 @@ func (t *tx) Tenders() application.TenderRepository   { return &TenderRepository
 func (t *tx) Projects() application.ProjectRepository { return &ProjectRepository{q: t.q} }
 func (t *tx) Intel() application.IntelRepository      { return &IntelRepository{q: t.q} }
 func (t *tx) Licences() application.LicenceRepository { return &LicenceRepository{q: t.q} }
+func (t *tx) Law() application.LawRepository          { return &LawRepository{q: t.q} }
 func (t *tx) Debts() application.DebtRepository       { return &DebtRepository{q: t.q} }
 
 // Raids returns the raids and falls (migration 0152).
