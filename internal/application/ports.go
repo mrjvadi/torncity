@@ -187,6 +187,8 @@ type Tx interface {
 	Projects() ProjectRepository
 	Intel() IntelRepository
 	Licences() LicenceRepository
+	// Law holds police, courts, informants, the hidden board, laundering and customs (migration 0157, docs/adr/0078).
+	Law() LawRepository
 	Debts() DebtRepository
 	// Raids holds the raids, falls, sight of detectors and settlement insurers (migration 0152, ADR 0074); see ports_raid.go.
 	Raids() RaidRepository

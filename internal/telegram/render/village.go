@@ -67,6 +67,7 @@ func init() {
 	Register(village.ScreenProject, screens.Project)
 	Register(village.ScreenIntel, screens.Intel)
 	Register(village.ScreenLicence, screens.Licence)
+	Register(village.ScreenLaw, screens.Law)
 	Register(village.ScreenRail, screens.Rail)
 	Register(village.ScreenChain, screens.Chain)
 	Register(village.ScreenRaid, screens.Raid)

@@ -237,6 +237,7 @@ func (t *fakeTx) Tenders() application.TenderRepository                         
 func (t *fakeTx) Projects() application.ProjectRepository                        { return nil }
 func (t *fakeTx) Intel() application.IntelRepository                             { return nil }
 func (t *fakeTx) Licences() application.LicenceRepository                        { return nil }
+func (t *fakeTx) Law() application.LawRepository                                 { return nil }
 func (t *fakeTx) Debts() application.DebtRepository                              { return nil }
 func (t *fakeTx) Mines() application.MineRepository                              { return nil }
 func (t *fakeTx) Haul() application.HaulRepository                               { return nil }

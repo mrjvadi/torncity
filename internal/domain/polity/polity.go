@@ -87,7 +87,7 @@ var classOf = map[charter.Permission]Class{
 	charter.PoliceInvestigate: Courts, charter.PoliceArrest: Courts, charter.PoliceWarrantAsk: Courts, charter.PoliceInformantRun: Courts,
 	charter.ProsecuteCharge: Courts, charter.ProsecuteDrop: Courts, charter.DefenceAppear: Courts, charter.CourtWarrant: Courts, charter.CourtAppealHear: Courts,
 	charter.JailRun: Courts, charter.Pardon: Courts, charter.AuditIntegrity: Courts, charter.AuditBooks: Courts, charter.LawSet: Courts,
-	charter.CustomsInspect: Customs,
+	charter.CustomsInspect:  Customs,
 	charter.CurrencyCharter: Currency, charter.CurrencyIssue: Currency, charter.BankPolicy: Currency,
 	charter.BorderClose: Customs, charter.CustomsSet: Customs,
 	charter.RoadDraw: Roads, charter.RailDraw: Roads, charter.HaulOrder: Roads,
@@ -339,7 +339,9 @@ func (d DuesRule) Due(income, maxBPS int64) int64 {
 func Expellable(arrears, after int64) bool { return after > 0 && arrears >= after }
 
 // ExitAt is when a member that gave notice at noticeAt is out.
-func ExitAt(noticeAt time.Time, days int64) time.Time { return noticeAt.AddDate(0, 0, int(max(days, 0))) }
+func ExitAt(noticeAt time.Time, days int64) time.Time {
+	return noticeAt.AddDate(0, 0, int(max(days, 0)))
+}
 
 // ExitReady reports whether the notice has run its course.
 func ExitReady(noticeAt time.Time, days int64, now time.Time) bool {

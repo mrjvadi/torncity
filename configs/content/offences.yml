@@ -74,6 +74,16 @@ offences:
     max_jail_hours: 168
     max_ban_days: 180
     requires: {knowledge: [written_law, record_keeping]}
+  - code: false_evidence
+    source: "ADR 0078 3.7"
+    evidence: D
+    name: "شهادت و گزارش دروغ"
+    class: serious
+    sentences: [fine, ban, jail]
+    max_fine: 6000
+    max_jail_hours: 72
+    max_ban_days: 90
+    requires: {knowledge: [written_law]}
   - code: espionage
     source: "ADR 0078 3.11; ADR 0077 6.6"
     evidence: D

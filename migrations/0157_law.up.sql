@@ -203,7 +203,7 @@ CREATE TABLE law_informant_contacts (
     id          uuid        PRIMARY KEY,
     informant_id uuid       NOT NULL REFERENCES law_informants (id),
     handler_id  uuid        NOT NULL REFERENCES players (id),
-    kind        text        NOT NULL CHECK (kind IN ('recruit', 'tip', 'pay', 'rotate', 'burn', 'retire')),
+    kind        text        NOT NULL CHECK (kind IN ('recruit', 'tip', 'press', 'pay', 'rotate', 'burn', 'retire')),
     pay         bigint      NOT NULL DEFAULT 0,
     case_id     uuid        NULL REFERENCES law_cases (id),
     at          timestamptz NOT NULL
@@ -296,6 +296,8 @@ CREATE TABLE law_escrows (
     amount      bigint      NOT NULL CHECK (amount > 0),
     fee         bigint      NOT NULL CHECK (fee >= 0),
     qty         bigint      NOT NULL CHECK (qty > 0),
+    -- the buyer paid from his dirty balance: a refund goes back to the same place
+    dirty       boolean     NOT NULL DEFAULT false,
     status      text        NOT NULL DEFAULT 'held' CHECK (status IN ('held', 'released', 'refunded', 'scammed')),
     due_at      timestamptz NOT NULL,
     at          timestamptz NOT NULL,

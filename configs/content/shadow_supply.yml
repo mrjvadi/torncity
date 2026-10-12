@@ -8,6 +8,7 @@ shadow_supply:
     source: "ADR 0078 3.8"
     evidence: D
     item: fake_documents
+    offence: forgery
     daily: 2
     premium_bps: 3000
     min_standing: 10
@@ -16,6 +17,7 @@ shadow_supply:
     source: "ADR 0078 3.8"
     evidence: D
     item: card_skimmer
+    offence: fraud
     daily: 1
     premium_bps: 4000
     min_standing: 20

@@ -306,7 +306,7 @@ type Office struct {
 type Limits struct {
 	// Inquisitorial lifts the separation of the prosecutor and the judge (a magistrate who investigates and judges, with an appeal to another
 	// office); the adversarial model, the default, keeps them in different offices (docs/adr/0078 3.2).
-	Inquisitorial bool
+	Inquisitorial                        bool
 	MaxOffices, MaxSeats, MaxPermissions int
 	TitleMin, TitleMax                   int
 	// Reserved are extra words no title may be (content: founding.yml reserved_names).

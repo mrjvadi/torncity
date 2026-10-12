@@ -70,7 +70,9 @@ type ShadowSupplyDef struct {
 	PremiumBPS int64 `yaml:"premium_bps" json:"premium_bps"`
 	// MinStanding is the underworld standing a buyer needs.
 	MinStanding int64 `yaml:"min_standing,omitempty" json:"min_standing,omitempty"`
-	Mature      bool  `yaml:"mature,omitempty" json:"mature,omitempty"`
+	// Offence is the offence a trade in the good is, where a settlement outlaws it (offences.yml); "" for a good whose trade is no offence.
+	Offence string `yaml:"offence,omitempty" json:"offence,omitempty"`
+	Mature  bool   `yaml:"mature,omitempty" json:"mature,omitempty"`
 }
 
 // law checks the two families (called from the building schema's lint).
@@ -97,6 +99,10 @@ func (l *schemaLint) law() {
 		}
 		l.needs(key, d.Requires)
 	}
+	known := map[string]bool{}
+	for _, o := range l.p.Offences {
+		known[o.Code] = true
+	}
 	sseen := map[string]bool{}
 	for _, d := range l.p.ShadowSupply {
 		key := l.head("shadow_supply", d.Head, sseen)
@@ -110,6 +116,9 @@ func (l *schemaLint) law() {
 			if it.Code == d.Item && !it.BlackMarket {
 				l.bad("%s: %s has a legal source; only a good marked black_market is sold by the fences", key, d.Item)
 			}
+		}
+		if d.Offence != "" && !known[d.Offence] {
+			l.bad("%s: offence %q is not in offences.yml", key, d.Offence)
 		}
 		l.needs(key, d.Requires)
 	}
