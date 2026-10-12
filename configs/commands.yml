@@ -447,6 +447,11 @@ commands:
   settlement.haul: {channel: group, client: true}
   settlement.rail: {channel: group, client: true}
   settlement.chain: {channel: group, client: true}
+  # Unions, countries, treaties of settlements, public tenders and loans between polities (docs/adr/0076).
+  settlement.union: {channel: group, client: true}
+  settlement.treaty: {channel: group, client: true}
+  settlement.tender: {channel: group, client: true}
+  settlement.debt: {channel: group, client: true}
   settlement.knowledge.buy: {channel: group, client: true}
   settlement.build: {channel: group, client: true}
   settlement.build.lots: {channel: group, client: true}

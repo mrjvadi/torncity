@@ -482,6 +482,42 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 			}
 			return h.village.RailEvent(ctx, env.Metadata, req)
 		},
+		"settlement.union": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageUnionRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.Union(ctx, env.Metadata, req)
+		},
+		"settlement.treaty": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageTreatyRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.Treaty(ctx, env.Metadata, req)
+		},
+		"settlement.tender": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageTenderRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.Tender(ctx, env.Metadata, req)
+		},
+		"settlement.debt": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageDebtRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.Debt(ctx, env.Metadata, req)
+		},
+		// The scheduler's: a deadline of the unions, tenders and loans (docs/adr/0076).
+		"polity.tick": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.CrimeScheduledRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.PolityTick(ctx, env.Metadata, req)
+		},
 		"settlement.haul": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			var req handlers.VillageHaulRequest
 			if err := decode(env, &req); err != nil {

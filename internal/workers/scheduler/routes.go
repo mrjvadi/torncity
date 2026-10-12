@@ -120,6 +120,9 @@ const (
 	ActionTypeRaidOpen     = "raid_open"
 	ActionTypeRaidResolve  = "raid_resolve"
 
+	// ActionTypePolityTick is a deadline of unions, countries, tenders and loans between polities (docs/adr/0076): the payload says which.
+	ActionTypePolityTick = "polity_tick"
+
 	// Stage F (docs/adr/0024): a proposal's vote window ending, and a
 	// city's period ending (its budget, property and rent).
 	ActionTypeLegislatureClose = "legislature_close"
@@ -209,6 +212,7 @@ var routes = map[string]Route{
 	ActionTypeRaidSighting: {Domain: "raid", Action: "sighting"},
 	ActionTypeRaidOpen:     {Domain: "raid", Action: "open"},
 	ActionTypeRaidResolve:  {Domain: "raid", Action: "resolve"},
+	ActionTypePolityTick:   {Domain: "polity", Action: "tick"},
 
 	ActionTypeLegislatureClose: {Domain: "law", Action: "close"},
 	ActionTypeCityPeriod:       {Domain: "city", Action: "settle"},

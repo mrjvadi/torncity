@@ -282,6 +282,8 @@ const (
 	WarRefusedNotFound   = "not_found"
 	WarRefusedSelf       = "self"
 	WarRefusedAtWar      = "at_war"
+	// WarRefusedCooling: the country ended an alliance or a pact of non-aggression with the target lately (docs/adr/0076 7.2).
+	WarRefusedCooling = "cooling"
 	WarRefusedState      = "state"
 	WarRefusedNotEnemy   = "not_enemy"
 	WarRefusedNotYet     = "not_yet"

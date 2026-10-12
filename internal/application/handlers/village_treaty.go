@@ -71,7 +71,7 @@ func (h *VillageHandler) treatyPower(ctx context.Context, tx application.Tx, pt 
 func (h *VillageHandler) Treaty(ctx context.Context, meta envelope.Metadata, req VillageTreatyRequest) (*presentation.Response, error) {
 	snap := h.content.Current()
 	lang := meta.Language
-	var view village.TreatyView
+	var view village.SettlementTreatyView
 	err := h.uow.Do(ctx, func(ctx context.Context, tx application.Tx) error {
 		p, l, err := h.viewer(ctx, tx, meta)
 		if err != nil {
@@ -480,8 +480,8 @@ func (h *VillageHandler) aggressionBlocked(ctx context.Context, tx application.T
 
 // ---- the screen -------------------------------------------------------------------------------------------------------------------
 
-func (h *VillageHandler) treatyView(ctx context.Context, tx application.Tx, snap *content.Snapshot, s application.FoundedSettlement, has bool, p *application.Player, unionID string) (village.TreatyView, error) {
-	v := village.TreatyView{Open: h.polityOpen()}
+func (h *VillageHandler) treatyView(ctx context.Context, tx application.Tx, snap *content.Snapshot, s application.FoundedSettlement, has bool, p *application.Player, unionID string) (village.SettlementTreatyView, error) {
+	v := village.SettlementTreatyView{Open: h.polityOpen()}
 	pt, err := h.treatyActor(ctx, tx, s, has, unionID)
 	if err != nil {
 		if has || unionID != "" {
@@ -516,7 +516,7 @@ func (h *VillageHandler) treatyView(ctx context.Context, tx application.Tx, snap
 			return v, err
 		}
 		ty := types[t.Kind]
-		line := village.TreatyLine{No: t.No, Kind: named(t.Kind, t.Kind), Other: named(oj.Code, oj.Name), Status: string(t.Rule().StatusAt(now)), Mine: t.ProposerID == pt.jurisdiction,
+		line := village.SettlementTreatyLine{No: t.No, Kind: named(t.Kind, t.Kind), Other: named(oj.Code, oj.Name), Status: string(t.Rule().StatusAt(now)), Mine: t.ProposerID == pt.jurisdiction,
 			ProposedAt: t.ProposedAt, ExpiresAt: t.ExpiresAt, EndedAt: t.EndedAt, Passage: ty.Passage, Alliance: ty.MutualDefence}
 		if until, cooling := diplomacy.CoolingUntil(rules, types, pt.jurisdiction, otherID, h.polity.TreatyCooling, now); cooling && t.Kind != "" {
 			u := until
@@ -525,7 +525,7 @@ func (h *VillageHandler) treatyView(ctx context.Context, tx application.Tx, snap
 		v.Treaties = append(v.Treaties, line)
 	}
 	for _, d := range snap.TreatyTypes() {
-		v.Kinds = append(v.Kinds, village.TreatyKindLine{Kind: named(d.Code, d.Name), Alliance: d.MutualDefence, NonAggression: d.NonAggression, Passage: d.Passage, TariffDiscountBPS: d.TariffDiscountBPS})
+		v.Kinds = append(v.Kinds, village.SettlementTreatyKindLine{Kind: named(d.Code, d.Name), Alliance: d.MutualDefence, NonAggression: d.NonAggression, Passage: d.Passage, TariffDiscountBPS: d.TariffDiscountBPS})
 	}
 	founded, err := tx.Settlements().Founded(ctx)
 	if err != nil {

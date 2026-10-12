@@ -279,6 +279,7 @@ war:
     not_found: "There is no such war, offer or city."
     self: "A country cannot go to war with itself."
     at_war: "These two countries are at war already."
+    cooling: "You ended a treaty with that country lately; you cannot declare war on it yet."
     state: "That is not possible in the war as it stands."
     not_enemy: "This city belongs to no country we are at war with."
     not_yet: "The war has not begun yet: {in} to go."

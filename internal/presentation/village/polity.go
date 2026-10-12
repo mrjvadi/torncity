@@ -265,8 +265,8 @@ const (
 	TreatyCooling   = "treaty_cooling"
 )
 
-// TreatyLine is a treaty of the viewer's party.
-type TreatyLine struct {
+// SettlementTreatyLine is a treaty of the viewer's party.
+type SettlementTreatyLine struct {
 	No                int64
 	Kind              presentation.Named
 	Other             presentation.Named
@@ -280,8 +280,8 @@ type TreatyLine struct {
 	CoolingUntil *time.Time
 }
 
-// TreatyKindLine is a kind of treaty that could be proposed.
-type TreatyKindLine struct {
+// SettlementTreatyKindLine is a kind of treaty that could be proposed.
+type SettlementTreatyKindLine struct {
 	Kind              presentation.Named
 	Alliance          bool
 	NonAggression     bool
@@ -289,24 +289,24 @@ type TreatyKindLine struct {
 	TariffDiscountBPS int64
 }
 
-// TreatyView is the treaty screen.
-type TreatyView struct {
+// SettlementTreatyView is the treaty screen.
+type SettlementTreatyView struct {
 	Village string
 	Open    bool
 	// Party is who the viewer acts for: the settlement, or a union the viewer holds treaty powers in.
 	Party                       presentation.Named
 	PartyKind                   string
 	MayPropose, MaySign, MayEnd bool
-	Treaties                    []TreatyLine
-	Kinds                       []TreatyKindLine
+	Treaties                    []SettlementTreatyLine
+	Kinds                       []SettlementTreatyKindLine
 	Targets                     []presentation.Named
 	Notice                      string
 }
 
-var screenTreaty = presentation.Define[TreatyView](ScreenTreaty, "village")
+var screenTreaty = presentation.Define[SettlementTreatyView](ScreenTreaty, "village")
 
 // Treaty is the treaty screen.
-func Treaty(c presentation.Ctx, v TreatyView) *presentation.Response {
+func Treaty(c presentation.Ctx, v SettlementTreatyView) *presentation.Response {
 	return screenTreaty.Response(c.Lang, v, back(AddrVillageOverview), refresh(AddrTreaty))
 }
 

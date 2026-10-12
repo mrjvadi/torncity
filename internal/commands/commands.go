@@ -468,6 +468,12 @@ var all = []Subscription{
 	{Domain: "settlement", Action: "mining", Origin: FromPlayer},
 	{Domain: "settlement", Action: "haul", Origin: FromPlayer},
 	{Domain: "haul", Action: "arrive", Origin: FromScheduler},
+	// Unions, countries, treaties of settlements, public tenders and loans between polities, and the deadlines they set (docs/adr/0076).
+	{Domain: "settlement", Action: "union", Origin: FromPlayer},
+	{Domain: "settlement", Action: "treaty", Origin: FromPlayer},
+	{Domain: "settlement", Action: "tender", Origin: FromPlayer},
+	{Domain: "settlement", Action: "debt", Origin: FromPlayer},
+	{Domain: "polity", Action: "tick", Origin: FromScheduler},
 	{Domain: "settlement", Action: "rail", Origin: FromPlayer},
 	{Domain: "settlement", Action: "chain", Origin: FromPlayer},
 	{Domain: "rail", Action: "event", Origin: FromScheduler},
