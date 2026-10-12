@@ -127,18 +127,6 @@ func (h *VillageHandler) lawTip(ctx context.Context, tx application.Tx, lc *lawC
 		break
 	}
 	switch {
-	case matched != nil:
-		c, err := h.lawOpenOrFind(ctx, tx, lc, offence, target, "tip", lc.p.ID, 0)
-		if err != nil {
-			return "", err
-		}
-		if _, err := h.lawEvidence(ctx, tx, lc, c.ID, law.EvInformant, "t:"+inf.ID+":"+matched.Kind+":"+matched.Ref, true, int(inf.Reliability), inf.ID, lc.p.ID); err != nil {
-			return "", err
-		}
-		if err := tx.Law().SetReliability(ctx, inf.ID, int(lc.t.NextReliability(int64(inf.Reliability), true))); err != nil {
-			return "", err
-		}
-		return village.LawNoticeTip, h.lawContact(ctx, tx, lc, inf.ID, lc.p.ID, "tip", pay, c.ID)
 	case press:
 		// there is nothing behind the tip and the handler files it anyway: improper evidence, and a record
 		offences, err := tx.Law().Offences(ctx, lc.s.CityID)
@@ -155,6 +143,18 @@ func (h *VillageHandler) lawTip(ctx context.Context, tx application.Tx, lc *lawC
 			return "", err
 		}
 		return village.LawNoticeTip, h.lawContact(ctx, tx, lc, inf.ID, lc.p.ID, "press", pay, c.ID)
+	case matched != nil:
+		c, err := h.lawOpenOrFind(ctx, tx, lc, offence, target, "tip", lc.p.ID, 0)
+		if err != nil {
+			return "", err
+		}
+		if _, err := h.lawEvidence(ctx, tx, lc, c.ID, law.EvInformant, "t:"+inf.ID+":"+matched.Kind+":"+matched.Ref, true, int(inf.Reliability), inf.ID, lc.p.ID); err != nil {
+			return "", err
+		}
+		if err := tx.Law().SetReliability(ctx, inf.ID, int(lc.t.NextReliability(int64(inf.Reliability), true))); err != nil {
+			return "", err
+		}
+		return village.LawNoticeTip, h.lawContact(ctx, tx, lc, inf.ID, lc.p.ID, "tip", pay, c.ID)
 	default:
 		if err := tx.Law().SetReliability(ctx, inf.ID, int(lc.t.NextReliability(int64(inf.Reliability), false))); err != nil {
 			return "", err

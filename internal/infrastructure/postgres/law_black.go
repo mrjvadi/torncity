@@ -124,7 +124,7 @@ func (r *LawRepository) OpenListings(ctx context.Context, settlementID string, l
 
 // SetListing changes a listing's status when it is one of from, once.
 func (r *LawRepository) SetListing(ctx context.Context, id string, from []string, to string, at time.Time) (bool, error) {
-	return r.one(ctx, "changing a listing", `UPDATE law_listings SET status = $3, closed_at = CASE WHEN $3 = 'open' THEN NULL ELSE $4 END WHERE id = $1::uuid AND status = ANY($2::text[])`,
+	return r.one(ctx, "changing a listing", `UPDATE law_listings SET status = $3, closed_at = CASE WHEN $3::text = 'open' THEN NULL::timestamptz ELSE $4::timestamptz END WHERE id = $1::uuid AND status = ANY($2::text[])`,
 		id, from, to, utcT(at))
 }
 
@@ -273,7 +273,7 @@ func (r *LawRepository) BatchByID(ctx context.Context, id string, lock bool) (*a
 
 // AdvanceBatch moves a batch from one state to the next, once.
 func (r *LawRepository) AdvanceBatch(ctx context.Context, id, from, to string, due *time.Time, at time.Time) (bool, error) {
-	return r.one(ctx, "advancing a batch", `UPDATE law_launder_batches SET state = $3, stage_due = $4, closed_at = CASE WHEN $3 = 'integrated' THEN $5 ELSE closed_at END
+	return r.one(ctx, "advancing a batch", `UPDATE law_launder_batches SET state = $3, stage_due = $4, closed_at = CASE WHEN $3::text = 'integrated' THEN $5::timestamptz ELSE closed_at END
 		WHERE id = $1::uuid AND state = $2`, id, from, to, tp(due), utcT(at))
 }
 

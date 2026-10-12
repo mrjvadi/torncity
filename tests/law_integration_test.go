@@ -54,7 +54,9 @@ func (e *lawEnv) resident(place string) *application.Player {
 func (e *lawEnv) rich(place string, cash int64) *application.Player {
 	e.t.Helper()
 	p := e.resident(place)
-	grant(e.t, e.pool, application.AccountPlayerCash, p.ID, cash)
+	if cash > 0 {
+		grant(e.t, e.pool, application.AccountPlayerCash, p.ID, cash)
+	}
 	return p
 }
 
@@ -629,6 +631,313 @@ func TestTheStagesOfACaseAreTakenByOneReplica(t *testing.T) {
 	wg.Wait()
 	if e.caseState(id) != "final" || e.scalarInt(`SELECT count(*) FROM law_case_stages WHERE case_id = $1::uuid AND stage = 'final'`, id) != 1 {
 		t.Fatalf("the case ends once: %s", e.caseState(id))
+	}
+	e.verifyLaw()
+}
+
+// ---------------------------------------------------------------------------
+// informants
+// ---------------------------------------------------------------------------
+
+// act records a bribe offered by a person: an act the game recorded, which a tip can be about.
+func (e *lawEnv) act(briber, holder *application.Player) string {
+	e.t.Helper()
+	id := newUUID(e.t)
+	if _, err := e.pool.Raw().Exec(testCtx(e.t), `INSERT INTO law_bribes (id, settlement_id, briber_id, holder_id, rung, effect_bps, amount, dirty, status, offered_at)
+		VALUES ($1::uuid, $2::uuid, $3::uuid, $4::uuid, 'verdict', 3000, 600, false, 'offered', now())`, id, e.cityID, briber.ID, holder.ID); err != nil {
+		e.t.Fatal(err)
+	}
+	return id
+}
+
+// An informant is a role with a handler, a reliability and a record of every contact. A report with something behind it raises the source's reliability and
+// goes into the file as evidence scaled by it; one with nothing behind it lowers it. A handler keeps a source only so long: after the rotation period the
+// source must pass to another handler. A source whose tip helped a conviction may be burned: a cash penalty and a ban from the market for some days - never
+// harm to the person.
+func TestAnInformantIsRotatedAndOnlyBurnedByCashAndABan(t *testing.T) {
+	e := newLawEnv(t)
+	e.station(e.cityID, "constabulary", "court")
+	e.list("bribery")
+	handler := e.officer("A", "police.informant_run")
+	other := e.officer("A", "police.informant_run")
+	source := e.rich("A", 5000)
+	target := e.resident("A")
+	holder := e.resident("A")
+
+	// recruiting needs the power, and a resident of this settlement
+	if kind := e.refused(e.resident("A"), handlers.VillageLawRequest{Action: village.LawActionRecruit, Player: source.PublicCode}); kind == "" {
+		t.Fatal("a resident recruited an informant")
+	}
+	stranger := e.resident("B")
+	if kind := e.refused(handler, handlers.VillageLawRequest{Action: village.LawActionRecruit, Player: stranger.PublicCode}); kind != village.LawNotResident {
+		t.Fatalf("a resident of another settlement is not recruited here, got %q", kind)
+	}
+	e.mustLaw(handler, handlers.VillageLawRequest{Action: village.LawActionRecruit, Player: source.PublicCode})
+	inf := e.text(`SELECT id::text FROM law_informants WHERE source_id = $1::uuid`, source.ID)
+	if e.scalarInt(`SELECT count(*) FROM law_informant_contacts WHERE informant_id = $1::uuid AND kind = 'recruit'`, inf) != 1 {
+		t.Fatal("the first contact is on the record")
+	}
+	if kind := e.refused(handler, handlers.VillageLawRequest{Action: village.LawActionRecruit, Player: source.PublicCode}); kind != village.LawAlreadyInformant {
+		t.Fatalf("a source is recruited once, got %q", kind)
+	}
+	// a report with nothing behind it lowers the reliability; the source is paid all the same, from the treasury (the purse is empty)
+	cash0 := e.cash(source)
+	v := e.mustLaw(handler, handlers.VillageLawRequest{Action: village.LawActionTip, ID: inf, Player: target.PublicCode})
+	if v.Notice != village.LawNoticeTipEmpty {
+		t.Fatalf("a tip with nothing behind it, got %q", v.Notice)
+	}
+	if rel := e.scalarInt(`SELECT reliability FROM law_informants WHERE id = $1::uuid`, inf); rel != e.rules.T.ReliabilityStart-e.rules.T.ReliabilityLoss {
+		t.Fatalf("the reliability falls, %d", rel)
+	}
+	if e.cash(source)-cash0 != e.rules.T.InformantPay {
+		t.Fatalf("a report is paid for, %d", e.cash(source)-cash0)
+	}
+	// a report with an act behind it is evidence and raises the reliability
+	e.act(target, holder)
+	v = e.mustLaw(handler, handlers.VillageLawRequest{Action: village.LawActionTip, ID: inf, Player: target.PublicCode})
+	if v.Notice != village.LawNoticeTip {
+		t.Fatalf("a tip with an act behind it, got %q", v.Notice)
+	}
+	caseID := e.text(`SELECT id::text FROM law_cases WHERE accused_id = $1::uuid`, target.ID)
+	if e.scalarInt(`SELECT count(*) FROM law_evidence WHERE case_id = $1::uuid AND kind = 'informant_report' AND informant_id = $2::uuid AND proper`, caseID, inf) != 1 {
+		t.Fatal("the tip is in the file")
+	}
+	// pressing a source for more than he knows files improper evidence and leaves a record
+	e.mustLaw(handler, handlers.VillageLawRequest{Action: village.LawActionTip, ID: inf, Player: target.PublicCode, Kind: "press"})
+	if e.scalarInt(`SELECT count(*) FROM law_informant_contacts WHERE informant_id = $1::uuid AND kind = 'press'`, inf) != 1 ||
+		e.scalarInt(`SELECT count(*) FROM law_evidence WHERE case_id = $1::uuid AND kind = 'informant_report' AND NOT proper`, caseID) != 1 {
+		t.Fatal("a pressed tip is improper evidence and is on the record")
+	}
+
+	// rotation: the other handler cannot take him before it is due, the handler cannot keep him after
+	if kind := e.refused(other, handlers.VillageLawRequest{Action: village.LawActionTake, ID: inf}); kind != village.LawRotateNotDue {
+		t.Fatalf("an informant is not taken before the rotation is due, got %q", kind)
+	}
+	e.clock.Advance(time.Duration(e.rules.T.RotateDays+1) * 24 * time.Hour)
+	if kind := e.refused(handler, handlers.VillageLawRequest{Action: village.LawActionTip, ID: inf, Player: target.PublicCode}); kind != village.LawRotateDue {
+		t.Fatalf("a handler keeps a source only so long, got %q", kind)
+	}
+	e.mustLaw(other, handlers.VillageLawRequest{Action: village.LawActionTake, ID: inf})
+	if e.text(`SELECT handler_id::text FROM law_informants WHERE id = $1::uuid`, inf) != other.ID {
+		t.Fatal("the informant passed to the other handler")
+	}
+	if kind := e.refused(handler, handlers.VillageLawRequest{Action: village.LawActionTip, ID: inf, Player: target.PublicCode}); kind != village.LawNotYourInformant {
+		t.Fatalf("the old handler has no say, got %q", kind)
+	}
+	e.mustLaw(other, handlers.VillageLawRequest{Action: village.LawActionTip, ID: inf, Player: target.PublicCode})
+
+	// a conviction his tip stood in may burn him: a cash penalty and a ban from the market, nothing else
+	e.retuneLaw(func(r *application.LawRules) { r.T.BurnBPS = 10_000 })
+	e.evidence(caseID, "confession", 40, true)
+	e.evidence(caseID, "ledger_trace", 30, true)
+	e.evidence(caseID, "record", 25, true)
+	e.evidence(caseID, "witness", 20, true)
+	e.toHearing(caseID, e.head)
+	cashBefore := e.cash(source)
+	e.tick(application.TickLawHearing, caseID, "wait")
+	if e.text(`SELECT state FROM law_informants WHERE id = $1::uuid`, inf) != "burned" {
+		t.Fatal("the source is burned")
+	}
+	lost := cashBefore - e.cash(source)
+	if lost != e.rules.T.RetaliationFine {
+		t.Fatalf("the penalty is the fine and nothing more: %d", lost)
+	}
+	if e.scalarInt(`SELECT count(*) FROM law_sentences WHERE player_id = $1::uuid AND kind = 'ban' AND ban = 'market' AND ban_days = $2`, source.ID, e.rules.T.RetaliationBanDays) != 1 {
+		t.Fatal("a ban from the market for the days of the tuning")
+	}
+	if e.scalarInt(`SELECT count(*) FROM law_sentences WHERE player_id = $1::uuid AND kind IN ('jail', 'forfeiture')`, source.ID) != 0 {
+		t.Fatal("no jail and no forfeiture for the source")
+	}
+	if e.scalarInt(`SELECT count(*) FROM hospital_stays WHERE player_id = $1::uuid`, source.ID) != 0 {
+		t.Fatal("the source is not harmed")
+	}
+	if e.scalarInt(`SELECT count(*) FROM law_informant_contacts WHERE informant_id = $1::uuid AND kind = 'burn'`, inf) != 1 {
+		t.Fatal("the burning is on the record")
+	}
+	// the record of contacts is never changed
+	if _, err := e.pool.Raw().Exec(testCtx(t), `UPDATE law_informant_contacts SET kind = 'retire' WHERE informant_id = $1::uuid`, inf); err == nil {
+		t.Fatal("the record of contacts was changed")
+	}
+	e.verifyLaw()
+}
+
+// ---------------------------------------------------------------------------
+// the hidden board
+// ---------------------------------------------------------------------------
+
+func (e *lawEnv) standing(p *application.Player, n int64) {
+	e.t.Helper()
+	if _, err := e.pool.Raw().Exec(testCtx(e.t), `INSERT INTO law_underworld (player_id, standing, updated_at) VALUES ($1::uuid, $2, now()) ON CONFLICT (player_id) DO UPDATE SET standing = $2`, p.ID, n); err != nil {
+		e.t.Fatal(err)
+	}
+}
+
+// The board is a market with a premium and a chance of losing. A trade between players goes through a broker's escrow: the pot holds the price and the fee until
+// the buyer confirms or the time runs out; a broker may leave with the pot (the exit scam), which costs his name and may be traced. What the seller is paid is
+// dirty cash, which pays nothing legal.
+func TestAnEscrowMayBeConfirmedRefundedOrScammedAndTheTakeIsDirty(t *testing.T) {
+	e := newLawEnv(t)
+	e.station(e.cityID, "constabulary")
+	seller := e.rich("A", 0)
+	buyer := e.rich("A", 10_000)
+	broker := e.rich("A", 0)
+	for _, p := range []*application.Player{seller, buyer, broker} {
+		e.standing(p, 10)
+	}
+	e.mustLaw(broker, handlers.VillageLawRequest{Action: village.LawActionBroker})
+	e.carry(seller, "bread", 10)
+	grant(t, e.pool, application.AccountPlayerCash, seller.ID, 100)
+	// a listing needs standing, goods in the bags and a fee
+	if kind := e.refused(e.resident("A"), handlers.VillageLawRequest{Action: village.LawActionList, Code: "bread", Qty: "4", Amount: "50"}); kind != village.LawNoStanding {
+		t.Fatalf("a stranger to the board lists nothing, got %q", kind)
+	}
+	if kind := e.refused(seller, handlers.VillageLawRequest{Action: village.LawActionList, Code: "bread", Qty: "40", Amount: "50"}); kind != village.LawNoGoods {
+		t.Fatalf("goods the seller does not carry, got %q", kind)
+	}
+	e.mustLaw(seller, handlers.VillageLawRequest{Action: village.LawActionList, Code: "bread", Qty: "4", Amount: "50"})
+	listing := e.text(`SELECT id::text FROM law_listings WHERE seller_id = $1::uuid`, seller.ID)
+	if e.carried(seller, "bread") != 6 {
+		t.Fatalf("the listed goods are set aside, carried %d", e.carried(seller, "bread"))
+	}
+	// the broker's cap: a new broker holds only so much
+	big := e.mustLaw(seller, handlers.VillageLawRequest{Action: village.LawActionOpen})
+	_ = big
+	// buying: the pot holds the price and the fee
+	e.mustLaw(buyer, handlers.VillageLawRequest{Action: village.LawActionBuy, ID: listing, Code: broker.PublicCode})
+	esc := e.text(`SELECT id::text FROM law_escrows WHERE listing_id = $1::uuid`, listing)
+	price, fee := int64(200), e.rules.T.EscrowFee(200)
+	if e.cash(buyer) != 10_000-price-fee || e.scalarInt(`SELECT COALESCE(sum(balance), 0)::bigint FROM accounts WHERE kind = 'escrow_black' AND owner_id = $1::uuid`, esc) != price+fee {
+		t.Fatalf("the pot holds the price and the fee: buyer %d", e.cash(buyer))
+	}
+	if kind := e.refused(seller, handlers.VillageLawRequest{Action: village.LawActionConfirm, ID: esc}); kind != village.LawNoEscrow {
+		t.Fatalf("only the buyer confirms, got %q", kind)
+	}
+	// the exit scam: the broker leaves with the pot, in dirty cash
+	repBefore := e.scalarInt(`SELECT reputation FROM law_brokers WHERE player_id = $1::uuid`, broker.ID)
+	e.retuneLaw(func(r *application.LawRules) { r.T.TraceBPS = 0 })
+	v := e.mustLaw(broker, handlers.VillageLawRequest{Action: village.LawActionScam, ID: esc})
+	if v.Notice != village.LawNoticeScam {
+		t.Fatalf("an untraced scam, got %q", v.Notice)
+	}
+	if e.dirty(broker) != price+fee {
+		t.Fatalf("the broker holds the pot as dirty cash: %d", e.dirty(broker))
+	}
+	if e.scalarInt(`SELECT reputation FROM law_brokers WHERE player_id = $1::uuid`, broker.ID) != repBefore-e.rules.T.ScamRepLoss {
+		t.Fatal("the scam costs the broker his name")
+	}
+	if e.text(`SELECT status FROM law_escrows WHERE id = $1::uuid`, esc) != "scammed" || e.text(`SELECT status FROM law_listings WHERE id = $1::uuid`, listing) != "open" {
+		t.Fatal("the escrow is scammed and the goods are on offer again")
+	}
+	if e.cash(buyer) != 10_000-price-fee {
+		t.Fatal("the buyer lost his money")
+	}
+	// dirty cash pays nothing legal: the broker can pay no complaint fee with it
+	e.list("bribery")
+	if kind := e.refused(broker, handlers.VillageLawRequest{Action: village.LawActionComplain, Code: "bribery", Player: buyer.PublicCode}); kind != village.LawNoMoney {
+		t.Fatalf("dirty cash pays no fee, got %q", kind)
+	}
+	// a second deal, confirmed: the seller is paid dirty, the broker his fee in clean cash, the buyer his goods
+	e.mustLaw(buyer, handlers.VillageLawRequest{Action: village.LawActionBuy, ID: listing, Code: broker.PublicCode})
+	esc2 := e.text(`SELECT id::text FROM law_escrows WHERE listing_id = $1::uuid AND status = 'held'`, listing)
+	e.mustLaw(buyer, handlers.VillageLawRequest{Action: village.LawActionConfirm, ID: esc2})
+	if e.dirty(seller) != price || e.carried(buyer, "bread") != 4 || e.cash(broker) != fee {
+		t.Fatalf("the trade is settled: seller dirty %d, buyer bread %d, broker cash %d", e.dirty(seller), e.carried(buyer, "bread"), e.cash(broker))
+	}
+	if e.scalarInt(`SELECT standing FROM law_underworld WHERE player_id = $1::uuid`, buyer.ID) != 10+e.rules.T.StandingGain {
+		t.Fatal("a completed trade earns standing")
+	}
+	e.verifyLaw()
+
+	// a pot nobody answers goes back to the buyer when the time is out
+	e.carry(seller, "bread", 4)
+	grant(t, e.pool, application.AccountPlayerCash, seller.ID, 100)
+	e.mustLaw(seller, handlers.VillageLawRequest{Action: village.LawActionList, Code: "bread", Qty: "2", Amount: "50"})
+	l3 := e.text(`SELECT id::text FROM law_listings WHERE seller_id = $1::uuid AND status = 'open'`, seller.ID)
+	cash := e.cash(buyer)
+	e.mustLaw(buyer, handlers.VillageLawRequest{Action: village.LawActionBuy, ID: l3, Code: broker.PublicCode})
+	esc3 := e.text(`SELECT id::text FROM law_escrows WHERE listing_id = $1::uuid`, l3)
+	e.clock.Advance(time.Duration(e.rules.T.EscrowTimeoutHours+1) * time.Hour)
+	e.tick(application.TickLawEscrow, esc3, "")
+	if e.text(`SELECT status FROM law_escrows WHERE id = $1::uuid`, esc3) != "refunded" || e.cash(buyer) != cash {
+		t.Fatal("an unanswered pot goes back to the buyer")
+	}
+	// a pot over a broker's cap is refused
+	e.carry(seller, "coffee", 200)
+	grant(t, e.pool, application.AccountPlayerCash, seller.ID, 100)
+	e.mustLaw(seller, handlers.VillageLawRequest{Action: village.LawActionList, Code: "coffee", Qty: "100", Amount: "100"})
+	l4 := e.text(`SELECT id::text FROM law_listings WHERE seller_id = $1::uuid AND item = 'coffee'`, seller.ID)
+	grant(t, e.pool, application.AccountPlayerCash, buyer.ID, 20_000)
+	if kind := e.refused(buyer, handlers.VillageLawRequest{Action: village.LawActionBuy, ID: l4, Code: broker.PublicCode}); kind != village.LawOverBrokerCap {
+		t.Fatalf("a broker with no history holds only so much, got %q", kind)
+	}
+	e.verifyLaw()
+}
+
+// A scam may be traced to the broker, and then a case opens against him; the fences of the board put up the day's goods once, the price carries the premium,
+// and a trade noticed by the patrol is stopped and opens a case. Nothing mature is listed while the operator switch is off.
+func TestTheFencesTheBustAndTheMatureSwitch(t *testing.T) {
+	e := newLawEnv(t)
+	e.station(e.cityID, "constabulary")
+	e.put(e.cityID, "barter_post")
+	e.list("forgery")
+	buyer := e.rich("A", 100_000)
+	e.standing(buyer, 50)
+	// the day's supply is put up once, at the premium
+	e.mustLaw(buyer, handlers.VillageLawRequest{Action: village.LawActionOpen})
+	e.mustLaw(buyer, handlers.VillageLawRequest{Action: village.LawActionOpen})
+	if e.scalarInt(`SELECT count(*) FROM law_listings WHERE seller_id IS NULL AND item = 'fake_documents'`) != 1 {
+		t.Fatalf("the fences put a good up once a day, got %d", e.scalarInt(`SELECT count(*) FROM law_listings WHERE seller_id IS NULL AND item = 'fake_documents'`))
+	}
+	if p := e.scalarInt(`SELECT price FROM law_listings WHERE seller_id IS NULL AND item = 'fake_documents'`); p != 2500+2500*3000/10_000 {
+		t.Fatalf("the price carries the premium, %d", p)
+	}
+	// the supply and the mature rows: a mature listing is neither listed nor bought while the switch is off
+	if _, err := e.pool.Raw().Exec(testCtx(t), `INSERT INTO law_listings (id, settlement_id, item, qty, price, status, mature, supply_day, created_at)
+		VALUES ($1::uuid, $2::uuid, 'card_skimmer', 1, 9000, 'open', true, 999999, now())`, newUUID(t), e.cityID); err != nil {
+		t.Fatal(err)
+	}
+	mature := e.text(`SELECT id::text FROM law_listings WHERE mature`)
+	v := e.mustLaw(buyer, handlers.VillageLawRequest{Action: village.LawActionOpen})
+	for _, l := range v.Board.Listings {
+		if l.ID == mature {
+			t.Fatal("a mature listing was shown while the switch is off")
+		}
+	}
+	if kind := e.refused(buyer, handlers.VillageLawRequest{Action: village.LawActionBuy, ID: mature}); kind != village.LawNoListing {
+		t.Fatalf("a mature listing is not bought while the switch is off, got %q", kind)
+	}
+	e.mature = true
+	v = e.mustLaw(buyer, handlers.VillageLawRequest{Action: village.LawActionOpen})
+	seen := false
+	for _, l := range v.Board.Listings {
+		seen = seen || l.ID == mature
+	}
+	if !seen {
+		t.Fatal("with the switch on a mature listing is shown (there is still nothing explicit)")
+	}
+	e.mature = false
+	if _, err := e.pool.Raw().Exec(testCtx(t), `DELETE FROM law_listings WHERE mature`); err != nil {
+		t.Fatal(err)
+	}
+	// buying from a fence: the goods come, the money leaves the economy
+	fence := e.text(`SELECT id::text FROM law_listings WHERE seller_id IS NULL AND item = 'fake_documents'`)
+	e.retuneLaw(func(r *application.LawRules) { r.T.BustBaseBPS = 0 })
+	cash := e.cash(buyer)
+	e.mustLaw(buyer, handlers.VillageLawRequest{Action: village.LawActionBuy, ID: fence, Qty: "1"})
+	if e.cash(buyer) != cash-3250 {
+		t.Fatalf("the buyer paid the premium price: %d", cash-e.cash(buyer))
+	}
+	if e.scalarInt(`SELECT count(*) FROM item_pieces WHERE owner_id = $1::uuid AND item_code = 'fake_documents'`, buyer.ID) != 1 {
+		t.Fatal("the buyer holds the forged documents")
+	}
+	// a patrol that notices the trade opens a case: the roll is pinned to always notice
+	e.retuneLaw(func(r *application.LawRules) { r.T.BustBaseBPS = 10_000 })
+	e.mustLaw(buyer, handlers.VillageLawRequest{Action: village.LawActionBuy, ID: fence, Qty: "1"})
+	if e.scalarInt(`SELECT count(*) FROM law_cases WHERE accused_id = $1::uuid AND offence = 'forgery' AND source = 'patrol'`, buyer.ID) != 1 {
+		t.Fatal("a bust opens a case against the buyer")
+	}
+	if e.cash(buyer) != cash-3250 {
+		t.Fatal("a bust stops the sale: no second payment")
 	}
 	e.verifyLaw()
 }
