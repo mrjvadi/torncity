@@ -74,8 +74,8 @@ func (e *specialEnv) cleanSpecial() {
 		`ALTER TABLE charter_audit DISABLE TRIGGER charter_audit_no_change`,
 		`DELETE FROM charter_audit WHERE settlement_id IN ($1::uuid, $2::uuid, $3::uuid)`,
 		`ALTER TABLE charter_audit ENABLE TRIGGER charter_audit_no_change`,
-		`DELETE FROM charter_seats WHERE office_id IN (SELECT id FROM charter_offices WHERE settlement_id IN ($1::uuid, $2::uuid, $3::uuid) AND acquisition <> 'head')`,
-		`DELETE FROM charter_offices WHERE settlement_id IN ($1::uuid, $2::uuid, $3::uuid) AND acquisition <> 'head'`,
+		`DELETE FROM charter_seats WHERE office_id IN (SELECT id FROM charter_offices WHERE settlement_id IN ($1::uuid, $2::uuid, $3::uuid))`,
+		`DELETE FROM charter_offices WHERE settlement_id IN ($1::uuid, $2::uuid, $3::uuid)`,
 	} {
 		var err error
 		if strings.Contains(stmt, "$1") {
@@ -1355,6 +1355,181 @@ func TestASealedBidAuctionHasOneWinnerAndReturnsEveryOtherBid(t *testing.T) {
 	void := e.text(`SELECT id::text FROM licence_auctions WHERE status = 'open'`)
 	if _, kind := e.licence(bidders[0], handlers.VillageLicenceRequest{Action: village.LicenceActionBid, ID: void, Amount: "8999"}); kind != village.LicenceBelowReserve {
 		t.Fatalf("under this reserve, got %q", kind)
+	}
+	e.verifySpecial()
+}
+
+// A licence changes hands only when its kind allows it, never within the cooldown of its grant, through the exchange board: the seller pays a
+// listing fee, the buyer pays the price, the issuer takes its share of the sale and the seller the rest, and the licence ends as transferred.
+func TestALicenceIsSoldOnTheBoardWithTheIssuersShareAndACooldown(t *testing.T) {
+	e := newSpecialEnv(t, nil)
+	e.know(e.cityID, "record_keeping", "craft_guild_charter")
+	if kind := e.setKind(e.head, "stall_right", "fixed", 400, 0, 30, true); kind != "" {
+		t.Fatal(kind)
+	}
+	if kind := e.setKind(e.head, "craft_privilege", "fixed", 100, 0, 30, false); kind != "" {
+		t.Fatal(kind)
+	}
+	seller, buyer := e.rich("A", 5000), e.rich("A", 5000)
+	e.mustLicence(seller, handlers.VillageLicenceRequest{Action: village.LicenceActionClaim, Code: "stall_right"})
+	e.mustLicence(seller, handlers.VillageLicenceRequest{Action: village.LicenceActionClaim, Code: "craft_privilege", Target: "pottery"})
+	stall := e.text(`SELECT id::text FROM licences WHERE holder_id = $1::uuid AND kind = 'stall_right'`, seller.ID)
+	craft := e.text(`SELECT id::text FROM licences WHERE holder_id = $1::uuid AND kind = 'craft_privilege'`, seller.ID)
+	if _, kind := e.licence(seller, handlers.VillageLicenceRequest{Action: village.LicenceActionList, ID: stall, Price: "1000"}); kind != village.LicenceCooling {
+		t.Fatalf("a fresh licence does not change hands at once, got %q", kind)
+	}
+	e.clock.Advance(15 * 24 * time.Hour)
+	if _, kind := e.licence(seller, handlers.VillageLicenceRequest{Action: village.LicenceActionList, ID: craft, Price: "1000"}); kind != village.LicenceNotMovable {
+		t.Fatalf("a kind that is not transferable cannot be sold, got %q", kind)
+	}
+	if _, kind := e.licence(buyer, handlers.VillageLicenceRequest{Action: village.LicenceActionList, ID: stall, Price: "1000"}); kind != village.LicenceNotHolder {
+		t.Fatalf("only the holder lists it, got %q", kind)
+	}
+	cashS := e.cash(seller)
+	e.mustLicence(seller, handlers.VillageLicenceRequest{Action: village.LicenceActionList, ID: stall, Price: "1000"})
+	if got := cashS - e.cash(seller); got != e.special.Licence.ListingFee {
+		t.Fatalf("the listing fee goes to the sink: %d", got)
+	}
+	listing := e.text(`SELECT id::text FROM licence_listings WHERE status = 'open'`)
+	if _, kind := e.licence(seller, handlers.VillageLicenceRequest{Action: village.LicenceActionBuy, ID: listing}); kind != village.LicenceOwnListing {
+		t.Fatalf("nobody buys their own licence, got %q", kind)
+	}
+	poor := e.rich("A", 100)
+	if _, kind := e.licence(poor, handlers.VillageLicenceRequest{Action: village.LicenceActionBuy, ID: listing}); kind != village.LicenceNoMoney {
+		t.Fatalf("a buyer without the price is refused, got %q", kind)
+	}
+	treasury0, cashS, cashB := e.cityCash(e.cityID), e.cash(seller), e.cash(buyer)
+	// two buyers at once: the listing is the fence, one wins
+	rival := e.rich("A", 5000)
+	var wg sync.WaitGroup
+	results := make([]string, 2)
+	for i, who := range []*application.Player{buyer, rival} {
+		wg.Add(1)
+		go func(i int, who *application.Player) {
+			defer wg.Done()
+			_, results[i] = e.licence(who, handlers.VillageLicenceRequest{Action: village.LicenceActionBuy, ID: listing})
+		}(i, who)
+	}
+	wg.Wait()
+	if (results[0] == "") == (results[1] == "") {
+		t.Fatalf("exactly one buyer gets it: %q %q", results[0], results[1])
+	}
+	winner := buyer
+	if results[0] != "" {
+		winner = rival
+	}
+	fee := int64(1000) * e.special.Licence.TransferFeeBPS / 10000
+	if got := e.cityCash(e.cityID) - treasury0; got != fee {
+		t.Fatalf("the issuer's share of the sale: %d, want %d", got, fee)
+	}
+	if got := e.cash(seller) - cashS; got != 1000-fee {
+		t.Fatalf("the seller keeps the rest: %d", got)
+	}
+	if got := e.cash(winner); got != map[bool]int64{true: cashB, false: 5000}[winner == buyer]-1000 {
+		t.Fatalf("the buyer paid the price: %d", got)
+	}
+	if e.text(`SELECT status FROM licences WHERE id = $1::uuid`, stall) != "transferred" || e.scalarInt(`SELECT count(*) FROM licences WHERE holder_id = $1::uuid AND via = 'transfer' AND status = 'active'`, winner.ID) != 1 {
+		t.Fatal("the old licence ended as transferred and the buyer holds a new one")
+	}
+	bought := e.text(`SELECT id::text FROM licences WHERE holder_id = $1::uuid AND via = 'transfer'`, winner.ID)
+	if e.text(`SELECT term_end::text FROM licences WHERE id = $1::uuid`, bought) != e.text(`SELECT term_end::text FROM licences WHERE id = $1::uuid`, stall) {
+		t.Fatal("the buyer's term ends when the seller's would have")
+	}
+	// and the new holder cannot sell it on within the cooldown, but can after it
+	if _, kind := e.licence(winner, handlers.VillageLicenceRequest{Action: village.LicenceActionList, ID: bought, Price: "900"}); kind != village.LicenceCooling {
+		t.Fatalf("one transfer in a week, got %q", kind)
+	}
+	e.clock.Advance(8 * 24 * time.Hour)
+	e.mustLicence(winner, handlers.VillageLicenceRequest{Action: village.LicenceActionList, ID: bought, Price: "900"})
+	e.verifySpecial()
+}
+
+// A licence is revoked without cause only when a second holder of the power confirms, and then the unused part of what was paid is refunded; for
+// cause the engine must have recorded the non-use, after which a notice runs and the licence ends with no refund.
+func TestARevocationNeedsASecondHolderRefundsTheUnusedPartAndForCauseNeedsNonUse(t *testing.T) {
+	e := newSpecialEnv(t, nil)
+	e.know(e.cityID, "record_keeping")
+	if kind := e.setKind(e.head, "stall_right", "fixed", 400, 0, 30, true); kind != "" {
+		t.Fatal(kind)
+	}
+	h1, h2 := e.rich("A", 5000), e.rich("A", 5000)
+	e.mustLicence(h1, handlers.VillageLicenceRequest{Action: village.LicenceActionClaim, Code: "stall_right"})
+	e.mustLicence(h2, handlers.VillageLicenceRequest{Action: village.LicenceActionClaim, Code: "stall_right"})
+	l1 := e.text(`SELECT id::text FROM licences WHERE holder_id = $1::uuid`, h1.ID)
+	l2 := e.text(`SELECT id::text FROM licences WHERE holder_id = $1::uuid`, h2.ID)
+	e.clock.Advance(15 * 24 * time.Hour)
+	// one holder of the power cannot revoke without cause
+	if _, kind := e.licence(e.head, handlers.VillageLicenceRequest{Action: village.LicenceActionRevoke, ID: l1}); kind != village.LicenceNeedSecond {
+		t.Fatalf("a revocation without cause needs a second holder, got %q", kind)
+	}
+	clerk := e.resident("A")
+	e.appointWith([]string{"licence.revoke"}, clerk)
+	v := e.mustLicence(e.head, handlers.VillageLicenceRequest{Action: village.LicenceActionRevoke, ID: l1})
+	if v.Notice != village.LicenceNoticeProposed {
+		t.Fatalf("the first holder proposes, the notice was %q", v.Notice)
+	}
+	if _, kind := e.licence(e.head, handlers.VillageLicenceRequest{Action: village.LicenceActionRevoke, ID: l1}); kind != village.LicenceNeedSecond {
+		t.Fatalf("the same holder cannot confirm his own proposal, got %q", kind)
+	}
+	cash0, treasury0 := e.cash(h1), e.cityCash(e.cityID)
+	// licence term: 30 days from the grant (the clock is 15 days on): half of 400 is left
+	e.mustLicence(clerk, handlers.VillageLicenceRequest{Action: village.LicenceActionRevoke, ID: l1})
+	refund := e.cash(h1) - cash0
+	if refund < 190 || refund > 210 || treasury0-e.cityCash(e.cityID) != refund {
+		t.Fatalf("the unused half of the fee comes back out of the treasury: %d (treasury %d)", refund, treasury0-e.cityCash(e.cityID))
+	}
+	if e.text(`SELECT status || ':' || cause FROM licences WHERE id = $1::uuid`, l1) != "revoked:no_cause" {
+		t.Fatal("the licence is revoked and says so")
+	}
+	// for cause: only a cause the engine has recorded
+	if _, kind := e.licence(e.head, handlers.VillageLicenceRequest{Action: village.LicenceActionRevoke, ID: l2, Cause: "breach"}); kind != village.LicenceBadCause {
+		t.Fatalf("a breach the engine has not recorded cannot end a licence, got %q", kind)
+	}
+	if _, kind := e.licence(e.head, handlers.VillageLicenceRequest{Action: village.LicenceActionRevoke, ID: l2, Cause: "non_use"}); kind != village.LicenceBadCause {
+		t.Fatalf("a licence not left unused for the whole time cannot be ended for non-use, got %q", kind)
+	}
+	e.clock.Advance(20 * 24 * time.Hour)
+	e.pool.Raw().Exec(testCtx(t), `UPDATE licences SET term_end = term_end + interval '60 days' WHERE id = $1::uuid`, l2) // the term is not what this part tests
+	cash2 := e.cash(h2)
+	v = e.mustLicence(e.head, handlers.VillageLicenceRequest{Action: village.LicenceActionRevoke, ID: l2, Cause: "non_use"})
+	if v.Notice != village.LicenceNoticeNotice || e.text(`SELECT status FROM licences WHERE id = $1::uuid`, l2) != "notice" {
+		t.Fatalf("the notice is served first: %q", v.Notice)
+	}
+	e.tickOf(application.TickLicenceNotice, l2) // too early
+	if e.text(`SELECT status FROM licences WHERE id = $1::uuid`, l2) != "notice" {
+		t.Fatal("the notice has not run yet")
+	}
+	e.clock.Advance(time.Duration(e.special.Licence.Notice) + time.Hour)
+	e.tickOf(application.TickLicenceNotice, l2)
+	e.tickOf(application.TickLicenceNotice, l2)
+	if e.text(`SELECT status || ':' || cause FROM licences WHERE id = $1::uuid`, l2) != "revoked:non_use" || e.cash(h2) != cash2 {
+		t.Fatal("when the notice has run the licence ends, with no refund")
+	}
+	if e.scalarInt(`SELECT count(*) FROM licence_events WHERE kind IN ('notice', 'revoked', 'revocation_proposed')`) < 4 {
+		t.Fatal("every step is in the public audit")
+	}
+	e.verifySpecial()
+}
+
+// No holder may pass the share cap of a kind once the settlement has enough licences of it.
+func TestNoOneHoldsMoreThanTheShareCapOfAKind(t *testing.T) {
+	e := newSpecialEnv(t, nil)
+	e.know(e.cityID, "record_keeping")
+	if kind := e.setKind(e.head, "stall_right", "fixed", 100, 0, 30, true); kind != "" {
+		t.Fatal(kind)
+	}
+	for i := 0; i < 4; i++ {
+		e.mustLicence(e.rich("A", 1000), handlers.VillageLicenceRequest{Action: village.LicenceActionClaim, Code: "stall_right"})
+	}
+	x := e.rich("A", 1000)
+	e.mustLicence(x, handlers.VillageLicenceRequest{Action: village.LicenceActionClaim, Code: "stall_right"}) // 1 of 5
+	e.mustLicence(x, handlers.VillageLicenceRequest{Action: village.LicenceActionClaim, Code: "stall_right"}) // 2 of 6: a third
+	if _, kind := e.licence(x, handlers.VillageLicenceRequest{Action: village.LicenceActionClaim, Code: "stall_right"}); kind != village.LicenceOverShare {
+		t.Fatalf("3 of 7 is over the forty percent, got %q", kind)
+	}
+	v, _ := postgres.NewEconomyAdmin(e.pool).VerifyLedger(testCtx(t), 10)
+	if v.VillageInvariants.LicenceMaxShareBPS > e.special.Licence.MaxShareBPS {
+		t.Fatalf("no holder is above the cap: %d", v.VillageInvariants.LicenceMaxShareBPS)
 	}
 	e.verifySpecial()
 }
