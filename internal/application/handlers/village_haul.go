@@ -124,9 +124,21 @@ func (h *VillageHandler) settlementByCode(ctx context.Context, tx application.Tx
 	return nil, nil
 }
 
+// RouteFunc plans a route between two world cells for a class of way.
+type RouteFunc func(ctx context.Context, w *worldgen.World, from, to int32, class roads.Class) (roads.Route, error)
+
+// WithRouter replaces the router of roads and rails; it is the seam of the tests.
+func (h *VillageHandler) WithRouter(r RouteFunc) *VillageHandler {
+	h.router = r
+	return h
+}
+
 // routeBetween plans a line over the world's tiles between two settlements' cells for a class of way (road or rail).
 func (h *VillageHandler) routeBetween(ctx context.Context, snap *content.Snapshot, from, to int32, class roads.Class) (roads.Route, error) {
 	w, err := h.world(ctx)
+	if err == nil && h.router != nil {
+		return h.router(ctx, w, from, to, class)
+	}
 	if err != nil {
 		return roads.Route{}, err
 	}

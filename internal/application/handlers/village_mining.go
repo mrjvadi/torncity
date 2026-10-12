@@ -147,7 +147,7 @@ func (h *VillageHandler) survey(ctx context.Context, tx application.Tx, meta env
 				return err
 			}
 			feeTx = h.ids.NewID()
-			if err := postToSink(ctx, tx, feeTx, application.ReasonSurveyFee, acct.ID, fee, "ore_deposit_survey", dep.ID, now); err != nil {
+			if err := postToSink(ctx, tx, feeTx, application.ReasonSurveyFee, acct.ID, fee, "ore_deposit_survey", s.CityID, now); err != nil {
 				return err
 			}
 		}

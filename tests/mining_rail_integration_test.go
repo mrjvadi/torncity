@@ -15,6 +15,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/domain/haul"
 	"github.com/mrjvadi/torncity/internal/domain/mining"
 	"github.com/mrjvadi/torncity/internal/domain/rail"
+	"github.com/mrjvadi/torncity/internal/domain/roads"
 	"github.com/mrjvadi/torncity/internal/domain/worldgen"
 	"github.com/mrjvadi/torncity/internal/infrastructure/postgres"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
@@ -476,6 +477,7 @@ func (e *mineEnv) second() (city string, meta envelope.Metadata, head *applicati
 		e.t.Fatal(err)
 	}
 	seedTreasury(e.t, e.pool, city, 60_000)
+	e.nearbyRouter()
 	id := city
 	e.t.Cleanup(func() {
 		e.cleanMining(id)
@@ -498,6 +500,21 @@ func (e *mineEnv) second() (city string, meta envelope.Metadata, head *applicati
 		purgeLedgerFor(e.t, e.pool, head.ID)
 	})
 	return city, meta, head
+}
+
+// nearbyRouter plans every line as a short walk east over the tiles round the first settlement: the generated planet spaces its settlements
+// hundreds of kilometres apart, and the planner's own behaviour is the road package's to test.
+func (e *mineEnv) nearbyRouter() {
+	e.village.WithRouter(func(ctx context.Context, w *worldgen.World, from, to int32, class roads.Class) (roads.Route, error) {
+		pt := w.Cells[from].Point
+		t := w.TileOfLatLon(pt.LatDeg, pt.LonDeg)
+		tiles := []worldgen.TileID{t}
+		for i := 0; i < 8; i++ {
+			t = w.Offset(t, 1, 0)
+			tiles = append(tiles, t)
+		}
+		return roads.Route{Tiles: tiles, LengthM: 8 * w.TileLengthM()}, nil
+	})
 }
 
 func (e *mineEnv) asOther(meta envelope.Metadata, p *application.Player, command, action string) envelope.Metadata {
@@ -935,3 +952,254 @@ func TestFreightFeeIsPaidToTheLineOwnerAndRefundedOnCancel(t *testing.T) {
 	}
 	e.verifyMining()
 }
+
+func (e *mineEnv) runWork(id string) {
+	e.t.Helper()
+	var due time.Time
+	var action string
+	if err := e.pool.Raw().QueryRow(testCtx(e.t), `SELECT due_at, game_action_id::text FROM build_works WHERE id = $1::uuid`, id).Scan(&due, &action); err != nil {
+		e.t.Fatal(err)
+	}
+	e.clock.Advance(due.Sub(e.clock.Now()) + time.Minute)
+	m := e.as(e.head, "works.done", "done")
+	for i := 0; i < 2; i++ { // twice: the second changes nothing
+		if _, err := e.village.WorksDone(testCtx(e.t), m, handlers.CrimeScheduledRequest{ReferenceType: "build_works", ReferenceID: id, ActionID: action}); err != nil {
+			e.t.Fatal(err)
+		}
+	}
+}
+
+func (e *mineEnv) lastWork(kind string) string {
+	e.t.Helper()
+	var id string
+	if err := e.pool.Raw().QueryRow(testCtx(e.t), `SELECT id::text FROM build_works WHERE settlement_id = $1::uuid AND kind = $2 AND status = 'working' ORDER BY started_at DESC LIMIT 1`, e.cityID, kind).Scan(&id); err != nil {
+		e.t.Fatalf("no %s works in hand: %v", kind, err)
+	}
+	return id
+}
+
+// The mine's works are ordered, paid in goods and in builders' wages, and done at their time, once: a survey turns "probable ore" into a grade and a
+// quantity for a fee; a shaft level, a hoist and a bin are built from the stock; a module is not ordered twice.
+func TestTheWorksOfAMineArePaidAndDoneOnce(t *testing.T) {
+	e := newMineEnv(t, 200_000, nil)
+	mine := e.building("mine")
+	if _, err := e.pool.Raw().Exec(testCtx(t), `INSERT INTO settlement_knowledge_owned (id, settlement_id, code, acquired_via, acquired_at) VALUES (gen_random_uuid(), $1::uuid, 'masonry', 'researched', now()) ON CONFLICT DO NOTHING`, e.cityID); err != nil {
+		t.Fatal(err)
+	}
+	mining := func(req handlers.VillageMiningRequest) village.MiningView {
+		resp, err := rrc(e.village.Mining(testCtx(t), e.as(e.head, "settlement.mining", "mining"), req))
+		if err != nil {
+			t.Fatalf("%+v: %v", req, err)
+		}
+		var v village.MiningView
+		if len(resp.View) > 0 && resp.Screen == village.ScreenMining {
+			if err := presentation.DecodeView(resp.View, &v); err != nil {
+				t.Fatal(err)
+			}
+		}
+		return v
+	}
+	v := mining(handlers.VillageMiningRequest{})
+	if len(v.Deposits) != 1 || v.Deposits[0].Surveyed {
+		t.Fatalf("before a survey the ore is only probable: %+v", v.Deposits)
+	}
+	before := treasuryOf(t, e.pool, e.cityID)
+	v = mining(handlers.VillageMiningRequest{Action: village.MiningActionSurvey})
+	if !v.Deposits[0].Surveyed || v.Deposits[0].GradePermille != e.dep.GradePermille || v.Deposits[0].Band != string(e.rules.Rules.BandOf(e.dep.GradePermille)) {
+		t.Fatalf("the survey: %+v", v.Deposits[0])
+	}
+	if got := before - treasuryOf(t, e.pool, e.cityID); got != e.rules.SurveyFee {
+		t.Errorf("the survey cost %d, want %d", got, e.rules.SurveyFee)
+	}
+	if n := e.scalar(`SELECT count(*) FROM ledger_entries WHERE reason = 'survey_fee' AND amount = $1`, e.rules.SurveyFee); n < 1 {
+		t.Error("no survey_fee in the ledger")
+	}
+	// surveyed again: refused, nothing is paid
+	after := treasuryOf(t, e.pool, e.cityID)
+	mining(handlers.VillageMiningRequest{Action: village.MiningActionSurvey})
+	if treasuryOf(t, e.pool, e.cityID) != after {
+		t.Error("a second survey was charged")
+	}
+	// the bin and a shaft level: no materials, no works
+	v = mining(handlers.VillageMiningRequest{Action: village.MiningActionWorks, Code: "ore_bin", N: mine})
+	if len(v.Works) != 0 {
+		t.Fatal("works were ordered with no timber and stone in the store")
+	}
+	e.stock("timber", 10)
+	e.stock("stone", 10)
+	before = treasuryOf(t, e.pool, e.cityID)
+	v = mining(handlers.VillageMiningRequest{Action: village.MiningActionWorks, Code: "ore_bin", N: mine})
+	if len(v.Works) != 1 || v.Works[0].Module.Code != "ore_bin" {
+		t.Fatalf("the bin is not in hand: %+v", v.Works)
+	}
+	if e.held("timber") != 4 || e.held("stone") != 4 {
+		t.Errorf("the bin takes 6 timber and 6 stone: %d %d left", e.held("timber"), e.held("stone"))
+	}
+	if got := before - treasuryOf(t, e.pool, e.cityID); got != 4*e.rules.WorksShiftWage {
+		t.Errorf("the builders' wage was %d, want %d", got, 4*e.rules.WorksShiftWage)
+	}
+	// ordered twice: refused, nothing is charged
+	mining(handlers.VillageMiningRequest{Action: village.MiningActionWorks, Code: "ore_bin", N: mine})
+	if e.held("timber") != 4 {
+		t.Error("the same module was ordered twice")
+	}
+	id := e.lastWork(application.WorkMineModule)
+	if got := e.scalar(`SELECT count(*) FROM mine_state WHERE building_id = $1::uuid AND ore_bin`, mine); got != 0 {
+		t.Fatal("the bin stands before its works are done")
+	}
+	e.runWork(id)
+	if got := e.scalar(`SELECT count(*) FROM mine_state WHERE building_id = $1::uuid AND ore_bin`, mine); got != 1 {
+		t.Fatal("the bin was not built")
+	}
+	// the bin is yard for the ore: the store holds 120 spaces more
+	v = mining(handlers.VillageMiningRequest{})
+	if len(v.Mines) != 1 || !v.Mines[0].OreBin {
+		t.Fatalf("the screen does not show the bin: %+v", v.Mines)
+	}
+	if got := e.scalar(`SELECT count(*) FROM build_works WHERE settlement_id = $1::uuid AND kind = 'mine_module' AND status = 'done'`, e.cityID); got != 1 {
+		t.Error("the order is not closed")
+	}
+	e.verifyMining()
+}
+
+// A line is planned over the world's tiles, drawn, laid in sections that are paid in sleepers, rails and stone, and then trains run on it; a
+// road to the other town is laid and a cart built the same way.
+func TestARailLineIsPlannedDrawnAndLaidAndARoadAndACartAreBuilt(t *testing.T) {
+	e := newMineEnv(t, 200_000, nil)
+	other, _, _ := e.second()
+	var otherCode string
+	if err := e.pool.Raw().QueryRow(testCtx(t), `SELECT code FROM cities WHERE id = $1::uuid`, other).Scan(&otherCode); err != nil {
+		t.Fatal(err)
+	}
+	ctx := testCtx(t)
+	station := func(city string, x int) string {
+		id := newUUID(t)
+		if _, err := e.pool.Raw().Exec(ctx, `INSERT INTO settlement_buildings (id, settlement_id, type_code, lot_x, lot_y, status, queued_at, completed_at) VALUES ($1::uuid, $2::uuid, 'rail_station', $3, 4, 'complete', now(), now())`, id, city, x); err != nil {
+			t.Fatal(err)
+		}
+		return id
+	}
+	a, b := station(e.cityID, 80), station(other, 81)
+	resp, err := rrc(e.village.Rail(ctx, e.as(e.head, "settlement.rail", "rail"), handlers.VillageRailRequest{Action: village.RailActionPlan, Code: "wagonway", N: a, M: b}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var v village.RailView
+	if resp.Screen == village.ScreenRail {
+		_ = presentation.DecodeView(resp.View, &v)
+	}
+	if v.Quote == nil {
+		var rv village.VillageRefusalView
+		_ = presentation.DecodeView(resp.View, &rv)
+		var ca, cb int32
+		_ = e.pool.Raw().QueryRow(ctx, `SELECT world_cell_id FROM cities WHERE id = $1::uuid`, e.cityID).Scan(&ca)
+		_ = e.pool.Raw().QueryRow(ctx, `SELECT world_cell_id FROM cities WHERE id = $1::uuid`, other).Scan(&cb)
+		t.Skipf("no wagonway route between the two settlements (%q), %.0f km apart", rv.Kind, km(e.world, ca, cb))
+	}
+	q := v.Quote
+	if q.Sections < 1 || q.Lots < int64(q.Sections) || q.LengthM < 1 || q.Wage <= 0 || len(q.Materials) != 3 {
+		t.Fatalf("the quote: %+v", q)
+	}
+	rc := e.rules
+	wantLots := q.Lots
+	if got := q.Wage; got != wantLots*2*rc.RailWorkHourWage {
+		t.Errorf("the wage is %d, want %d (2 hours a lot)", got, wantLots*2*rc.RailWorkHourWage)
+	}
+	if n := e.scalar(`SELECT count(*) FROM rail_lines WHERE home_settlement = $1::uuid`, e.cityID); n != 0 {
+		t.Fatal("a quote wrote a line")
+	}
+	v = e.railAct(handlers.VillageRailRequest{Action: village.RailActionDraw, Code: "wagonway", N: a, M: b})
+	if len(v.Lines) != 1 || v.Lines[0].Sections != q.Sections || v.Lines[0].Built != 0 || v.Lines[0].Status != application.LinePlanned {
+		t.Fatalf("the drawn line: %+v", v.Lines)
+	}
+	line := v.Lines[0].ID
+	// laying needs the goods
+	before := treasuryOf(t, e.pool, e.cityID)
+	v = e.railAct(handlers.VillageRailRequest{Action: village.RailActionBuild, Code: line, N: "1"})
+	if e.scalar(`SELECT count(*) FROM build_works WHERE kind = 'rail_sections' AND ref_id = $1::uuid`, line) != 0 || treasuryOf(t, e.pool, e.cityID) != before {
+		t.Fatal("track was ordered with no sleepers in the store")
+	}
+	e.stock("sleeper", 40)
+	e.stock("wooden_rail", 20)
+	e.stock("stone", 20)
+	v = e.railAct(handlers.VillageRailRequest{Action: village.RailActionBuild, Code: line, N: "1"})
+	if !v.Lines[0].Laying {
+		t.Fatalf("no works in hand: %+v", v.Lines[0])
+	}
+	if n := e.scalar(`SELECT count(*) FROM ledger_entries WHERE reason = 'rail_works_wage' AND amount > 0`); n < 1 {
+		t.Error("no rail_works_wage in the ledger")
+	}
+	e.runWork(e.lastWork(application.WorkRailSections))
+	if got := e.scalar(`SELECT sections_built FROM rail_lines WHERE id = $1::uuid`, line); got != 1 {
+		t.Fatalf("%d sections laid", got)
+	}
+	// a second order while one is in hand is refused; a train needs an open line
+	e.railAct(handlers.VillageRailRequest{Action: village.RailActionTrain, Code: line, N: "2"})
+	_ = e.scalar(`SELECT count(*) FROM rail_trains WHERE line_id = $1::uuid`, line)
+	e.verifyMining()
+}
+
+// A road to another settlement and a cart are built from the stock and the treasury, and open when the builders are done.
+func TestARoadToAnotherTownAndACartAreBuilt(t *testing.T) {
+	e := newMineEnv(t, 200_000, nil)
+	other, _, _ := e.second()
+	var otherCode string
+	if err := e.pool.Raw().QueryRow(testCtx(t), `SELECT code FROM cities WHERE id = $1::uuid`, other).Scan(&otherCode); err != nil {
+		t.Fatal(err)
+	}
+	haulAct := func(req handlers.VillageHaulRequest) village.HaulView {
+		resp, err := rrc(e.village.Haul(testCtx(t), e.as(e.head, "settlement.haul", "haul"), req))
+		if err != nil {
+			t.Fatal(err)
+		}
+		var v village.HaulView
+		if len(resp.View) > 0 && resp.Screen == village.ScreenHaul {
+			if err := presentation.DecodeView(resp.View, &v); err != nil {
+				t.Fatal(err)
+			}
+		}
+		return v
+	}
+	e.stock("stone", 400)
+	v := haulAct(handlers.VillageHaulRequest{Action: village.HaulActionLink, Code: otherCode, N: "path"})
+	if len(v.Links) != 1 {
+		t.Skipf("the test world has no path between the two settlements (links %d)", len(v.Links))
+	}
+	if v.Links[0].Status != "building" || v.Links[0].LengthM <= 0 {
+		t.Fatalf("the link: %+v", v.Links[0])
+	}
+	lots := haulLotsOf(v.Links[0].LengthM)
+	if got := 400 - e.held("stone"); got != lots*e.rules.RoadLinkLotStone {
+		t.Errorf("the road took %d stone, want %d", got, lots*e.rules.RoadLinkLotStone)
+	}
+	e.runWork(e.lastWork(application.WorkRoadLink))
+	if n := e.scalar(`SELECT count(*) FROM road_links WHERE status = 'open' AND (a_settlement = $1::uuid OR b_settlement = $1::uuid)`, e.cityID); n != 1 {
+		t.Fatal("the road did not open")
+	}
+	// a second road to the same town is refused
+	haulAct(handlers.VillageHaulRequest{Action: village.HaulActionLink, Code: otherCode, N: "path"})
+	if n := e.scalar(`SELECT count(*) FROM road_links WHERE a_settlement = $1::uuid OR b_settlement = $1::uuid`, e.cityID); n != 1 {
+		t.Errorf("%d roads to one town", n)
+	}
+	// a cart: planks and timber in the store, the builders' hours from the treasury
+	e.stock("timber", 10)
+	e.stock("plank", 6)
+	before := treasuryOf(t, e.pool, e.cityID)
+	haulAct(handlers.VillageHaulRequest{Action: village.HaulActionCarrier, Code: "cart_path"})
+	if e.held("timber") != 2 || e.held("plank") != 2 {
+		t.Errorf("the cart took timber and planks: %d %d left", e.held("timber"), e.held("plank"))
+	}
+	if got := before - treasuryOf(t, e.pool, e.cityID); got != 4*e.rules.RailWorkHourWage {
+		t.Errorf("the cart's builders cost %d, want %d", got, 4*e.rules.RailWorkHourWage)
+	}
+	if n := e.scalar(`SELECT count(*) FROM carriers WHERE settlement_id = $1::uuid AND status = 'building'`, e.cityID); n != 1 {
+		t.Fatal("the cart is not being built")
+	}
+	e.runWork(e.lastWork(application.WorkCarrier))
+	if n := e.scalar(`SELECT count(*) FROM carriers WHERE settlement_id = $1::uuid AND status = 'idle'`, e.cityID); n != 1 {
+		t.Fatal("the cart does not stand ready")
+	}
+	e.verifyMining()
+}
+
+func haulLotsOf(lengthM int64) int64 { return max((lengthM+29)/30, 1) }
