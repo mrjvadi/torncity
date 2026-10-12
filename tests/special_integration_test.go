@@ -18,6 +18,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/presentation"
 	"github.com/mrjvadi/torncity/internal/presentation/village"
 	"github.com/mrjvadi/torncity/internal/settlementcfg"
+	"github.com/mrjvadi/torncity/internal/telegram/screens"
 )
 
 // Special projects, intelligence between settlements and the licence market (docs/adr/0077, plan B13), through the real handlers, the unit of
@@ -1706,4 +1707,63 @@ func (e *specialEnv) companyFor(owner *application.Player, city string, funds in
 	c := e.polityEnv.companyFor(owner, city, funds)
 	e.t.Cleanup(e.cleanSpecial)
 	return c
+}
+
+// A craft the settlement licenses is worked at home only with its privilege: without one the shift is refused and says where to get it; with one it goes ahead.
+func TestAPrivateCraftNeedsItsPrivilegeWhereTheSettlementRequiresIt(t *testing.T) {
+	e := newCraftEnv(t)
+	ctx := testCtx(t)
+	cfg := config.Defaults()
+	rules := settlementcfg.Special(cfg.Projects, cfg.Intel, cfg.Licence)
+	rules.LicenceAt = e.clock.Now().Add(-48 * time.Hour)
+	e.village.WithSpecial(rules)
+	t.Cleanup(func() {
+		_, _ = e.pool.Raw().Exec(testCtx(t), `TRUNCATE licence_events, licences, licence_rules CASCADE`)
+	})
+	owner := e.resident()
+	t.Cleanup(func() { purgeLedgerFor(t, e.pool, owner.ID) })
+	e.grant("carpentry")
+	for i := 0; i < 3; i++ {
+		e.yard(owner)
+	}
+	bench := newUUID(t)
+	if _, err := e.pool.Raw().Exec(ctx, `INSERT INTO settlement_buildings (id, settlement_id, type_code, lot_x, lot_y, status, queued_at, completed_at)
+		VALUES ($1::uuid, $2::uuid, 'carpentry_workshop_own', 41, 40, 'complete', now(), now())`, bench, e.cityID); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := e.pool.Raw().Exec(ctx, `INSERT INTO settlement_private_buildings (building_id, settlement_id, owner_id, permit_fee, construction_paid, materials_paid, assessed_value, created_at)
+		VALUES ($1::uuid, $2::uuid, $3::uuid, 0, 0, 0, 2000, now())`, bench, e.cityID, owner.ID); err != nil {
+		t.Fatal(err)
+	}
+	e.give(owner, "timber", 12)
+	craft := func() string {
+		resp, err := rrc(e.village.Craft(ctx, e.as(owner, "settlement.craft", "craft"), handlers.VillageCraftRequest{Building: bench, Recipe: "planks", Batches: "1"}))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if resp.Screen == screens.ScreenVillageRefusal {
+			return refusalKind(t, resp.View)
+		}
+		return ""
+	}
+	if k := craft(); k != "" {
+		t.Fatalf("with no requirement the craft is free: %q", k)
+	}
+	head := e.head.ID
+	if _, err := e.pool.Raw().Exec(ctx, `INSERT INTO licence_rules (settlement_id, kind, mode, fee, reserve, term_days, transferable, set_by, set_at, effective_at) VALUES ($1::uuid, 'craft_privilege', 'fixed', 100, 0, 30, false, $2::uuid, now() - interval '2 days', now() - interval '1 day')`, e.cityID, head); err != nil {
+		t.Fatal(err)
+	}
+	if k := craft(); k != village.LicenceMissing {
+		t.Fatalf("a craft the town licenses is refused without the privilege, got %q", k)
+	}
+	if _, err := e.pool.Raw().Exec(ctx, `INSERT INTO licences (id, kind, issuer_id, holder_kind, holder_id, target_ref, via, paid, transferable, status, term_start, term_end, created_at)
+		VALUES ($1::uuid, 'craft_privilege', $2::uuid, 'player', $3::uuid, 'carpentry', 'fixed', 100, false, 'active', now(), now() + interval '30 days', now())`, newUUID(t), e.cityID, owner.ID); err != nil {
+		t.Fatal(err)
+	}
+	if k := craft(); k != "" {
+		t.Fatalf("with the privilege the craft goes ahead, got %q", k)
+	}
+	if e.scalar(`SELECT count(*) FROM licences WHERE holder_id = $1::uuid AND last_used_at IS NOT NULL`, owner.ID) != 1 {
+		t.Fatal("a use of the licence is written (it feeds the non-use rule)")
+	}
 }
