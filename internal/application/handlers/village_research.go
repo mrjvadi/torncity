@@ -203,7 +203,18 @@ func (h *VillageHandler) settleResearchDay(ctx context.Context, tx application.T
 		return nil, err
 	}
 	byBuilding := map[string][]application.ResearchPost{}
+	standing := map[string]bool{}
+	for _, b := range buildings {
+		standing[b.ID] = true
+	}
 	for _, p := range posts {
+		// a post names a building or a finished work; one whose place is gone is cleared so the scholar may take another
+		if !standing[p.BuildingID] {
+			if _, err := repo.LeavePost(ctx, p.PlayerID); err != nil {
+				return nil, err
+			}
+			continue
+		}
 		byBuilding[p.BuildingID] = append(byBuilding[p.BuildingID], p)
 	}
 	var npcFree, wagePer int64

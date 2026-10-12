@@ -128,6 +128,10 @@ func (h *VillageHandler) contractBid(ctx context.Context, tx application.Tx, p *
 	if err != nil || pr == nil {
 		return refuseVillage(village.ProjectNoProject, village.AddrProject)
 	}
+	// a contractor class the posting settlement licenses is held by the company (docs/adr/0077 7.2)
+	if err := h.worksClassGate(ctx, tx, pr.SettlementID, co.ID, now); err != nil {
+		return err
+	}
 	s, err := tx.Settlements().ByID(ctx, pr.SettlementID)
 	if err != nil {
 		return err

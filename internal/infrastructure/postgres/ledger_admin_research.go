@@ -48,10 +48,12 @@ func (a *EconomyAdmin) verifyResearch(ctx context.Context, v *LedgerVerification
 		{&s.ResearchSlotBroken, "projects against their slots", `
 			SELECT count(*) FROM settlement_research r
 			 WHERE r.slot_ref <> 'free' AND NOT EXISTS
-			       (SELECT 1 FROM settlement_buildings b WHERE b.id::text = r.slot_ref AND b.settlement_id = r.settlement_id)`},
+			       (SELECT 1 FROM settlement_buildings b WHERE b.id::text = r.slot_ref AND b.settlement_id = r.settlement_id)
+			   AND NOT EXISTS (SELECT 1 FROM special_projects w WHERE w.id::text = r.slot_ref AND w.settlement_id = r.settlement_id)`},
 		{&s.ResearchPostBroken, "scholar posts against their buildings", `
 			SELECT count(*) FROM research_posts p
-			 WHERE NOT EXISTS (SELECT 1 FROM settlement_buildings b WHERE b.id = p.building_id AND b.settlement_id = p.settlement_id)`},
+			 WHERE NOT EXISTS (SELECT 1 FROM settlement_buildings b WHERE b.id = p.building_id AND b.settlement_id = p.settlement_id)
+			   AND NOT EXISTS (SELECT 1 FROM special_projects w WHERE w.id = p.building_id AND w.settlement_id = p.settlement_id)`},
 		{&s.ResearchPactBroken, "research pacts", `
 			SELECT count(*) FROM research_pacts
 			 WHERE (status = 'active' AND answered_at IS NULL) OR (status = 'ended' AND ended_at IS NULL)

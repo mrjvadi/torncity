@@ -75,6 +75,13 @@ func newMineEnv(t *testing.T, capacityUnits int64, tune func(*application.Mining
 		tune(&rules)
 	}
 	r.village.WithMining(rules)
+	// The mine counts its days on the settlement's local day. Pin the zone so that it is local noon now: a founded settlement takes a zone
+	// from its place on the world and the wall clock decides the hour, so a run near local midnight crossed a day between two checks and
+	// the props rotted.
+	utcMin := int64(r.clock.Now().UTC().Hour()*60 + r.clock.Now().UTC().Minute())
+	if _, err := row.Exec(testCtx(t), `UPDATE cities SET tz_offset_minutes = $2 WHERE id = $1::uuid`, r.cityID, (((12*60-utcMin)%1440+1440+720)%1440-720)/15*15); err != nil {
+		t.Fatal(err)
+	}
 	e := &mineEnv{researchEnv: r, rules: rules, dep: dep, world: w}
 	t.Cleanup(func() { e.cleanMining(r.cityID) })
 	for _, k := range []string{"smithing", "prospecting", "timbering", "carpentry", "wagonway"} {
@@ -177,12 +184,22 @@ func (e *mineEnv) finishShifts(building string) {
 	}
 }
 
+// localDay is the mine's day now: the settlement's local day, as the engine counts it.
+func (e *mineEnv) localDay() int64 {
+	e.t.Helper()
+	var tz int64
+	if err := e.pool.Raw().QueryRow(testCtx(e.t), `SELECT COALESCE(tz_offset_minutes, 0) FROM cities WHERE id = $1::uuid`, e.cityID).Scan(&tz); err != nil {
+		e.t.Fatal(err)
+	}
+	return e.clock.Now().Add(time.Duration(tz) * time.Minute).Unix() / 86400
+}
+
 func (e *mineEnv) mineState(building string, shafts, hoist int, levels map[int][2]int64) {
 	e.t.Helper()
 	ctx := testCtx(e.t)
 	if _, err := e.pool.Raw().Exec(ctx, `INSERT INTO mine_state (building_id, settlement_id, shafts, hoist, fall_m, day_done, updated_at)
-		VALUES ($1::uuid, $2::uuid, $3, $4, 0, $5, now()) ON CONFLICT (building_id) DO UPDATE SET shafts = $3, hoist = $4`,
-		building, e.cityID, shafts, hoist, e.clock.Now().Unix()/86400); err != nil {
+		VALUES ($1::uuid, $2::uuid, $3, $4, 0, $5, now()) ON CONFLICT (building_id) DO UPDATE SET shafts = $3, hoist = $4, day_done = $5`,
+		building, e.cityID, shafts, hoist, e.localDay()); err != nil {
 		e.t.Fatal(err)
 	}
 	for depth, l := range levels {

@@ -298,6 +298,10 @@ func (h *VillageHandler) tenderBid(ctx context.Context, tx application.Tx, meta 
 	if tender.Debarred(until, now) {
 		return refuseVillage(village.TenderDebarred, village.AddrTender)
 	}
+	// a contractor class the posting settlement licenses is held by the company (docs/adr/0077 7.2)
+	if err := h.worksClassGate(ctx, tx, t.SettlementID, co.ID, now); err != nil {
+		return err
+	}
 	// the conflict of interest is refused when the bid is made, in the open (docs/adr/0076 10.4)
 	officials, err := h.tenderOfficials(ctx, tx, *t)
 	if err != nil {

@@ -92,8 +92,11 @@ type LicenceKindDef struct {
 	Name string `yaml:"name,omitempty" json:"name,omitempty"`
 	// Target is what an exclusive right is over: "" (not exclusive), deposit, link or craft. An exclusive right names its target.
 	Target string `yaml:"target,omitempty" json:"target,omitempty"`
-	// Gate is the action that stops without the licence once the settlement requires it: stall, pit or craft. "" means the register only.
-	Gate         string `yaml:"gate,omitempty" json:"gate,omitempty"`
+	// Gate is the action that stops without the licence once the settlement requires it: stall, craft or works. "" means the register only.
+	Gate string `yaml:"gate,omitempty" json:"gate,omitempty"`
+	// WaitsFor names the system a kind with no gate waits for. A kind with no reader cannot be required by a charter or applied for: a licence
+	// that stops nothing is decoration (rule 1c). It is set exactly when Gate is empty.
+	WaitsFor     string `yaml:"waits_for,omitempty" json:"waits_for,omitempty"`
 	Transferable bool   `yaml:"transferable,omitempty" json:"transferable,omitempty"`
 	// Duty is what the holder owes, in words for the register (the engine's own check is non-use and unpaid fees).
 	Duty string `yaml:"duty,omitempty" json:"duty,omitempty"`
@@ -103,7 +106,7 @@ type LicenceKindDef struct {
 func (d LicenceKindDef) Exclusive() bool { return d.Target != "" }
 
 var licenceTargets = map[string]bool{"": true, "deposit": true, "link": true, "craft": true}
-var licenceGates = map[string]bool{"": true, "stall": true, "pit": true, "craft": true}
+var licenceGates = map[string]bool{"": true, "stall": true, "craft": true, "works": true}
 
 var wordCode = regexp.MustCompile(`^[a-z][a-z0-9_]*$`)
 
@@ -202,7 +205,10 @@ func (l *schemaLint) special() {
 			l.bad("%s: target %q is not deposit, link or craft", key, d.Target)
 		}
 		if !licenceGates[d.Gate] {
-			l.bad("%s: gate %q is not stall, pit or craft", key, d.Gate)
+			l.bad("%s: gate %q is not stall, craft or works", key, d.Gate)
+		}
+		if (d.Gate == "") != (strings.TrimSpace(d.WaitsFor) != "") {
+			l.bad("%s: a kind with no gate says what it waits_for, and a kind with a gate does not", key)
 		}
 		if strings.TrimSpace(d.Duty) == "" {
 			l.bad("%s: a right names the duty the holder owes", key)
