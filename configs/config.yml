@@ -1287,7 +1287,7 @@ polity:
 
 # Projects (docs/adr/0077 4: special projects, plan B13). Every figure is a draft (evidence D) until a balance run; the rule dates are placeholders far in the future until the deploy sets them.
 projects:
-  rule_at: "2099-01-01T00:00:00Z"   # special projects start from this instant; a placeholder far in the future until the deploy sets it (ADR 0077)
+  rule_at: "2026-10-12T20:00:00Z"   # special projects start from this instant; a placeholder far in the future until the deploy sets it (ADR 0077)
   grace_days: 14   # real days a settlement may start a project after the rule date without the full gate being proven by the lint
   start_fee: 500   # the filing fee of a project, minor units, treasury to sink
   pledge_min: 100   # the least pledge to a project, minor units
@@ -1301,8 +1301,8 @@ projects:
 
 # Intel (docs/adr/0077 5-6: intelligence bureau, agents, sabotage, plan B13). Every figure is a draft (evidence D) until a balance run; the rule dates are placeholders far in the future until the deploy sets them.
 intel:
-  rule_at: "2099-01-01T00:00:00Z"   # the intelligence bureau and agents start from this instant; a placeholder far in the future until the deploy sets it (ADR 0077)
-  sabotage_rule_at: "2099-01-01T00:00:00Z"   # sabotage starts from this instant; a placeholder far in the future until the deploy sets it (ADR 0077)
+  rule_at: "2026-10-12T20:00:00Z"   # the intelligence bureau and agents start from this instant; a placeholder far in the future until the deploy sets it (ADR 0077)
+  sabotage_rule_at: "2026-10-26T20:00:00Z"   # sabotage starts from this instant; a placeholder far in the future until the deploy sets it (ADR 0077)
   grace_days: 14   # real days after a rule date before the first sabotage may be done
   report_ttl_days: 14   # real days after which a report shows as old
   op_fee: 100   # the bureau's fee for one operation, minor units, bureau purse to sink
@@ -1332,7 +1332,7 @@ intel:
 
 # Licence (docs/adr/0077 7: the licence market, plan B13). Every figure is a draft (evidence D) until a balance run; the rule dates are placeholders far in the future until the deploy sets them.
 licence:
-  rule_at: "2099-01-01T00:00:00Z"   # the licence market starts from this instant; a placeholder far in the future until the deploy sets it (ADR 0077)
+  rule_at: "2026-10-12T20:00:00Z"   # the licence market starts from this instant; a placeholder far in the future until the deploy sets it (ADR 0077)
   grace_days: 14   # real days between a settlement requiring a licence and the requirement taking effect
   auction_min_hours: 24   # the shortest bidding window of a licence auction, real hours
   reserve_min: 100   # the lowest reserve of a licence auction, minor units (a zero reserve yields nothing)

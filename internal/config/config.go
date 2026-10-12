@@ -1931,7 +1931,7 @@ func Defaults() *Config {
 			TributeMin:           100,
 		},
 		Projects: Projects{
-			RuleAt:            "2099-01-01T00:00:00Z",
+			RuleAt:            "2026-10-12T20:00:00Z",
 			GraceDays:         14,
 			StartFee:          500,
 			PledgeMin:         100,
@@ -1944,8 +1944,8 @@ func Defaults() *Config {
 			NPCHoursPerDay:    8,
 		},
 		Intel: Intel{
-			RuleAt:                "2099-01-01T00:00:00Z",
-			SabotageRuleAt:        "2099-01-01T00:00:00Z",
+			RuleAt:                "2026-10-12T20:00:00Z",
+			SabotageRuleAt:        "2026-10-26T20:00:00Z",
 			GraceDays:             14,
 			ReportTTLDays:         14,
 			OpFee:                 100,
@@ -1974,7 +1974,7 @@ func Defaults() *Config {
 			SkillXPPerOp:          50,
 		},
 		Licence: Licence{
-			RuleAt:               "2099-01-01T00:00:00Z",
+			RuleAt:               "2026-10-12T20:00:00Z",
 			GraceDays:            14,
 			AuctionMinHours:      24,
 			ReserveMin:           100,
