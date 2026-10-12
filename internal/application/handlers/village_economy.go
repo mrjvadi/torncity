@@ -728,9 +728,26 @@ func (h *VillageHandler) startShiftAt(ctx context.Context, tx application.Tx, me
 
 // startProduction is the start of a production shift for a player or an NPC (p nil): the
 // stock lock, the inputs, the room for the output, the wage the treasury can pay, the
-// schedule and the row. A refusal precedes every write, so it leaves nothing behind.
+// schedule and the row. A refusal leaves nothing behind: the whole start is a savepoint (refuseWithoutTrace).
 // It is the one start every worker takes (roadmap 2.2, ADR 0041 section 4).
 func (h *VillageHandler) startProduction(ctx context.Context, tx application.Tx, meta envelope.Metadata, snap *content.Snapshot,
+	s application.FoundedSettlement, b application.SettlementBuildingInstance, d content.SettlementBuildingDef,
+	p *application.Player, wageOverride int64, jobID, recipe string,
+) error {
+	return h.refuseWithoutTrace(ctx, func(ctx context.Context, tx application.Tx) error {
+		return h.startProductionBody(ctx, tx, meta, snap, s, b, d, p, wageOverride, jobID, recipe)
+	})
+}
+
+// refuseWithoutTrace runs a start (a shift, a grind, a labour shift) as a savepoint of the command's transaction. A
+// refusal is a returned value, so the command still commits; without the savepoint everything a start wrote before it was
+// refused (the inputs moved, the finish action scheduled, the meal eaten, the escrow set aside, the tool's wear)
+// would stay behind with no shift to own it. Any error, refusal or not, rolls the whole start back; success releases it.
+func (h *VillageHandler) refuseWithoutTrace(ctx context.Context, fn func(ctx context.Context, tx application.Tx) error) error {
+	return h.uow.Do(ctx, fn)
+}
+
+func (h *VillageHandler) startProductionBody(ctx context.Context, tx application.Tx, meta envelope.Metadata, snap *content.Snapshot,
 	s application.FoundedSettlement, b application.SettlementBuildingInstance, d content.SettlementBuildingDef,
 	p *application.Player, wageOverride int64, jobID, recipe string,
 ) error {

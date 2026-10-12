@@ -106,6 +106,9 @@ type VillageInvariants struct {
 	// goods; CraftOverPlanned counts finished jobs that made more of a good than they planned (migration 0145, ADR 0068).
 	CraftInputsJournal, CraftInputsRows, CraftMadeJournal, CraftMadeRows, CraftOverPlanned int64
 	NPCShiftsWithoutJob, NPCHungry, CarryOutOfRange                                        int64
+	// MealsWithoutShift, InputMovesWithoutShift and ActionsWithoutShift: what a start refused after it wrote would leave behind (a meal opening, an input
+	// movement not given back, a pending finish action) with no shift to own it; the repair is `admin settlement repair-orphan-shifts`.
+	MealsWithoutShift, InputMovesWithoutShift, ActionsWithoutShift int64
 	// Condition (migration 0126): Repairs is whether the columns exist; RepairWithoutJob counts
 	// repair shifts no repair job posted or that restore nothing; DamageOutOfRange buildings
 	// whose damage is outside 0..10000; RepairUnpaid finished repair shifts with a gain but
@@ -260,6 +263,7 @@ func (v VillageInvariants) WorkNodesOK() bool {
 	return !v.WorkNodes || (v.MealOpenedRows == v.MealOpenedKitchen && v.MealEatenShifts == v.MealEatenKitchen &&
 		v.MealJournalUnits == v.MealRowUnits && v.BoardJournalUnits == v.BoardShiftUnits && v.ClearingLedger == v.ClearingRows && v.LandShiftsWithoutLot == 0 &&
 		v.CraftInputsJournal == v.CraftInputsRows && v.CraftMadeJournal == v.CraftMadeRows && v.CraftOverPlanned == 0 &&
+		v.MealsWithoutShift == 0 && v.InputMovesWithoutShift == 0 && v.ActionsWithoutShift == 0 &&
 		v.FarmSeedShifts == v.FarmSeedCycles && v.FarmShiftsWithoutCycle == 0 && v.FarmCountersBroken == 0 && v.FarmHarvestOver == 0 && v.GrindWithoutCustomer == 0 && v.NPCShiftsWithoutJob == 0 && v.NPCHungry == 0 && v.CarryOutOfRange == 0 &&
 		(!v.Repairs || (v.RepairWithoutJob == 0 && v.DamageOutOfRange == 0))) &&
 		(!v.Currencies || (v.PotMismatched == 0 && v.SupplyMismatched == 0 && v.IssuanceMismatched == 0 && v.StrayHoldings == 0)) &&
@@ -504,10 +508,14 @@ func (a *EconomyAdmin) verifyWorkNodes(ctx context.Context, v *LedgerVerificatio
 		{&s.FarmHarvestOver, "crops harvested past their yield", `SELECT count(*) FROM farm_cycles c WHERE
 			(SELECT COALESCE(SUM((s.produced->>'wheat')::bigint), 0) FROM settlement_shifts s WHERE s.farm_cycle = c.id AND s.farm_phase = 'harvest') > c.yield_total`},
 		{&s.GrindWithoutCustomer, "grinding shifts of no citizen", `SELECT count(*) FROM settlement_shifts WHERE farm_phase = 'grind' AND custom_for IS NULL`},
-		{&s.BoardJournalUnits, "board units in the item journal", `SELECT COALESCE(SUM(quantity), 0)::bigint FROM item_movements WHERE reason = 'board_eaten'`},
+		{&s.BoardJournalUnits, "board units in the item journal", `SELECT COALESCE(SUM(quantity), 0)::bigint FROM item_movements m WHERE reason = 'board_eaten'
+			AND NOT EXISTS (SELECT 1 FROM item_movements r WHERE r.reason = '`+RefusedShiftRefundReason+`' AND r.reference_type = '`+RefusedShiftRefundReference+`' AND r.reference_id = m.id)`},
 		{&s.BoardShiftUnits, "board units in the shift rows", `SELECT COALESCE(SUM(v.value::bigint), 0)::bigint FROM settlement_shifts s, jsonb_each_text(s.board) v`},
 		{&s.MealJournalUnits, "meal units in the item journal", `SELECT COALESCE(SUM(quantity), 0)::bigint FROM item_movements WHERE reason = 'meal_eaten'`},
 		{&s.MealRowUnits, "meal units in the opening rows", `SELECT COALESCE(SUM(units), 0)::bigint FROM settlement_meals`},
+		{&s.MealsWithoutShift, "meal openings without a shift", `SELECT count(*) `+orphanMealsFrom},
+		{&s.InputMovesWithoutShift, "input movements without a shift", `SELECT count(*) `+orphanMovesFrom},
+		{&s.ActionsWithoutShift, "pending finish actions without a shift", `SELECT count(*) `+orphanActionsFrom},
 		{&s.NPCShiftsWithoutJob, "NPC production shifts without a job", `
 			SELECT count(*) FROM settlement_shifts WHERE kind = 'production' AND worker_kind = 'npc' AND job_id IS NULL`},
 		{&s.NPCHungry, "NPC shifts that started unfed", `
