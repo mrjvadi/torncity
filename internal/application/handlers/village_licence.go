@@ -207,6 +207,9 @@ func (h *VillageHandler) licenceSetKind(ctx context.Context, tx application.Tx, 
 	if !ok {
 		return refuseVillage(village.LicenceNoKind, village.AddrLicence)
 	}
+	if def.Gate == "" {
+		return refuseVillage(village.LicenceDeferred, village.AddrLicence)
+	}
 	if missing, err := knowledgeMissing(ctx, tx, s.CityID, needsKnowledge(def.Requires)); err != nil {
 		return err
 	} else if len(missing) > 0 {
@@ -314,6 +317,9 @@ func (h *VillageHandler) licenceClaim(ctx context.Context, tx application.Tx, sn
 	def, ok := snap.LicenceKind(strings.TrimSpace(req.Code))
 	if !ok {
 		return refuseVillage(village.LicenceNoKind, village.AddrLicence)
+	}
+	if def.Gate == "" {
+		return refuseVillage(village.LicenceDeferred, village.AddrLicence)
 	}
 	rule, err := tx.Licences().Rule(ctx, s.CityID, def.Code)
 	if err != nil {

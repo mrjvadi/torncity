@@ -29,6 +29,9 @@ func (h *VillageHandler) licenceApply(ctx context.Context, tx application.Tx, sn
 	if !ok {
 		return refuseVillage(village.LicenceNoKind, village.AddrLicence)
 	}
+	if def.Gate == "" {
+		return refuseVillage(village.LicenceDeferred, village.AddrLicence)
+	}
 	rule, err := tx.Licences().Rule(ctx, s.CityID, def.Code)
 	if err != nil {
 		return err
@@ -199,6 +202,9 @@ func (h *VillageHandler) licenceAuction(ctx context.Context, tx application.Tx, 
 	def, ok := snap.LicenceKind(strings.TrimSpace(req.Code))
 	if !ok {
 		return refuseVillage(village.LicenceNoKind, village.AddrLicence)
+	}
+	if def.Gate == "" {
+		return refuseVillage(village.LicenceDeferred, village.AddrLicence)
 	}
 	rule, err := tx.Licences().Rule(ctx, s.CityID, def.Code)
 	if err != nil {
@@ -779,6 +785,22 @@ func (h *VillageHandler) licenceGate(ctx context.Context, tx application.Tx, p *
 		return err
 	}
 	ok, err := licenceAllowed(ctx, tx, h.special.LicenceAt, h.now(), issuerID, kind, target, holders...)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return refuseVillage(village.LicenceMissing, village.AddrLicence)
+	}
+	return nil
+}
+
+// worksClassGate asks whether a company may bid on public works of a settlement: when the settlement requires the contractor class (docs/adr/0077
+// 7.2), the company holds a live licence of the settlement. Before the market opens, with no requirement or in its grace, nothing is asked.
+func (h *VillageHandler) worksClassGate(ctx context.Context, tx application.Tx, settlementID, companyID string, now time.Time) error {
+	if settlementID == "" {
+		return nil
+	}
+	ok, err := licenceAllowed(ctx, tx, h.special.LicenceAt, now, settlementID, "works_class", "", [2]string{"company", companyID})
 	if err != nil {
 		return err
 	}
