@@ -138,26 +138,6 @@ func (r *IntelRepository) OpsToday(ctx context.Context, agentID string, day int6
 	return n, nil
 }
 
-// OpsOfSponsor lists the latest operations of a bureau.
-func (r *IntelRepository) OpsOfSponsor(ctx context.Context, sponsorID string, limit int) ([]application.IntelOp, error) {
-	rows, err := r.q.Query(ctx, `SELECT id::text, agent_id::text, sponsor_id::text, target_id::text, kind, day, chance_bps, roll, outcome, fee, wage, COALESCE(ledger_tx::text, ''), at
-		FROM intel_ops WHERE sponsor_id = $1::uuid ORDER BY at DESC, id LIMIT $2`, sponsorID, limit)
-	if err != nil {
-		return nil, fmt.Errorf("postgres: listing operations: %w", err)
-	}
-	defer rows.Close()
-	var out []application.IntelOp
-	for rows.Next() {
-		var o application.IntelOp
-		if err := rows.Scan(&o.ID, &o.AgentID, &o.SponsorID, &o.TargetID, &o.Kind, &o.Day, &o.ChanceBPS, &o.Roll, &o.Outcome, &o.Fee, &o.Wage, &o.LedgerTx, &o.At); err != nil {
-			return nil, fmt.Errorf("postgres: reading an operation: %w", err)
-		}
-		o.At = o.At.UTC()
-		out = append(out, o)
-	}
-	return out, rows.Err()
-}
-
 // InsertReport records what an operation brought back.
 func (r *IntelRepository) InsertReport(ctx context.Context, rep application.IntelReport) error {
 	raw, err := json.Marshal(rep.Fields)

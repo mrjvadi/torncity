@@ -506,15 +506,6 @@ func (r *ProjectRepository) ContractBids(ctx context.Context, contractID string)
 	return out, rows.Err()
 }
 
-// SetContractBids moves every bid of a contract in one state to another.
-func (r *ProjectRepository) SetContractBids(ctx context.Context, contractID, from, to string) error {
-	_, err := r.q.Exec(ctx, `UPDATE project_contract_bids SET status = $3 WHERE contract_id = $1::uuid AND status = $2`, contractID, from, to)
-	if err != nil {
-		return fmt.Errorf("postgres: moving bids: %w", err)
-	}
-	return nil
-}
-
 // SetContractBid sets one bid's state.
 func (r *ProjectRepository) SetContractBid(ctx context.Context, bidID, status string) error {
 	_, err := r.q.Exec(ctx, `UPDATE project_contract_bids SET status = $2 WHERE id = $1::uuid`, bidID, status)
@@ -542,25 +533,6 @@ func (r *ProjectRepository) SetContractStatus(ctx context.Context, contractID, f
 		return false, fmt.Errorf("postgres: moving a contract: %w", err)
 	}
 	return tag.RowsAffected() == 1, nil
-}
-
-// ContractStages lists the stages of a contract paid.
-func (r *ProjectRepository) ContractStages(ctx context.Context, contractID string) ([]application.ProjectContractStage, error) {
-	rows, err := r.q.Query(ctx, `SELECT contract_id::text, stage, paid, held, COALESCE(ledger_tx::text, ''), at FROM project_contract_stages WHERE contract_id = $1::uuid ORDER BY stage`, contractID)
-	if err != nil {
-		return nil, fmt.Errorf("postgres: listing paid stages: %w", err)
-	}
-	defer rows.Close()
-	var out []application.ProjectContractStage
-	for rows.Next() {
-		var s application.ProjectContractStage
-		if err := rows.Scan(&s.ContractID, &s.Stage, &s.Paid, &s.Held, &s.LedgerTx, &s.At); err != nil {
-			return nil, fmt.Errorf("postgres: reading a paid stage: %w", err)
-		}
-		s.At = s.At.UTC()
-		out = append(out, s)
-	}
-	return out, rows.Err()
 }
 
 // PayContractStage writes a paid stage and counts it; false when it was written already.

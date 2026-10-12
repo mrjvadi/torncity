@@ -229,11 +229,9 @@ type ProjectRepository interface {
 	OpenContracts(ctx context.Context, limit int) ([]ProjectContract, error)
 	AddContractBid(ctx context.Context, b ProjectContractBid) (bool, error)
 	ContractBids(ctx context.Context, contractID string) ([]ProjectContractBid, error)
-	SetContractBids(ctx context.Context, contractID, from, to string) error
 	SetContractBid(ctx context.Context, bidID, status string) error
 	AwardContract(ctx context.Context, contractID, bidID, companyID string, price int64, at, dueAt time.Time) (bool, error)
 	SetContractStatus(ctx context.Context, contractID, from, to string, at time.Time) (bool, error)
-	ContractStages(ctx context.Context, contractID string) ([]ProjectContractStage, error)
 	PayContractStage(ctx context.Context, s ProjectContractStage) (bool, error)
 	AddContractRetention(ctx context.Context, contractID string, held int64, at time.Time) error
 	ClearContractRetention(ctx context.Context, contractID string) error
@@ -309,7 +307,6 @@ type IntelRepository interface {
 	Close(ctx context.Context, id, status string, at time.Time) (bool, error)
 	InsertOp(ctx context.Context, o IntelOp) (bool, error)
 	OpsToday(ctx context.Context, agentID string, day int64) (int64, error)
-	OpsOfSponsor(ctx context.Context, sponsorID string, limit int) ([]IntelOp, error)
 	InsertReport(ctx context.Context, r IntelReport) error
 	ReportsOfSponsor(ctx context.Context, sponsorID string, limit int) ([]IntelReport, error)
 	ReportByID(ctx context.Context, id string) (*IntelReport, error)
@@ -424,16 +421,13 @@ type LicenceRepository interface {
 	Transferred(ctx context.Context, id string, at time.Time) (bool, error)
 	ProposeRevoke(ctx context.Context, id, by string) (bool, error)
 	Renew(ctx context.Context, id string, newEnd time.Time, paid int64) (bool, error)
-	LastMoveAt(ctx context.Context, id string) (time.Time, error)
 
 	InsertAuction(ctx context.Context, a LicenceAuction) (bool, error)
 	AuctionByID(ctx context.Context, id string, lock bool) (*LicenceAuction, error)
 	AuctionsOf(ctx context.Context, issuerID string, limit int) ([]LicenceAuction, error)
-	OpenAuctions(ctx context.Context, limit int) ([]LicenceAuction, error)
 	AddBid(ctx context.Context, b LicenceBid) (bool, error)
 	Bids(ctx context.Context, auctionID string) ([]LicenceBid, error)
 	SetBid(ctx context.Context, bidID, status string) error
-	SetBids(ctx context.Context, auctionID, from, to string) error
 	// AwardAuction closes an open auction with its winner in one conditional update: true for exactly one caller.
 	AwardAuction(ctx context.Context, id, bidID, licenceID string, price int64, at time.Time) (bool, error)
 	SetAuctionStatus(ctx context.Context, id, from, to string, at time.Time) (bool, error)
@@ -450,7 +444,4 @@ type LicenceRepository interface {
 
 	Event(ctx context.Context, e LicenceEvent) error
 	Events(ctx context.Context, issuerID string, limit int) ([]LicenceEvent, error)
-	// DueTerms lists live licences whose term has ended; DueNotices those whose notice has ended (the sweeper's, a backstop to the ticks).
-	DueTerms(ctx context.Context, now time.Time, limit int) ([]Licence, error)
-	DueNotices(ctx context.Context, now time.Time, limit int) ([]Licence, error)
 }

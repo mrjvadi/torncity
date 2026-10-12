@@ -31,7 +31,7 @@ licence_kinds:
     name: "امتیاز بهره‌برداری"
     requires: {knowledge: [record_keeping]}
     target: deposit
-    gate: pit
+    note: "in the register only: the pits and forests are the treasury's today, so no action asks for it; the gate (pit) and the royalty come with a private or company pit (docs/adr/0077 section 24)"
     duty: "work the deposit safely and pay the royalty on what it yields"
   - code: toll_franchise
     source: "ADR 0077 7.2"

@@ -263,18 +263,6 @@ func (r *LicenceRepository) Renew(ctx context.Context, id string, newEnd time.Ti
 	return tag.RowsAffected() == 1, nil
 }
 
-// LastMoveAt is when the licence was granted or last changed hands (a transferred licence's successor is a new row, so the grant is the move).
-func (r *LicenceRepository) LastMoveAt(ctx context.Context, id string) (time.Time, error) {
-	var t *time.Time
-	if err := r.q.QueryRow(ctx, `SELECT created_at FROM licences WHERE id = $1::uuid`, id).Scan(&t); err != nil {
-		return time.Time{}, fmt.Errorf("postgres: reading a grant: %w", err)
-	}
-	if t == nil {
-		return time.Time{}, nil
-	}
-	return t.UTC(), nil
-}
-
 const licAuctionColumns = `id::text, issuer_id::text, kind, target_ref, posted_by::text, status, COALESCE(bid_id::text, ''), COALESCE(licence_id::text, ''), reserve, COALESCE(price, 0), term_days, transferable, opens_at, closes_at, closed_at`
 
 func scanLicAuction(row pgx.Row) (*application.LicenceAuction, error) {
@@ -338,11 +326,6 @@ func (r *LicenceRepository) AuctionsOf(ctx context.Context, issuerID string, lim
 	return r.auctions(ctx, `SELECT `+licAuctionColumns+` FROM licence_auctions WHERE issuer_id = $1::uuid ORDER BY opens_at DESC, id LIMIT $2`, issuerID, limit)
 }
 
-// OpenAuctions lists the auctions still taking bids, newest first.
-func (r *LicenceRepository) OpenAuctions(ctx context.Context, limit int) ([]application.LicenceAuction, error) {
-	return r.auctions(ctx, `SELECT `+licAuctionColumns+` FROM licence_auctions WHERE status = 'open' ORDER BY opens_at DESC, id LIMIT $1`, limit)
-}
-
 // AddBid records a sealed bid; false when the bidder has bid on the auction already.
 func (r *LicenceRepository) AddBid(ctx context.Context, b application.LicenceBid) (bool, error) {
 	tag, err := r.q.Exec(ctx, `INSERT INTO licence_bids (id, auction_id, bidder_kind, bidder_id, bid_by, amount, status, at)
@@ -377,15 +360,6 @@ func (r *LicenceRepository) SetBid(ctx context.Context, bidID, status string) er
 	_, err := r.q.Exec(ctx, `UPDATE licence_bids SET status = $2 WHERE id = $1::uuid`, bidID, status)
 	if err != nil {
 		return fmt.Errorf("postgres: setting a bid: %w", err)
-	}
-	return nil
-}
-
-// SetBids moves every bid of an auction in one state to another.
-func (r *LicenceRepository) SetBids(ctx context.Context, auctionID, from, to string) error {
-	_, err := r.q.Exec(ctx, `UPDATE licence_bids SET status = $3 WHERE auction_id = $1::uuid AND status = $2`, auctionID, from, to)
-	if err != nil {
-		return fmt.Errorf("postgres: moving bids: %w", err)
 	}
 	return nil
 }
@@ -581,12 +555,3 @@ func (r *LicenceRepository) Events(ctx context.Context, issuerID string, limit i
 	return out, rows.Err()
 }
 
-// DueTerms lists live licences whose term has ended.
-func (r *LicenceRepository) DueTerms(ctx context.Context, now time.Time, limit int) ([]application.Licence, error) {
-	return r.lics(ctx, `SELECT `+licColumns+` FROM licences WHERE status IN ('active', 'notice') AND term_end <= $1 ORDER BY term_end LIMIT $2`, now.UTC(), limit)
-}
-
-// DueNotices lists licences under notice whose notice has ended.
-func (r *LicenceRepository) DueNotices(ctx context.Context, now time.Time, limit int) ([]application.Licence, error) {
-	return r.lics(ctx, `SELECT `+licColumns+` FROM licences WHERE status = 'notice' AND notice_until <= $1 ORDER BY notice_until LIMIT $2`, now.UTC(), limit)
-}

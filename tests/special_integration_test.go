@@ -1767,3 +1767,42 @@ func TestAPrivateCraftNeedsItsPrivilegeWhereTheSettlementRequiresIt(t *testing.T
 		t.Fatal("a use of the licence is written (it feeds the non-use rule)")
 	}
 }
+
+// Anyone standing at the site may bring what they carry, and the sponsor may pass a report on to another town, which then reads it as shared with its age.
+func TestAResidentGivesWhatTheyCarryAndAReportIsPassedOn(t *testing.T) {
+	e := newSpecialEnv(t, nil)
+	e.know(e.cityID, "masonry", "canal_irrigation")
+	id := e.startProject(e.head, "aqueduct")
+	giver := e.resident("A")
+	err := postgres.NewUnitOfWork(e.pool, testDefaultLanguage).Do(testCtx(t), func(ctx context.Context, tx application.Tx) error {
+		return tx.Items().Move(ctx, application.ItemMove{ID: newUUID(t), Item: "stone", Qty: 15, To: giver.ID, ToHolding: application.HoldCarried,
+			Reason: application.ItemGrant, ReferenceType: "test", ReferenceID: newUUID(t), At: time.Now().UTC()})
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, kind := e.project(giver, handlers.VillageProjectRequest{Action: village.ProjectActionGive, ID: id, Code: "stone", N: "16"}); kind != village.ProjectNoStock {
+		t.Fatalf("a giver cannot give more than they carry, got %q", kind)
+	}
+	e.mustProject(giver, handlers.VillageProjectRequest{Action: village.ProjectActionGive, ID: id, Code: "stone", N: "15"})
+	if got := e.scalarInt(`SELECT qty FROM project_stock WHERE project_id = $1::uuid AND item = 'stone'`, id); got != 15 {
+		t.Fatalf("the stone is on the site, %d", got)
+	}
+	if e.scalarInt(`SELECT COALESCE(sum(quantity), 0) FROM item_stacks WHERE player_id = $1::uuid AND item_code = 'stone' AND holding = 'carried'`, giver.ID) != 0 {
+		t.Fatal("the giver carries no stone any more")
+	}
+	// the report: made by the sponsor's agent, passed to C, read there
+	e.pinChance(10_000)
+	agent, agentID := e.agentOf()
+	e.mustIntel(agent, handlers.VillageIntelRequest{Action: village.IntelActionOp, ID: agentID, Code: "survey_garrison"})
+	report := e.text(`SELECT id::text FROM intel_reports LIMIT 1`)
+	if _, kind := e.intel(e.headC, handlers.VillageIntelRequest{Action: village.IntelActionShare, ID: report, Code: e.codeOf(e.cityID)}); kind != village.IntelNoReport {
+		t.Fatalf("a town cannot share another's report, got %q", kind)
+	}
+	e.mustIntel(e.head, handlers.VillageIntelRequest{Action: village.IntelActionShare, ID: report, Code: e.codeOf(e.cityC)})
+	v := e.mustIntel(e.headC, handlers.VillageIntelRequest{Action: village.IntelActionOpen})
+	if len(v.Reports) != 1 || !v.Reports[0].Shared || v.Reports[0].MayShare || len(v.Reports[0].Fields) != 2 {
+		t.Fatalf("the other town reads the bands, marked shared: %+v", v.Reports)
+	}
+	e.verifySpecial()
+}
