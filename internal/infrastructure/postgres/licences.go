@@ -554,4 +554,3 @@ func (r *LicenceRepository) Events(ctx context.Context, issuerID string, limit i
 	}
 	return out, rows.Err()
 }
-

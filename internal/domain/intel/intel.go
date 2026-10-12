@@ -109,7 +109,9 @@ func Combine(chances []int64) int64 {
 }
 
 // Expel is the instant until which an expelled agent may not reside in the settlement again.
-func (r Rules) Expel(now time.Time) time.Time { return now.Add(time.Duration(r.ExpelDays) * 24 * time.Hour) }
+func (r Rules) Expel(now time.Time) time.Time {
+	return now.Add(time.Duration(r.ExpelDays) * 24 * time.Hour)
+}
 
 // Aged reports whether a report is older than the time it keeps fresh for.
 func (r Rules) Aged(takenAt, now time.Time) bool { return now.Sub(takenAt) >= r.ReportTTL }

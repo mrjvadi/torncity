@@ -7,7 +7,9 @@ import (
 
 var t0 = time.Date(2026, 10, 12, 8, 0, 0, 0, time.UTC)
 
-func stage() Stage { return Stage{Materials: map[string]int64{"stone": 10, "timber": 4}, LabourHours: 8, MinHours: 6} }
+func stage() Stage {
+	return Stage{Materials: map[string]int64{"stone": 10, "timber": 4}, LabourHours: 8, MinHours: 6}
+}
 
 func TestAStageWaitsForMaterialsThenCrewThenTime(t *testing.T) {
 	s := stage()

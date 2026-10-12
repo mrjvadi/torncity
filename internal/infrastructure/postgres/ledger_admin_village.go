@@ -225,7 +225,7 @@ type VillageInvariants struct {
 	// ledger against the operations, reports of blown operations or holding a figure, detected operations with no expulsion, the most acts of
 	// sabotage in a week, licence escrows, auction prices, revoked licences with no cause, live licences long past their term, auctions with two
 	// winners and the largest share one holder has of a kind.
-	Special                                                                         bool
+	Special                                                                        bool
 	ProjectGiftLedger, ProjectGiftRows, ProjectStagesBroken, ProjectCancelledFunds int64
 	ProjectEscrowBroken, IntelFeeLedger, IntelFeeRows, IntelWageLedger             int64
 	IntelWageRows, SabotageCostLedger, SabotageCostRows, IntelReportBlown          int64
@@ -538,13 +538,13 @@ func (a *EconomyAdmin) verifyWorkNodes(ctx context.Context, v *LedgerVerificatio
 			(SELECT COALESCE(SUM((s.produced->>'wheat')::bigint), 0) FROM settlement_shifts s WHERE s.farm_cycle = c.id AND s.farm_phase = 'harvest') > c.yield_total`},
 		{&s.GrindWithoutCustomer, "grinding shifts of no citizen", `SELECT count(*) FROM settlement_shifts WHERE farm_phase = 'grind' AND custom_for IS NULL`},
 		{&s.BoardJournalUnits, "board units in the item journal", `SELECT COALESCE(SUM(quantity), 0)::bigint FROM item_movements m WHERE reason = 'board_eaten'
-			AND NOT EXISTS (SELECT 1 FROM item_movements r WHERE r.reason = '`+RefusedShiftRefundReason+`' AND r.reference_type = '`+RefusedShiftRefundReference+`' AND r.reference_id = m.id)`},
+			AND NOT EXISTS (SELECT 1 FROM item_movements r WHERE r.reason = '` + RefusedShiftRefundReason + `' AND r.reference_type = '` + RefusedShiftRefundReference + `' AND r.reference_id = m.id)`},
 		{&s.BoardShiftUnits, "board units in the shift rows", `SELECT COALESCE(SUM(v.value::bigint), 0)::bigint FROM settlement_shifts s, jsonb_each_text(s.board) v`},
 		{&s.MealJournalUnits, "meal units in the item journal", `SELECT COALESCE(SUM(quantity), 0)::bigint FROM item_movements WHERE reason = 'meal_eaten'`},
 		{&s.MealRowUnits, "meal units in the opening rows", `SELECT COALESCE(SUM(units), 0)::bigint FROM settlement_meals`},
-		{&s.MealsWithoutShift, "meal openings without a shift", `SELECT count(*) `+orphanMealsFrom},
-		{&s.InputMovesWithoutShift, "input movements without a shift", `SELECT count(*) `+orphanMovesFrom},
-		{&s.ActionsWithoutShift, "pending finish actions without a shift", `SELECT count(*) `+orphanActionsFrom},
+		{&s.MealsWithoutShift, "meal openings without a shift", `SELECT count(*) ` + orphanMealsFrom},
+		{&s.InputMovesWithoutShift, "input movements without a shift", `SELECT count(*) ` + orphanMovesFrom},
+		{&s.ActionsWithoutShift, "pending finish actions without a shift", `SELECT count(*) ` + orphanActionsFrom},
 		{&s.NPCShiftsWithoutJob, "NPC production shifts without a job", `
 			SELECT count(*) FROM settlement_shifts WHERE kind = 'production' AND worker_kind = 'npc' AND job_id IS NULL`},
 		{&s.NPCHungry, "NPC shifts that started unfed", `
