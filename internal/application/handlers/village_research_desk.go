@@ -79,7 +79,8 @@ func (h *VillageHandler) researchAct(ctx context.Context, tx application.Tx, met
 		} else if !ok {
 			return refuseVillage(village.VillageNotResident, back)
 		}
-		buildings, err := tx.SettlementBuildings().List(ctx, s.CityID)
+		// the great library of a finished special project offers posts as a research building does (docs/adr/0077 4.2)
+		buildings, err := h.buildingsWithWorks(ctx, tx, snap, s.CityID)
 		if err != nil {
 			return err
 		}

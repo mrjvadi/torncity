@@ -1806,3 +1806,39 @@ func TestAResidentGivesWhatTheyCarryAndAReportIsPassedOn(t *testing.T) {
 	}
 	e.verifySpecial()
 }
+
+// A kind of licence with no reader cannot be required, applied for or auctioned: a right that stops nothing would be decoration.
+func TestALicenceKindWithNoReaderCannotBeRequired(t *testing.T) {
+	e := newSpecialEnv(t, nil)
+	e.know(e.cityID, "record_keeping")
+	for _, code := range []string{"concession", "toll_franchise"} {
+		if kind := e.setKind(e.head, code, "fixed", 100, 0, 30, false); kind != village.LicenceDeferred {
+			t.Errorf("%s has no reader and says %q, want %q", code, kind, village.LicenceDeferred)
+		}
+		if _, kind := e.licence(e.rich("A", 5000), handlers.VillageLicenceRequest{Action: village.LicenceActionApply, Code: code, Target: "x"}); kind != village.LicenceDeferred {
+			t.Errorf("an application for %s says %q, want %q", code, kind, village.LicenceDeferred)
+		}
+	}
+	// the contractor class has its reader at the bids on public works
+	if kind := e.setKind(e.head, "works_class", "fixed", 100, 0, 30, false); kind != "" {
+		t.Errorf("works_class is read by the bids on public works and may be required, got %q", kind)
+	}
+}
+
+// The great library offers scholar posts to residents as a research building does; the post names the finished work.
+func TestAScholarTakesAPostAtTheGreatLibrary(t *testing.T) {
+	e := newSpecialEnv(t, nil)
+	lib := e.finishedWork(e.cityID, "great_library", 2)
+	scholar := e.resident("A")
+	_, resp := e.desk(scholar, village.ResearchActionPost, lib)
+	if resp.Refusal != nil {
+		t.Fatalf("a resident cannot take a post at the great library: %+v", resp.Refusal)
+	}
+	if n := e.scalar(`SELECT count(*) FROM research_posts WHERE building_id = $1::uuid AND player_id = $2::uuid`, lib, scholar.ID); n != 1 {
+		t.Fatalf("the post is not written: %d", n)
+	}
+	e.desk(scholar, village.ResearchActionLeave, "")
+	if n := e.scalar(`SELECT count(*) FROM research_posts WHERE player_id = $1::uuid`, scholar.ID); n != 0 {
+		t.Fatalf("the post stays after the scholar leaves: %d", n)
+	}
+}

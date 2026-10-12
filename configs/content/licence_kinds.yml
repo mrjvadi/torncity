@@ -1,7 +1,7 @@
 # Kinds of right a settlement may grant (docs/adr/0077 7): a licence is a recorded, priced, time-limited right with a duty. Nothing is licensed
 # by default: a kind is licensed in a settlement only when its charter creates the requirement (licence.set_kind), after a grace. `gate` is the
-# action that stops without the licence once it is required; a row with no gate is in the register only (its reader waits for the system it
-# gates: the toll collection of the railways and the contractor classes of public works).
+# action that stops without the licence once it is required (stall, craft, works); a row with no gate cannot be required or applied for and says what it
+# waits_for (a kind with no reader would be decoration).
 #
 # Fields: code, source, evidence, requires, name, target (an exclusive right is over one named thing: deposit, link or craft), gate (stall, pit,
 # craft), transferable (the default for this kind), duty (what the holder owes).
