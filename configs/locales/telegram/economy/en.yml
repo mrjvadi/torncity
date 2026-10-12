@@ -207,6 +207,7 @@ market:
     closed: That order is no longer open.
     stalls_full: "Every stall of the market is taken ({count} stalls). Wait for an order to end."
     stall_limit: "One person may hold only {count} stalls in this market; cancel one."
+    no_licence: "This town asks a stall right of every seller; get one from the town's licences."
   embargoed: "⛔ {count} offers from a country under a trade embargo with ours were passed over."
 
 # The auction house (internal/domain/auction): unique pieces only.

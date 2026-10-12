@@ -503,6 +503,27 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 			}
 			return h.village.Tender(ctx, env.Metadata, req)
 		},
+		"settlement.project": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageProjectRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.Project(ctx, env.Metadata, req)
+		},
+		"settlement.intel": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageIntelRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.Intel(ctx, env.Metadata, req)
+		},
+		"settlement.licence": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageLicenceRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.Licence(ctx, env.Metadata, req)
+		},
 		"settlement.debt": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			var req handlers.VillageDebtRequest
 			if err := decode(env, &req); err != nil {

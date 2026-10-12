@@ -1,0 +1,85 @@
+# Operations of a bureau's agents (docs/adr/0077 6): surveys that bring back BANDS (a name from the metric's list, never a figure or a person) and
+# the four kinds of sabotage (the kinds are fixed in code; none destroys a building, a stage or a person's property). Every chance and band edge is
+# a draft (evidence D). The edges are in minor units, units or counts, whichever the metric is; the metric is read by the engine, the figure goes no
+# further than the band.
+
+version: 1
+
+intel_ops:
+  - code: survey_stock
+    source: "ADR 0077 6.2"
+    evidence: D
+    name: "ارزیابی خزانه و انبار"
+    requires: {knowledge: [field_craft]}
+    kind: survey
+    chance_bps: 0
+    metrics:
+      - {code: treasury, names: [meagre, modest, ample, vast], edges: [1000, 10000, 100000]}
+      - {code: food, names: [scarce, enough, plenty], edges: [50, 500]}
+      - {code: materials, names: [scarce, enough, plenty], edges: [50, 500]}
+  - code: survey_garrison
+    source: "ADR 0077 6.2"
+    evidence: D
+    name: "ارزیابی نگهبانی"
+    requires: {knowledge: [field_craft]}
+    kind: survey
+    chance_bps: -500
+    metrics:
+      - {code: seats, names: [none, few, some, many], edges: [1, 4, 12]}
+      - {code: watch_posts, names: [none, few, several], edges: [1, 3]}
+  - code: survey_treaties
+    source: "ADR 0077 6.2"
+    evidence: D
+    name: "ارزیابی پیمان‌ها"
+    requires: {knowledge: [field_craft]}
+    kind: survey
+    chance_bps: -1000
+    metrics:
+      - {code: pending, names: [none, one_or_two, several], edges: [1, 3]}
+  - code: survey_projects
+    source: "ADR 0077 6.2"
+    evidence: D
+    name: "ارزیابی کارهای بزرگ"
+    requires: {knowledge: [field_craft]}
+    kind: survey
+    chance_bps: -500
+    metrics:
+      - {code: progress, names: [none, early, midway, late], edges: [1, 34, 67]}
+      - {code: shortfall, names: [none, small, large], edges: [1, 50]}
+  - code: survey_posts
+    source: "ADR 0077 6.2"
+    evidence: D
+    name: "ارزیابی کرسی‌های منشور"
+    requires: {knowledge: [field_craft]}
+    kind: survey
+    chance_bps: 0
+    metrics:
+      - {code: vacant, names: [none, one_or_two, many], edges: [1, 3]}
+  - code: delay_work
+    source: "ADR 0077 6.5"
+    evidence: D
+    name: "کندکردن کار"
+    requires: {knowledge: [subversion_craft]}
+    kind: sabotage
+    chance_bps: 0
+  - code: spoil_stock
+    source: "ADR 0077 6.5"
+    evidence: D
+    name: "تباه‌کردن بخشی از یک کالا"
+    requires: {knowledge: [subversion_craft]}
+    kind: sabotage
+    chance_bps: -500
+  - code: blind_post
+    source: "ADR 0077 6.5"
+    evidence: D
+    name: "کورکردن یک دیده‌بانی"
+    requires: {knowledge: [subversion_craft]}
+    kind: sabotage
+    chance_bps: -1000
+  - code: skip_service_day
+    source: "ADR 0077 6.5"
+    evidence: D
+    name: "از کارانداختن یک روز خدمت"
+    requires: {knowledge: [subversion_craft]}
+    kind: sabotage
+    chance_bps: -1500

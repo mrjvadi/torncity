@@ -191,3 +191,29 @@ func Overdue(deadline time.Time, grace time.Duration, now time.Time) bool {
 func RetentionReleaseAt(lastStageAt time.Time, defectsDays int64) time.Time {
 	return lastStageAt.AddDate(0, 0, int(max(defectsDays, 0)))
 }
+
+// StageShareN is the part of the price a stage is worth when the work is paid in n stages (a special project has its own count, docs/adr/0077
+// 4.3): the price in equal shares, the remainder on the last stage. With n = Stages it is StageShare.
+func StageShareN(price int64, stage, n int) int64 {
+	if n < 1 || stage < 1 || stage > n || price < 1 {
+		return 0
+	}
+	s := price / int64(n)
+	if stage == n {
+		s += price % int64(n)
+	}
+	return s
+}
+
+// StagePayN splits what stage k of n is worth into what is paid now and what is held back as retention (as StagePay).
+func StagePayN(price int64, stage, n int, retentionBPS int64) (pay, held int64) {
+	share := StageShareN(price, stage, n)
+	if share == 0 {
+		return 0, 0
+	}
+	held = (share*max(retentionBPS, 0) + BPS - 1) / BPS
+	if held > share {
+		held = share
+	}
+	return share - held, held
+}

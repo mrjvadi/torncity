@@ -133,7 +133,14 @@ func (h *VillageHandler) SettleTradeDay(ctx context.Context, tx application.Tx, 
 	for it, n := range floor {
 		stock[it] = max(stock[it]-n, 0)
 	}
-	plan := trade.Make(stock, tOrders, snap.VillageExportPrices(), residents, h.trade.Rules)
+	// pilgrims of a great temple that is kept come with goods to sell: each counts as one more resident for the visit's load (docs/adr/0077 4.2)
+	visitors := residents
+	if pilgrims, held, err := h.workHeld(ctx, tx, snap, s, content.ProjectEffectFootfall); err != nil {
+		return nil, err
+	} else if held {
+		visitors += pilgrims
+	}
+	plan := trade.Make(stock, tOrders, snap.VillageExportPrices(), visitors, h.trade.Rules)
 	d := application.TradeDay{SettlementID: s.CityID, Day: today, Outcome: application.TradeNothing, Residents: residents, Cap: plan.Cap, At: now}
 
 	road := false

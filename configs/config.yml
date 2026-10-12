@@ -1285,6 +1285,67 @@ polity:
   debt_period_hours: 168   # real hours of one instalment period of a sovereign loan
   debt_max_rate_bps: 3000   # the highest yearly rate a sovereign loan may carry, basis points
 
+# Projects (docs/adr/0077 4: special projects, plan B13). Every figure is a draft (evidence D) until a balance run; the rule dates are placeholders far in the future until the deploy sets them.
+projects:
+  rule_at: "2099-01-01T00:00:00Z"   # special projects start from this instant; a placeholder far in the future until the deploy sets it (ADR 0077)
+  grace_days: 14   # real days a settlement may start a project after the rule date without the full gate being proven by the lint
+  start_fee: 500   # the filing fee of a project, minor units, treasury to sink
+  pledge_min: 100   # the least pledge to a project, minor units
+  cancel_before_stage: 2   # a project may be cancelled (the unspent fund returns pro rata) only before this stage starts
+  max_open: 3   # most unfinished projects of one settlement at a time
+  shift_minutes: 20   # real minutes one crew shift on a project lasts
+  shift_hours: 4   # crew-hours one shift adds to the stage
+  wage_per_hour: 80   # the fund's wage for one crew-hour of a player, minor units
+  npc_wage_per_hour: 60   # the fund's wage for one hour of hired labour of the pool, minor units, to the sink
+  npc_hours_per_day: 8   # most hours of hired labour of the pool one project may take in a game day
+
+# Intel (docs/adr/0077 5-6: intelligence bureau, agents, sabotage, plan B13). Every figure is a draft (evidence D) until a balance run; the rule dates are placeholders far in the future until the deploy sets them.
+intel:
+  rule_at: "2099-01-01T00:00:00Z"   # the intelligence bureau and agents start from this instant; a placeholder far in the future until the deploy sets it (ADR 0077)
+  sabotage_rule_at: "2099-01-01T00:00:00Z"   # sabotage starts from this instant; a placeholder far in the future until the deploy sets it (ADR 0077)
+  grace_days: 14   # real days after a rule date before the first sabotage may be done
+  report_ttl_days: 14   # real days after which a report shows as old
+  op_fee: 100   # the bureau's fee for one operation, minor units, bureau purse to sink
+  agent_wage: 200   # the agent's wage for one operation, minor units, paid by the bureau's settlement
+  ops_per_day: 3   # most operations of one agent in a game day
+  cover_cap_days: 30   # days of residence and job that make a cover as strong as it gets
+  cover_bps_per_day: 100   # chance gained per day of cover, basis points
+  base_chance_bps: 5000   # base chance of an operation, basis points
+  skill_bps_per_level: 200   # chance gained per level of the fieldwork skill, basis points
+  chance_floor_bps: 500   # the lowest chance of an operation, basis points
+  chance_cap_bps: 9000   # the highest chance of an operation, basis points
+  counter_post_bps: 1500   # counter-intelligence of one staffed watch or border post, basis points
+  counter_vet_bps: 2000   # counter-intelligence of a charter vetting policy, basis points
+  counter_small_bps: 1500   # counter-intelligence a small settlement has by being small (it notices a stranger), basis points
+  small_residents: 30   # residents under which a settlement is small
+  detect_bps: 3000   # chance one staffed watch post notices a blown agent, basis points
+  attribution_bps: 4000   # chance an exposed agent is traced to the sponsor, basis points
+  expel_days: 14   # real days an expelled agent may not reside in that settlement
+  sabotage_delay_hours: 12   # hours one act of delay adds to one works order or project stage
+  sabotage_spoil_bps: 500   # share of one stack one act of spoilage destroys, basis points
+  sabotage_blind_bps: 3000   # chance a blinded post loses for one day, basis points
+  sabotage_weekly_limit: 2   # most acts of sabotage one sponsor may do in a real week
+  sabotage_per_target_days: 7   # days between two acts of the same kind on the same target
+  sabotage_skip_days: 30   # days between two skipped service days of the same building
+  sabotage_cost: 400   # what one act of sabotage costs the sponsor, minor units, to the sink
+  skill_xp_per_op: 50   # fieldwork experience an agent gains from an operation
+
+# Licence (docs/adr/0077 7: the licence market, plan B13). Every figure is a draft (evidence D) until a balance run; the rule dates are placeholders far in the future until the deploy sets them.
+licence:
+  rule_at: "2099-01-01T00:00:00Z"   # the licence market starts from this instant; a placeholder far in the future until the deploy sets it (ADR 0077)
+  grace_days: 14   # real days between a settlement requiring a licence and the requirement taking effect
+  auction_min_hours: 24   # the shortest bidding window of a licence auction, real hours
+  reserve_min: 100   # the lowest reserve of a licence auction, minor units (a zero reserve yields nothing)
+  transfer_fee_bps: 500   # the issuer's share of a licence sale, basis points
+  transfer_cooldown_days: 7   # real days between two transfers of one licence
+  max_share_bps: 4000   # the most one holder may hold of a kind's licences in one settlement, basis points
+  notice_days: 7   # real days of notice before a revocation for cause takes effect
+  nonuse_days: 30   # days a licence may sit unused before a non-use breach is recorded
+  coi_share_bps: 1   # an issuing official holding at least this share of a company may not issue to it, basis points
+  listing_fee: 50   # the fee for listing a licence on the exchange board, minor units, to the sink
+  term_max_days: 365   # the longest term of a licence, real days
+  share_cap_from: 5   # live licences of a kind in a settlement from which the share cap applies
+
 # NPC households (docs/adr/0073-npc-households.md, plan B9): the people behind the labour pool. They start from rule_at (a placeholder far in the
 # future until the deploy sets it); a settlement enrolls itself then, runs a dual run, and flips when its households can fill the old pool.
 # The numbers are drafts until the household budget surveys of the ADR are read (ADR 0073 section 15).
@@ -1518,7 +1579,7 @@ settlement:
   # office, permissions per office, and the length of an office title in characters.
   charter_max_offices: 24
   charter_max_seats: 15
-  charter_max_permissions: 64
+  charter_max_permissions: 96
   charter_title_min: 2
   charter_title_max: 32
   # Charter phase 2 (docs/adr/0044 6.5, 6.6): elections, recall, amendments, the acting head.

@@ -77,6 +77,22 @@ func (h *VillageHandler) PolityTick(ctx context.Context, meta envelope.Metadata,
 			return h.tickLoan(ctx, tx, meta, pl.ID, now)
 		case application.TickLoanOffer:
 			return h.tickLoanOffer(ctx, tx, meta, pl.ID, now)
+		case application.TickProjectShift:
+			return h.tickProjectShift(ctx, tx, meta, pl.ID, now)
+		case application.TickProjectStage:
+			return h.tickProjectStage(ctx, tx, meta, pl.ID, pl.Aux, now)
+		case application.TickContractClose:
+			return h.tickContractClose(ctx, tx, meta, pl.ID, now)
+		case application.TickContractDue:
+			return h.tickContractDue(ctx, tx, meta, pl.ID, now)
+		case application.TickContractRelease:
+			return h.tickContractRelease(ctx, tx, meta, pl.ID, now)
+		case application.TickLicenceAuction:
+			return h.tickLicenceAuction(ctx, tx, meta, pl.ID, now)
+		case application.TickLicenceNotice:
+			return h.tickLicenceNotice(ctx, tx, meta, pl.ID, now)
+		case application.TickLicenceExpiry:
+			return h.tickLicenceExpiry(ctx, tx, meta, pl.ID, now)
 		}
 		return nil
 	})

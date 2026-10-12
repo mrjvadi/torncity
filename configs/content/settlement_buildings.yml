@@ -228,6 +228,82 @@ settlement_buildings:
     upkeep: 20
     effects: []
 
+  # The bureau of ADR 0077: a clerk's office with an analyst and a handler (building_functions.yml: intelligence_office).
+  - code: intelligence_office
+    name: "دفتر اطلاعات"
+    role: governance
+    tier: 2
+    footprint: [2, 2]
+    requires_knowledge: [field_craft, record_keeping]
+    requires_building_role: {role: governance, tier: 1}
+    cost_money: 1500
+    cost_materials: {timber: 6, paper: 4}
+    build_time: 3h
+    upkeep: 30
+    effects: []
+
+  # The works of the special projects (docs/adr/0077 4): raised by a project, never placed from a menu (raised_by); they stand as service posts.
+  - code: great_beacon
+    name: "فانوس بزرگ"
+    role: security
+    tier: 3
+    footprint: [2, 2]
+    raised_by: great_beacon
+    requires_knowledge: [masonry]
+    cost_money: 1
+    build_time: 1h
+    effects: []
+  - code: city_wall
+    name: "حصار شهر"
+    role: security
+    tier: 3
+    footprint: [2, 2]
+    raised_by: city_wall
+    requires_knowledge: [masonry]
+    cost_money: 1
+    build_time: 1h
+    effects: []
+  - code: great_library
+    name: "کتابخانهٔ بزرگ"
+    role: research
+    tier: 3
+    footprint: [2, 2]
+    raised_by: great_library
+    requires_knowledge: [masonry]
+    cost_money: 1
+    build_time: 1h
+    effects: []
+  - code: aqueduct
+    name: "قنات آب شهر"
+    role: water_infra
+    tier: 3
+    footprint: [2, 2]
+    raised_by: aqueduct
+    requires_knowledge: [masonry]
+    cost_money: 1
+    build_time: 1h
+    effects: []
+  - code: great_canal
+    name: "کانال بزرگ"
+    role: water_infra
+    tier: 3
+    footprint: [2, 2]
+    raised_by: great_canal
+    requires_knowledge: [masonry]
+    cost_money: 1
+    build_time: 1h
+    effects: []
+  - code: great_temple
+    name: "معبد بزرگ"
+    role: recreation
+    tier: 3
+    footprint: [2, 2]
+    raised_by: great_temple
+    requires_knowledge: [masonry]
+    cost_money: 1
+    build_time: 1h
+    effects: []
+
   - code: militia_camp
     name: اردوگاه سواران محلی
     role: security

@@ -48,13 +48,14 @@ func (p *Pack) validateBuildingSchema(problems *[]error) {
 	l.raids()
 	l.roads()
 	l.rail()
+	l.special()
 	l.reachability()
 }
 
 func (p *Pack) hasBuildingSchema() bool {
 	return len(p.StorageClasses)+len(p.ItemStorage)+len(p.ModuleKinds)+len(p.BuildingFunctions)+len(p.Recipes)+
 		len(p.Climate)+len(p.Land)+len(p.SettlementRaids)+len(p.SettlementRaidDetectors)+len(p.RoadClasses)+len(p.RoadPlanner)+
-		len(p.RailClasses)+len(p.HaulModes)+len(p.Rail) > 0
+		len(p.RailClasses)+len(p.HaulModes)+len(p.Rail)+len(p.SpecialProjects)+len(p.IntelOps)+len(p.LicenceKinds) > 0
 }
 
 // SchemaOpenItems counts what the schema flags instead of inventing, for the
@@ -134,6 +135,15 @@ func (p *Pack) SchemaOpenItems() SchemaOpenItems {
 		add(r.Head)
 	}
 	for _, r := range p.Rail {
+		add(r.Head)
+	}
+	for _, r := range p.SpecialProjects {
+		add(r.Head)
+	}
+	for _, r := range p.IntelOps {
+		add(r.Head)
+	}
+	for _, r := range p.LicenceKinds {
 		add(r.Head)
 	}
 	out.PlannedSkills = len(p.PlannedSkills)

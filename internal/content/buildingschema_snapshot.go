@@ -24,6 +24,9 @@ type buildingSchemaIndex struct {
 	haulModes   []HaulModeDef
 	railClasses []RailClassDef
 	rail        *RailDef
+	projects    []SpecialProjectDef
+	intelOps    []IntelOpDef
+	licences    []LicenceKindDef
 }
 
 func (s *Snapshot) buildBuildingSchema(p *Pack) {
@@ -90,6 +93,9 @@ func (s *Snapshot) buildBuildingSchema(p *Pack) {
 		r := p.Rail[0]
 		ix.rail = &r
 	}
+	ix.projects = append(ix.projects, p.SpecialProjects...)
+	ix.intelOps = append(ix.intelOps, p.IntelOps...)
+	ix.licences = append(ix.licences, p.LicenceKinds...)
 	s.schema = ix
 }
 
@@ -342,4 +348,58 @@ func (s *Snapshot) RoadPlanner() (RoadPlannerDef, bool) {
 		return RoadPlannerDef{}, false
 	}
 	return *s.schema.planner, true
+}
+
+// SpecialProjects lists the kinds of special project in file order.
+func (s *Snapshot) SpecialProjects() []SpecialProjectDef {
+	if s.schema == nil {
+		return nil
+	}
+	return append([]SpecialProjectDef(nil), s.schema.projects...)
+}
+
+// SpecialProject is a kind of special project by code.
+func (s *Snapshot) SpecialProject(code string) (SpecialProjectDef, bool) {
+	for _, d := range s.SpecialProjects() {
+		if d.Code == code {
+			return d, true
+		}
+	}
+	return SpecialProjectDef{}, false
+}
+
+// IntelOps lists the operations of a bureau's agents in file order.
+func (s *Snapshot) IntelOps() []IntelOpDef {
+	if s.schema == nil {
+		return nil
+	}
+	return append([]IntelOpDef(nil), s.schema.intelOps...)
+}
+
+// IntelOp is an operation by code.
+func (s *Snapshot) IntelOp(code string) (IntelOpDef, bool) {
+	for _, d := range s.IntelOps() {
+		if d.Code == code {
+			return d, true
+		}
+	}
+	return IntelOpDef{}, false
+}
+
+// LicenceKinds lists the kinds of right a settlement may grant in file order.
+func (s *Snapshot) LicenceKinds() []LicenceKindDef {
+	if s.schema == nil {
+		return nil
+	}
+	return append([]LicenceKindDef(nil), s.schema.licences...)
+}
+
+// LicenceKind is a kind of right by code.
+func (s *Snapshot) LicenceKind(code string) (LicenceKindDef, bool) {
+	for _, d := range s.LicenceKinds() {
+		if d.Code == code {
+			return d, true
+		}
+	}
+	return LicenceKindDef{}, false
 }

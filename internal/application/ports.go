@@ -183,6 +183,10 @@ type Tx interface {
 	// Unions holds the unions, countries, their charters, ballots and dues (migration 0154, ADR 0076); Tenders the public tenders; Debts the loans between polities; see ports_polity.go.
 	Unions() UnionRepository
 	Tenders() TenderRepository
+	// Projects, Intel and Licences are special projects, intelligence and the licence market (migration 0155, docs/adr/0077).
+	Projects() ProjectRepository
+	Intel() IntelRepository
+	Licences() LicenceRepository
 	Debts() DebtRepository
 	// Raids holds the raids, falls, sight of detectors and settlement insurers (migration 0152, ADR 0074); see ports_raid.go.
 	Raids() RaidRepository

@@ -76,6 +76,9 @@ type SettlementBuildingDef struct {
 	// built (docs/adr/0063): a building a player can place must be a working mechanic, so one that is not yet one is not
 	// offered. Buildings that already stand keep standing. The text names the plan item.
 	WaitsFor string `yaml:"waits_for,omitempty" json:"waits_for,omitempty"`
+	// RaisedBy names the special project that raises the building (docs/adr/0077): such a building is never placed from a menu; it stands
+	// as a service post of the settlement when its project is finished.
+	RaisedBy string `yaml:"raised_by,omitempty" json:"raised_by,omitempty"`
 	// RequiresKnowledge are settlement_knowledge codes the settlement must
 	// hold (AND).
 	RequiresKnowledge []string `yaml:"requires_knowledge,omitempty" json:"requires_knowledge,omitempty"`
@@ -181,7 +184,7 @@ func (d SettlementBuildingDef) ToolTierNeeded() int {
 func (d SettlementBuildingDef) Private() bool { return d.Owner == BuildingOwnerCitizen }
 
 // Gated reports whether the building is kept out of the menus until its mechanic is built (WaitsFor).
-func (d SettlementBuildingDef) Gated() bool { return d.WaitsFor != "" }
+func (d SettlementBuildingDef) Gated() bool { return d.WaitsFor != "" || d.RaisedBy != "" }
 
 // BuildingEffects converts the building's effects.
 func (d SettlementBuildingDef) BuildingEffects() []item.Effect {

@@ -164,13 +164,13 @@ func (h *VillageHandler) unionAct(ctx context.Context, tx application.Tx, meta e
 // ---- founding ---------------------------------------------------------------------------------------------------------------------
 
 type draftOffice struct {
-	ID          string         `json:"id"`
-	Title       string         `json:"title"`
-	Seats       int            `json:"seats"`
+	ID          string          `json:"id"`
+	Title       string          `json:"title"`
+	Seats       int             `json:"seats"`
 	Grants      []charter.Grant `json:"grants"`
-	Acquisition string         `json:"acquisition"`
-	TermDays    int            `json:"term_days"`
-	Holders     []string       `json:"holders"`
+	Acquisition string          `json:"acquisition"`
+	TermDays    int             `json:"term_days"`
+	Holders     []string        `json:"holders"`
 }
 
 func classesOf(text string) ([]polity.Class, error) {

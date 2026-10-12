@@ -265,6 +265,12 @@ type Config struct {
 	Mining Mining
 	// Polity is unions, countries, treaties of settlements, tenders and sovereign loans (docs/adr/0076).
 	Polity Polity
+	// Projects is the tuning of ADR 0077 (docs/adr/0077 4: special projects).
+	Projects Projects
+	// Intel is the tuning of ADR 0077 (docs/adr/0077 5-6: intelligence bureau, agents, sabotage).
+	Intel Intel
+	// Licence is the tuning of ADR 0077 (docs/adr/0077 7: the licence market).
+	Licence Licence
 
 	// Bag, Merchant and Premium are the tuning of ADR 0046: what a player can
 	// carry and how a bag wears, the village shop's daily delivery and prices,
@@ -1924,6 +1930,64 @@ func Defaults() *Config {
 			SpeedRailKmh:         40,
 			TributeMin:           100,
 		},
+		Projects: Projects{
+			RuleAt:            "2099-01-01T00:00:00Z",
+			GraceDays:         14,
+			StartFee:          500,
+			PledgeMin:         100,
+			CancelBeforeStage: 2,
+			MaxOpen:           3,
+			ShiftMinutes:      20,
+			ShiftHours:        4,
+			WagePerHour:       80,
+			NPCWagePerHour:    60,
+			NPCHoursPerDay:    8,
+		},
+		Intel: Intel{
+			RuleAt:                "2099-01-01T00:00:00Z",
+			SabotageRuleAt:        "2099-01-01T00:00:00Z",
+			GraceDays:             14,
+			ReportTTLDays:         14,
+			OpFee:                 100,
+			AgentWage:             200,
+			OpsPerDay:             3,
+			CoverCapDays:          30,
+			CoverBPSPerDay:        100,
+			BaseChanceBPS:         5000,
+			SkillBPSPerLevel:      200,
+			ChanceFloorBPS:        500,
+			ChanceCapBPS:          9000,
+			CounterPostBPS:        1500,
+			CounterVetBPS:         2000,
+			CounterSmallBPS:       1500,
+			SmallResidents:        30,
+			DetectBPS:             3000,
+			AttributionBPS:        4000,
+			ExpelDays:             14,
+			SabotageDelayHours:    12,
+			SabotageSpoilBPS:      500,
+			SabotageBlindBPS:      3000,
+			SabotageWeeklyLimit:   2,
+			SabotagePerTargetDays: 7,
+			SabotageSkipDays:      30,
+			SabotageCost:          400,
+			SkillXPPerOp:          50,
+		},
+		Licence: Licence{
+			RuleAt:               "2099-01-01T00:00:00Z",
+			GraceDays:            14,
+			AuctionMinHours:      24,
+			ReserveMin:           100,
+			TransferFeeBPS:       500,
+			TransferCooldownDays: 7,
+			MaxShareBPS:          4000,
+			NoticeDays:           7,
+			NonuseDays:           30,
+			CoiShareBPS:          1,
+			ListingFee:           50,
+			TermMaxDays:          365,
+			ShareCapFrom:         5,
+		},
 		Polity: Polity{
 			RuleAt:                "2026-10-12T15:30:00Z",
 			RatifyDays:            14,
@@ -2076,7 +2140,7 @@ func Defaults() *Config {
 			BuildHomesPerCrew:                16,
 			CharterMaxOffices:                24,
 			CharterMaxSeats:                  15,
-			CharterMaxPermissions:            64,
+			CharterMaxPermissions:            96,
 			CharterTitleMin:                  2,
 			CharterTitleMax:                  32,
 			CharterElectionTermDays:          14,
@@ -2941,4 +3005,68 @@ type Mining struct {
 	TeamFeedWheat         int64  // mining.team_feed_wheat
 	DefaultRatePerTonneKm int64  // mining.default_rate_per_tonne_km
 	ChainDefaultPerHour   int64  // mining.chain_default_per_hour
+}
+
+// Projects is the tuning of ADR 0077 (docs/adr/0077 4: special projects).
+type Projects struct {
+	RuleAt            string // projects.rule_at
+	GraceDays         int64  // projects.grace_days
+	StartFee          int64  // projects.start_fee
+	PledgeMin         int64  // projects.pledge_min
+	CancelBeforeStage int64  // projects.cancel_before_stage
+	MaxOpen           int64  // projects.max_open
+	ShiftMinutes      int64  // projects.shift_minutes
+	ShiftHours        int64  // projects.shift_hours
+	WagePerHour       int64  // projects.wage_per_hour
+	NPCWagePerHour    int64  // projects.npc_wage_per_hour
+	NPCHoursPerDay    int64  // projects.npc_hours_per_day
+}
+
+// Intel is the tuning of ADR 0077 (docs/adr/0077 5-6: intelligence bureau, agents, sabotage).
+type Intel struct {
+	RuleAt                string // intel.rule_at
+	SabotageRuleAt        string // intel.sabotage_rule_at
+	GraceDays             int64  // intel.grace_days
+	ReportTTLDays         int64  // intel.report_ttl_days
+	OpFee                 int64  // intel.op_fee
+	AgentWage             int64  // intel.agent_wage
+	OpsPerDay             int64  // intel.ops_per_day
+	CoverCapDays          int64  // intel.cover_cap_days
+	CoverBPSPerDay        int64  // intel.cover_bps_per_day
+	BaseChanceBPS         int64  // intel.base_chance_bps
+	SkillBPSPerLevel      int64  // intel.skill_bps_per_level
+	ChanceFloorBPS        int64  // intel.chance_floor_bps
+	ChanceCapBPS          int64  // intel.chance_cap_bps
+	CounterPostBPS        int64  // intel.counter_post_bps
+	CounterVetBPS         int64  // intel.counter_vet_bps
+	CounterSmallBPS       int64  // intel.counter_small_bps
+	SmallResidents        int64  // intel.small_residents
+	DetectBPS             int64  // intel.detect_bps
+	AttributionBPS        int64  // intel.attribution_bps
+	ExpelDays             int64  // intel.expel_days
+	SabotageDelayHours    int64  // intel.sabotage_delay_hours
+	SabotageSpoilBPS      int64  // intel.sabotage_spoil_bps
+	SabotageBlindBPS      int64  // intel.sabotage_blind_bps
+	SabotageWeeklyLimit   int64  // intel.sabotage_weekly_limit
+	SabotagePerTargetDays int64  // intel.sabotage_per_target_days
+	SabotageSkipDays      int64  // intel.sabotage_skip_days
+	SabotageCost          int64  // intel.sabotage_cost
+	SkillXPPerOp          int64  // intel.skill_xp_per_op
+}
+
+// Licence is the tuning of ADR 0077 (docs/adr/0077 7: the licence market).
+type Licence struct {
+	RuleAt               string // licence.rule_at
+	GraceDays            int64  // licence.grace_days
+	AuctionMinHours      int64  // licence.auction_min_hours
+	ReserveMin           int64  // licence.reserve_min
+	TransferFeeBPS       int64  // licence.transfer_fee_bps
+	TransferCooldownDays int64  // licence.transfer_cooldown_days
+	MaxShareBPS          int64  // licence.max_share_bps
+	NoticeDays           int64  // licence.notice_days
+	NonuseDays           int64  // licence.nonuse_days
+	CoiShareBPS          int64  // licence.coi_share_bps
+	ListingFee           int64  // licence.listing_fee
+	TermMaxDays          int64  // licence.term_max_days
+	ShareCapFrom         int64  // licence.share_cap_from
 }

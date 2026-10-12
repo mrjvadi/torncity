@@ -85,7 +85,7 @@ func (k AccountKind) Valid() bool {
 	case AccountPlayerCash, AccountPlayerBank, AccountCompanyTreasury,
 		AccountFactionTreasury, AccountCityTreasury, AccountSystemSink, AccountSystemSource,
 		AccountPlayerEscrow, AccountStateTreasury, AccountDefenceFund, AccountNationalBank, AccountInsuranceFund,
-		AccountPlayerSavings, AccountForeignHolding, AccountReservePot, AccountFXEscrow, AccountHouseholdWallet, AccountWorksEscrow:
+		AccountPlayerSavings, AccountForeignHolding, AccountReservePot, AccountFXEscrow, AccountHouseholdWallet, AccountWorksEscrow, AccountProjectFund, AccountProjectEscrow, AccountLicenceEscrow:
 		return true
 	}
 	return false

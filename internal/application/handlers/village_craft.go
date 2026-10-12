@@ -201,6 +201,12 @@ func (h *VillageHandler) Craft(ctx context.Context, meta envelope.Metadata, req 
 		if !ok || r.WaitsFor != "" || !here {
 			return refuseVillage(village.CraftNoStation, village.AddrWork)
 		}
+		// a craft the settlement licenses is worked with its privilege (docs/adr/0077 7.4)
+		if c, isCraft := cd.Apprenticeship.CraftOfWorkplace(b.TypeCode); isCraft {
+			if err := h.licenceGate(ctx, tx, p, s.CityID, "craft_privilege", c.Craft); err != nil {
+				return err
+			}
+		}
 		owned, err := h.ownedKnowledge(ctx, tx, s.CityID)
 		if err != nil {
 			return err

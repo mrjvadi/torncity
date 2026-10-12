@@ -106,3 +106,25 @@ func TestDeadlinesGraceAndDebarment(t *testing.T) {
 		t.Fatal("the retention is held the defects period")
 	}
 }
+
+func TestAWorkOfAnyStageCountPaysTheWholePriceAndHoldsTheRetention(t *testing.T) {
+	for _, n := range []int{1, 3, 4, 5, 9} {
+		for _, price := range []int64{1000, 1001, 999999} {
+			var paid, held int64
+			for k := 1; k <= n; k++ {
+				p, h := StagePayN(price, k, n, 500)
+				paid += p
+				held += h
+			}
+			if paid+held != price {
+				t.Fatalf("n=%d price=%d: paid %d + held %d != price", n, price, paid, held)
+			}
+		}
+	}
+	if StageShareN(1000, 0, 4) != 0 || StageShareN(1000, 5, 4) != 0 || StageShareN(0, 1, 4) != 0 || StageShareN(1000, 1, 0) != 0 {
+		t.Fatal("a stage outside the work is worth nothing")
+	}
+	if StageShareN(900, 2, 3) != StageShare(900, 2) {
+		t.Fatal("with three stages it is the ordinary tender")
+	}
+}

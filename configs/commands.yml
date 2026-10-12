@@ -452,6 +452,10 @@ commands:
   settlement.treaty: {channel: group, client: true}
   settlement.tender: {channel: group, client: true}
   settlement.debt: {channel: group, client: true}
+  # Special projects, intelligence between settlements and the licence market (docs/adr/0077).
+  settlement.project: {channel: group, client: true}
+  settlement.intel: {channel: group, client: true}
+  settlement.licence: {channel: group, client: true}
   settlement.knowledge.buy: {channel: group, client: true}
   settlement.build: {channel: group, client: true}
   settlement.build.lots: {channel: group, client: true}

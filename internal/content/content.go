@@ -343,6 +343,10 @@ type Pack struct {
 	RailClasses             []RailClassDef
 	HaulModes               []HaulModeDef
 	Rail                    []RailDef
+	// Special projects, intelligence and the licence market (special.go, docs/adr/0077).
+	SpecialProjects []SpecialProjectDef
+	IntelOps        []IntelOpDef
+	LicenceKinds    []LicenceKindDef
 
 	// world.yml: world generation content (worldgen.go). LoadWorldGen is
 	// the function a caller actually generating a world uses; these fields

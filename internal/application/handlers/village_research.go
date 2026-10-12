@@ -144,6 +144,11 @@ func (h *VillageHandler) researchToday(ctx context.Context, tx application.Tx, s
 	buildings []application.SettlementBuildingInstance,
 ) (*researchState, error) {
 	rules := h.research.rules()
+	// the great library of a finished special project is a research building too (docs/adr/0077 4.2)
+	buildings, err := h.withWorks(ctx, tx, snap, s.CityID, buildings)
+	if err != nil {
+		return nil, err
+	}
 	sites := researchSites(snap, buildings)
 	st := &researchState{Sites: sites, Rows: map[string]application.ResearchDayBuilding{}, UsedBySlot: map[string]int{}}
 	running, err := tx.Research().Running(ctx, s.CityID)

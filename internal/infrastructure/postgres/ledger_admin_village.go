@@ -220,6 +220,18 @@ type VillageInvariants struct {
 	DebtRepaidLedger, DebtRepaidRows, DebtPenaltyLedger, DebtFeesRows       int64
 	CountryParentBroken, UnionNoManager, UnionCeilingBroken, UnionNoFounded int64
 	SettlementTwoCountries                                                  int64
+	// Special projects, intelligence and the licence market (migration 0155, docs/adr/0077): gifts to the funds in the ledger against the rows,
+	// projects whose stages are not 1..k, cancelled projects with money left, contract escrows, bureau fees, agents' wages and sabotage costs in the
+	// ledger against the operations, reports of blown operations or holding a figure, detected operations with no expulsion, the most acts of
+	// sabotage in a week, licence escrows, auction prices, revoked licences with no cause, live licences long past their term, auctions with two
+	// winners and the largest share one holder has of a kind.
+	Special                                                                        bool
+	ProjectGiftLedger, ProjectGiftRows, ProjectStagesBroken, ProjectCancelledFunds int64
+	ProjectEscrowBroken, IntelFeeLedger, IntelFeeRows, IntelWageLedger             int64
+	IntelWageRows, SabotageCostLedger, SabotageCostRows, IntelReportBlown          int64
+	IntelReportFigures, IntelNoExpulsion, SabotageMaxWeek, LicenceEscrowBroken     int64
+	LicenceAwardLedger, LicenceAwardRows, LicenceRevokedNoCause, LicenceStaleLive  int64
+	LicenceAuctionManyWinners, LicenceMaxShareBPS                                  int64
 	// Mining, carriage and rail (migration 0153, docs/adr/0075): the ore taken from the deposits against the extraction rows and the shifts,
 	// the largest share of a deposit's reserve taken (basis points of the reserve), goods that left a store for the road against goods that
 	// arrived and goods in the open loads, cart loads with no arrival scheduled, sections that hold more trains than they can, sections held by
@@ -291,6 +303,10 @@ func (v VillageInvariants) WorkNodesOK() bool {
 		(!v.Survival || (v.SurvivalGarmentJournal == v.SurvivalGarmentRows && v.SurvivalDoubleSlot == 0)) &&
 		(!v.Mining || (v.MineTaken == v.MineExtracted && v.MineShiftMismatch == 0 && v.HaulOut-v.HaulIn == v.HaulOnRoad && v.HaulCartNoAction == 0 &&
 			v.RailOverheld == 0 && v.RailHeldIdle == 0 && v.FreightBroken == 0)) &&
+		(!v.Special || (v.ProjectGiftLedger == v.ProjectGiftRows && v.ProjectStagesBroken == 0 && v.ProjectCancelledFunds == 0 && v.ProjectEscrowBroken == 0 &&
+			v.IntelFeeLedger == v.IntelFeeRows && v.IntelWageLedger == v.IntelWageRows && v.SabotageCostLedger == v.SabotageCostRows && v.IntelReportBlown == 0 &&
+			v.IntelReportFigures == 0 && v.IntelNoExpulsion == 0 && v.LicenceEscrowBroken == 0 && v.LicenceAwardLedger == v.LicenceAwardRows && v.LicenceRevokedNoCause == 0 &&
+			v.LicenceAuctionManyWinners == 0)) &&
 		(!v.Polity || (v.UnionDuesLedger == v.UnionDuesRows && v.UnionPayoutLedger == v.UnionPayoutRows && v.TenderEscrowBroken == 0 &&
 			v.DebtDisbursedLedger == v.DebtDisbursedRows && v.DebtRepaidLedger == v.DebtRepaidRows && v.DebtPenaltyLedger == v.DebtFeesRows &&
 			v.CountryParentBroken == 0 && v.UnionNoManager == 0 && v.UnionCeilingBroken == 0 && v.UnionNoFounded == 0 && v.SettlementTwoCountries == 0)) &&
@@ -522,13 +538,13 @@ func (a *EconomyAdmin) verifyWorkNodes(ctx context.Context, v *LedgerVerificatio
 			(SELECT COALESCE(SUM((s.produced->>'wheat')::bigint), 0) FROM settlement_shifts s WHERE s.farm_cycle = c.id AND s.farm_phase = 'harvest') > c.yield_total`},
 		{&s.GrindWithoutCustomer, "grinding shifts of no citizen", `SELECT count(*) FROM settlement_shifts WHERE farm_phase = 'grind' AND custom_for IS NULL`},
 		{&s.BoardJournalUnits, "board units in the item journal", `SELECT COALESCE(SUM(quantity), 0)::bigint FROM item_movements m WHERE reason = 'board_eaten'
-			AND NOT EXISTS (SELECT 1 FROM item_movements r WHERE r.reason = '`+RefusedShiftRefundReason+`' AND r.reference_type = '`+RefusedShiftRefundReference+`' AND r.reference_id = m.id)`},
+			AND NOT EXISTS (SELECT 1 FROM item_movements r WHERE r.reason = '` + RefusedShiftRefundReason + `' AND r.reference_type = '` + RefusedShiftRefundReference + `' AND r.reference_id = m.id)`},
 		{&s.BoardShiftUnits, "board units in the shift rows", `SELECT COALESCE(SUM(v.value::bigint), 0)::bigint FROM settlement_shifts s, jsonb_each_text(s.board) v`},
 		{&s.MealJournalUnits, "meal units in the item journal", `SELECT COALESCE(SUM(quantity), 0)::bigint FROM item_movements WHERE reason = 'meal_eaten'`},
 		{&s.MealRowUnits, "meal units in the opening rows", `SELECT COALESCE(SUM(units), 0)::bigint FROM settlement_meals`},
-		{&s.MealsWithoutShift, "meal openings without a shift", `SELECT count(*) `+orphanMealsFrom},
-		{&s.InputMovesWithoutShift, "input movements without a shift", `SELECT count(*) `+orphanMovesFrom},
-		{&s.ActionsWithoutShift, "pending finish actions without a shift", `SELECT count(*) `+orphanActionsFrom},
+		{&s.MealsWithoutShift, "meal openings without a shift", `SELECT count(*) ` + orphanMealsFrom},
+		{&s.InputMovesWithoutShift, "input movements without a shift", `SELECT count(*) ` + orphanMovesFrom},
+		{&s.ActionsWithoutShift, "pending finish actions without a shift", `SELECT count(*) ` + orphanActionsFrom},
 		{&s.NPCShiftsWithoutJob, "NPC production shifts without a job", `
 			SELECT count(*) FROM settlement_shifts WHERE kind = 'production' AND worker_kind = 'npc' AND job_id IS NULL`},
 		{&s.NPCHungry, "NPC shifts that started unfed", `
