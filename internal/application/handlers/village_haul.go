@@ -208,6 +208,9 @@ func (h *VillageHandler) linkRoad(ctx context.Context, tx application.Tx, meta e
 	if err != nil {
 		return routeRefusal(err, village.AddrHaul)
 	}
+	if err := h.passageCheck(ctx, tx, snap, s, *other, route.Tiles, village.AddrHaul); err != nil {
+		return err
+	}
 	lots := haulLots(int64(route.LengthM))
 	materials := map[string]int64{"stone": lots * h.mining.RoadLinkLotStone}
 	wage := lots * h.mining.RoadLinkLotHours * h.mining.RailWorkHourWage

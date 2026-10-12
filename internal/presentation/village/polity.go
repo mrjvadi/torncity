@@ -310,6 +310,14 @@ func Treaty(c presentation.Ctx, v TreatyView) *presentation.Response {
 	return screenTreaty.Response(c.Lang, v, back(AddrVillageOverview), refresh(AddrTreaty))
 }
 
+// Refusals the haul and the raid screens gain from the treaties and unions (docs/adr/0076).
+const (
+	HaulNoPassage = "haul_no_passage"
+	RaidTreaty    = "raid_treaty"
+	RaidCooling   = "raid_cooling"
+	RaidSameUnion = "raid_same_union"
+)
+
 // The acts of the tender screen.
 const (
 	TenderActionPost     = "post"

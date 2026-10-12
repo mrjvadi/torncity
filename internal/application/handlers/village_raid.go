@@ -233,6 +233,11 @@ func (h *VillageHandler) raidFile(ctx context.Context, tx application.Tx, meta e
 	if target.CityID == s.CityID {
 		return refuseVillage(village.RaidSame, village.AddrRaid)
 	}
+	if why, err := h.aggressionBlocked(ctx, tx, snap, s, *target, now); err != nil {
+		return err
+	} else if why != "" {
+		return refuseVillage(why, village.AddrRaid)
+	}
 	lead := h.raid.Rules.MinLead
 	if n := strings.TrimSpace(req.N); n != "" {
 		hours, err := strconv.ParseInt(n, 10, 64)

@@ -99,6 +99,12 @@ func actionOffice(snap *content.Snapshot, action string) string {
 func mayAct(ctx context.Context, tx application.Tx, snap *content.Snapshot, countryID, action string,
 	p *application.Player,
 ) (application.Office, bool, error) {
+	// a country the players founded is run by its charter (docs/adr/0076 8)
+	if u, err := playerCountry(ctx, tx, countryID); err != nil {
+		return application.Office{}, false, err
+	} else if u != nil {
+		return mayActUnion(ctx, tx, u, action, p)
+	}
 	office := actionOffice(snap, action)
 	if office == "" {
 		return application.Office{}, false, nil
@@ -116,6 +122,11 @@ func mayAct(ctx context.Context, tx application.Tx, snap *content.Snapshot, coun
 // cleared reports whether the player holds, in the country, one of the
 // offices military.yml clears to see its forces in full.
 func cleared(ctx context.Context, tx application.Tx, snap *content.Snapshot, countryID string, p *application.Player) (bool, error) {
+	if u, err := playerCountry(ctx, tx, countryID); err != nil {
+		return false, err
+	} else if u != nil {
+		return clearedUnion(ctx, tx, u, p)
+	}
 	held, err := tx.Governance().SeatsHeldBy(ctx, p.ID)
 	if err != nil {
 		return false, err

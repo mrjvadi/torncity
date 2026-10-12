@@ -900,3 +900,31 @@ func (r *UnionRepository) PurseIncome(ctx context.Context, accountID string, fro
 	}
 	return n, nil
 }
+
+// ClaimOwners lists, without repeats, the settlements that hold a claim on any of the tiles.
+func (r *UnionRepository) ClaimOwners(ctx context.Context, tiles []application.TileKey) ([]string, error) {
+	if len(tiles) == 0 {
+		return nil, nil
+	}
+	faces := make([]int16, len(tiles))
+	gxs := make([]int32, len(tiles))
+	gys := make([]int32, len(tiles))
+	for i, t := range tiles {
+		faces[i], gxs[i], gys[i] = int16(t.Face), t.GX, t.GY
+	}
+	rows, err := r.q.Query(ctx, `SELECT DISTINCT c.settlement_id::text FROM settlement_claims c
+		JOIN unnest($1::smallint[], $2::int[], $3::int[]) AS t(face, gx, gy) ON c.tile_face = t.face AND c.tile_gx = t.gx AND c.tile_gy = t.gy ORDER BY 1`, faces, gxs, gys)
+	if err != nil {
+		return nil, fmt.Errorf("postgres: finding the holders of tiles: %w", err)
+	}
+	defer rows.Close()
+	var out []string
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		out = append(out, id)
+	}
+	return out, rows.Err()
+}

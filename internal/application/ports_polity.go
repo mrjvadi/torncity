@@ -223,6 +223,8 @@ type UnionRepository interface {
 	PlayerByCode(ctx context.Context, code string) (string, bool, error)
 	// TreasuryIncome is the money that came into a settlement's treasury between two instants: the base of a dues share.
 	TreasuryIncome(ctx context.Context, settlementID string, from, to time.Time) (int64, error)
+	// ClaimOwners lists the settlements that hold claims on any of the tiles.
+	ClaimOwners(ctx context.Context, tiles []TileKey) ([]string, error)
 	// PurseIncome is the money that came into a union's purse between two instants.
 	PurseIncome(ctx context.Context, accountID string, from, to time.Time) (int64, error)
 	// ResidenceOf is the settlement a player lives in, "" for none.
