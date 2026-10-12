@@ -126,7 +126,7 @@ func (r *UnionRepository) Active(ctx context.Context) ([]application.Union, erro
 
 // SetStatus dissolves a union; false when it was not active.
 func (r *UnionRepository) SetStatus(ctx context.Context, id, status string, at time.Time) (bool, error) {
-	tag, err := r.q.Exec(ctx, `UPDATE unions SET status = $2, dissolved_at = CASE WHEN $2 = 'dissolved' THEN $3 ELSE NULL END WHERE id = $1::uuid AND status <> $2`, id, status, at.UTC())
+	tag, err := r.q.Exec(ctx, `UPDATE unions SET status = $2::text, dissolved_at = CASE WHEN $2::text = 'dissolved' THEN $3::timestamptz ELSE NULL END WHERE id = $1::uuid AND status <> $2::text`, id, status, at.UTC())
 	if err != nil {
 		return false, fmt.Errorf("postgres: setting a union's status: %w", err)
 	}

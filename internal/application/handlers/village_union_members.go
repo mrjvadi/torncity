@@ -138,7 +138,18 @@ func (h *VillageHandler) removeMember(ctx context.Context, tx application.Tx, me
 	if err != nil {
 		return err
 	}
-	share := polity.Share(bal, paid, m.SettlementID)
+	// the leaver's part is its dues over the dues of the members still in (itself included): those who left before took theirs already
+	current, err := tx.Unions().Members(ctx, u.ID)
+	if err != nil {
+		return err
+	}
+	live := map[string]int64{}
+	for _, x := range current {
+		if x.Active() {
+			live[x.SettlementID] = paid[x.SettlementID]
+		}
+	}
+	share := polity.Share(bal, live, m.SettlementID)
 	if ok, err := tx.Unions().SetMember(ctx, u.ID, m.SettlementID, m.Status, status, now); err != nil || !ok {
 		return err
 	}
@@ -219,7 +230,14 @@ func (h *VillageHandler) dissolve(ctx context.Context, tx application.Tx, meta e
 	if err != nil {
 		return err
 	}
-	shares := polity.SharesAll(bal, paid)
+	// those who left or were expelled took their shares already: the rest is shared among the members that remain, by what they paid
+	remaining := map[string]int64{}
+	for _, m := range ms {
+		if m.Active() {
+			remaining[m.SettlementID] = paid[m.SettlementID]
+		}
+	}
+	shares := polity.SharesAll(bal, remaining)
 	if len(shares) == 0 && bal > 0 {
 		// nobody paid dues (the purse is all gifts): it is shared equally among the members that remain, the remainder to the first by id
 		var ids []string

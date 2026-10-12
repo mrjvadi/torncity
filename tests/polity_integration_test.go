@@ -253,7 +253,7 @@ func managerOffice(grants []string, holders ...*application.Player) json.RawMess
 	for _, h := range holders {
 		codes = append(codes, h.PublicCode)
 	}
-	all := append([]string{"office.edit", "office.create", "office.appoint", "office.dismiss", "charter.amend", "union.admit", "union.expel", "treasury.spend"}, grants...)
+	all := append([]string{"office.edit", "office.create", "office.appoint", "office.dismiss", "charter.amend", "union.admit", "union.expel", "treasury.spend", "notice.post", "works.tender", "debt.lend", "debt.borrow", "debt.restructure"}, grants...)
 	raw, _ := json.Marshal([]map[string]any{{"title": "Council", "seats": 3, "grants": all, "holders": codes}})
 	return raw
 }
@@ -261,7 +261,7 @@ func managerOffice(grants []string, holders ...*application.Player) json.RawMess
 func (e *polityEnv) proposeLeague(by *application.Player, name, delegations string, invite string, holders ...*application.Player) string {
 	e.t.Helper()
 	e.mustUnion(by, handlers.VillageUnionRequest{Action: village.UnionActionPropose, Name: name, Kind: "league", Mode: "double_majority", Exit: "free", Delegations: delegations,
-		DuesFixed: "100", DuesShare: "1000", Invite: invite, Offices: managerOffice([]string{"treaty.sign", "treaty.propose", "treaty.end", "road.draw"}, holders...)})
+		DuesFixed: "100", DuesShare: "1000", Invite: invite, Offices: managerOffice(grantsFor(delegations), holders...)})
 	return e.text(`SELECT id::text FROM union_proposals WHERE name = $1 AND status = 'pending'`, name)
 }
 
@@ -435,4 +435,216 @@ func TestACountryNeedsEachAssemblyAndSitsItsMembersUnderIt(t *testing.T) {
 		t.Fatalf("a settlement belongs to one country at a time: %q", kind)
 	}
 	e.verifyPolity()
+}
+
+func (e *polityEnv) office(p *application.Player, unionID, officeID, title string, grants []string) (village.UnionView, string) {
+	gs := make([]handlers.VillageCharterGrant, 0, len(grants))
+	for _, g := range grants {
+		gs = append(gs, handlers.VillageCharterGrant{Permission: g})
+	}
+	return e.union(p, handlers.VillageUnionRequest{Action: village.UnionActionOffice, ID: unionID, Office: officeID, Title: title, Seats: 2, Grants: gs})
+}
+
+// formLeague founds a league of A and B (the proposer holds the council) and returns its id.
+func (e *polityEnv) formLeague(name, delegations string, extraHolders ...*application.Player) string {
+	e.t.Helper()
+	holders := append([]*application.Player{e.head}, extraHolders...)
+	prop := e.proposeLeague(e.head, name, delegations, e.codeOf(e.attCity), holders...)
+	e.mustUnion(e.head, handlers.VillageUnionRequest{Action: village.UnionActionRatify, ID: prop})
+	e.mustUnion(e.att, handlers.VillageUnionRequest{Action: village.UnionActionRatify, ID: prop})
+	if e.unionStatus(prop) != "in_force" {
+		e.t.Fatalf("the league %q did not enter into force: %s", name, e.unionStatus(prop))
+	}
+	return e.unionIDByName(name)
+}
+
+// The ceiling of a union's offices is what the members delegated; nobody grants a power they do not hold; the union always keeps a held
+// office manager; a holder is recalled by the residents of the members (ADR 0076 4.3, 4.6).
+func TestTheCeilingTheRailsAndRecallOfAUnionCharter(t *testing.T) {
+	e := newPolityEnv(t, nil)
+	e.clock.Advance(4 * 24 * time.Hour)
+	id := e.formLeague("Rails League", "roads,treaty")
+
+	// D1: war was never delegated, so no office of the union may hold it
+	if _, kind := e.office(e.head, id, "", "Warlords", []string{"war.declare"}); kind != village.UnionCeiling {
+		t.Fatalf("an office with a power nobody delegated must break the ceiling, got %q", kind)
+	}
+	// a power in a class that was delegated is fine
+	if _, kind := e.office(e.head, id, "", "Surveyors", []string{"road.draw"}); kind != "" {
+		t.Fatalf("roads were delegated: %q", kind)
+	}
+	// R1: an office that can make offices but cannot spend cannot make an office that spends
+	_, kind := e.office(e.head, id, "", "Clerks", []string{"office.create", "office.edit", "notice.post"})
+	if kind != "" {
+		t.Fatalf("clerks: %q", kind)
+	}
+	clerk := e.resident("B")
+	clerksOffice := e.text(`SELECT id::text FROM union_offices WHERE union_id = $1::uuid AND title = 'Clerks'`, id)
+	e.mustUnion(e.head, handlers.VillageUnionRequest{Action: village.UnionActionAppoint, ID: id, Office: clerksOffice, Player: clerk.PublicCode})
+	if _, kind := e.office(clerk, id, "", "Treasurers", []string{"treasury.spend"}); kind == "" {
+		t.Fatal("nobody grants what they do not hold: the clerk holds no treasury.spend")
+	}
+	if e.scalarInt(`SELECT count(*) FROM union_offices WHERE union_id = $1::uuid AND title = 'Treasurers'`, id) != 0 {
+		t.Fatal("the refused office was written")
+	}
+	// R2: the only manager cannot be closed, and cannot be dismissed
+	council := e.text(`SELECT id::text FROM union_offices WHERE union_id = $1::uuid AND title = 'Council'`, id)
+	if _, kind := e.union(e.head, handlers.VillageUnionRequest{Action: village.UnionActionCloseOffice, ID: id, Office: council}); kind == "" {
+		t.Fatal("the union must keep an office manager: closing the council is refused")
+	}
+	if _, kind := e.union(e.head, handlers.VillageUnionRequest{Action: village.UnionActionDismiss, ID: id, Office: council, Player: e.head.PublicCode}); kind == "" {
+		t.Fatal("the union must keep a held manager: dismissing the only one is refused")
+	}
+	// a second manager (B's head) makes room: then the first may be dismissed
+	e.mustUnion(e.head, handlers.VillageUnionRequest{Action: village.UnionActionAppoint, ID: id, Office: council, Player: e.att.PublicCode})
+	e.clock.Advance(6 * 24 * time.Hour) // the holder has served long enough to be recalled
+	// recall of B's head: the residents of both settlements sign and vote
+	voters := []*application.Player{e.head, e.att, e.resident("A"), e.resident("B")}
+	for i, v := range voters[:3] {
+		view := e.mustUnion(v, handlers.VillageUnionRequest{Action: village.UnionActionRecall, ID: id, Office: council, Player: e.att.PublicCode})
+		wantNotice := village.UnionNoticeSigned
+		if i == 2 {
+			wantNotice = village.UnionNoticeRecall
+		}
+		if view.Notice != wantNotice {
+			t.Fatalf("signature %d: notice %q, want %q", i+1, view.Notice, wantNotice)
+		}
+	}
+	ballot := e.text(`SELECT id::text FROM union_ballots WHERE union_id = $1::uuid AND kind = 'recall' AND status = 'open'`, id)
+	for i, v := range voters {
+		choice := "yes"
+		if i == 3 {
+			choice = "no"
+		}
+		e.mustUnion(v, handlers.VillageUnionRequest{Action: village.UnionActionVote, ID: ballot, Choice: choice})
+	}
+	// the clerk has not voted: the count waits for the closing of the ballot
+	e.clock.Advance(time.Duration(72)*time.Hour + time.Hour)
+	e.tick(application.TickBallot, ballot, "")
+	if e.scalarInt(`SELECT count(*) FROM union_seats s JOIN union_offices o ON o.id = s.office_id WHERE o.union_id = $1::uuid AND s.holder_id = $2::uuid AND s.until IS NULL`, id, e.att.ID) != 0 {
+		t.Fatal("the recalled holder has left the council")
+	}
+	if e.scalarInt(`SELECT count(*) FROM union_audit WHERE union_id = $1::uuid AND action = 'recalled'`, id) != 1 {
+		t.Fatal("the recall is in the log")
+	}
+	// every act of the charter is in the log
+	for _, action := range []string{"founded", "office_created", "seat_filled", "recall_vote_opened"} {
+		if e.scalarInt(`SELECT count(*) FROM union_audit WHERE union_id = $1::uuid AND action = $2`, id, action) == 0 {
+			t.Errorf("the log has no %q line", action)
+		}
+	}
+	// the last manager still holds: the recall of the only one left would be void
+	e.verifyPolity()
+}
+
+// The members decide between themselves by the union's rule (here the double majority), admit a settlement that then joins by its own act,
+// pay dues out of their income, expel one who is voted out, and a member leaves after its notice with its share of the purse, nothing else
+// moving (ADR 0076 4.4, 4.5).
+func TestMembersVoteAdmitPayDuesAndLeaveAfterTheNotice(t *testing.T) {
+	e := newPolityEnv(t, nil)
+	e.clock.Advance(4 * 24 * time.Hour)
+	id := e.formLeague("Dues League", "dues,roads")
+
+	// admit C: the members vote, then C joins by its own act; C cannot join before the vote passes
+	if _, kind := e.union(e.headC, handlers.VillageUnionRequest{Action: village.UnionActionAccede, ID: id}); kind != village.UnionNotAdmitted {
+		t.Fatalf("a settlement the members have not admitted cannot join: %q", kind)
+	}
+	e.mustUnion(e.head, handlers.VillageUnionRequest{Action: village.UnionActionMotion, ID: id, Kind: "admit", Code: e.codeOf(e.cityC)})
+	motion := e.text(`SELECT id::text FROM union_motions WHERE union_id = $1::uuid AND kind = 'admit' AND status = 'open'`, id)
+	e.mustUnion(e.head, handlers.VillageUnionRequest{Action: village.UnionActionMotionVote, ID: motion, Choice: "yes"})
+	if _, kind := e.union(e.att, handlers.VillageUnionRequest{Action: village.UnionActionMotionVote, ID: motion, Choice: "yes"}); kind != "" {
+		t.Fatalf("B's vote: %q", kind)
+	}
+	if _, kind := e.union(e.att, handlers.VillageUnionRequest{Action: village.UnionActionMotionVote, ID: motion, Choice: "no"}); kind != village.UnionDecided {
+		t.Fatalf("the motion was decided when every member had voted: %q", kind)
+	}
+	e.mustUnion(e.headC, handlers.VillageUnionRequest{Action: village.UnionActionAccede, ID: id})
+	if e.scalarInt(`SELECT count(*) FROM union_members WHERE union_id = $1::uuid AND status = 'active'`, id) != 3 {
+		t.Fatal("C joined")
+	}
+
+	// dues: a fixed sum and a share of the income, never more than the cap, once a period for each member
+	e.earn(e.cityID, 5000)
+	e.earn(e.attCity, 3000)
+	purse := e.text(`SELECT jurisdiction_id::text FROM unions WHERE id = $1::uuid`, id)
+	e.clock.Advance(e.rules.DuesPeriod + time.Hour)
+	aBefore, bBefore := e.cityCash(e.cityID), e.cityCash(e.attCity)
+	e.tick(application.TickDues, id, "")
+	e.tick(application.TickDues, id, "") // a replayed deadline charges nobody twice
+	if got := aBefore - e.cityCash(e.cityID); got != 500 {
+		t.Fatalf("A pays 100 + 10%% of 5000 = 600, capped at 10%% of its income = 500, paid %d", got)
+	}
+	if got := bBefore - e.cityCash(e.attCity); got != 300 {
+		t.Fatalf("B pays 100 + 300 = 400, capped at 300, paid %d", got)
+	}
+	if n := e.scalarInt(`SELECT count(*) FROM union_dues_periods WHERE union_id = $1::uuid`, id); n != 3 {
+		t.Fatalf("one dues row per member and period, got %d", n)
+	}
+	if got := e.scalarInt(`SELECT COALESCE(sum(balance), 0)::bigint FROM accounts WHERE kind = 'state_treasury' AND owner_id = $1::uuid`, purse); got != 800 {
+		t.Fatalf("the purse holds what was paid, got %d", got)
+	}
+	e.verifyPolity()
+
+	// the members vote C out: the first motion fails (half the members is not 55 percent), the second carries
+	e.mustUnion(e.head, handlers.VillageUnionRequest{Action: village.UnionActionMotion, ID: id, Kind: "expel", Code: e.codeOf(e.cityC)})
+	m1 := e.text(`SELECT id::text FROM union_motions WHERE union_id = $1::uuid AND kind = 'expel' AND status = 'open'`, id)
+	e.mustUnion(e.head, handlers.VillageUnionRequest{Action: village.UnionActionMotionVote, ID: m1, Choice: "yes"})
+	e.mustUnion(e.att, handlers.VillageUnionRequest{Action: village.UnionActionMotionVote, ID: m1, Choice: "no"})
+	if e.text(`SELECT status FROM union_members WHERE union_id = $1::uuid AND settlement_id = $2::uuid`, id, e.cityC) != "active" {
+		t.Fatal("half the members is not a double majority: C stays")
+	}
+	e.mustUnion(e.head, handlers.VillageUnionRequest{Action: village.UnionActionMotion, ID: id, Kind: "expel", Code: e.codeOf(e.cityC)})
+	m2 := e.text(`SELECT id::text FROM union_motions WHERE union_id = $1::uuid AND kind = 'expel' AND status = 'open'`, id)
+	e.mustUnion(e.head, handlers.VillageUnionRequest{Action: village.UnionActionMotionVote, ID: m2, Choice: "yes"})
+	e.mustUnion(e.att, handlers.VillageUnionRequest{Action: village.UnionActionMotionVote, ID: m2, Choice: "yes"})
+	if e.text(`SELECT status FROM union_members WHERE union_id = $1::uuid AND settlement_id = $2::uuid`, id, e.cityC) != "expelled" {
+		t.Fatal("two of two voted C out")
+	}
+
+	// B leaves: its notice runs 14 days; before that it is still a member, after that it takes its share of the purse (its dues over all dues)
+	e.mustUnion(e.att, handlers.VillageUnionRequest{Action: village.UnionActionLeave, ID: id})
+	e.tick(application.TickExit, id, e.attCity)
+	if e.text(`SELECT status FROM union_members WHERE union_id = $1::uuid AND settlement_id = $2::uuid`, id, e.attCity) != "notice" {
+		t.Fatal("a member is not out before its notice has run")
+	}
+	e.clock.Advance(time.Duration(e.rules.ExitNoticeDays)*24*time.Hour - time.Hour)
+	e.tick(application.TickExit, id, e.attCity)
+	if e.text(`SELECT status FROM union_members WHERE union_id = $1::uuid AND settlement_id = $2::uuid`, id, e.attCity) != "notice" {
+		t.Fatal("an hour short of the notice the member is still in")
+	}
+	bMid := e.cityCash(e.attCity)
+	aMid := e.cityCash(e.cityID)
+	e.clock.Advance(2 * time.Hour)
+	e.tick(application.TickExit, id, e.attCity)
+	if got := e.text(`SELECT status FROM union_members WHERE union_id = $1::uuid AND settlement_id = $2::uuid`, id, e.attCity); got != "left" {
+		t.Fatalf("after the notice the member is out: %s", got)
+	}
+	if got := e.cityCash(e.attCity) - bMid; got != 300 {
+		t.Fatalf("B takes 800 x 300 / 800 = 300 of the purse, got %d", got)
+	}
+	// only A is left: a league of one is dissolved and the rest of the purse goes to the last member; nothing is deleted
+	if e.text(`SELECT status FROM unions WHERE id = $1::uuid`, id) != "dissolved" {
+		t.Fatal("a league that falls below two members ends")
+	}
+	if got := e.cityCash(e.cityID) - aMid; got != 500 {
+		t.Fatalf("A gets the rest of the purse, got %d", got)
+	}
+	if got := e.scalarInt(`SELECT COALESCE(sum(balance), 0)::bigint FROM accounts WHERE kind = 'state_treasury' AND owner_id = $1::uuid`, purse); got != 0 {
+		t.Fatalf("a dissolved union's purse is empty: %d", got)
+	}
+	e.verifyPolity()
+}
+
+// grantsFor are the powers of the delegated classes a council may hold.
+func grantsFor(delegations string) []string {
+	var out []string
+	for _, d := range strings.Split(delegations, ",") {
+		switch strings.TrimSpace(d) {
+		case "treaty":
+			out = append(out, "treaty.sign", "treaty.propose", "treaty.end")
+		case "roads":
+			out = append(out, "road.draw")
+		}
+	}
+	return out
 }
