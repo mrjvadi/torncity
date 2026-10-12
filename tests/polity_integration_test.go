@@ -63,7 +63,17 @@ func newPolityEnv(t *testing.T, tune func(*application.PolityRules)) *polityEnv 
 
 // cleanupPolity takes everything the unions, the tenders and the loans wrote away, before the settlements go.
 func (e *polityEnv) cleanupPolity(cityC string) {
+	e.truncatePolity()
+	purgeLedgerFor(e.t, e.pool, cityC)
+	purgeLedgerFor(e.t, e.pool, e.headC.ID)
+	e.cleanup(cityC)
+}
+
+// truncatePolity empties the tables of the item. It is idempotent and runs before every player the test made is deleted (the votes and the
+// seats name players).
+func (e *polityEnv) truncatePolity() {
 	ctx := testCtx(e.t)
+	cityC := e.cityC
 	var owners []string
 	for _, q := range []string{
 		`SELECT jurisdiction_id::text FROM unions`,
@@ -112,9 +122,6 @@ func (e *polityEnv) cleanupPolity(cityC string) {
 	for _, id := range owners {
 		purgeLedgerFor(e.t, e.pool, id)
 	}
-	purgeLedgerFor(e.t, e.pool, cityC)
-	purgeLedgerFor(e.t, e.pool, e.headC.ID)
-	e.cleanup(cityC)
 }
 
 func stmtHead(s string) string {
@@ -145,6 +152,7 @@ func (e *polityEnv) resident(place string) *application.Player {
 	city := map[string]string{"A": e.cityID, "B": e.attCity, "C": e.cityC}[place]
 	p := e.person(city, 0)
 	e.places[p.ID] = place
+	e.t.Cleanup(e.truncatePolity)
 	return p
 }
 
@@ -313,6 +321,118 @@ func TestAUnionIsRatifiedByEachMembersOwnRuleAndBindsOnlyTheSignatories(t *testi
 	// a league leaves the tree alone: A still sits under the commons
 	if e.text(`SELECT j.parent_id::text FROM jurisdictions j JOIN cities c ON c.jurisdiction_id = j.id WHERE c.id = $1::uuid`, e.cityID) == e.text(`SELECT jurisdiction_id::text FROM unions WHERE id = $1::uuid`, id) {
 		t.Fatal("a league must not reparent its members")
+	}
+	e.verifyPolity()
+}
+
+// countryOffice is the founding charter of a country: war, treaties and courts handed over, a council that holds the powers of state.
+func countryOffice(holders ...*application.Player) json.RawMessage {
+	codes := make([]string, 0, len(holders))
+	for _, h := range holders {
+		codes = append(codes, h.PublicCode)
+	}
+	raw, _ := json.Marshal([]map[string]any{{"title": "Government", "seats": 3, "holders": codes, "grants": []string{"office.edit", "office.create", "office.appoint", "office.dismiss",
+		"charter.amend", "treasury.spend", "war.declare", "war.peace", "treaty.sign", "treaty.propose", "treaty.end", "military.command", "military.procure", "court.judge", "union.admit", "union.expel"}}})
+	return raw
+}
+
+func (e *polityEnv) countryOf(p *application.Player) string {
+	e.t.Helper()
+	var got map[string]string
+	err := postgres.NewUnitOfWork(e.pool, testDefaultLanguage).Do(testCtx(e.t), func(ctx context.Context, tx application.Tx) error {
+		var err error
+		got, err = tx.Diplomacy().CountriesOfPlayers(ctx, []string{p.ID})
+		return err
+	})
+	if err != nil {
+		e.t.Fatal(err)
+	}
+	return got[p.ID]
+}
+
+// A country needs the delegations of a country; the deep ones (war, courts, money, customs, defence) also go to each member's own assembly;
+// when it enters into force its members sit under it and the existing diplomacy and war code finds their country (ADR 0076 4.2, 5.1).
+func TestACountryNeedsEachAssemblyAndSitsItsMembersUnderIt(t *testing.T) {
+	e := newPolityEnv(t, nil)
+	e.clock.Advance(4 * 24 * time.Hour) // residents vote after they have lived in the settlement for the days the charter asks
+	// a country without the delegations of a country is refused
+	if _, kind := e.union(e.head, handlers.VillageUnionRequest{Action: village.UnionActionPropose, Name: "Weak State", Kind: "country", Delegations: "roads", Invite: e.codeOf(e.attCity),
+		Offices: countryOffice(e.head)}); kind != village.UnionNotCountry {
+		t.Fatalf("a country must take war, treaties and courts: %q", kind)
+	}
+	e.mustUnion(e.head, handlers.VillageUnionRequest{Action: village.UnionActionPropose, Name: "Free State", Kind: "country", Mode: "double_majority", Exit: "free",
+		Delegations: "war,treaty,courts,defence,roads", Invite: e.codeOf(e.attCity), Offices: countryOffice(e.head)})
+	prop := e.text(`SELECT id::text FROM union_proposals WHERE name = 'Free State'`)
+	// A's head asks his assembly: the signature alone is not the answer
+	view := e.mustUnion(e.head, handlers.VillageUnionRequest{Action: village.UnionActionRatify, ID: prop})
+	if view.Notice != village.UnionNoticeAssembly {
+		t.Fatalf("a deep delegation goes to the assembly, the notice was %q", view.Notice)
+	}
+	if e.scalarInt(`SELECT count(*) FROM union_invites WHERE proposal_id = $1::uuid AND decision = 'assembly'`, prop) != 1 {
+		t.Fatal("A's invitation waits for its people")
+	}
+	ballot := e.text(`SELECT id::text FROM union_ballots WHERE proposal_id = $1::uuid AND settlement_id = $2::uuid`, prop, e.cityID)
+	// a resident of B has no vote in A's assembly
+	outsider := e.resident("B")
+	if _, kind := e.union(outsider, handlers.VillageUnionRequest{Action: village.UnionActionVote, ID: ballot, Choice: "yes"}); kind != village.UnionNotEligible {
+		t.Fatalf("only A's residents vote in A's assembly: %q", kind)
+	}
+	e.mustUnion(e.head, handlers.VillageUnionRequest{Action: village.UnionActionVote, ID: ballot, Choice: "yes"})
+	// the only resident has voted: the count is not waited for
+	if got := e.text(`SELECT decision FROM union_invites WHERE proposal_id = $1::uuid AND settlement_id = $2::uuid`, prop, e.cityID); got != "yes" {
+		t.Fatalf("the assembly of A carried: %q", got)
+	}
+	if e.unionStatus(prop) != "pending" {
+		t.Fatal("a country waits for every invited settlement")
+	}
+	e.mustUnion(e.att, handlers.VillageUnionRequest{Action: village.UnionActionRatify, ID: prop})
+	ballotB := e.text(`SELECT id::text FROM union_ballots WHERE proposal_id = $1::uuid AND settlement_id = $2::uuid`, prop, e.attCity)
+	// B's people refuse
+	e.mustUnion(e.att, handlers.VillageUnionRequest{Action: village.UnionActionVote, ID: ballotB, Choice: "no"})
+	// the other resident of B has not voted: the count waits for the closing of the ballot
+	e.clock.Advance(e.rules.VoteWindow + time.Hour)
+	e.tick(application.TickBallot, ballotB, "")
+	if e.unionStatus(prop) != "refused" {
+		t.Fatalf("one refusal ends a country, the proposal is %s", e.unionStatus(prop))
+	}
+	if e.scalarInt(`SELECT count(*) FROM unions WHERE name = 'Free State'`) != 0 {
+		t.Fatal("a refused country is not founded")
+	}
+	// a second try that both assemblies carry
+	e.mustUnion(e.head, handlers.VillageUnionRequest{Action: village.UnionActionPropose, Name: "Free State Two", Kind: "country", Mode: "double_majority", Exit: "free",
+		Delegations: "war,treaty,courts,defence", Invite: e.codeOf(e.attCity), Offices: countryOffice(e.head)})
+	prop2 := e.text(`SELECT id::text FROM union_proposals WHERE name = 'Free State Two'`)
+	for _, who := range []*application.Player{e.head, e.att} {
+		e.mustUnion(who, handlers.VillageUnionRequest{Action: village.UnionActionRatify, ID: prop2})
+	}
+	for _, c := range []struct {
+		who  *application.Player
+		city string
+	}{{e.head, e.cityID}, {e.att, e.attCity}, {outsider, e.attCity}} {
+		b := e.text(`SELECT id::text FROM union_ballots WHERE proposal_id = $1::uuid AND settlement_id = $2::uuid`, prop2, c.city)
+		e.mustUnion(c.who, handlers.VillageUnionRequest{Action: village.UnionActionVote, ID: b, Choice: "yes"})
+	}
+	if e.unionStatus(prop2) != "in_force" {
+		t.Fatalf("both assemblies carried: %s", e.unionStatus(prop2))
+	}
+	id := e.unionIDByName("Free State Two")
+	jid := e.text(`SELECT jurisdiction_id::text FROM unions WHERE id = $1::uuid`, id)
+	for _, p := range []*application.Player{e.head, e.att} {
+		if got := e.countryOf(p); got != jid {
+			t.Fatalf("a member's people belong to the new country: %s, want %s", got, jid)
+		}
+	}
+	if e.countryOf(e.headC) == jid {
+		t.Fatal("C did not sign and stays under the commons")
+	}
+	// the country is a country: it is a party the war and treaty code can find, with no content office behind it
+	if e.scalarInt(`SELECT count(*) FROM jurisdictions WHERE id = $1::uuid AND kind = 'country' AND content_version_id IS NULL`, jid) != 1 {
+		t.Fatal("the union's jurisdiction is a country the players founded")
+	}
+	// a second country for the same settlement is refused while the first stands
+	if _, kind := e.union(e.head, handlers.VillageUnionRequest{Action: village.UnionActionPropose, Name: "Third State", Kind: "country", Delegations: "war,treaty,courts,defence",
+		Invite: e.codeOf(e.cityC), Offices: countryOffice(e.head)}); kind != village.UnionOneCountry {
+		t.Fatalf("a settlement belongs to one country at a time: %q", kind)
 	}
 	e.verifyPolity()
 }
