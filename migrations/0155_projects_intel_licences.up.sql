@@ -423,6 +423,11 @@ $$;
 CREATE TRIGGER sabotage_acts_keep BEFORE DELETE ON sabotage_acts
     FOR EACH ROW EXECUTE FUNCTION sabotage_acts_no_delete();
 
+-- a day an act of sabotage skipped is a day the post was shut for a reason of its own
+ALTER TABLE service_day_posts DROP CONSTRAINT service_day_posts_check;
+ALTER TABLE service_day_posts ADD CONSTRAINT service_day_posts_check CHECK (staff >= 0 AND wage >= 0 AND length(btrim(service)) > 0
+    AND (held AND idle = '' AND staff > 0 OR NOT held AND idle IN ('no_staff', 'no_wage', 'no_supplies', 'sabotaged') AND staff = 0 AND wage = 0 AND used = '{}'::jsonb));
+
 ALTER TABLE accounts DROP CONSTRAINT accounts_kind_check;
 ALTER TABLE accounts ADD CONSTRAINT accounts_kind_check CHECK (kind IN (
     'player_cash', 'player_bank', 'company_treasury', 'faction_treasury',

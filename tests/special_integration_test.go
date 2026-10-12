@@ -992,3 +992,114 @@ func TestABlownOperationIsNoticedByTheWatchAndPutsTheAgentOut(t *testing.T) {
 	}
 	e.verifySpecial()
 }
+
+// Sabotage is small, capped and written down: twelve hours of delay at the most, five percent of one stack, two acts in a week, one of a kind on one
+// target in a week, never in a town still in its founding grace, and it can reach only a work, a stack in the store, a watch post or a service
+// post of the target - never a building, a house or a person.
+func TestSabotageIsCappedAndNeverTouchesBuildingsPeopleOrHouses(t *testing.T) {
+	e := newSpecialEnv(t, nil)
+	e.pinChance(10_000)
+	agent, agentID := e.agentOf()
+	// B: a work in its first stage, a store of wheat, a lookout, and a house
+	work := newUUID(t)
+	if _, err := e.pool.Raw().Exec(testCtx(t), `INSERT INTO special_projects (id, kind, settlement_id, started_by, stages, stage, status, started_at) VALUES ($1::uuid, 'aqueduct', $2::uuid, $3::uuid, 3, 1, 'active', now())`,
+		work, e.attCity, e.att.ID); err != nil {
+		t.Fatal(err)
+	}
+	e.putStock(e.attCity, "wheat", 100)
+	lookout := e.watchOf(e.attCity)
+	house := e.put(e.attCity, "house")
+	buildings0 := e.scalarInt(`SELECT count(*) FROM settlement_buildings WHERE settlement_id = $1::uuid`, e.attCity)
+	people0 := e.scalarInt(`SELECT count(*) FROM players WHERE residence_city_id = $1::uuid`, e.attCity)
+	sab := func(kind, ref string) string {
+		_, k := e.intel(agent, handlers.VillageIntelRequest{Action: village.IntelActionSab, ID: agentID, Code: kind, Ref: ref})
+		return k
+	}
+	// the things sabotage may not reach
+	for _, c := range []struct{ kind, ref string }{
+		{"blind_post", house},          // a house is not a watch post
+		{"skip_service_day", house},    // nor a service post
+		{"delay_work", house},          // nor a work
+		{"delay_work", newUUID(t)},     // a work that is not there
+		{"spoil_stock", "plutonium"},   // a stack the store does not hold
+		{"burn_down", house},           // there is no such act
+	} {
+		if kind := sab(c.kind, c.ref); kind == "" {
+			t.Fatalf("%s on %s was done, it must not be", c.kind, c.ref)
+		}
+	}
+	// a town in its founding grace is out of reach
+	e.pool.Raw().Exec(testCtx(t), `UPDATE cities SET protected_until = now() + interval '30 days' WHERE id = $1::uuid`, e.attCity)
+	if kind := sab("delay_work", work); kind != village.IntelSabRefused+"_protected" {
+		t.Fatalf("a town in its grace is protected, got %q", kind)
+	}
+	e.pool.Raw().Exec(testCtx(t), `UPDATE cities SET protected_until = now() - interval '1 day' WHERE id = $1::uuid`, e.attCity)
+	treasuryA := e.cityCash(e.cityID)
+	// the first act: a delay of twelve hours at the most
+	if kind := sab("delay_work", work); kind != "" {
+		t.Fatalf("delaying a work is allowed, got %q", kind)
+	}
+	var delayed time.Time
+	if err := e.pool.Raw().QueryRow(testCtx(t), `SELECT delayed_until FROM special_projects WHERE id = $1::uuid`, work).Scan(&delayed); err != nil {
+		t.Fatal(err)
+	}
+	if delayed.After(e.clock.Now().Add(time.Duration(e.special.Intel.SabotageDelayHours)*time.Hour + time.Second)) {
+		t.Fatalf("a delay is at most %d hours, got until %v", e.special.Intel.SabotageDelayHours, delayed)
+	}
+	if got := treasuryA - e.cityCash(e.cityID); got != e.special.Intel.SabotageCost+e.special.Intel.AgentWage {
+		t.Fatalf("an act costs the sponsor its price and the agent's wage: %d", got)
+	}
+	// the same act on the same work again: too soon
+	if kind := sab("delay_work", work); kind != village.IntelSabRefused+"_too_soon" {
+		t.Fatalf("one delay of a work a week, got %q", kind)
+	}
+	// the second act of the week: five percent of one stack, no more
+	if kind := sab("spoil_stock", "wheat"); kind != "" {
+		t.Fatalf("spoiling a stack is allowed, got %q", kind)
+	}
+	if got := e.stockOf(e.attCity, "wheat"); got != 95 {
+		t.Fatalf("five percent of 100 is five, %d left", got)
+	}
+	// the third act of the week: the limit
+	if kind := sab("blind_post", lookout); kind != village.IntelSabRefused+"_weekly_limit" {
+		t.Fatalf("two acts in a week at the most, got %q", kind)
+	}
+	// nothing was destroyed, nobody was touched, and every act says how it is mended
+	if got := e.scalarInt(`SELECT count(*) FROM settlement_buildings WHERE settlement_id = $1::uuid`, e.attCity); got != buildings0 {
+		t.Fatalf("no building is destroyed: %d -> %d", buildings0, got)
+	}
+	if got := e.scalarInt(`SELECT count(*) FROM players WHERE residence_city_id = $1::uuid`, e.attCity); got != people0 {
+		t.Fatalf("nobody is touched: %d -> %d", people0, got)
+	}
+	if e.text(`SELECT status FROM special_projects WHERE id = $1::uuid`, work) != "active" || e.scalarInt(`SELECT stage FROM special_projects WHERE id = $1::uuid`, work) != 1 {
+		t.Fatal("the work is slowed, not undone")
+	}
+	if e.scalarInt(`SELECT count(*) FROM sabotage_acts WHERE repair NOT IN ('passes', 'replace', 'recovers', 'catch_up')`) != 0 || e.scalarInt(`SELECT count(*) FROM sabotage_acts`) != 2 {
+		t.Fatal("each act is written with its repair")
+	}
+	// a week on: the lookout is blinded for a day and its chance falls; a service post is skipped for a day
+	e.clock.Advance(8 * 24 * time.Hour)
+	e.stock("paper", 20)
+	e.earn(e.cityID, 5000)
+	if kind := sab("blind_post", lookout); kind != "" {
+		t.Fatalf("a week on the limit is lifted, got %q", kind)
+	}
+	var blind int
+	if err := e.pool.Raw().QueryRow(testCtx(t), `SELECT bps FROM sabotage_effects WHERE building_id = $1::uuid AND kind = 'blind_post'`, lookout).Scan(&blind); err != nil || blind != int(e.special.Intel.SabotageBlindBPS) {
+		t.Fatalf("the lookout is blinded by %d bps, got %d (%v)", e.special.Intel.SabotageBlindBPS, blind, err)
+	}
+	// and a service post skipped for a day: the day is judged with the post shut, and it costs the town no wage and no wood that day
+	if kind := sab("skip_service_day", lookout); kind != "" {
+		t.Fatalf("skipping a day of a service post is allowed, got %q", kind)
+	}
+	e.clock.Advance(26 * time.Hour) // today was judged already (the act itself looked at the watch): the skip falls on the next day
+	e.mustIntel(e.att, handlers.VillageIntelRequest{Action: village.IntelActionOpen}) // judges B's day
+	if post := e.postOf(e.lastDay(e.attCity), lookout); post == nil || post.Held || post.Idle != application.ServiceIdleSabotaged {
+		t.Fatalf("the skipped day finds the post shut by sabotage: %+v", post)
+	}
+	e.verifySpecial()
+	v, _ := postgres.NewEconomyAdmin(e.pool).VerifyLedger(testCtx(t), 10)
+	if v.VillageInvariants.SabotageMaxWeek > e.special.Intel.SabotageWeeklyLimit {
+		t.Fatalf("no sponsor did more than the limit in a week: %d", v.VillageInvariants.SabotageMaxWeek)
+	}
+}

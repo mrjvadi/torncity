@@ -3,6 +3,12 @@ UPDATE charter_offices
    SET grants = COALESCE((SELECT jsonb_agg(g) FROM jsonb_array_elements(grants) g
        WHERE COALESCE(g->>'p', '') NOT IN ('project.start', 'project.fund', 'project.accept', 'intel.run', 'intel.read', 'intel.share', 'counter.vet',
                              'licence.set_kind', 'licence.issue', 'licence.auction', 'licence.revoke')), '[]'::jsonb);
+UPDATE service_day_posts SET idle = 'no_supplies' WHERE idle = 'sabotaged';
+ALTER TABLE service_day_posts DROP CONSTRAINT service_day_posts_check;
+ALTER TABLE service_day_posts ADD CONSTRAINT service_day_posts_check CHECK (staff >= 0 AND wage >= 0 AND length(btrim(service)) > 0
+    AND (held AND idle = '' AND staff > 0 OR NOT held AND idle IN ('no_staff', 'no_wage', 'no_supplies') AND staff = 0 AND wage = 0 AND used = '{}'::jsonb));
+-- accounts of the new kinds that never moved money go; one with a history stops the roll-back (the ledger is never edited)
+DELETE FROM accounts a WHERE a.kind IN ('project_fund', 'project_escrow', 'licence_escrow') AND NOT EXISTS (SELECT 1 FROM ledger_entries e WHERE e.account_id = a.id);
 ALTER TABLE accounts DROP CONSTRAINT accounts_kind_check;
 ALTER TABLE accounts ADD CONSTRAINT accounts_kind_check CHECK (kind IN (
     'player_cash', 'player_bank', 'company_treasury', 'faction_treasury',
