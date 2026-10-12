@@ -85,6 +85,11 @@ const (
 	RaidDeclare   Permission = "raid.declare"
 	// InsuranceRun opens and runs the settlement's own insurance fund (docs/adr/0074).
 	InsuranceRun Permission = "insurance.run"
+	// MineRun surveys deposits and orders the works of the mines; RailDraw draws and runs railways; HaulOrder keeps carts and sends
+	// the treasury's goods over roads and rails (docs/adr/0075).
+	MineRun   Permission = "mine.run"
+	RailDraw  Permission = "rail.draw"
+	HaulOrder Permission = "haul.order"
 
 	NoticePost Permission = "notice.post"
 
@@ -127,7 +132,7 @@ var catalogue = []Def{
 	{OfficeCreate, "politics", false, true}, {OfficeEdit, "politics", false, true},
 	{OfficeAppoint, "politics", false, true}, {OfficeDismiss, "politics", false, true},
 	{CharterAmend, "politics", false, true},
-	{TreatyPropose, "foreign", false, false}, {UnionPropose, "foreign", false, false}, {RaidDeclare, "foreign", false, true}, {InsuranceRun, "treasury", false, true},
+	{TreatyPropose, "foreign", false, false}, {UnionPropose, "foreign", false, false}, {RaidDeclare, "foreign", false, true}, {InsuranceRun, "treasury", false, true}, {MineRun, "land", false, true}, {RailDraw, "land", false, true}, {HaulOrder, "treasury", false, true},
 	{NoticePost, "info", false, false},
 	{SettingsTimezone, "settings", false, true},
 	{CurrencyCharter, "currency", false, true},

@@ -8,8 +8,8 @@ import (
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/domain/land"
-	"github.com/mrjvadi/torncity/internal/domain/landuse"
 	"github.com/mrjvadi/torncity/internal/domain/landroad"
+	"github.com/mrjvadi/torncity/internal/domain/landuse"
 	wsettle "github.com/mrjvadi/torncity/internal/domain/settlement"
 	"github.com/mrjvadi/torncity/internal/domain/settlementbuilding"
 	"github.com/mrjvadi/torncity/internal/domain/worldgen"

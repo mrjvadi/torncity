@@ -510,11 +510,11 @@ const (
 	LifeRefusedTooSoon    = "too_soon"
 	LifeRefusedNoSpot     = "no_spot"
 	// LifeRefusedClosed: the inn that offers the bed is not open today (no staff, wage or supplies; ADR 0052).
-	LifeRefusedClosed = "closed"
-	LifeRefusedNoAvatar   = "no_avatar"
-	LifeRefusedNoPlayer   = "no_player"
-	LifeRefusedNoCity     = "no_city"
-	LifeRefusedRested     = "rested"
+	LifeRefusedClosed   = "closed"
+	LifeRefusedNoAvatar = "no_avatar"
+	LifeRefusedNoPlayer = "no_player"
+	LifeRefusedNoCity   = "no_city"
+	LifeRefusedRested   = "rested"
 )
 
 // LifeRefusalView is a refusal of life.

@@ -59,6 +59,7 @@ type fileConfig struct {
 	Growth        growthSettings        `yaml:"growth"`
 	Households    householdsSettings    `yaml:"households"`
 	Raid          raidSettings          `yaml:"raid"`
+	Mining        miningSettings        `yaml:"mining"`
 	Bag           bagSettings           `yaml:"bag"`
 	Merchant      merchantSettings      `yaml:"merchant"`
 	Premium       premiumSettings       `yaml:"premium"`
@@ -421,6 +422,59 @@ type raidSettings struct {
 	SpeedHorseKmh        *int64  `yaml:"speed_horse_kmh"`
 	SpeedRailKmh         *int64  `yaml:"speed_rail_kmh"`
 	TributeMin           *int64  `yaml:"tribute_min"`
+}
+
+type miningSettings struct {
+	RuleAt             *string `yaml:"rule_at"`
+	GraceDays          *int64  `yaml:"grace_days"`
+	ReserveDivisor     *int64  `yaml:"reserve_divisor"`
+	SurfaceShareBPS    *int64  `yaml:"surface_share_bps"`
+	Shaft1ShareBPS     *int64  `yaml:"shaft1_share_bps"`
+	Shaft2ShareBPS     *int64  `yaml:"shaft2_share_bps"`
+	DeepShareBPS       *int64  `yaml:"deep_share_bps"`
+	ThinBelowBPS       *int64  `yaml:"thin_below_bps"`
+	ThinFloorBPS       *int64  `yaml:"thin_floor_bps"`
+	LeanBelowPermille  *int64  `yaml:"lean_below_permille"`
+	RichFromPermille   *int64  `yaml:"rich_from_permille"`
+	LeanOutBPS         *int64  `yaml:"lean_out_bps"`
+	MediumOutBPS       *int64  `yaml:"medium_out_bps"`
+	RichOutBPS         *int64  `yaml:"rich_out_bps"`
+	Shaft1DepthM       *int64  `yaml:"shaft1_depth_m"`
+	Shaft2DepthM       *int64  `yaml:"shaft2_depth_m"`
+	HoistWindlassKgMin *int64  `yaml:"hoist_windlass_kg_min"`
+	HoistGinKgMin      *int64  `yaml:"hoist_gin_kg_min"`
+
+	HoistDepthRefM    *int64 `yaml:"hoist_depth_ref_m"`
+	HaulerKgMin       *int64 `yaml:"hauler_kg_min"`
+	UnmadeWayBPS      *int64 `yaml:"unmade_way_bps"`
+	AditGradient      *int64 `yaml:"adit_gradient"`
+	MinConditionBPS   *int64 `yaml:"min_condition_bps"`
+	WaterLimitBPS     *int64 `yaml:"water_limit_bps"`
+	WearPerShiftBPS   *int64 `yaml:"wear_per_shift_bps"`
+	WearPerDayBPS     *int64 `yaml:"wear_per_day_bps"`
+	InflowPerDayBPS   *int64 `yaml:"inflow_per_day_bps"`
+	AditOutflowBPS    *int64 `yaml:"adit_outflow_bps"`
+	PumpGinOutflowBPS *int64 `yaml:"pump_gin_outflow_bps"`
+
+	SetPropsGainBPS       *int64 `yaml:"set_props_gain_bps"`
+	SetPropsItems         *int64 `yaml:"set_props_items"`
+	WorksShiftWage        *int64 `yaml:"works_shift_wage"`
+	WorksShiftMinutes     *int64 `yaml:"works_shift_minutes"`
+	SurveyFee             *int64 `yaml:"survey_fee"`
+	MinSurfaceDays        *int64 `yaml:"min_surface_days"`
+	OreUnitG              *int64 `yaml:"ore_unit_g"`
+	CartBrokenBPS         *int64 `yaml:"cart_broken_bps"`
+	CartSpeedKmh          *int64 `yaml:"cart_speed_kmh"`
+	RoadLinkLotMinutes    *int64 `yaml:"road_link_lot_minutes"`
+	RoadLinkLotStone      *int64 `yaml:"road_link_lot_stone"`
+	RoadLinkLotHours      *int64 `yaml:"road_link_lot_hours"`
+	RailWorkHourWage      *int64 `yaml:"rail_work_hour_wage"`
+	RailWornBPS           *int64 `yaml:"rail_worn_bps"`
+	StuckHours            *int64 `yaml:"stuck_hours"`
+	RailRetryMinutes      *int64 `yaml:"rail_retry_minutes"`
+	TeamFeedWheat         *int64 `yaml:"team_feed_wheat"`
+	DefaultRatePerTonneKm *int64 `yaml:"default_rate_per_tonne_km"`
+	ChainDefaultPerHour   *int64 `yaml:"chain_default_per_hour"`
 }
 
 type householdsSettings struct {
@@ -1496,6 +1550,152 @@ var coreSettings = []setting{
 	moneySetting("raid", "tribute_min",
 		func(c *Config) *int64 { return &c.Raid.TributeMin },
 		func(f *fileConfig) *int64 { return f.Raid.TributeMin }),
+	stringSetting("mining", "rule_at",
+		func(c *Config) *string { return &c.Mining.RuleAt },
+		func(f *fileConfig) *string { return f.Mining.RuleAt }),
+	moneySetting("mining", "grace_days",
+		func(c *Config) *int64 { return &c.Mining.GraceDays },
+		func(f *fileConfig) *int64 { return f.Mining.GraceDays }),
+	moneySetting("mining", "reserve_divisor",
+		func(c *Config) *int64 { return &c.Mining.ReserveDivisor },
+		func(f *fileConfig) *int64 { return f.Mining.ReserveDivisor }),
+	moneySetting("mining", "surface_share_bps",
+		func(c *Config) *int64 { return &c.Mining.SurfaceShareBPS },
+		func(f *fileConfig) *int64 { return f.Mining.SurfaceShareBPS }),
+	moneySetting("mining", "shaft1_share_bps",
+		func(c *Config) *int64 { return &c.Mining.Shaft1ShareBPS },
+		func(f *fileConfig) *int64 { return f.Mining.Shaft1ShareBPS }),
+	moneySetting("mining", "shaft2_share_bps",
+		func(c *Config) *int64 { return &c.Mining.Shaft2ShareBPS },
+		func(f *fileConfig) *int64 { return f.Mining.Shaft2ShareBPS }),
+	moneySetting("mining", "deep_share_bps",
+		func(c *Config) *int64 { return &c.Mining.DeepShareBPS },
+		func(f *fileConfig) *int64 { return f.Mining.DeepShareBPS }),
+	moneySetting("mining", "thin_below_bps",
+		func(c *Config) *int64 { return &c.Mining.ThinBelowBPS },
+		func(f *fileConfig) *int64 { return f.Mining.ThinBelowBPS }),
+	moneySetting("mining", "thin_floor_bps",
+		func(c *Config) *int64 { return &c.Mining.ThinFloorBPS },
+		func(f *fileConfig) *int64 { return f.Mining.ThinFloorBPS }),
+	moneySetting("mining", "lean_below_permille",
+		func(c *Config) *int64 { return &c.Mining.LeanBelowPermille },
+		func(f *fileConfig) *int64 { return f.Mining.LeanBelowPermille }),
+	moneySetting("mining", "rich_from_permille",
+		func(c *Config) *int64 { return &c.Mining.RichFromPermille },
+		func(f *fileConfig) *int64 { return f.Mining.RichFromPermille }),
+	moneySetting("mining", "lean_out_bps",
+		func(c *Config) *int64 { return &c.Mining.LeanOutBPS },
+		func(f *fileConfig) *int64 { return f.Mining.LeanOutBPS }),
+	moneySetting("mining", "medium_out_bps",
+		func(c *Config) *int64 { return &c.Mining.MediumOutBPS },
+		func(f *fileConfig) *int64 { return f.Mining.MediumOutBPS }),
+	moneySetting("mining", "rich_out_bps",
+		func(c *Config) *int64 { return &c.Mining.RichOutBPS },
+		func(f *fileConfig) *int64 { return f.Mining.RichOutBPS }),
+	moneySetting("mining", "shaft1_depth_m",
+		func(c *Config) *int64 { return &c.Mining.Shaft1DepthM },
+		func(f *fileConfig) *int64 { return f.Mining.Shaft1DepthM }),
+	moneySetting("mining", "shaft2_depth_m",
+		func(c *Config) *int64 { return &c.Mining.Shaft2DepthM },
+		func(f *fileConfig) *int64 { return f.Mining.Shaft2DepthM }),
+	moneySetting("mining", "hoist_windlass_kg_min",
+		func(c *Config) *int64 { return &c.Mining.HoistWindlassKgMin },
+		func(f *fileConfig) *int64 { return f.Mining.HoistWindlassKgMin }),
+	moneySetting("mining", "hoist_gin_kg_min",
+		func(c *Config) *int64 { return &c.Mining.HoistGinKgMin },
+		func(f *fileConfig) *int64 { return f.Mining.HoistGinKgMin }),
+
+	moneySetting("mining", "hoist_depth_ref_m",
+		func(c *Config) *int64 { return &c.Mining.HoistDepthRefM },
+		func(f *fileConfig) *int64 { return f.Mining.HoistDepthRefM }),
+	moneySetting("mining", "hauler_kg_min",
+		func(c *Config) *int64 { return &c.Mining.HaulerKgMin },
+		func(f *fileConfig) *int64 { return f.Mining.HaulerKgMin }),
+	moneySetting("mining", "unmade_way_bps",
+		func(c *Config) *int64 { return &c.Mining.UnmadeWayBPS },
+		func(f *fileConfig) *int64 { return f.Mining.UnmadeWayBPS }),
+	moneySetting("mining", "adit_gradient",
+		func(c *Config) *int64 { return &c.Mining.AditGradient },
+		func(f *fileConfig) *int64 { return f.Mining.AditGradient }),
+	moneySetting("mining", "min_condition_bps",
+		func(c *Config) *int64 { return &c.Mining.MinConditionBPS },
+		func(f *fileConfig) *int64 { return f.Mining.MinConditionBPS }),
+	moneySetting("mining", "water_limit_bps",
+		func(c *Config) *int64 { return &c.Mining.WaterLimitBPS },
+		func(f *fileConfig) *int64 { return f.Mining.WaterLimitBPS }),
+	moneySetting("mining", "wear_per_shift_bps",
+		func(c *Config) *int64 { return &c.Mining.WearPerShiftBPS },
+		func(f *fileConfig) *int64 { return f.Mining.WearPerShiftBPS }),
+	moneySetting("mining", "wear_per_day_bps",
+		func(c *Config) *int64 { return &c.Mining.WearPerDayBPS },
+		func(f *fileConfig) *int64 { return f.Mining.WearPerDayBPS }),
+	moneySetting("mining", "inflow_per_day_bps",
+		func(c *Config) *int64 { return &c.Mining.InflowPerDayBPS },
+		func(f *fileConfig) *int64 { return f.Mining.InflowPerDayBPS }),
+	moneySetting("mining", "adit_outflow_bps",
+		func(c *Config) *int64 { return &c.Mining.AditOutflowBPS },
+		func(f *fileConfig) *int64 { return f.Mining.AditOutflowBPS }),
+	moneySetting("mining", "pump_gin_outflow_bps",
+		func(c *Config) *int64 { return &c.Mining.PumpGinOutflowBPS },
+		func(f *fileConfig) *int64 { return f.Mining.PumpGinOutflowBPS }),
+
+	moneySetting("mining", "set_props_gain_bps",
+		func(c *Config) *int64 { return &c.Mining.SetPropsGainBPS },
+		func(f *fileConfig) *int64 { return f.Mining.SetPropsGainBPS }),
+	moneySetting("mining", "set_props_items",
+		func(c *Config) *int64 { return &c.Mining.SetPropsItems },
+		func(f *fileConfig) *int64 { return f.Mining.SetPropsItems }),
+	moneySetting("mining", "works_shift_wage",
+		func(c *Config) *int64 { return &c.Mining.WorksShiftWage },
+		func(f *fileConfig) *int64 { return f.Mining.WorksShiftWage }),
+	moneySetting("mining", "works_shift_minutes",
+		func(c *Config) *int64 { return &c.Mining.WorksShiftMinutes },
+		func(f *fileConfig) *int64 { return f.Mining.WorksShiftMinutes }),
+	moneySetting("mining", "survey_fee",
+		func(c *Config) *int64 { return &c.Mining.SurveyFee },
+		func(f *fileConfig) *int64 { return f.Mining.SurveyFee }),
+	moneySetting("mining", "min_surface_days",
+		func(c *Config) *int64 { return &c.Mining.MinSurfaceDays },
+		func(f *fileConfig) *int64 { return f.Mining.MinSurfaceDays }),
+	moneySetting("mining", "ore_unit_g",
+		func(c *Config) *int64 { return &c.Mining.OreUnitG },
+		func(f *fileConfig) *int64 { return f.Mining.OreUnitG }),
+	moneySetting("mining", "cart_broken_bps",
+		func(c *Config) *int64 { return &c.Mining.CartBrokenBPS },
+		func(f *fileConfig) *int64 { return f.Mining.CartBrokenBPS }),
+	moneySetting("mining", "cart_speed_kmh",
+		func(c *Config) *int64 { return &c.Mining.CartSpeedKmh },
+		func(f *fileConfig) *int64 { return f.Mining.CartSpeedKmh }),
+	moneySetting("mining", "road_link_lot_minutes",
+		func(c *Config) *int64 { return &c.Mining.RoadLinkLotMinutes },
+		func(f *fileConfig) *int64 { return f.Mining.RoadLinkLotMinutes }),
+	moneySetting("mining", "road_link_lot_stone",
+		func(c *Config) *int64 { return &c.Mining.RoadLinkLotStone },
+		func(f *fileConfig) *int64 { return f.Mining.RoadLinkLotStone }),
+	moneySetting("mining", "road_link_lot_hours",
+		func(c *Config) *int64 { return &c.Mining.RoadLinkLotHours },
+		func(f *fileConfig) *int64 { return f.Mining.RoadLinkLotHours }),
+	moneySetting("mining", "rail_work_hour_wage",
+		func(c *Config) *int64 { return &c.Mining.RailWorkHourWage },
+		func(f *fileConfig) *int64 { return f.Mining.RailWorkHourWage }),
+	moneySetting("mining", "rail_worn_bps",
+		func(c *Config) *int64 { return &c.Mining.RailWornBPS },
+		func(f *fileConfig) *int64 { return f.Mining.RailWornBPS }),
+	moneySetting("mining", "stuck_hours",
+		func(c *Config) *int64 { return &c.Mining.StuckHours },
+		func(f *fileConfig) *int64 { return f.Mining.StuckHours }),
+	moneySetting("mining", "rail_retry_minutes",
+		func(c *Config) *int64 { return &c.Mining.RailRetryMinutes },
+		func(f *fileConfig) *int64 { return f.Mining.RailRetryMinutes }),
+	moneySetting("mining", "team_feed_wheat",
+		func(c *Config) *int64 { return &c.Mining.TeamFeedWheat },
+		func(f *fileConfig) *int64 { return f.Mining.TeamFeedWheat }),
+	moneySetting("mining", "default_rate_per_tonne_km",
+		func(c *Config) *int64 { return &c.Mining.DefaultRatePerTonneKm },
+		func(f *fileConfig) *int64 { return f.Mining.DefaultRatePerTonneKm }),
+	moneySetting("mining", "chain_default_per_hour",
+		func(c *Config) *int64 { return &c.Mining.ChainDefaultPerHour },
+		func(f *fileConfig) *int64 { return f.Mining.ChainDefaultPerHour }),
 	stringSetting("households", "rule_at",
 		func(c *Config) *string { return &c.Households.RuleAt },
 		func(f *fileConfig) *string { return f.Households.RuleAt }),

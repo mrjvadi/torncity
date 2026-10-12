@@ -38,12 +38,12 @@ const (
 
 // Requirement kinds. They choose a sentence; none is ever shown.
 const (
-	ReqLevel            = "level"
-	ReqSkill            = "skill"
-	ReqCertificate      = "certificate"
+	ReqLevel       = "level"
+	ReqSkill       = "skill"
+	ReqCertificate = "certificate"
 	// ReqLiteracy: a village class asks the student to read; Until is when it begins to be asked (the grace), CourseCode the
 	// literacy class and City the nearest place that teaches it.
-	ReqLiteracy = "literacy"
+	ReqLiteracy         = "literacy"
 	ReqResidence        = "residence"
 	ReqPerformance      = "performance"
 	ReqTime             = "time"

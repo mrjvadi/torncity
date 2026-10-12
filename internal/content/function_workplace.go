@@ -36,6 +36,8 @@ type WorkplaceDef struct {
 	Near *NearDef `yaml:"near,omitempty" json:"near,omitempty"`
 	// Grinds marks a mill: a citizen may grind his own grain there for the toll (docs/adr/0067).
 	Grinds bool `yaml:"grinds,omitempty" json:"grinds,omitempty"`
+	// Mining makes the crew dig a deposit (docs/adr/0075): the resource, whether the workings go deep, and the item of each grade band.
+	Mining *MiningDef `yaml:"mining,omitempty" json:"mining,omitempty"`
 	// Fells and Plants are copied to the building: the crew fells a tree or plants a sapling of the land each shift.
 	Fells  bool `yaml:"fells,omitempty" json:"fells,omitempty"`
 	Plants bool `yaml:"plants,omitempty" json:"plants,omitempty"`
@@ -160,7 +162,7 @@ func (f BuildingFunctionDef) generatedWorkplace(roleBPS map[string]int) Settleme
 		Code: w.buildingCode(f.Code), Name: f.Name, Role: w.Role, Tier: max(w.Tier, 1), Generated: true,
 		Footprint:   [2]int{max(f.Footprint[0], 1), max(f.Footprint[1], 1)},
 		TerrainTags: append([]string(nil), f.TerrainTags...), TerrainMode: f.TerrainMode, SlopeOKBand: f.SlopeOKBand,
-		OutputTarget: w.OutputTarget, Near: w.Near, Grinds: w.Grinds, Fells: w.Fells, Plants: w.Plants, Upkeep: w.Upkeep, Wage: w.Wage, Effects: append([]EffectDef(nil), w.Effects...), Trains: w.Trains,
+		OutputTarget: w.OutputTarget, Near: w.Near, Mining: w.Mining, Grinds: w.Grinds, Fells: w.Fells, Plants: w.Plants, Upkeep: w.Upkeep, Wage: w.Wage, Effects: append([]EffectDef(nil), w.Effects...), Trains: w.Trains,
 	}
 	if len(f.Levels) > 0 {
 		lv := f.Levels[0]
@@ -284,6 +286,22 @@ func (l *schemaLint) workplaces() {
 		if len(f.Replaces) != 1 || f.Replaces[0] != code {
 			l.bad("%s: a workplace replaces its own building (replaces: [%s]) so the condition and the repairs find the row", key, code)
 		}
+		if m := w.Mining; m != nil {
+			if m.Resource == "" || f.Kind != FunctionExtraction {
+				l.bad("%s: a mining workplace names its resource and is an extraction", key)
+			}
+			for _, band := range []string{"lean", "medium", "rich"} {
+				if it := m.Items[band]; it == "" || !l.itemKnown(it) {
+					l.bad("%s: mining.items.%s %q is not an item", key, band, it)
+				}
+			}
+			if len(m.Items) != 3 {
+				l.bad("%s: mining.items names the three bands lean, medium and rich", key)
+			}
+			if f.Produces == nil || f.Produces.Outputs[m.Items["medium"]] <= 0 {
+				l.bad("%s: a mining workplace makes its medium ore (the base output the grade bands scale)", key)
+			}
+		}
 		if daily := f.Produces != nil && f.Produces.Daily; !daily {
 			shift, err := optionalDuration(w.Shift)
 			if err != nil || shift < 15*time.Minute || shift > time.Hour {
@@ -291,4 +309,21 @@ func (l *schemaLint) workplaces() {
 			}
 		}
 	}
+}
+
+// MiningDef is what makes a workplace dig a deposit of the world (docs/adr/0075 4.1, 5). Resource is the world resource of the
+// deposit (world.yml); Deep says the workings can go below the surface by shaft levels (a minehead), otherwise the crew works the
+// surface only (a pit). Items maps each grade band (lean, medium, rich) to the item the shift brings up.
+type MiningDef struct {
+	Resource string            `yaml:"resource" json:"resource"`
+	Deep     bool              `yaml:"deep,omitempty" json:"deep,omitempty"`
+	Items    map[string]string `yaml:"items" json:"items"`
+}
+
+// ItemOf is the item a grade band brings up ("" for an unknown band).
+func (m *MiningDef) ItemOf(band string) string {
+	if m == nil {
+		return ""
+	}
+	return m.Items[band]
 }

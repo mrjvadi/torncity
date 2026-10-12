@@ -110,6 +110,11 @@ type VillageHandler struct {
 	trade TradeRules
 	// house are the NPC households' rules (village_households.go).
 	house application.HouseholdRules
+	// router, when set, plans the lines of roads and rails instead of the world's router (a seam for tests: the generated planet spaces
+	// its settlements hundreds of kilometres apart).
+	router RouteFunc
+	// mining are the rules of deposits, mines, carriage and rail (village_mine.go, docs/adr/0075).
+	mining application.MiningRules
 	// raid are the rules of raids, falls and detection (village_raid.go, docs/adr/0074); raidScale is the game clock's scale for the stay a fall costs.
 	raid      application.RaidRules
 	raidScale gametime.Scale

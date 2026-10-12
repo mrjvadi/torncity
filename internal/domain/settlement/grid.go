@@ -102,3 +102,14 @@ func isSloped(samples [][]worldgen.FineSample, x, y, gridLots int) bool {
 	}
 	return false
 }
+
+// DepositOf is the deposit of a resource in a world cell (docs/adr/0075 4.1): the first one the world lists there, nothing when the
+// cell holds none. The lot tag "ore_deposit" says a lot lies on such a cell; this is the deposit itself, with its reserve and grade.
+func DepositOf(w *worldgen.World, cellID int32, resource string) (worldgen.Deposit, bool) {
+	for _, d := range w.Deposits {
+		if d.CellID == cellID && d.ResourceCode == resource {
+			return d, true
+		}
+	}
+	return worldgen.Deposit{}, false
+}

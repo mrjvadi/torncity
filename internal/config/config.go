@@ -261,6 +261,9 @@ type Config struct {
 	// Raid is raids, falls and detection (docs/adr/0074).
 	Raid Raid
 
+	// Mining is deposits, mines, carriage and rail (docs/adr/0075).
+	Mining Mining
+
 	// Bag, Merchant and Premium are the tuning of ADR 0046: what a player can
 	// carry and how a bag wears, the village shop's daily delivery and prices,
 	// and the constant a village currency is quoted in Nil by.
@@ -1919,6 +1922,56 @@ func Defaults() *Config {
 			SpeedRailKmh:         40,
 			TributeMin:           100,
 		},
+		Mining: Mining{
+			RuleAt:                "2099-01-01T00:00:00Z",
+			GraceDays:             14,
+			ReserveDivisor:        2,
+			SurfaceShareBPS:       500,
+			Shaft1ShareBPS:        2500,
+			Shaft2ShareBPS:        4000,
+			DeepShareBPS:          3000,
+			ThinBelowBPS:          2000,
+			ThinFloorBPS:          3000,
+			LeanBelowPermille:     350,
+			RichFromPermille:      500,
+			LeanOutBPS:            8000,
+			MediumOutBPS:          10000,
+			RichOutBPS:            12000,
+			Shaft1DepthM:          30,
+			Shaft2DepthM:          60,
+			HoistWindlassKgMin:    8,
+			HoistGinKgMin:         32,
+			HoistDepthRefM:        30,
+			HaulerKgMin:           10,
+			UnmadeWayBPS:          5000,
+			AditGradient:          150,
+			MinConditionBPS:       3000,
+			WaterLimitBPS:         6000,
+			WearPerShiftBPS:       20,
+			WearPerDayBPS:         30,
+			InflowPerDayBPS:       600,
+			AditOutflowBPS:        1200,
+			PumpGinOutflowBPS:     900,
+			SetPropsGainBPS:       1200,
+			SetPropsItems:         2,
+			WorksShiftWage:        65,
+			WorksShiftMinutes:     15,
+			SurveyFee:             300,
+			MinSurfaceDays:        30,
+			OreUnitG:              25000,
+			CartBrokenBPS:         3000,
+			CartSpeedKmh:          8,
+			RoadLinkLotMinutes:    4,
+			RoadLinkLotStone:      2,
+			RoadLinkLotHours:      1,
+			RailWorkHourWage:      110,
+			RailWornBPS:           6000,
+			StuckHours:            6,
+			RailRetryMinutes:      3,
+			TeamFeedWheat:         1,
+			DefaultRatePerTonneKm: 40,
+			ChainDefaultPerHour:   4,
+		},
 		Growth: Growth{
 			Capabilities:  GrowthAuthoritative,
 			CacheTTL:      5 * time.Second,
@@ -2772,4 +2825,56 @@ type Raid struct {
 	SpeedHorseKmh        int64  // raid.speed_horse_kmh
 	SpeedRailKmh         int64  // raid.speed_rail_kmh
 	TributeMin           int64  // raid.tribute_min
+}
+
+// Mining is the tuning of deposits, mines, carriage and rail (docs/adr/0075-mining-rail-and-ratios.md). Mining starts at RuleAt plus GraceDays.
+type Mining struct {
+	RuleAt                string // mining.rule_at
+	GraceDays             int64  // mining.grace_days
+	ReserveDivisor        int64  // mining.reserve_divisor
+	SurfaceShareBPS       int64  // mining.surface_share_bps
+	Shaft1ShareBPS        int64  // mining.shaft1_share_bps
+	Shaft2ShareBPS        int64  // mining.shaft2_share_bps
+	DeepShareBPS          int64  // mining.deep_share_bps
+	ThinBelowBPS          int64  // mining.thin_below_bps
+	ThinFloorBPS          int64  // mining.thin_floor_bps
+	LeanBelowPermille     int64  // mining.lean_below_permille
+	RichFromPermille      int64  // mining.rich_from_permille
+	LeanOutBPS            int64  // mining.lean_out_bps
+	MediumOutBPS          int64  // mining.medium_out_bps
+	RichOutBPS            int64  // mining.rich_out_bps
+	Shaft1DepthM          int64  // mining.shaft1_depth_m
+	Shaft2DepthM          int64  // mining.shaft2_depth_m
+	HoistWindlassKgMin    int64  // mining.hoist_windlass_kg_min
+	HoistGinKgMin         int64  // mining.hoist_gin_kg_min
+	HoistDepthRefM        int64  // mining.hoist_depth_ref_m
+	HaulerKgMin           int64  // mining.hauler_kg_min
+	UnmadeWayBPS          int64  // mining.unmade_way_bps
+	AditGradient          int64  // mining.adit_gradient
+	MinConditionBPS       int64  // mining.min_condition_bps
+	WaterLimitBPS         int64  // mining.water_limit_bps
+	WearPerShiftBPS       int64  // mining.wear_per_shift_bps
+	WearPerDayBPS         int64  // mining.wear_per_day_bps
+	InflowPerDayBPS       int64  // mining.inflow_per_day_bps
+	AditOutflowBPS        int64  // mining.adit_outflow_bps
+	PumpGinOutflowBPS     int64  // mining.pump_gin_outflow_bps
+	SetPropsGainBPS       int64  // mining.set_props_gain_bps
+	SetPropsItems         int64  // mining.set_props_items
+	WorksShiftWage        int64  // mining.works_shift_wage
+	WorksShiftMinutes     int64  // mining.works_shift_minutes
+	SurveyFee             int64  // mining.survey_fee
+	MinSurfaceDays        int64  // mining.min_surface_days
+	OreUnitG              int64  // mining.ore_unit_g
+	CartBrokenBPS         int64  // mining.cart_broken_bps
+	CartSpeedKmh          int64  // mining.cart_speed_kmh
+	RoadLinkLotMinutes    int64  // mining.road_link_lot_minutes
+	RoadLinkLotStone      int64  // mining.road_link_lot_stone
+	RoadLinkLotHours      int64  // mining.road_link_lot_hours
+	RailWorkHourWage      int64  // mining.rail_work_hour_wage
+	RailWornBPS           int64  // mining.rail_worn_bps
+	StuckHours            int64  // mining.stuck_hours
+	RailRetryMinutes      int64  // mining.rail_retry_minutes
+	TeamFeedWheat         int64  // mining.team_feed_wheat
+	DefaultRatePerTonneKm int64  // mining.default_rate_per_tonne_km
+	ChainDefaultPerHour   int64  // mining.chain_default_per_hour
 }

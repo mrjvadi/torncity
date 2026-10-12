@@ -21,6 +21,9 @@ type buildingSchemaIndex struct {
 	detectors   []SettlementRaidDetectorDef
 	roads       map[string]RoadClassDef
 	planner     *RoadPlannerDef
+	haulModes   []HaulModeDef
+	railClasses []RailClassDef
+	rail        *RailDef
 }
 
 func (s *Snapshot) buildBuildingSchema(p *Pack) {
@@ -81,7 +84,47 @@ func (s *Snapshot) buildBuildingSchema(p *Pack) {
 		r := p.RoadPlanner[0]
 		ix.planner = &r
 	}
+	ix.haulModes = append(ix.haulModes, p.HaulModes...)
+	ix.railClasses = append(ix.railClasses, p.RailClasses...)
+	if len(p.Rail) > 0 {
+		r := p.Rail[0]
+		ix.rail = &r
+	}
 	s.schema = ix
+}
+
+// HaulModes lists the haul modes in file order.
+func (s *Snapshot) HaulModes() []HaulModeDef {
+	if s.schema == nil {
+		return nil
+	}
+	return append([]HaulModeDef(nil), s.schema.haulModes...)
+}
+
+// RailClasses lists the rail classes in file order.
+func (s *Snapshot) RailClasses() []RailClassDef {
+	if s.schema == nil {
+		return nil
+	}
+	return append([]RailClassDef(nil), s.schema.railClasses...)
+}
+
+// RailClass is a rail class by code.
+func (s *Snapshot) RailClass(code string) (RailClassDef, bool) {
+	for _, c := range s.RailClasses() {
+		if c.Code == code {
+			return c, true
+		}
+	}
+	return RailClassDef{}, false
+}
+
+// RailRules is rail.yml's rules block.
+func (s *Snapshot) RailRules() (RailDef, bool) {
+	if s.schema == nil || s.schema.rail == nil {
+		return RailDef{}, false
+	}
+	return *s.schema.rail, true
 }
 
 // BuildingFunction is a function row by code.

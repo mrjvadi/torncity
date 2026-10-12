@@ -461,6 +461,56 @@ func (h phaseHandlers) bind() map[string]commandFunc {
 			}
 			return h.village.Raid(ctx, env.Metadata, req)
 		},
+		"settlement.chain": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageChainRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.Chain(ctx, env.Metadata, req)
+		},
+		"settlement.rail": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageRailRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.Rail(ctx, env.Metadata, req)
+		},
+		"rail.event": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.CrimeScheduledRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.RailEvent(ctx, env.Metadata, req)
+		},
+		"settlement.haul": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageHaulRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.Haul(ctx, env.Metadata, req)
+		},
+		"haul.arrive": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.CrimeScheduledRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.HaulArrive(ctx, env.Metadata, req)
+		},
+		"settlement.mining": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.VillageMiningRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.Mining(ctx, env.Metadata, req)
+		},
+		// The scheduler's: a works order reaching its end (docs/adr/0075).
+		"works.done": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
+			var req handlers.CrimeScheduledRequest
+			if err := decode(env, &req); err != nil {
+				return nil, err
+			}
+			return h.village.WorksDone(ctx, env.Metadata, req)
+		},
 		"settlement.insurance": func(ctx context.Context, env *envelope.Envelope) (*presenter.Response, error) {
 			var req handlers.VillageInsuranceRequest
 			if err := decode(env, &req); err != nil {

@@ -48,6 +48,13 @@ item_storage:
   - {code: timber,   source: "ADR 0041 6.4", evidence: adr, requires: {}, class: bulk,  bulk: 2}
   - {code: stone,    source: "ADR 0041 6.4", evidence: adr, requires: {}, class: bulk,  bulk: 2}
   - {code: iron_ore, source: "ADR 0041 6.4", evidence: adr, requires: {}, class: bulk,  bulk: 2}
+  - {code: iron_ore_lean, source: "ADR 0075 4.1", evidence: D, requires: {}, class: bulk, bulk: 2}
+  - {code: iron_ore_rich, source: "ADR 0075 4.1", evidence: D, requires: {}, class: bulk, bulk: 2}
+  - {code: timber_prop,   source: "ADR 0075 5.3", evidence: D, requires: {}, class: bulk, bulk: 1}
+  - {code: splint,        source: "ADR 0075 5.3", evidence: D, requires: {}, class: bulk, bulk: 1}
+  - {code: sleeper,       source: "ADR 0075 7.2", evidence: D, requires: {}, class: bulk, bulk: 2}
+  - {code: wooden_rail,   source: "ADR 0075 7.2", evidence: D, requires: {}, class: bulk, bulk: 2}
+  - {code: rail,          source: "ADR 0075 7.2", evidence: D, requires: {}, class: bulk, bulk: 2}
   - {code: wheat,    source: "ADR 0041 6.4, 6.5", evidence: adr, requires: {}, class: food, bulk: 1, food_points: 2}
   - {code: flour,    source: "ADR 0041 6.4, 6.5", evidence: adr, requires: {}, class: food, bulk: 1, food_points: 0, note: "the company flour counts grams; the village sack is flour_sack (ADR 0041 12)"}
   - {code: bread,    source: "ADR 0041 6.4, 6.5", evidence: adr, requires: {}, class: food, bulk: 1, food_points: 4}
@@ -86,7 +93,7 @@ item_storage:
   - {code: bark,        source: "ADR 0045 4.3", evidence: adr, requires: {}, class: bulk, bulk: 1}
   - {code: leather,     source: "ADR 0045 4.3", evidence: adr, requires: {}, class: goods, bulk: 1}
   - {code: bloom,       source: "ADR 0045 4.3", evidence: adr, requires: {}, class: bulk, bulk: 2}
-  - {code: bar_iron,    planned: true, source: "ADR 0045 4.3", evidence: adr, requires: {}, class: goods, bulk: 1, needs_research: [bulk]}
+  - {code: bar_iron,    source: "ADR 0045 4.3", evidence: adr, requires: {}, class: goods, bulk: 1}
   - {code: paper,        source: "RESEARCH 2026-10-03 5.3, 6.3", evidence: I, requires: {}, class: goods, bulk: 1, note: "paper and ink for the register and the bank; the research says to check it against items.yml, which has no paper"}
   - {code: spring_water, source: "ADR 0050/0051: barrels drawn at a well", evidence: adr, requires: {}, class: bulk, bulk: 1}
   - {code: rag,         source: "ADR 0050, plan A2: the weaving shed's offcuts", evidence: adr, requires: {}, class: goods, bulk: 1}
@@ -126,12 +133,17 @@ module_kinds:
   - {code: barn,      source: "ADR 0045 3.2", evidence: adr, requires: {}, waits_for: "B2: a store for crops and fodder at a farm lot", effect: barn, needs_research: [provides, cost_materials, build_shifts, decay_bps_per_day]}
   - {code: signal_fire, source: "ADR 0042 8.3", evidence: adr, requires: {knowledge: [communal_watch, signal_fires]}, effect: signal_fire, consumes: {firewood: 1}, cost_materials: {stone: 2}, build_shifts: 2, area: 1, needs_research: [decay_bps_per_day], note: "the beacon's ready stack is 10 firewood; draft numbers for the cost (ADR 0074)"}
   - {code: lookout_platform, source: "ADR 0042 8.1", evidence: adr, requires: {knowledge: [communal_watch]}, effect: lookout_platform, cost_materials: {timber: 2}, build_shifts: 2, area: 1, needs_research: [decay_bps_per_day], note: "draft numbers for the cost (ADR 0074)"}
-  - {code: shaft_level, source: "ADR 0045 8.3", evidence: adr, requires: {}, planned_knowledge: [prospecting, timbering], waits_for: "B11: mining depth bands", effect: shaft_level, needs_research: [cost_materials, build_shifts, decay_bps_per_day], note: "depth bands: surface pit to 3 m, timbered shaft to 30 m, ventilated and pumped to 60 m"}
-  - {code: hoist,     source: "ADR 0045 8.3", evidence: adr, requires: {}, planned_knowledge: [timbering], waits_for: "B11: mining depth bands", effect: hoist, needs_research: [cost_materials, build_shifts, decay_bps_per_day]}
+  # ---- mine modules (docs/adr/0075 5): read by the state of the mine (mine_state), costed in goods and builder shifts. The costs are drafts (D). ----
+  - {code: shaft_level, source: "ADR 0045 8.3, 0075 5.1", evidence: D, requires: {knowledge: [timbering]}, effect: shaft_level, cost_materials: {timber_prop: 40, plank: 10}, build_shifts: 12, decay_bps_per_day: 40, note: "one timbered level: the first reaches 30 m, the second 60 m (and asks the ventilation shaft); its props wear and the timberman sets them"}
+  - {code: hoist, source: "ADR 0045 8.3, 0075 5.4", evidence: D, requires: {knowledge: [timbering]}, effect: hoist, cost_materials: {timber: 6, plank: 4, stone: 2}, build_shifts: 6, decay_bps_per_day: 40, note: "a windlass at the shaft top: lifts a few kilograms a minute and needs the banksman; it lifts less the deeper it works"}
+  - {code: hoist_gin, source: "ADR 0075 5.4, Agricola", evidence: D, requires: {knowledge: [timbering, smithing]}, effect: hoist_gin, cost_materials: {timber: 12, plank: 8, bar_iron: 2}, build_shifts: 10, decay_bps_per_day: 40, note: "a horse gin: four times the windlass; the team eats wheat each shift"}
+  - {code: ore_bin, source: "ADR 0045 8.3, 0075 5.5", evidence: D, requires: {knowledge: [prospecting]}, effect: ore_bin, provides: {bulk: 120}, cost_materials: {timber: 6, stone: 6}, build_shifts: 4, decay_bps_per_day: 30, note: "a bin at the shaft head: 120 spaces more of yard for the ore waiting to be carried"}
+  - {code: adit, source: "ADR 0075 5.3, Wikipedia Adit", evidence: D, requires: {knowledge: [drainage]}, effect: adit, cost_materials: {timber_prop: 8, stone: 2}, build_shifts: 6, decay_bps_per_day: 20, note: "the cost is for each 50 m of the adit; its length follows from the fall to the nearest lower water (one metre of rise in 150); a lot with no outlet below its floor cannot be drained by gravity"}
+  - {code: pump, source: "ADR 0075 5.3, Agricola", evidence: D, requires: {knowledge: [mine_pumping]}, effect: pump, cost_materials: {timber: 10, plank: 8, bar_iron: 3}, build_shifts: 10, decay_bps_per_day: 40, note: "a horse-gin pump lifts the water a level takes in; a pumper works it and the team eats wheat"}
+  - {code: vent_shaft, source: "ADR 0075 5.1", evidence: D, requires: {knowledge: [ventilation]}, effect: vent_shaft, cost_materials: {timber_prop: 30, plank: 6}, build_shifts: 8, decay_bps_per_day: 30, note: "a second shaft for the draught: the second level cannot be opened without it"}
   - {code: guest_bed, source: "RESEARCH 2026-10-03 2.3, 2.5", evidence: I, requires: {}, waits_for: "C7: guest nights at an inn", effect: transient_bed, needs_research: [provides, cost_materials, build_shifts, decay_bps_per_day], note: "a bed for a traveller (sleep spot hostel); it counts as a transient bed and never as a resident's housing capacity"}
   - {code: record_vault, source: "RESEARCH 2026-10-03 5.2, 5.3", evidence: I, requires: {knowledge: [masonry]}, waits_for: "A4b: the land registry (needs resident-to-resident land sales)", effect: record_vault, needs_research: [cost_materials, build_shifts, decay_bps_per_day], note: "the register's stone room: documents, not goods"}
   - {code: vault, source: "RESEARCH 2026-10-03 6.3, 6.5", evidence: I, requires: {knowledge: [masonry_ii, smithing_ii]}, waits_for: "B14: theft difficulty of a vault", effect: vault, needs_research: [vault_rating_scale, cost_materials, build_shifts, decay_bps_per_day], note: "holds cash and valuables; its vault_rating sets the theft difficulty; the door and locks need smithing_ii (E, read, S31: strongrooms in bank basements)"}
-  - {code: ore_bin,   source: "ADR 0045 8.3", evidence: adr, requires: {}, waits_for: "B11: the minehead ore bin", effect: ore_bin, needs_research: [provides, cost_materials, build_shifts, decay_bps_per_day]}
 
 building_functions:
   # ---- homes and private trades (ADR 0035 3, ADR 0040 Part B, ADR 0045 3.2) ----
@@ -418,7 +430,7 @@ building_functions:
     maintenance: {decay_bps_per_day: 80, repair_materials: {timber: 1}, repair_labour: 1}
     links: {to: [bloomery, smithy]}
     replaces: [iron_pit]
-    workplace: {role: extraction, tier: 1, shift: 30m, upkeep: 30, effects: [{target: job_coverage_bps, op: add, value: 100}]}
+    workplace: {role: extraction, tier: 1, shift: 30m, upkeep: 30, effects: [{target: job_coverage_bps, op: add, value: 100}], mining: {resource: iron, items: {lean: iron_ore_lean, medium: iron_ore, rich: iron_ore_rich}}}
     note: "the first iron of a village is dug from the surface or a bog where the ore lies (bog iron, surface seams): spades and baskets, no shaft. Needs an ore deposit under the lot and the smithing tradition. The minehead is the deep tier (props, drainage, ore bin)"
   - code: bloomery
     source: "ADR 0045 4.3 recipe 15, S68; Wikipedia Bloomery"
@@ -1133,31 +1145,62 @@ building_functions:
     needs_research: [observer_height_m, sight_m, build_hours, decay_bps_per_day]
     note: "claim 0.5 to 1 km; relays every claiming building in its line of sight up to 60 km; the ready stack of 10 firewood must be full for it to count as held; 3 shifts a day so someone is always on duty. Its own sight is not fixed by the ADR; the watchtower's 8 km is a stand-in."
 
-  # ---- mining (ADR 0045 8.3). Rail (8.5) is phase B7: defined in the schema, no rows (owner, 2026-10-03). ----
+  # ---- mining and rail (ADR 0045 8.3, 8.5; docs/adr/0075). The minehead digs the deposit under its lot by shaft levels; the rail station is a daily service. ----
   - code: minehead
-    source: "ADR 0045 8.3, 0041 8.29"
-    evidence: adr
-    name: "دهانهٔ معدن"
-    requires: {}
-    planned_knowledge: [prospecting, timbering]
+    source: "ADR 0045 8.3, 0075 5"
+    evidence: D
+    name: "معدن"
+    requires: {knowledge: [prospecting]}
     kind: extraction
     family: extraction
     permit: craft
     zones: [industry]
+    terrain_tags: [ore_deposit]
+    terrain_mode: required
     footprint: [2, 2, 4, 4]
-    owners: [treasury, player, union]
-    slots: [{module: shaft_level, max: 3}, {module: hoist, max: 1}, {module: ore_bin, max: 1}]
+    owners: [treasury]
+    slots: [{module: ore_bin, max: 1}, {module: shaft_level, max: 2}, {module: hoist, max: 1}, {module: hoist_gin, max: 1}, {module: adit, max: 8}, {module: pump, max: 1}, {module: vent_shaft, max: 1}]
     levels:
-      - {level: 1, adds: [shaft_level, ore_bin], requires: {}, planned_knowledge: [prospecting]}
-      - {level: 2, adds: [shaft_level, hoist], requires: {}, planned_knowledge: [timbering, drainage]}
-      - {level: 3, adds: [shaft_level], requires: {}, planned_knowledge: [ventilation]}
-    staff: [{role: miner, slots: 2, shift_hours: 2}, {role: mine_hauler, slots: 1, shift_hours: 2}, {role: timberman, slots: 1, shift_hours: 2}, {role: banksman, slots: 1, shift_hours: 2}]
+      - {level: 1, adds: [ore_bin], requires: {knowledge: [prospecting]}, cost_money: 6000, cost_materials: {timber: 12, stone: 8}, build_hours: 6}
+    staff:
+      - {role: miner, slots: 3, shift_hours: 1}
+      - {role: mine_hauler, slots: 2, shift_hours: 1}
+      - {role: timberman, slots: 1, shift_hours: 1}
+      - {role: banksman, slots: 1, shift_hours: 1}
+      - {role: pumper, slots: 1, shift_hours: 1}
     if_unstaffed: idle
-    consumes: {inputs: {}, food_points: 2, tool_wear_bps: 100}
-    produces: {outputs: {iron_ore: 4}, store: ore}
-    links: {to: [smithy, bloomery]}
-    needs_research: [wage_bps, staff_slots, shift_hours, output_per_shift, ore_bin_size, lamp_oil_item, props_per_metre, cost_money, cost_materials, build_hours, decay_bps_per_day]
-    note: "a mine whose props, drainage or ventilation fall below the minimum closes (needs_repair), never destroyed. Output = miners x pace x tool tier x deposit grade (finite deposits, ADR 0045 8.2); the numbers shown are placeholders flagged for research: slots by level and output per shift are not in the ADR"
+    consumes: {inputs: {splint: 1}, food_points: 2, tool_wear_bps: 100}
+    produces: {outputs: {iron_ore: 4}, store: bulk}
+    storage: {needs: {bulk: 2}}
+    maintenance: {decay_bps_per_day: 50, repair_materials: {timber: 1}, repair_labour: 1}
+    links: {from: [charcoal_clamp], to: [bloomery, smithy]}
+    ledger_reasons: [labor_wage, survey_fee, mine_works_wage]
+    replaces: [mine]
+    workplace: {building: mine, role: extraction, tier: 2, shift: 30m, upkeep: 80, effects: [{target: job_coverage_bps, op: add, value: 300}], trains: {skill: mining, xp: 25}, mining: {resource: iron, deep: true, items: {lean: iron_ore_lean, medium: iron_ore, rich: iron_ore_rich}}}
+    note: "a miner breaks 4 sacks of ore a shift at the face; what the shift delivers is the least of that, what the hoist lifts and what the haulers carry (mine_limited says which), times the grade band and the thin of the face; no hauler carries nothing, and below the surface nothing is lifted without a banksman. A level whose props or water are unsafe is closed, never destroyed. Light: a splint a shift underground. The deposit is finite: the surface holds 5 percent, the first shaft level the next 25, the second 40 (docs/adr/0075 4.1)"
+  - code: rail_station
+    source: "ADR 0045 8.5, 0075 7.3; Wikipedia Wagonway, Middleton Railway"
+    evidence: D
+    name: "ایستگاه ریل"
+    requires: {knowledge: [wagonway]}
+    kind: service
+    family: transport
+    zones: [core, industry]
+    footprint: [2, 1, 3, 2]
+    owners: [treasury]
+    levels:
+      - {level: 1, requires: {knowledge: [wagonway]}, cost_money: 4000, cost_materials: {timber: 10, stone: 6, plank: 6}, build_hours: 4}
+    staff:
+      - {role: stationmaster, slots: 1, shift_hours: 8}
+      - {role: loader, slots: 2, shift_hours: 8}
+    if_unstaffed: idle
+    consumes: {fuel: {firewood: 1}, food_points: 8}
+    produces: {service: rail_station, daily: true}
+    links: {from: [carpentry_workshop], to: [minehead, bloomery]}
+    ledger_reasons: [service_wage, freight_fee, track_fee]
+    replaces: [rail_station]
+    workplace: {role: transport, tier: 1, upkeep: 60}
+    note: "a platform where trains load and unload: open on a day its stationmaster and loaders are paid and the stove has its firewood; a station that is not open takes no train that day (docs/adr/0075 7.3). The line's sections, wagons and teams are the lines of the rail screen"
 
   # ---- first stage of the accepted missing-prerequisites research (2026-10-03): inn, land registry, exchange house and bank ----
   # Numbers carry evidence D (draft, to be proven by `admin economy verify`) except

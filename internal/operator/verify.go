@@ -244,6 +244,18 @@ func VerifyChecks(v postgres.LedgerVerification, cfg *config.Config) []Check {
 		out.add(t.RaidWithoutOutcome == 0 && t.RaidOrphans == 0, fmt.Sprintf("no raid ended with no outcome (%d) and no loot or detection names a missing raid (%d)", t.RaidWithoutOutcome, t.RaidOrphans))
 	}
 
+	if v.Village && v.Mining {
+		t := v.VillageInvariants
+		out.add(t.MineTaken == t.MineExtracted && t.MineShiftMismatch == 0, fmt.Sprintf("the ore taken from the deposits is what the shifts brought up (%d = %d, %d extraction rows off their shift)", t.MineTaken, t.MineExtracted, t.MineShiftMismatch))
+		if cfg != nil {
+			reach := cfg.Mining.SurfaceShareBPS + cfg.Mining.Shaft1ShareBPS + cfg.Mining.Shaft2ShareBPS
+			out.add(t.MineMaxTakenBPS*max(cfg.Mining.ReserveDivisor, 1) <= reach, fmt.Sprintf("no deposit gave more than the first release reaches (the largest share taken %d bps of the reserve, at most %d)", t.MineMaxTakenBPS, reach/max(cfg.Mining.ReserveDivisor, 1)))
+		}
+		out.add(t.HaulOut-t.HaulIn == t.HaulOnRoad && t.HaulCartNoAction == 0, fmt.Sprintf("the goods on the road are the goods that left a store and have not reached one (%d - %d = %d, %d cart loads without an arrival)", t.HaulOut, t.HaulIn, t.HaulOnRoad, t.HaulCartNoAction))
+		out.add(t.RailOverheld == 0 && t.RailHeldIdle == 0, fmt.Sprintf("no section holds more trains than it can (%d) and none is held by a train that is not running (%d)", t.RailOverheld, t.RailHeldIdle))
+		out.add(t.FreightBroken == 0, fmt.Sprintf("every freight fee a booking says was paid is in the ledger (%d off)", t.FreightBroken))
+	}
+
 	if v.Village && v.Apprentice {
 		t := v.VillageInvariants
 		out.add(t.ApprenticeFeeLedger == t.ApprenticeFeeRows && t.ApprenticeRefundLedger == t.ApprenticeRefundRows, fmt.Sprintf("the fees apprentices paid their masters, and the refunds of dismissals, in the ledger are what the contracts say (%d = %d, %d = %d)", t.ApprenticeFeeLedger, t.ApprenticeFeeRows, t.ApprenticeRefundLedger, t.ApprenticeRefundRows))

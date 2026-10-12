@@ -1488,6 +1488,10 @@ module_kind:
   record_vault: "Record room"
   vault: "Bank vault"
   ore_bin: "Ore bin"
+  hoist_gin: "Horse-gin hoist"
+  adit: "Drainage adit"
+  pump: "Mine pump"
+  vent_shaft: "Ventilation shaft"
 settlement_raid_detector:
   lookout: "Lookout"
   watchtower: "Watchtower"
@@ -1546,6 +1550,10 @@ staff_role:
   teller: "Bank teller"
   loan_officer: "Loan officer"
   bank_manager: "Bank manager"
+  pumper: "Mine pumper"
+  prospector: "Prospector"
+  stationmaster: "Stationmaster"
+  loader: "Station loader"
 building_function:
   tailor_shop: "Tailor shop"
   tailor_shop_own: "Tailor shop (own)"
@@ -1620,6 +1628,7 @@ building_function:
   land_registry: "Land registry"
   exchange_house: "Exchange house"
   bank: "Bank"
+  rail_station: "Rail station"
 recipe:
   hide_wrap: "Hide wrap"
   hide_boots: "Hide boots"
@@ -1652,6 +1661,11 @@ recipe:
   bar_iron: "Bar iron"
   rope: "Rope"
   bandage: "Bandage"
+  timber_props: "Timber props"
+  splints: "Pine splints"
+  sleepers: "Sleepers"
+  wooden_rails: "Wooden rails"
+  iron_rails: "Iron rails"
 road_class:
   path: "Pack track"
   track: "Dirt road"

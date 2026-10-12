@@ -108,6 +108,13 @@ const (
 	ActionTypeHospitalDischarge = "hospital_discharge"
 	ActionTypeFactionCrime      = "faction_crime"
 
+	// Works (docs/adr/0075): a mine module, a road link, track sections or a carrier reaching its end.
+	ActionTypeWorksDone = "works_done"
+	// Haul: goods reaching the end of the road.
+	ActionTypeHaulArrive = "haul_arrive"
+	// Rail: a train arriving, or trying to leave again.
+	ActionTypeRailEvent = "rail_event"
+
 	// Raids (docs/adr/0074): a detector's turn at the raiders, the window opening and its end.
 	ActionTypeRaidSighting = "raid_sighting"
 	ActionTypeRaidOpen     = "raid_open"
@@ -196,6 +203,9 @@ var routes = map[string]Route{
 	ActionTypeHospitalDischarge: {Domain: "health", Action: "discharge"},
 	ActionTypeFactionCrime:      {Domain: "faction", Action: "resolve"},
 
+	ActionTypeWorksDone:    {Domain: "works", Action: "done"},
+	ActionTypeHaulArrive:   {Domain: "haul", Action: "arrive"},
+	ActionTypeRailEvent:    {Domain: "rail", Action: "event"},
 	ActionTypeRaidSighting: {Domain: "raid", Action: "sighting"},
 	ActionTypeRaidOpen:     {Domain: "raid", Action: "open"},
 	ActionTypeRaidResolve:  {Domain: "raid", Action: "resolve"},

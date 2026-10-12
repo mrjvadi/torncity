@@ -465,6 +465,14 @@ var all = []Subscription{
 	{Domain: "settlement", Action: "households", Origin: FromPlayer},
 	{Domain: "settlement", Action: "raid", Origin: FromPlayer},
 	{Domain: "settlement", Action: "insurance", Origin: FromPlayer},
+	{Domain: "settlement", Action: "mining", Origin: FromPlayer},
+	{Domain: "settlement", Action: "haul", Origin: FromPlayer},
+	{Domain: "haul", Action: "arrive", Origin: FromScheduler},
+	{Domain: "settlement", Action: "rail", Origin: FromPlayer},
+	{Domain: "settlement", Action: "chain", Origin: FromPlayer},
+	{Domain: "rail", Action: "event", Origin: FromScheduler},
+	// The scheduler's: a works order reaching its end (docs/adr/0075).
+	{Domain: "works", Action: "done", Origin: FromScheduler},
 	// The scheduler's: a raid's detectors, its window opening and its end (docs/adr/0074).
 	{Domain: "raid", Action: "sighting", Origin: FromScheduler},
 	{Domain: "raid", Action: "open", Origin: FromScheduler},

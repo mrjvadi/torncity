@@ -300,6 +300,74 @@ knowledge:
     time: 28h
     effects: [{target: smelting_output_bps, op: add, value: 400}]
 
+  # mining and rail (docs/adr/0075): the road from a pit to a shaft, and from a cart to a wagonway. Costs and times are drafts (D).
+  - code: prospecting
+    field: craft
+    name: "کانه‌یابی"
+    requires: [smithing]
+    family: mining
+    generation: 1
+    terrain_tags: [ore_deposit]
+    terrain_mode: required
+    cost: 1800
+    time: 16h
+  - code: timbering
+    field: craft
+    name: "چوب‌بست معدن"
+    requires: [prospecting, carpentry]
+    family: mining
+    generation: 2
+    cost: 2600
+    time: 24h
+  - code: drainage
+    field: craft
+    name: "زه‌کشی معدن"
+    requires: [timbering, masonry]
+    family: mining
+    generation: 3
+    cost: 3200
+    time: 28h
+  - code: ventilation
+    field: craft
+    name: "هواکشی معدن"
+    requires: [drainage]
+    family: mining
+    generation: 4
+    cost: 4200
+    time: 36h
+  - code: mine_pumping
+    field: craft
+    name: "تلمبهٔ معدن"
+    requires: [drainage, smithing_ii]
+    family: pumping
+    generation: 1
+    cost: 5200
+    time: 40h
+  - code: wagonway
+    field: infrastructure
+    name: "ریل چوبی"
+    requires: [carpentry, masonry]
+    family: rail
+    generation: 1
+    cost: 3400
+    time: 30h
+  - code: iron_rail
+    field: infrastructure
+    name: "ریل آهنی"
+    requires: [wagonway, smithing_ii]
+    family: rail
+    generation: 2
+    cost: 6200
+    time: 48h
+  - code: railway_operations
+    field: infrastructure
+    name: "اداره‌ی راه‌آهن"
+    requires: [wagonway, basic_literacy]
+    family: railops
+    generation: 1
+    cost: 4800
+    time: 36h
+
   # tanning - hides soaked in a pit with bark (docs/adr/0052).
   - code: tanning
     field: craft

@@ -190,8 +190,8 @@ type LocalOffer struct {
 	Settlement string `json:"settlement"`
 	Code       string `json:"code"`
 	// Name is the authored name of the money, the word to print.
-	Name string `json:"name"`
-	SUP  int64  `json:"sup"`
+	Name       string `json:"name"`
+	SUP        int64  `json:"sup"`
 	Units      int64  `json:"units"`
 	Holds      int64  `json:"holds"`
 	Local      bool   `json:"local,omitempty"`

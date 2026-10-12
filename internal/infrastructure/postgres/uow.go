@@ -247,6 +247,11 @@ func (t *tx) Trade() application.TradeRepository { return &TradeRepository{q: t.
 // Household returns the NPC households (migration 0151).
 func (t *tx) Household() application.HouseholdRepository { return &HouseholdRepository{q: t.q} }
 
+// Mines, Haul and Rail return the mining, carriage and rail repositories (migration 0153).
+func (t *tx) Mines() application.MineRepository { return &MineRepository{q: t.q} }
+func (t *tx) Haul() application.HaulRepository  { return &HaulRepository{q: t.q} }
+func (t *tx) Rail() application.RailRepository  { return &RailRepository{q: t.q} }
+
 // Raids returns the raids and falls (migration 0152).
 func (t *tx) Raids() application.RaidRepository { return &RaidRepository{q: t.q} }
 

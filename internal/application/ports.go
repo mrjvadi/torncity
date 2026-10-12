@@ -176,6 +176,10 @@ type Tx interface {
 	Trade() TradeRepository
 	// Household holds the NPC households, their day fences and the settlements' flag (ADR 0073, migration 0151); see ports_household.go.
 	Household() HouseholdRepository
+	// Mines holds the deposits, the mines' state and the timed works (migration 0153, ADR 0075); Haul the carriers, roads between settlements and goods on the road; Rail the railway; see ports_mining.go.
+	Mines() MineRepository
+	Haul() HaulRepository
+	Rail() RailRepository
 	// Raids holds the raids, falls, sight of detectors and settlement insurers (migration 0152, ADR 0074); see ports_raid.go.
 	Raids() RaidRepository
 	// ServiceDays is the daily services of the settlement's posts (migration 0137).

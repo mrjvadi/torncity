@@ -58,6 +58,8 @@ func settlementUsage() {
   backfill-timezones      give every founded settlement with no time zone the one its
                           longitude on the world gives (one hour per 15 degrees); never
                           touches a zone a charter set. Run it before game.clock_cutover
+  pits                    read-only: every live iron pit against the deposit under its cell, days of full work the surface
+                          holds (run before mining.rule_at is set; ADR 0075 9)
   check-sites             read-only: every founded settlement's cell, grid
                           slide, buildable-lot share and founding kit, and
                           whether it meets settlement.min_buildable_lot_share_bps
@@ -92,6 +94,8 @@ func settlementCommand(ctx context.Context, args []string) error {
 		return settlementGrant(ctx, args[1:])
 	case "check-sites":
 		return settlementCheckSites(ctx)
+	case "pits":
+		return settlementPits(ctx)
 	case "relocate":
 		return settlementRelocate(ctx, args[1:])
 	case "landlocked":
