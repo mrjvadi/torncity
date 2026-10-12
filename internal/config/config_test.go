@@ -788,6 +788,101 @@ licence:
   listing_fee: 8042
   term_max_days: 8043
   share_cap_from: 9012
+law:
+  police_rule_at: "2098-01-01T00:00:00Z"
+  courts_rule_at: "2098-01-01T00:00:00Z"
+  black_rule_at: "2098-01-01T00:00:00Z"
+  customs_rule_at: "2098-01-01T00:00:00Z"
+  launder_rule_at: "2098-01-01T00:00:00Z"
+  grace_days: 11001
+  points_per_staff: 11002
+  post_base_points: 11003
+  station_base_points: 11004
+  patrol_cost: 11005
+  investigate_cost: 11006
+  arrest_cost: 11007
+  base_detect_bps: 11008
+  patrol_detect_bps: 11009
+  detect_cap_bps: 11010
+  custody_hours: 11011
+  complaint_fee: 11012
+  warrant_threshold: 11013
+  warrant_days: 11014
+  improper_penalty: 11015
+  exclusion_bps: 11016
+  strength_witness: 11017
+  strength_record: 11018
+  strength_ledger_trace: 11019
+  strength_seized_item: 11020
+  strength_informant: 11021
+  strength_confession: 11022
+  strength_inspection: 11023
+  strength_intel_trace: 11024
+  weight_decay_bps: 11025
+  hearing_delay_hours: 11026
+  npc_threshold: 11027
+  defence_strength: 11028
+  defence_fee: 11029
+  appeal_days: 11030
+  appeal_fee: 11031
+  bail_per_hour: 11032
+  jail_food_per_day: 11033
+  cells_per_warder: 11034
+  jail_cells_base: 11035
+  informant_pay: 11036
+  reliability_start: 11037
+  reliability_floor: 11038
+  reliability_gain: 11039
+  reliability_loss: 11040
+  rotate_days: 11041
+  max_informants: 11042
+  retaliation_fine: 11043
+  retaliation_ban_days: 11044
+  deal_cut_bps: 11045
+  bribe_min: 11046
+  bribe_max_effect_bps: 11047
+  bribe_term_days: 11048
+  audit_cost: 11049
+  audit_base_bps: 11050
+  audit_age_bps_per_day: 11051
+  audit_cap_bps: 11052
+  captured_from: 11053
+  standing_gain: 11054
+  standing_intro: 11055
+  black_premium_bps: 11056
+  escrow_fee_bps: 11057
+  escrow_timeout_hours: 11058
+  broker_new_cap: 11059
+  broker_cap_per_rep: 11060
+  scam_rep_loss: 11061
+  trace_bps: 11062
+  bust_base_bps: 11063
+  bust_patrol_bps: 11064
+  listing_fee: 11065
+  launder_fee_bps: 11066
+  launder_cap_bps: 11067
+  launder_window_days: 11068
+  anomaly_bps: 11069
+  launder_stage_hours: 11070
+  launder_exposure_bps: 11071
+  inspect_base_bps: 11072
+  inspect_per_inspector_bps: 11073
+  inspect_size_bps: 11074
+  inspect_cap_bps: 11075
+  customs_penalty_bps: 11076
+  duty_bps: 11077
+  police_share_bps: 11078
+  racket_convictions: 11079
+  gang_discover_bps: 11080
+  witness_bps: 11081
+  fact_window_days: 11082
+  charge_threshold: 11083
+  judge_wait_hours: 11084
+  npc_sentence_bps: 11085
+  appeal_margin: 11086
+  burn_bps: 11087
+  ask_bps: 11088
+  gang_heat_per_conviction: 11089
 growth:
   capabilities: off
   cache_ttl: 6s
@@ -1565,6 +1660,95 @@ var envOverrides = map[string]string{
 	"TORN_POLITY_DEBT_MAX_RATE_BPS":         "6028",
 	"TORN_INTEL_SKILL_XP_PER_OP":            "9013",
 	"TORN_LICENCE_SHARE_CAP_FROM":           "9011",
+	"TORN_LAW_GRACE_DAYS":                   "16001",
+	"TORN_LAW_POINTS_PER_STAFF":             "16002",
+	"TORN_LAW_POST_BASE_POINTS":             "16003",
+	"TORN_LAW_STATION_BASE_POINTS":          "16004",
+	"TORN_LAW_PATROL_COST":                  "16005",
+	"TORN_LAW_INVESTIGATE_COST":             "16006",
+	"TORN_LAW_ARREST_COST":                  "16007",
+	"TORN_LAW_BASE_DETECT_BPS":              "16008",
+	"TORN_LAW_PATROL_DETECT_BPS":            "16009",
+	"TORN_LAW_DETECT_CAP_BPS":               "16010",
+	"TORN_LAW_CUSTODY_HOURS":                "16011",
+	"TORN_LAW_COMPLAINT_FEE":                "16012",
+	"TORN_LAW_WARRANT_THRESHOLD":            "16013",
+	"TORN_LAW_WARRANT_DAYS":                 "16014",
+	"TORN_LAW_IMPROPER_PENALTY":             "16015",
+	"TORN_LAW_EXCLUSION_BPS":                "16016",
+	"TORN_LAW_STRENGTH_WITNESS":             "16017",
+	"TORN_LAW_STRENGTH_RECORD":              "16018",
+	"TORN_LAW_STRENGTH_LEDGER_TRACE":        "16019",
+	"TORN_LAW_STRENGTH_SEIZED_ITEM":         "16020",
+	"TORN_LAW_STRENGTH_INFORMANT":           "16021",
+	"TORN_LAW_STRENGTH_CONFESSION":          "16022",
+	"TORN_LAW_STRENGTH_INSPECTION":          "16023",
+	"TORN_LAW_STRENGTH_INTEL_TRACE":         "16024",
+	"TORN_LAW_WEIGHT_DECAY_BPS":             "16025",
+	"TORN_LAW_HEARING_DELAY_HOURS":          "16026",
+	"TORN_LAW_NPC_THRESHOLD":                "16027",
+	"TORN_LAW_DEFENCE_STRENGTH":             "16028",
+	"TORN_LAW_DEFENCE_FEE":                  "16029",
+	"TORN_LAW_APPEAL_DAYS":                  "16030",
+	"TORN_LAW_APPEAL_FEE":                   "16031",
+	"TORN_LAW_BAIL_PER_HOUR":                "16032",
+	"TORN_LAW_JAIL_FOOD_PER_DAY":            "16033",
+	"TORN_LAW_CELLS_PER_WARDER":             "16034",
+	"TORN_LAW_JAIL_CELLS_BASE":              "16035",
+	"TORN_LAW_INFORMANT_PAY":                "16036",
+	"TORN_LAW_RELIABILITY_START":            "16037",
+	"TORN_LAW_RELIABILITY_FLOOR":            "16038",
+	"TORN_LAW_RELIABILITY_GAIN":             "16039",
+	"TORN_LAW_RELIABILITY_LOSS":             "16040",
+	"TORN_LAW_ROTATE_DAYS":                  "16041",
+	"TORN_LAW_MAX_INFORMANTS":               "16042",
+	"TORN_LAW_RETALIATION_FINE":             "16043",
+	"TORN_LAW_RETALIATION_BAN_DAYS":         "16044",
+	"TORN_LAW_DEAL_CUT_BPS":                 "16045",
+	"TORN_LAW_BRIBE_MIN":                    "16046",
+	"TORN_LAW_BRIBE_MAX_EFFECT_BPS":         "16047",
+	"TORN_LAW_BRIBE_TERM_DAYS":              "16048",
+	"TORN_LAW_AUDIT_COST":                   "16049",
+	"TORN_LAW_AUDIT_BASE_BPS":               "16050",
+	"TORN_LAW_AUDIT_AGE_BPS_PER_DAY":        "16051",
+	"TORN_LAW_AUDIT_CAP_BPS":                "16052",
+	"TORN_LAW_CAPTURED_FROM":                "16053",
+	"TORN_LAW_STANDING_GAIN":                "16054",
+	"TORN_LAW_STANDING_INTRO":               "16055",
+	"TORN_LAW_BLACK_PREMIUM_BPS":            "16056",
+	"TORN_LAW_ESCROW_FEE_BPS":               "16057",
+	"TORN_LAW_ESCROW_TIMEOUT_HOURS":         "16058",
+	"TORN_LAW_BROKER_NEW_CAP":               "16059",
+	"TORN_LAW_BROKER_CAP_PER_REP":           "16060",
+	"TORN_LAW_SCAM_REP_LOSS":                "16061",
+	"TORN_LAW_TRACE_BPS":                    "16062",
+	"TORN_LAW_BUST_BASE_BPS":                "16063",
+	"TORN_LAW_BUST_PATROL_BPS":              "16064",
+	"TORN_LAW_LISTING_FEE":                  "16065",
+	"TORN_LAW_LAUNDER_FEE_BPS":              "16066",
+	"TORN_LAW_LAUNDER_CAP_BPS":              "16067",
+	"TORN_LAW_LAUNDER_WINDOW_DAYS":          "16068",
+	"TORN_LAW_ANOMALY_BPS":                  "16069",
+	"TORN_LAW_LAUNDER_STAGE_HOURS":          "16070",
+	"TORN_LAW_LAUNDER_EXPOSURE_BPS":         "16071",
+	"TORN_LAW_INSPECT_BASE_BPS":             "16072",
+	"TORN_LAW_INSPECT_PER_INSPECTOR_BPS":    "16073",
+	"TORN_LAW_INSPECT_SIZE_BPS":             "16074",
+	"TORN_LAW_INSPECT_CAP_BPS":              "16075",
+	"TORN_LAW_CUSTOMS_PENALTY_BPS":          "16076",
+	"TORN_LAW_DUTY_BPS":                     "16077",
+	"TORN_LAW_POLICE_SHARE_BPS":             "16078",
+	"TORN_LAW_RACKET_CONVICTIONS":           "16079",
+	"TORN_LAW_GANG_DISCOVER_BPS":            "16080",
+	"TORN_LAW_WITNESS_BPS":                  "16081",
+	"TORN_LAW_FACT_WINDOW_DAYS":             "16082",
+	"TORN_LAW_CHARGE_THRESHOLD":             "16083",
+	"TORN_LAW_JUDGE_WAIT_HOURS":             "16084",
+	"TORN_LAW_NPC_SENTENCE_BPS":             "16085",
+	"TORN_LAW_APPEAL_MARGIN":                "16086",
+	"TORN_LAW_BURN_BPS":                     "16087",
+	"TORN_LAW_ASK_BPS":                      "16088",
+	"TORN_LAW_GANG_HEAT_PER_CONVICTION":     "16089",
 	"TORN_PROJECTS_SHIFT_MINUTES":           "9001",
 	"TORN_PROJECTS_SHIFT_HOURS":             "9002",
 	"TORN_PROJECTS_WAGE_PER_HOUR":           "9003",
@@ -1579,6 +1763,11 @@ var envOverrides = map[string]string{
 	"TORN_PROJECTS_MAX_OPEN":              "7007",
 	"TORN_INTEL_RULE_AT":                  "2031-01-02T03:04:05Z",
 	"TORN_INTEL_SABOTAGE_RULE_AT":         "2031-01-02T03:04:05Z",
+	"TORN_LAW_POLICE_RULE_AT":             "2031-01-02T03:04:05Z",
+	"TORN_LAW_COURTS_RULE_AT":             "2031-01-02T03:04:05Z",
+	"TORN_LAW_BLACK_RULE_AT":              "2031-01-02T03:04:05Z",
+	"TORN_LAW_CUSTOMS_RULE_AT":            "2031-01-02T03:04:05Z",
+	"TORN_LAW_LAUNDER_RULE_AT":            "2031-01-02T03:04:05Z",
 	"TORN_INTEL_GRACE_DAYS":               "7008",
 	"TORN_INTEL_REPORT_TTL_DAYS":          "7009",
 	"TORN_INTEL_OP_FEE":                   "7010",

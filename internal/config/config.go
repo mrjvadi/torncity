@@ -271,6 +271,8 @@ type Config struct {
 	Intel Intel
 	// Licence is the tuning of ADR 0077 (docs/adr/0077 7: the licence market).
 	Licence Licence
+	// Law is the tuning of ADR 0078 (police, courts, informants, the black market, customs).
+	Law Law
 
 	// Bag, Merchant and Premium are the tuning of ADR 0046: what a player can
 	// carry and how a bag wears, the village shop's daily delivery and prices,
@@ -1988,6 +1990,102 @@ func Defaults() *Config {
 			TermMaxDays:          365,
 			ShareCapFrom:         5,
 		},
+		Law: Law{
+			PoliceRuleAt:           "2026-10-26T00:00:00Z",
+			CourtsRuleAt:           "2026-11-02T00:00:00Z",
+			BlackRuleAt:            "2026-11-09T00:00:00Z",
+			CustomsRuleAt:          "2026-11-16T00:00:00Z",
+			LaunderRuleAt:          "2026-11-16T00:00:00Z",
+			GraceDays:              7,
+			PointsPerStaff:         10,
+			PostBasePoints:         5,
+			StationBasePoints:      20,
+			PatrolCost:             2,
+			InvestigateCost:        5,
+			ArrestCost:             3,
+			BaseDetectBPS:          800,
+			PatrolDetectBPS:        150,
+			DetectCapBPS:           8000,
+			CustodyHours:           48,
+			ComplaintFee:           100,
+			WarrantThreshold:       60,
+			WarrantDays:            3,
+			ImproperPenalty:        30,
+			ExclusionBPS:           4000,
+			StrengthWitness:        20,
+			StrengthRecord:         25,
+			StrengthLedgerTrace:    30,
+			StrengthSeizedItem:     35,
+			StrengthInformant:      20,
+			StrengthConfession:     40,
+			StrengthInspection:     30,
+			StrengthIntelTrace:     25,
+			WeightDecayBPS:         8000,
+			HearingDelayHours:      6,
+			NPCThreshold:           55,
+			DefenceStrength:        10,
+			DefenceFee:             150,
+			AppealDays:             7,
+			AppealFee:              200,
+			BailPerHour:            250,
+			JailFoodPerDay:         40,
+			CellsPerWarder:         4,
+			JailCellsBase:          2,
+			InformantPay:           100,
+			ReliabilityStart:       50,
+			ReliabilityFloor:       30,
+			ReliabilityGain:        10,
+			ReliabilityLoss:        15,
+			RotateDays:             14,
+			MaxInformants:          5,
+			RetaliationFine:        300,
+			RetaliationBanDays:     3,
+			DealCutBPS:             5000,
+			BribeMin:               500,
+			BribeMaxEffectBPS:      6000,
+			BribeTermDays:          7,
+			AuditCost:              200,
+			AuditBaseBPS:           1500,
+			AuditAgeBPSPerDay:      300,
+			AuditCapBPS:            9000,
+			CapturedFrom:           3,
+			StandingGain:           5,
+			StandingIntro:          10,
+			BlackPremiumBPS:        2500,
+			EscrowFeeBPS:           500,
+			EscrowTimeoutHours:     48,
+			BrokerNewCap:           5000,
+			BrokerCapPerRep:        100,
+			ScamRepLoss:            100,
+			TraceBPS:               4000,
+			BustBaseBPS:            800,
+			BustPatrolBPS:          100,
+			ListingFee:             20,
+			LaunderFeeBPS:          2500,
+			LaunderCapBPS:          1500,
+			LaunderWindowDays:      7,
+			AnomalyBPS:             2000,
+			LaunderStageHours:      6,
+			LaunderExposureBPS:     500,
+			InspectBaseBPS:         1500,
+			InspectPerInspectorBPS: 1000,
+			InspectSizeBPS:         50,
+			InspectCapBPS:          9000,
+			CustomsPenaltyBPS:      5000,
+			DutyBPS:                500,
+			PoliceShareBPS:         3000,
+			RacketConvictions:      3,
+			GangDiscoverBPS:        2500,
+			WitnessBPS:             5000,
+			FactWindowDays:         30,
+			ChargeThreshold:        30,
+			JudgeWaitHours:         48,
+			NPCSentenceBPS:         5000,
+			AppealMargin:           10,
+			BurnBPS:                3000,
+			AskBPS:                 3000,
+			GangHeatPerConviction:  10,
+		},
 		Polity: Polity{
 			RuleAt:                "2026-10-12T15:30:00Z",
 			RatifyDays:            14,
@@ -3069,4 +3167,102 @@ type Licence struct {
 	ListingFee           int64  // licence.listing_fee
 	TermMaxDays          int64  // licence.term_max_days
 	ShareCapFrom         int64  // licence.share_cap_from
+}
+
+// Law is the tuning of ADR 0078 (police, courts, informants, the black market, customs).
+type Law struct {
+	PoliceRuleAt           string // law.police_rule_at
+	CourtsRuleAt           string // law.courts_rule_at
+	BlackRuleAt            string // law.black_rule_at
+	CustomsRuleAt          string // law.customs_rule_at
+	LaunderRuleAt          string // law.launder_rule_at
+	GraceDays              int64  // law.grace_days
+	PointsPerStaff         int64  // law.points_per_staff
+	PostBasePoints         int64  // law.post_base_points
+	StationBasePoints      int64  // law.station_base_points
+	PatrolCost             int64  // law.patrol_cost
+	InvestigateCost        int64  // law.investigate_cost
+	ArrestCost             int64  // law.arrest_cost
+	BaseDetectBPS          int64  // law.base_detect_bps
+	PatrolDetectBPS        int64  // law.patrol_detect_bps
+	DetectCapBPS           int64  // law.detect_cap_bps
+	CustodyHours           int64  // law.custody_hours
+	ComplaintFee           int64  // law.complaint_fee
+	WarrantThreshold       int64  // law.warrant_threshold
+	WarrantDays            int64  // law.warrant_days
+	ImproperPenalty        int64  // law.improper_penalty
+	ExclusionBPS           int64  // law.exclusion_bps
+	StrengthWitness        int64  // law.strength_witness
+	StrengthRecord         int64  // law.strength_record
+	StrengthLedgerTrace    int64  // law.strength_ledger_trace
+	StrengthSeizedItem     int64  // law.strength_seized_item
+	StrengthInformant      int64  // law.strength_informant
+	StrengthConfession     int64  // law.strength_confession
+	StrengthInspection     int64  // law.strength_inspection
+	StrengthIntelTrace     int64  // law.strength_intel_trace
+	WeightDecayBPS         int64  // law.weight_decay_bps
+	HearingDelayHours      int64  // law.hearing_delay_hours
+	NPCThreshold           int64  // law.npc_threshold
+	DefenceStrength        int64  // law.defence_strength
+	DefenceFee             int64  // law.defence_fee
+	AppealDays             int64  // law.appeal_days
+	AppealFee              int64  // law.appeal_fee
+	BailPerHour            int64  // law.bail_per_hour
+	JailFoodPerDay         int64  // law.jail_food_per_day
+	CellsPerWarder         int64  // law.cells_per_warder
+	JailCellsBase          int64  // law.jail_cells_base
+	InformantPay           int64  // law.informant_pay
+	ReliabilityStart       int64  // law.reliability_start
+	ReliabilityFloor       int64  // law.reliability_floor
+	ReliabilityGain        int64  // law.reliability_gain
+	ReliabilityLoss        int64  // law.reliability_loss
+	RotateDays             int64  // law.rotate_days
+	MaxInformants          int64  // law.max_informants
+	RetaliationFine        int64  // law.retaliation_fine
+	RetaliationBanDays     int64  // law.retaliation_ban_days
+	DealCutBPS             int64  // law.deal_cut_bps
+	BribeMin               int64  // law.bribe_min
+	BribeMaxEffectBPS      int64  // law.bribe_max_effect_bps
+	BribeTermDays          int64  // law.bribe_term_days
+	AuditCost              int64  // law.audit_cost
+	AuditBaseBPS           int64  // law.audit_base_bps
+	AuditAgeBPSPerDay      int64  // law.audit_age_bps_per_day
+	AuditCapBPS            int64  // law.audit_cap_bps
+	CapturedFrom           int64  // law.captured_from
+	StandingGain           int64  // law.standing_gain
+	StandingIntro          int64  // law.standing_intro
+	BlackPremiumBPS        int64  // law.black_premium_bps
+	EscrowFeeBPS           int64  // law.escrow_fee_bps
+	EscrowTimeoutHours     int64  // law.escrow_timeout_hours
+	BrokerNewCap           int64  // law.broker_new_cap
+	BrokerCapPerRep        int64  // law.broker_cap_per_rep
+	ScamRepLoss            int64  // law.scam_rep_loss
+	TraceBPS               int64  // law.trace_bps
+	BustBaseBPS            int64  // law.bust_base_bps
+	BustPatrolBPS          int64  // law.bust_patrol_bps
+	ListingFee             int64  // law.listing_fee
+	LaunderFeeBPS          int64  // law.launder_fee_bps
+	LaunderCapBPS          int64  // law.launder_cap_bps
+	LaunderWindowDays      int64  // law.launder_window_days
+	AnomalyBPS             int64  // law.anomaly_bps
+	LaunderStageHours      int64  // law.launder_stage_hours
+	LaunderExposureBPS     int64  // law.launder_exposure_bps
+	InspectBaseBPS         int64  // law.inspect_base_bps
+	InspectPerInspectorBPS int64  // law.inspect_per_inspector_bps
+	InspectSizeBPS         int64  // law.inspect_size_bps
+	InspectCapBPS          int64  // law.inspect_cap_bps
+	CustomsPenaltyBPS      int64  // law.customs_penalty_bps
+	DutyBPS                int64  // law.duty_bps
+	PoliceShareBPS         int64  // law.police_share_bps
+	RacketConvictions      int64  // law.racket_convictions
+	GangDiscoverBPS        int64  // law.gang_discover_bps
+	WitnessBPS             int64  // law.witness_bps
+	FactWindowDays         int64  // law.fact_window_days
+	ChargeThreshold        int64  // law.charge_threshold
+	JudgeWaitHours         int64  // law.judge_wait_hours
+	NPCSentenceBPS         int64  // law.npc_sentence_bps
+	AppealMargin           int64  // law.appeal_margin
+	BurnBPS                int64  // law.burn_bps
+	AskBPS                 int64  // law.ask_bps
+	GangHeatPerConviction  int64  // law.gang_heat_per_conviction
 }

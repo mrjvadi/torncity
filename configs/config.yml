@@ -1346,6 +1346,103 @@ licence:
   term_max_days: 365   # the longest term of a licence, real days
   share_cap_from: 5   # live licences of a kind in a settlement from which the share cap applies
 
+# Law (docs/adr/0078: police, courts, informants, the black market, customs; plan B14). Every figure is a draft (evidence D) until a balance run and until the sources the ADR marks as not retrieved are read; the rule dates are real.
+law:
+  police_rule_at: "2026-10-26T00:00:00Z"   # police posts, patrol, investigation and arrest start from this instant (docs/adr/0078)
+  courts_rule_at: "2026-11-02T00:00:00Z"   # courts, charges, trials, sentences, jail and informants start from this instant
+  black_rule_at: "2026-11-09T00:00:00Z"   # the hidden board, escrow, the dirty balance and bribery start from this instant
+  customs_rule_at: "2026-11-16T00:00:00Z"   # customs inspection and smuggling start from this instant
+  launder_rule_at: "2026-11-16T00:00:00Z"   # laundering fronts and the ledger check start from this instant
+  grace_days: 7   # real days between an offence being listed by a charter and it applying
+  points_per_staff: 10   # patrol and case points one staffed seat of an open post gives each local day
+  post_base_points: 5   # points an open constable post gives each day beyond its staff
+  station_base_points: 20   # points an open police station gives each day beyond its staff
+  patrol_cost: 2   # points one patrol shift of a beat costs
+  investigate_cost: 5   # points one step of an investigation costs
+  arrest_cost: 3   # points one arrest costs
+  base_detect_bps: 800   # chance a patrol-less beat notices an offence on its own, basis points
+  patrol_detect_bps: 150   # detection chance added by each point of patrol spent on the beat, basis points
+  detect_cap_bps: 8000   # the highest detection chance, basis points
+  custody_hours: 48   # real hours a person may be held before a charge, bail or release
+  complaint_fee: 100   # the fee of a complaint, minor units, refunded when upheld
+  warrant_threshold: 60   # total strength of proper evidence a judge needs to sign a warrant
+  warrant_days: 3   # real days a signed warrant stays valid
+  improper_penalty: 30   # procedure quality lost for each item of evidence got without a warrant
+  exclusion_bps: 4000   # chance the defence has an improper item excluded, basis points
+  strength_witness: 20   # strength of a witness statement
+  strength_record: 25   # strength of a record
+  strength_ledger_trace: 30   # strength of a ledger trace
+  strength_seized_item: 35   # strength of a seized item
+  strength_informant: 20   # strength of an informant's tip before it is scaled by reliability
+  strength_confession: 40   # strength of a confession
+  strength_inspection: 30   # strength of an inspection
+  strength_intel_trace: 25   # strength of the trace of an exposed agent
+  weight_decay_bps: 8000   # each next item of evidence counts this share of the one before it, basis points
+  hearing_delay_hours: 6   # real hours between a charge and the hearing
+  npc_threshold: 55   # strength an NPC judge needs to convict, before the defence and the procedure
+  defence_strength: 10   # strength a defence advocate takes off the evidence
+  defence_fee: 150   # what a poor accused's defender costs the treasury, minor units
+  appeal_days: 7   # real days within which each party may appeal
+  appeal_fee: 200   # the fee of an appeal, minor units, refunded when it succeeds
+  bail_per_hour: 250   # bail for each hour of a jail term, minor units
+  jail_food_per_day: 40   # what a prisoner's food costs the treasury each day, minor units
+  cells_per_warder: 4   # cells one warder of an open jail can keep
+  jail_cells_base: 2   # cells an open jail has before its warders
+  informant_pay: 100   # what an informant is paid for a tip, minor units, from the police purse
+  reliability_start: 50   # the reliability of a new informant, 0 to 100
+  reliability_floor: 30   # under this reliability a tip is not enough for a warrant
+  reliability_gain: 10   # reliability gained when a tip is corroborated
+  reliability_loss: 15   # reliability lost when a tip is contradicted
+  rotate_days: 14   # real days a handler may keep one informant before the informant passes to another
+  max_informants: 5   # most live informants one handler runs
+  retaliation_fine: 300   # the cash penalty of a burned informant, minor units
+  retaliation_ban_days: 3   # days a burned informant is kept out of a building
+  deal_cut_bps: 5000   # share of a sentence cut for an accused who turns informant, basis points
+  bribe_min: 500   # the least a bribe may be, minor units
+  bribe_max_effect_bps: 6000   # the most a bribe lowers a rung, basis points; never the whole of it
+  bribe_term_days: 7   # real days a bribe lasts
+  audit_cost: 200   # what an integrity audit costs the settlement, minor units
+  audit_base_bps: 1500   # chance an audit finds an open bribe, basis points
+  audit_age_bps_per_day: 300   # chance added for each day an open bribe has stood, basis points
+  audit_cap_bps: 9000   # the highest chance an audit finds a bribe, basis points
+  captured_from: 3   # bribed offices of a settlement from which it is shown as captured
+  standing_gain: 5   # standing gained by a completed trade on the hidden board
+  standing_intro: 10   # standing a member gives a newcomer by introduction
+  black_premium_bps: 2500   # the risk premium over the base price on the hidden board, basis points
+  escrow_fee_bps: 500   # the broker's fee of an escrow, basis points
+  escrow_timeout_hours: 48   # real hours after which an unanswered escrow goes back to the buyer
+  broker_new_cap: 5000   # the most a broker with no history may hold in escrow, minor units
+  broker_cap_per_rep: 100   # escrow cap gained for each point of broker reputation, minor units
+  scam_rep_loss: 100   # reputation a broker loses by an exit scam
+  trace_bps: 4000   # chance an exit scam is traced, basis points
+  bust_base_bps: 800   # chance a trade on the hidden board is noticed, basis points
+  bust_patrol_bps: 100   # bust chance added by each point of patrol of the settlement, basis points
+  listing_fee: 20   # the fee of a listing on the hidden board, minor units, to the sink
+  launder_fee_bps: 2500   # the fee of turning dirty cash clean, basis points
+  launder_cap_bps: 1500   # the share of its turnover a front may turn clean each period, basis points
+  launder_window_days: 7   # days the ledger check looks back
+  anomaly_bps: 2000   # share of its turnover a business's clean inflow may exceed before it is an anomaly, basis points
+  launder_stage_hours: 6   # real hours each stage of a batch takes
+  launder_exposure_bps: 500   # chance a batch is noticed at each stage, basis points
+  inspect_base_bps: 1500   # chance a load is inspected at an open customs house, basis points
+  inspect_per_inspector_bps: 1000   # inspection chance added by each inspector, basis points
+  inspect_size_bps: 50   # inspection chance added by each unit of the load, basis points
+  inspect_cap_bps: 9000   # the highest inspection chance, basis points
+  customs_penalty_bps: 5000   # the penalty on the value of what was not declared, basis points
+  duty_bps: 500   # the duty on the declared value of a load, basis points
+  police_share_bps: 3000   # share of seized value that goes to the police purse, basis points
+  racket_convictions: 3   # linked convictions of one gang that make a racketeering count
+  gang_discover_bps: 2500   # chance a convicted member's gang is revealed, basis points
+  witness_bps: 5000   # chance an investigation step finds a witness to a recorded act, basis points
+  fact_window_days: 30   # days back an investigation looks for recorded acts of the accused
+  charge_threshold: 30   # total strength a prosecutor needs in the file to charge
+  judge_wait_hours: 48   # real hours a player judge has to decide before the NPC judge does
+  npc_sentence_bps: 5000   # share of the bounds of an offence the NPC judge hands down, basis points
+  appeal_margin: 10   # strength added to the NPC threshold when an appeal is decided by the NPC panel
+  burn_bps: 3000   # chance an informant whose tip led to a conviction is burned, basis points
+  ask_bps: 3000   # chance a day of asking around brings a newcomer a first contact on the hidden board, basis points
+  gang_heat_per_conviction: 10   # heat a gang gains by the conviction of one of its members
+
 # NPC households (docs/adr/0073-npc-households.md, plan B9): the people behind the labour pool. They start from rule_at (a placeholder far in the
 # future until the deploy sets it); a settlement enrolls itself then, runs a dual run, and flips when its households can fill the old pool.
 # The numbers are drafts until the household budget surveys of the ADR are read (ADR 0073 section 15).

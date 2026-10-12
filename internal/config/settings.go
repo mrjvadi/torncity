@@ -64,6 +64,7 @@ type fileConfig struct {
 	Projects      projectsSettings      `yaml:"projects"`
 	Intel         intelSettings         `yaml:"intel"`
 	Licence       licenceSettings       `yaml:"licence"`
+	Law           lawSettings           `yaml:"law"`
 	Bag           bagSettings           `yaml:"bag"`
 	Merchant      merchantSettings      `yaml:"merchant"`
 	Premium       premiumSettings       `yaml:"premium"`
@@ -1968,6 +1969,288 @@ var coreSettings = []setting{
 	moneySetting("licence", "share_cap_from",
 		func(c *Config) *int64 { return &c.Licence.ShareCapFrom },
 		func(f *fileConfig) *int64 { return f.Licence.ShareCapFrom }),
+	stringSetting("law", "police_rule_at",
+		func(c *Config) *string { return &c.Law.PoliceRuleAt },
+		func(f *fileConfig) *string { return f.Law.PoliceRuleAt }),
+	stringSetting("law", "courts_rule_at",
+		func(c *Config) *string { return &c.Law.CourtsRuleAt },
+		func(f *fileConfig) *string { return f.Law.CourtsRuleAt }),
+	stringSetting("law", "black_rule_at",
+		func(c *Config) *string { return &c.Law.BlackRuleAt },
+		func(f *fileConfig) *string { return f.Law.BlackRuleAt }),
+	stringSetting("law", "customs_rule_at",
+		func(c *Config) *string { return &c.Law.CustomsRuleAt },
+		func(f *fileConfig) *string { return f.Law.CustomsRuleAt }),
+	stringSetting("law", "launder_rule_at",
+		func(c *Config) *string { return &c.Law.LaunderRuleAt },
+		func(f *fileConfig) *string { return f.Law.LaunderRuleAt }),
+	moneySetting("law", "grace_days",
+		func(c *Config) *int64 { return &c.Law.GraceDays },
+		func(f *fileConfig) *int64 { return f.Law.GraceDays }),
+	moneySetting("law", "points_per_staff",
+		func(c *Config) *int64 { return &c.Law.PointsPerStaff },
+		func(f *fileConfig) *int64 { return f.Law.PointsPerStaff }),
+	moneySetting("law", "post_base_points",
+		func(c *Config) *int64 { return &c.Law.PostBasePoints },
+		func(f *fileConfig) *int64 { return f.Law.PostBasePoints }),
+	moneySetting("law", "station_base_points",
+		func(c *Config) *int64 { return &c.Law.StationBasePoints },
+		func(f *fileConfig) *int64 { return f.Law.StationBasePoints }),
+	moneySetting("law", "patrol_cost",
+		func(c *Config) *int64 { return &c.Law.PatrolCost },
+		func(f *fileConfig) *int64 { return f.Law.PatrolCost }),
+	moneySetting("law", "investigate_cost",
+		func(c *Config) *int64 { return &c.Law.InvestigateCost },
+		func(f *fileConfig) *int64 { return f.Law.InvestigateCost }),
+	moneySetting("law", "arrest_cost",
+		func(c *Config) *int64 { return &c.Law.ArrestCost },
+		func(f *fileConfig) *int64 { return f.Law.ArrestCost }),
+	moneySetting("law", "base_detect_bps",
+		func(c *Config) *int64 { return &c.Law.BaseDetectBPS },
+		func(f *fileConfig) *int64 { return f.Law.BaseDetectBPS }),
+	moneySetting("law", "patrol_detect_bps",
+		func(c *Config) *int64 { return &c.Law.PatrolDetectBPS },
+		func(f *fileConfig) *int64 { return f.Law.PatrolDetectBPS }),
+	moneySetting("law", "detect_cap_bps",
+		func(c *Config) *int64 { return &c.Law.DetectCapBPS },
+		func(f *fileConfig) *int64 { return f.Law.DetectCapBPS }),
+	moneySetting("law", "custody_hours",
+		func(c *Config) *int64 { return &c.Law.CustodyHours },
+		func(f *fileConfig) *int64 { return f.Law.CustodyHours }),
+	moneySetting("law", "complaint_fee",
+		func(c *Config) *int64 { return &c.Law.ComplaintFee },
+		func(f *fileConfig) *int64 { return f.Law.ComplaintFee }),
+	moneySetting("law", "warrant_threshold",
+		func(c *Config) *int64 { return &c.Law.WarrantThreshold },
+		func(f *fileConfig) *int64 { return f.Law.WarrantThreshold }),
+	moneySetting("law", "warrant_days",
+		func(c *Config) *int64 { return &c.Law.WarrantDays },
+		func(f *fileConfig) *int64 { return f.Law.WarrantDays }),
+	moneySetting("law", "improper_penalty",
+		func(c *Config) *int64 { return &c.Law.ImproperPenalty },
+		func(f *fileConfig) *int64 { return f.Law.ImproperPenalty }),
+	moneySetting("law", "exclusion_bps",
+		func(c *Config) *int64 { return &c.Law.ExclusionBPS },
+		func(f *fileConfig) *int64 { return f.Law.ExclusionBPS }),
+	moneySetting("law", "strength_witness",
+		func(c *Config) *int64 { return &c.Law.StrengthWitness },
+		func(f *fileConfig) *int64 { return f.Law.StrengthWitness }),
+	moneySetting("law", "strength_record",
+		func(c *Config) *int64 { return &c.Law.StrengthRecord },
+		func(f *fileConfig) *int64 { return f.Law.StrengthRecord }),
+	moneySetting("law", "strength_ledger_trace",
+		func(c *Config) *int64 { return &c.Law.StrengthLedgerTrace },
+		func(f *fileConfig) *int64 { return f.Law.StrengthLedgerTrace }),
+	moneySetting("law", "strength_seized_item",
+		func(c *Config) *int64 { return &c.Law.StrengthSeizedItem },
+		func(f *fileConfig) *int64 { return f.Law.StrengthSeizedItem }),
+	moneySetting("law", "strength_informant",
+		func(c *Config) *int64 { return &c.Law.StrengthInformant },
+		func(f *fileConfig) *int64 { return f.Law.StrengthInformant }),
+	moneySetting("law", "strength_confession",
+		func(c *Config) *int64 { return &c.Law.StrengthConfession },
+		func(f *fileConfig) *int64 { return f.Law.StrengthConfession }),
+	moneySetting("law", "strength_inspection",
+		func(c *Config) *int64 { return &c.Law.StrengthInspection },
+		func(f *fileConfig) *int64 { return f.Law.StrengthInspection }),
+	moneySetting("law", "strength_intel_trace",
+		func(c *Config) *int64 { return &c.Law.StrengthIntelTrace },
+		func(f *fileConfig) *int64 { return f.Law.StrengthIntelTrace }),
+	moneySetting("law", "weight_decay_bps",
+		func(c *Config) *int64 { return &c.Law.WeightDecayBPS },
+		func(f *fileConfig) *int64 { return f.Law.WeightDecayBPS }),
+	moneySetting("law", "hearing_delay_hours",
+		func(c *Config) *int64 { return &c.Law.HearingDelayHours },
+		func(f *fileConfig) *int64 { return f.Law.HearingDelayHours }),
+	moneySetting("law", "npc_threshold",
+		func(c *Config) *int64 { return &c.Law.NPCThreshold },
+		func(f *fileConfig) *int64 { return f.Law.NPCThreshold }),
+	moneySetting("law", "defence_strength",
+		func(c *Config) *int64 { return &c.Law.DefenceStrength },
+		func(f *fileConfig) *int64 { return f.Law.DefenceStrength }),
+	moneySetting("law", "defence_fee",
+		func(c *Config) *int64 { return &c.Law.DefenceFee },
+		func(f *fileConfig) *int64 { return f.Law.DefenceFee }),
+	moneySetting("law", "appeal_days",
+		func(c *Config) *int64 { return &c.Law.AppealDays },
+		func(f *fileConfig) *int64 { return f.Law.AppealDays }),
+	moneySetting("law", "appeal_fee",
+		func(c *Config) *int64 { return &c.Law.AppealFee },
+		func(f *fileConfig) *int64 { return f.Law.AppealFee }),
+	moneySetting("law", "bail_per_hour",
+		func(c *Config) *int64 { return &c.Law.BailPerHour },
+		func(f *fileConfig) *int64 { return f.Law.BailPerHour }),
+	moneySetting("law", "jail_food_per_day",
+		func(c *Config) *int64 { return &c.Law.JailFoodPerDay },
+		func(f *fileConfig) *int64 { return f.Law.JailFoodPerDay }),
+	moneySetting("law", "cells_per_warder",
+		func(c *Config) *int64 { return &c.Law.CellsPerWarder },
+		func(f *fileConfig) *int64 { return f.Law.CellsPerWarder }),
+	moneySetting("law", "jail_cells_base",
+		func(c *Config) *int64 { return &c.Law.JailCellsBase },
+		func(f *fileConfig) *int64 { return f.Law.JailCellsBase }),
+	moneySetting("law", "informant_pay",
+		func(c *Config) *int64 { return &c.Law.InformantPay },
+		func(f *fileConfig) *int64 { return f.Law.InformantPay }),
+	moneySetting("law", "reliability_start",
+		func(c *Config) *int64 { return &c.Law.ReliabilityStart },
+		func(f *fileConfig) *int64 { return f.Law.ReliabilityStart }),
+	moneySetting("law", "reliability_floor",
+		func(c *Config) *int64 { return &c.Law.ReliabilityFloor },
+		func(f *fileConfig) *int64 { return f.Law.ReliabilityFloor }),
+	moneySetting("law", "reliability_gain",
+		func(c *Config) *int64 { return &c.Law.ReliabilityGain },
+		func(f *fileConfig) *int64 { return f.Law.ReliabilityGain }),
+	moneySetting("law", "reliability_loss",
+		func(c *Config) *int64 { return &c.Law.ReliabilityLoss },
+		func(f *fileConfig) *int64 { return f.Law.ReliabilityLoss }),
+	moneySetting("law", "rotate_days",
+		func(c *Config) *int64 { return &c.Law.RotateDays },
+		func(f *fileConfig) *int64 { return f.Law.RotateDays }),
+	moneySetting("law", "max_informants",
+		func(c *Config) *int64 { return &c.Law.MaxInformants },
+		func(f *fileConfig) *int64 { return f.Law.MaxInformants }),
+	moneySetting("law", "retaliation_fine",
+		func(c *Config) *int64 { return &c.Law.RetaliationFine },
+		func(f *fileConfig) *int64 { return f.Law.RetaliationFine }),
+	moneySetting("law", "retaliation_ban_days",
+		func(c *Config) *int64 { return &c.Law.RetaliationBanDays },
+		func(f *fileConfig) *int64 { return f.Law.RetaliationBanDays }),
+	moneySetting("law", "deal_cut_bps",
+		func(c *Config) *int64 { return &c.Law.DealCutBPS },
+		func(f *fileConfig) *int64 { return f.Law.DealCutBPS }),
+	moneySetting("law", "bribe_min",
+		func(c *Config) *int64 { return &c.Law.BribeMin },
+		func(f *fileConfig) *int64 { return f.Law.BribeMin }),
+	moneySetting("law", "bribe_max_effect_bps",
+		func(c *Config) *int64 { return &c.Law.BribeMaxEffectBPS },
+		func(f *fileConfig) *int64 { return f.Law.BribeMaxEffectBPS }),
+	moneySetting("law", "bribe_term_days",
+		func(c *Config) *int64 { return &c.Law.BribeTermDays },
+		func(f *fileConfig) *int64 { return f.Law.BribeTermDays }),
+	moneySetting("law", "audit_cost",
+		func(c *Config) *int64 { return &c.Law.AuditCost },
+		func(f *fileConfig) *int64 { return f.Law.AuditCost }),
+	moneySetting("law", "audit_base_bps",
+		func(c *Config) *int64 { return &c.Law.AuditBaseBPS },
+		func(f *fileConfig) *int64 { return f.Law.AuditBaseBPS }),
+	moneySetting("law", "audit_age_bps_per_day",
+		func(c *Config) *int64 { return &c.Law.AuditAgeBPSPerDay },
+		func(f *fileConfig) *int64 { return f.Law.AuditAgeBPSPerDay }),
+	moneySetting("law", "audit_cap_bps",
+		func(c *Config) *int64 { return &c.Law.AuditCapBPS },
+		func(f *fileConfig) *int64 { return f.Law.AuditCapBPS }),
+	moneySetting("law", "captured_from",
+		func(c *Config) *int64 { return &c.Law.CapturedFrom },
+		func(f *fileConfig) *int64 { return f.Law.CapturedFrom }),
+	moneySetting("law", "standing_gain",
+		func(c *Config) *int64 { return &c.Law.StandingGain },
+		func(f *fileConfig) *int64 { return f.Law.StandingGain }),
+	moneySetting("law", "standing_intro",
+		func(c *Config) *int64 { return &c.Law.StandingIntro },
+		func(f *fileConfig) *int64 { return f.Law.StandingIntro }),
+	moneySetting("law", "black_premium_bps",
+		func(c *Config) *int64 { return &c.Law.BlackPremiumBPS },
+		func(f *fileConfig) *int64 { return f.Law.BlackPremiumBPS }),
+	moneySetting("law", "escrow_fee_bps",
+		func(c *Config) *int64 { return &c.Law.EscrowFeeBPS },
+		func(f *fileConfig) *int64 { return f.Law.EscrowFeeBPS }),
+	moneySetting("law", "escrow_timeout_hours",
+		func(c *Config) *int64 { return &c.Law.EscrowTimeoutHours },
+		func(f *fileConfig) *int64 { return f.Law.EscrowTimeoutHours }),
+	moneySetting("law", "broker_new_cap",
+		func(c *Config) *int64 { return &c.Law.BrokerNewCap },
+		func(f *fileConfig) *int64 { return f.Law.BrokerNewCap }),
+	moneySetting("law", "broker_cap_per_rep",
+		func(c *Config) *int64 { return &c.Law.BrokerCapPerRep },
+		func(f *fileConfig) *int64 { return f.Law.BrokerCapPerRep }),
+	moneySetting("law", "scam_rep_loss",
+		func(c *Config) *int64 { return &c.Law.ScamRepLoss },
+		func(f *fileConfig) *int64 { return f.Law.ScamRepLoss }),
+	moneySetting("law", "trace_bps",
+		func(c *Config) *int64 { return &c.Law.TraceBPS },
+		func(f *fileConfig) *int64 { return f.Law.TraceBPS }),
+	moneySetting("law", "bust_base_bps",
+		func(c *Config) *int64 { return &c.Law.BustBaseBPS },
+		func(f *fileConfig) *int64 { return f.Law.BustBaseBPS }),
+	moneySetting("law", "bust_patrol_bps",
+		func(c *Config) *int64 { return &c.Law.BustPatrolBPS },
+		func(f *fileConfig) *int64 { return f.Law.BustPatrolBPS }),
+	moneySetting("law", "listing_fee",
+		func(c *Config) *int64 { return &c.Law.ListingFee },
+		func(f *fileConfig) *int64 { return f.Law.ListingFee }),
+	moneySetting("law", "launder_fee_bps",
+		func(c *Config) *int64 { return &c.Law.LaunderFeeBPS },
+		func(f *fileConfig) *int64 { return f.Law.LaunderFeeBPS }),
+	moneySetting("law", "launder_cap_bps",
+		func(c *Config) *int64 { return &c.Law.LaunderCapBPS },
+		func(f *fileConfig) *int64 { return f.Law.LaunderCapBPS }),
+	moneySetting("law", "launder_window_days",
+		func(c *Config) *int64 { return &c.Law.LaunderWindowDays },
+		func(f *fileConfig) *int64 { return f.Law.LaunderWindowDays }),
+	moneySetting("law", "anomaly_bps",
+		func(c *Config) *int64 { return &c.Law.AnomalyBPS },
+		func(f *fileConfig) *int64 { return f.Law.AnomalyBPS }),
+	moneySetting("law", "launder_stage_hours",
+		func(c *Config) *int64 { return &c.Law.LaunderStageHours },
+		func(f *fileConfig) *int64 { return f.Law.LaunderStageHours }),
+	moneySetting("law", "launder_exposure_bps",
+		func(c *Config) *int64 { return &c.Law.LaunderExposureBPS },
+		func(f *fileConfig) *int64 { return f.Law.LaunderExposureBPS }),
+	moneySetting("law", "inspect_base_bps",
+		func(c *Config) *int64 { return &c.Law.InspectBaseBPS },
+		func(f *fileConfig) *int64 { return f.Law.InspectBaseBPS }),
+	moneySetting("law", "inspect_per_inspector_bps",
+		func(c *Config) *int64 { return &c.Law.InspectPerInspectorBPS },
+		func(f *fileConfig) *int64 { return f.Law.InspectPerInspectorBPS }),
+	moneySetting("law", "inspect_size_bps",
+		func(c *Config) *int64 { return &c.Law.InspectSizeBPS },
+		func(f *fileConfig) *int64 { return f.Law.InspectSizeBPS }),
+	moneySetting("law", "inspect_cap_bps",
+		func(c *Config) *int64 { return &c.Law.InspectCapBPS },
+		func(f *fileConfig) *int64 { return f.Law.InspectCapBPS }),
+	moneySetting("law", "customs_penalty_bps",
+		func(c *Config) *int64 { return &c.Law.CustomsPenaltyBPS },
+		func(f *fileConfig) *int64 { return f.Law.CustomsPenaltyBPS }),
+	moneySetting("law", "duty_bps",
+		func(c *Config) *int64 { return &c.Law.DutyBPS },
+		func(f *fileConfig) *int64 { return f.Law.DutyBPS }),
+	moneySetting("law", "police_share_bps",
+		func(c *Config) *int64 { return &c.Law.PoliceShareBPS },
+		func(f *fileConfig) *int64 { return f.Law.PoliceShareBPS }),
+	moneySetting("law", "racket_convictions",
+		func(c *Config) *int64 { return &c.Law.RacketConvictions },
+		func(f *fileConfig) *int64 { return f.Law.RacketConvictions }),
+	moneySetting("law", "gang_discover_bps",
+		func(c *Config) *int64 { return &c.Law.GangDiscoverBPS },
+		func(f *fileConfig) *int64 { return f.Law.GangDiscoverBPS }),
+	moneySetting("law", "witness_bps",
+		func(c *Config) *int64 { return &c.Law.WitnessBPS },
+		func(f *fileConfig) *int64 { return f.Law.WitnessBPS }),
+	moneySetting("law", "fact_window_days",
+		func(c *Config) *int64 { return &c.Law.FactWindowDays },
+		func(f *fileConfig) *int64 { return f.Law.FactWindowDays }),
+	moneySetting("law", "charge_threshold",
+		func(c *Config) *int64 { return &c.Law.ChargeThreshold },
+		func(f *fileConfig) *int64 { return f.Law.ChargeThreshold }),
+	moneySetting("law", "judge_wait_hours",
+		func(c *Config) *int64 { return &c.Law.JudgeWaitHours },
+		func(f *fileConfig) *int64 { return f.Law.JudgeWaitHours }),
+	moneySetting("law", "npc_sentence_bps",
+		func(c *Config) *int64 { return &c.Law.NPCSentenceBPS },
+		func(f *fileConfig) *int64 { return f.Law.NPCSentenceBPS }),
+	moneySetting("law", "appeal_margin",
+		func(c *Config) *int64 { return &c.Law.AppealMargin },
+		func(f *fileConfig) *int64 { return f.Law.AppealMargin }),
+	moneySetting("law", "burn_bps",
+		func(c *Config) *int64 { return &c.Law.BurnBPS },
+		func(f *fileConfig) *int64 { return f.Law.BurnBPS }),
+	moneySetting("law", "ask_bps",
+		func(c *Config) *int64 { return &c.Law.AskBPS },
+		func(f *fileConfig) *int64 { return f.Law.AskBPS }),
+	moneySetting("law", "gang_heat_per_conviction",
+		func(c *Config) *int64 { return &c.Law.GangHeatPerConviction },
+		func(f *fileConfig) *int64 { return f.Law.GangHeatPerConviction }),
 	moneySetting("intel", "skill_xp_per_op",
 		func(c *Config) *int64 { return &c.Intel.SkillXPPerOp },
 		func(f *fileConfig) *int64 { return f.Intel.SkillXPPerOp }),
@@ -3475,4 +3758,101 @@ type licenceSettings struct {
 	ListingFee           *int64  `yaml:"listing_fee"`
 	TermMaxDays          *int64  `yaml:"term_max_days"`
 	ShareCapFrom         *int64  `yaml:"share_cap_from"`
+}
+
+type lawSettings struct {
+	PoliceRuleAt           *string `yaml:"police_rule_at"`
+	CourtsRuleAt           *string `yaml:"courts_rule_at"`
+	BlackRuleAt            *string `yaml:"black_rule_at"`
+	CustomsRuleAt          *string `yaml:"customs_rule_at"`
+	LaunderRuleAt          *string `yaml:"launder_rule_at"`
+	GraceDays              *int64  `yaml:"grace_days"`
+	PointsPerStaff         *int64  `yaml:"points_per_staff"`
+	PostBasePoints         *int64  `yaml:"post_base_points"`
+	StationBasePoints      *int64  `yaml:"station_base_points"`
+	PatrolCost             *int64  `yaml:"patrol_cost"`
+	InvestigateCost        *int64  `yaml:"investigate_cost"`
+	ArrestCost             *int64  `yaml:"arrest_cost"`
+	BaseDetectBPS          *int64  `yaml:"base_detect_bps"`
+	PatrolDetectBPS        *int64  `yaml:"patrol_detect_bps"`
+	DetectCapBPS           *int64  `yaml:"detect_cap_bps"`
+	CustodyHours           *int64  `yaml:"custody_hours"`
+	ComplaintFee           *int64  `yaml:"complaint_fee"`
+	WarrantThreshold       *int64  `yaml:"warrant_threshold"`
+	WarrantDays            *int64  `yaml:"warrant_days"`
+	ImproperPenalty        *int64  `yaml:"improper_penalty"`
+	ExclusionBPS           *int64  `yaml:"exclusion_bps"`
+	StrengthWitness        *int64  `yaml:"strength_witness"`
+	StrengthRecord         *int64  `yaml:"strength_record"`
+	StrengthLedgerTrace    *int64  `yaml:"strength_ledger_trace"`
+	StrengthSeizedItem     *int64  `yaml:"strength_seized_item"`
+	StrengthInformant      *int64  `yaml:"strength_informant"`
+	StrengthConfession     *int64  `yaml:"strength_confession"`
+	StrengthInspection     *int64  `yaml:"strength_inspection"`
+	StrengthIntelTrace     *int64  `yaml:"strength_intel_trace"`
+	WeightDecayBPS         *int64  `yaml:"weight_decay_bps"`
+	HearingDelayHours      *int64  `yaml:"hearing_delay_hours"`
+	NPCThreshold           *int64  `yaml:"npc_threshold"`
+	DefenceStrength        *int64  `yaml:"defence_strength"`
+	DefenceFee             *int64  `yaml:"defence_fee"`
+	AppealDays             *int64  `yaml:"appeal_days"`
+	AppealFee              *int64  `yaml:"appeal_fee"`
+	BailPerHour            *int64  `yaml:"bail_per_hour"`
+	JailFoodPerDay         *int64  `yaml:"jail_food_per_day"`
+	CellsPerWarder         *int64  `yaml:"cells_per_warder"`
+	JailCellsBase          *int64  `yaml:"jail_cells_base"`
+	InformantPay           *int64  `yaml:"informant_pay"`
+	ReliabilityStart       *int64  `yaml:"reliability_start"`
+	ReliabilityFloor       *int64  `yaml:"reliability_floor"`
+	ReliabilityGain        *int64  `yaml:"reliability_gain"`
+	ReliabilityLoss        *int64  `yaml:"reliability_loss"`
+	RotateDays             *int64  `yaml:"rotate_days"`
+	MaxInformants          *int64  `yaml:"max_informants"`
+	RetaliationFine        *int64  `yaml:"retaliation_fine"`
+	RetaliationBanDays     *int64  `yaml:"retaliation_ban_days"`
+	DealCutBPS             *int64  `yaml:"deal_cut_bps"`
+	BribeMin               *int64  `yaml:"bribe_min"`
+	BribeMaxEffectBPS      *int64  `yaml:"bribe_max_effect_bps"`
+	BribeTermDays          *int64  `yaml:"bribe_term_days"`
+	AuditCost              *int64  `yaml:"audit_cost"`
+	AuditBaseBPS           *int64  `yaml:"audit_base_bps"`
+	AuditAgeBPSPerDay      *int64  `yaml:"audit_age_bps_per_day"`
+	AuditCapBPS            *int64  `yaml:"audit_cap_bps"`
+	CapturedFrom           *int64  `yaml:"captured_from"`
+	StandingGain           *int64  `yaml:"standing_gain"`
+	StandingIntro          *int64  `yaml:"standing_intro"`
+	BlackPremiumBPS        *int64  `yaml:"black_premium_bps"`
+	EscrowFeeBPS           *int64  `yaml:"escrow_fee_bps"`
+	EscrowTimeoutHours     *int64  `yaml:"escrow_timeout_hours"`
+	BrokerNewCap           *int64  `yaml:"broker_new_cap"`
+	BrokerCapPerRep        *int64  `yaml:"broker_cap_per_rep"`
+	ScamRepLoss            *int64  `yaml:"scam_rep_loss"`
+	TraceBPS               *int64  `yaml:"trace_bps"`
+	BustBaseBPS            *int64  `yaml:"bust_base_bps"`
+	BustPatrolBPS          *int64  `yaml:"bust_patrol_bps"`
+	ListingFee             *int64  `yaml:"listing_fee"`
+	LaunderFeeBPS          *int64  `yaml:"launder_fee_bps"`
+	LaunderCapBPS          *int64  `yaml:"launder_cap_bps"`
+	LaunderWindowDays      *int64  `yaml:"launder_window_days"`
+	AnomalyBPS             *int64  `yaml:"anomaly_bps"`
+	LaunderStageHours      *int64  `yaml:"launder_stage_hours"`
+	LaunderExposureBPS     *int64  `yaml:"launder_exposure_bps"`
+	InspectBaseBPS         *int64  `yaml:"inspect_base_bps"`
+	InspectPerInspectorBPS *int64  `yaml:"inspect_per_inspector_bps"`
+	InspectSizeBPS         *int64  `yaml:"inspect_size_bps"`
+	InspectCapBPS          *int64  `yaml:"inspect_cap_bps"`
+	CustomsPenaltyBPS      *int64  `yaml:"customs_penalty_bps"`
+	DutyBPS                *int64  `yaml:"duty_bps"`
+	PoliceShareBPS         *int64  `yaml:"police_share_bps"`
+	RacketConvictions      *int64  `yaml:"racket_convictions"`
+	GangDiscoverBPS        *int64  `yaml:"gang_discover_bps"`
+	WitnessBPS             *int64  `yaml:"witness_bps"`
+	FactWindowDays         *int64  `yaml:"fact_window_days"`
+	ChargeThreshold        *int64  `yaml:"charge_threshold"`
+	JudgeWaitHours         *int64  `yaml:"judge_wait_hours"`
+	NPCSentenceBPS         *int64  `yaml:"npc_sentence_bps"`
+	AppealMargin           *int64  `yaml:"appeal_margin"`
+	BurnBPS                *int64  `yaml:"burn_bps"`
+	AskBPS                 *int64  `yaml:"ask_bps"`
+	GangHeatPerConviction  *int64  `yaml:"gang_heat_per_conviction"`
 }
