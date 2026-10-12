@@ -294,6 +294,10 @@ func (h *VillageHandler) stockOf(ctx context.Context, tx application.Tx, snap *c
 			room(class).Capacity += int64(n)
 		}
 	}
+	// the ore bins of the settlement's mineheads add yard for the ore waiting at the shaft head (docs/adr/0075 5.5)
+	if bins := h.mineBinRoom(ctx, tx, snap, settlementID); bins > 0 {
+		room("bulk").Capacity += bins
+	}
 	stacks, _, err := tx.Items().OrgHoldings(ctx, application.SettlementOrg(settlementID), application.HoldWarehouse)
 	if err != nil {
 		return villageStock{}, err

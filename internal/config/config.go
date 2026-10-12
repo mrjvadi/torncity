@@ -1955,6 +1955,7 @@ func Defaults() *Config {
 			SetPropsGainBPS:       1200,
 			SetPropsItems:         2,
 			WorksShiftWage:        65,
+			WorksShiftMinutes:     15,
 			SurveyFee:             300,
 			MinSurfaceDays:        30,
 			OreUnitG:              25000,
@@ -1966,6 +1967,7 @@ func Defaults() *Config {
 			RailWorkHourWage:      110,
 			RailWornBPS:           6000,
 			StuckHours:            6,
+			RailRetryMinutes:      3,
 			TeamFeedWheat:         1,
 			DefaultRatePerTonneKm: 40,
 			ChainDefaultPerHour:   4,
@@ -2859,6 +2861,7 @@ type Mining struct {
 	SetPropsGainBPS       int64  // mining.set_props_gain_bps
 	SetPropsItems         int64  // mining.set_props_items
 	WorksShiftWage        int64  // mining.works_shift_wage
+	WorksShiftMinutes     int64  // mining.works_shift_minutes
 	SurveyFee             int64  // mining.survey_fee
 	MinSurfaceDays        int64  // mining.min_surface_days
 	OreUnitG              int64  // mining.ore_unit_g
@@ -2870,6 +2873,7 @@ type Mining struct {
 	RailWorkHourWage      int64  // mining.rail_work_hour_wage
 	RailWornBPS           int64  // mining.rail_worn_bps
 	StuckHours            int64  // mining.stuck_hours
+	RailRetryMinutes      int64  // mining.rail_retry_minutes
 	TeamFeedWheat         int64  // mining.team_feed_wheat
 	DefaultRatePerTonneKm int64  // mining.default_rate_per_tonne_km
 	ChainDefaultPerHour   int64  // mining.chain_default_per_hour

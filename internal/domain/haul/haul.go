@@ -134,3 +134,26 @@ func (b *Book) Items() []string {
 	sort.Strings(out)
 	return out
 }
+
+// Allocate shares a consignment of qty units, each unitG grams, among carriers that take capsKg kilograms each, filling the first
+// carrier before the next (the caller lists them in the order it wants them loaded). It returns the units each carries (zero for a
+// carrier not needed); ok is false when the carriers cannot take it all. The shares add up to qty exactly when ok.
+func Allocate(qty, unitG int64, capsKg []int64) ([]int64, bool) {
+	if unitG <= 0 {
+		unitG = 1000
+	}
+	out := make([]int64, len(capsKg))
+	left := qty
+	for i, c := range capsKg {
+		if left <= 0 {
+			break
+		}
+		per := c * 1000 / unitG
+		if per <= 0 {
+			continue
+		}
+		out[i] = min(left, per)
+		left -= out[i]
+	}
+	return out, left == 0 && qty > 0
+}

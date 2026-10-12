@@ -15,15 +15,15 @@ type MiningRules struct {
 	RuleAt, From time.Time
 
 	// The state of a mine (ADR 0075 5.3): what a shift, a day, an adit, a pump and a timberman do to a level.
-	WearPerShiftBPS, WearPerDayBPS, InflowPerDayBPS     int64
-	AditOutflowBPS, PumpGinOutflowBPS                   int64
-	SetPropsGainBPS, SetPropsItems                      int64
-	WorksShiftWage, SurveyFee, MinSurfaceDays, OreUnitG int64
+	WearPerShiftBPS, WearPerDayBPS, InflowPerDayBPS                        int64
+	AditOutflowBPS, PumpGinOutflowBPS                                      int64
+	SetPropsGainBPS, SetPropsItems                                         int64
+	WorksShiftWage, WorksShiftMinutes, SurveyFee, MinSurfaceDays, OreUnitG int64
 	// Carriage and rail.
-	CartBrokenBPS, CartSpeedKmh                              int64
-	RoadLinkLotMinutes, RoadLinkLotStone, RoadLinkLotHours   int64
-	RailWorkHourWage, RailWornBPS, StuckHours, TeamFeedWheat int64
-	DefaultRatePerTonneKm, ChainDefaultPerHour               int64
+	CartBrokenBPS, CartSpeedKmh                                                int64
+	RoadLinkLotMinutes, RoadLinkLotStone, RoadLinkLotHours                     int64
+	RailWorkHourWage, RailWornBPS, StuckHours, RailRetryMinutes, TeamFeedWheat int64
+	DefaultRatePerTonneKm, ChainDefaultPerHour                                 int64
 }
 
 // On reports whether the iron pit draws on its deposit at an instant.

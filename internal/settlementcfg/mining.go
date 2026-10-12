@@ -27,10 +27,10 @@ func Mining(c config.Mining) application.MiningRules {
 		WearPerShiftBPS: c.WearPerShiftBPS, WearPerDayBPS: c.WearPerDayBPS, InflowPerDayBPS: c.InflowPerDayBPS,
 		AditOutflowBPS: c.AditOutflowBPS, PumpGinOutflowBPS: c.PumpGinOutflowBPS,
 		SetPropsGainBPS: c.SetPropsGainBPS, SetPropsItems: c.SetPropsItems,
-		WorksShiftWage: c.WorksShiftWage, SurveyFee: c.SurveyFee, MinSurfaceDays: c.MinSurfaceDays, OreUnitG: c.OreUnitG,
+		WorksShiftWage: c.WorksShiftWage, WorksShiftMinutes: c.WorksShiftMinutes, SurveyFee: c.SurveyFee, MinSurfaceDays: c.MinSurfaceDays, OreUnitG: c.OreUnitG,
 		CartBrokenBPS: c.CartBrokenBPS, CartSpeedKmh: c.CartSpeedKmh,
 		RoadLinkLotMinutes: c.RoadLinkLotMinutes, RoadLinkLotStone: c.RoadLinkLotStone, RoadLinkLotHours: c.RoadLinkLotHours,
-		RailWorkHourWage: c.RailWorkHourWage, RailWornBPS: c.RailWornBPS, StuckHours: c.StuckHours, TeamFeedWheat: c.TeamFeedWheat,
+		RailWorkHourWage: c.RailWorkHourWage, RailWornBPS: c.RailWornBPS, StuckHours: c.StuckHours, RailRetryMinutes: c.RailRetryMinutes, TeamFeedWheat: c.TeamFeedWheat,
 		DefaultRatePerTonneKm: c.DefaultRatePerTonneKm, ChainDefaultPerHour: c.ChainDefaultPerHour,
 	}
 	if !at.IsZero() {

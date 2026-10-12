@@ -322,6 +322,10 @@ commands:
   settlement.households: {kind: navigation, icon: "action:people"}
   settlement.raid: {kind: navigation, icon: "action:raid"}
   settlement.insurance: {kind: navigation, icon: "action:insurance"}
+  settlement.mining: {kind: navigation, icon: "action:mining"}
+  settlement.haul: {kind: navigation, icon: "action:haul"}
+  settlement.rail: {kind: navigation, icon: "action:rail"}
+  settlement.chain: {kind: navigation, icon: "action:chain"}
   settlement.knowledge.buy: {kind: primary, icon: "action:buy"}
   settlement.build: {kind: navigation, icon: "action:build"}
   settlement.build.lots: {kind: navigation, icon: "action:lots"}

@@ -1236,6 +1236,7 @@ mining:
   set_props_gain_bps: 1200   # condition a timberman's shift gives back
   set_props_items: 2   # timber props a timberman's shift sets
   works_shift_wage: 65   # the wage of one builder shift of a mine module, minor units
+  works_shift_minutes: 15   # minutes one builder shift of a module takes (two builders work a module)
   survey_fee: 300   # the fee of surveying a deposit, into the sink
   min_surface_days: 30   # a live pit must hold ore for this many days of full work at the rule date (the verifier checks it)
   ore_unit_g: 25000   # grams of one unit of ore (a sack)
@@ -1246,6 +1247,7 @@ mining:
   road_link_lot_hours: 1   # builder hours for one 30 m lot of a road between settlements
   rail_work_hour_wage: 110   # the wage of one builder hour on a railway, minor units
   rail_worn_bps: 6000   # track under this condition slows a train to half pace
+  rail_retry_minutes: 3   # minutes a train that found its next block of track taken waits before it tries again
   stuck_hours: 6   # a train that waits this long for track raises rail.stuck once
   team_feed_wheat: 1   # wheat a draught team eats on each leg
   default_rate_per_tonne_km: 40   # the freight rate a new line starts with, minor units per tonne-kilometre

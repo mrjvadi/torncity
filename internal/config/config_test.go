@@ -687,6 +687,7 @@ mining:
   pump_gin_outflow_bps: 3203
   set_props_gain_bps: 3217
   set_props_items: 3224
+  works_shift_minutes: 3999
   works_shift_wage: 3231
   survey_fee: 3238
   min_surface_days: 3245
@@ -698,6 +699,7 @@ mining:
   road_link_lot_hours: 3287
   rail_work_hour_wage: 3294
   rail_worn_bps: 3301
+  rail_retry_minutes: 3998
   stuck_hours: 3308
   team_feed_wheat: 3315
   default_rate_per_tonne_km: 3322
@@ -1432,6 +1434,7 @@ var envOverrides = map[string]string{
 	"TORN_MINING_PUMP_GIN_OUTFLOW_BPS":      "4203",
 	"TORN_MINING_SET_PROPS_GAIN_BPS":        "4217",
 	"TORN_MINING_SET_PROPS_ITEMS":           "4224",
+	"TORN_MINING_WORKS_SHIFT_MINUTES":       "4999",
 	"TORN_MINING_WORKS_SHIFT_WAGE":          "4231",
 	"TORN_MINING_SURVEY_FEE":                "4238",
 	"TORN_MINING_MIN_SURFACE_DAYS":          "4245",
@@ -1443,6 +1446,7 @@ var envOverrides = map[string]string{
 	"TORN_MINING_ROAD_LINK_LOT_HOURS":       "4287",
 	"TORN_MINING_RAIL_WORK_HOUR_WAGE":       "4294",
 	"TORN_MINING_RAIL_WORN_BPS":             "4301",
+	"TORN_MINING_RAIL_RETRY_MINUTES":        "4998",
 	"TORN_MINING_STUCK_HOURS":               "4308",
 	"TORN_MINING_TEAM_FEED_WHEAT":           "4315",
 	"TORN_MINING_DEFAULT_RATE_PER_TONNE_KM": "4322",

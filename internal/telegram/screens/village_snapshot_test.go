@@ -134,7 +134,7 @@ func villageSnapshots(c Context, who people, add func(string, *presenter.Respons
 				Outcome: &village.RaidOutcomeLine{Taken: true, Cash: 900, Goods: []village.RaidGoodsLine{{Item: sampleNamed(c.Lang, "wool", "پشم", "Wool"), Qty: 20}}, Buildings: 2, Falls: 1, FellMe: true}},
 		},
 		Targets: []village.RaidTarget{{Settlement: other, DistanceKm: 42, Residents: 7}},
-		Watch: []village.WatchLine{{Kind: "watchtower", Held: true, SightM: 8000}, {Kind: "beacon_chain", Held: false, Idle: "no_supplies", SightM: 8000}}}))
+		Watch:   []village.WatchLine{{Kind: "watchtower", Held: true, SightM: 8000}, {Kind: "beacon_chain", Held: false, Idle: "no_supplies", SightM: 8000}}}))
 	add("Raid · no watch", Raid(g, village.RaidView{Village: villageNameFor(c), On: true}))
 	add("Insurance · no fund yet, the head may open one", SettlementInsurance(g, village.SettlementInsuranceView{Village: villageNameFor(c), MayRun: true}))
 	add("Insurance · an open fund with a policy and cover on offer", SettlementInsurance(g, village.SettlementInsuranceView{Village: villageNameFor(c), Open: true, Fund: 1800, ScaleBPS: 9000,

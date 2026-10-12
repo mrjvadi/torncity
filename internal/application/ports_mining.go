@@ -107,8 +107,10 @@ type MineState struct {
 	Shafts, Hoist, Pump      int
 	OreBin, Vent             bool
 	AditM                    int
-	DayDone                  int64
-	UpdatedAt                time.Time
+	// FallM is the metres between the lot and the nearest lower water (-1: not measured yet; 0: no outlet below).
+	FallM     int
+	DayDone   int64
+	UpdatedAt time.Time
 }
 
 // MineLevel is a shaft level's props and water.
@@ -255,8 +257,9 @@ type HaulRepository interface {
 	AddCarrier(ctx context.Context, c Carrier) error
 	Carrier(ctx context.Context, id string, lock bool) (*Carrier, error)
 	CarriersOf(ctx context.Context, settlementID string) ([]Carrier, error)
-	// SetCarrierStatus moves a carrier from one status to another exactly once.
-	SetCarrierStatus(ctx context.Context, id, from, to string, at time.Time) (bool, error)
+	// SetCarrierStatus moves a carrier from one status to another exactly once; a non-empty settlement is where it stands afterwards
+	// (a cart stays where it delivered).
+	SetCarrierStatus(ctx context.Context, id, from, to, settlementID string, at time.Time) (bool, error)
 
 	AddRoadLink(ctx context.Context, l RoadLink) error
 	RoadLink(ctx context.Context, id string) (*RoadLink, error)
@@ -313,7 +316,8 @@ type (
 		Wagons, SchedPos, Heading                                          int
 		LegNo                                                              int64
 		NextEventAt, WaitingSince                                          *time.Time
-		StuckNotified                                                      bool
+		StuckNotified, Served                                              bool
+		WaitReason                                                         string
 		CreatedAt                                                          time.Time
 	}
 	// RailStep is a stop of a train's schedule.

@@ -183,12 +183,12 @@ func (r *RailRepository) SetLoop(ctx context.Context, segmentID string, loop boo
 }
 
 const railTrainColumns = `id::text, line_id::text, owner_kind, owner_id::text, name, status, COALESCE(at_stop::text, ''), COALESCE(game_action_id::text, ''),
-	wagons, sched_pos, heading, leg_no, next_event_at, waiting_since, stuck_notified, created_at`
+	wagons, sched_pos, heading, leg_no, next_event_at, waiting_since, stuck_notified, served, wait_reason, created_at`
 
 func scanRailTrain(row pgx.Row) (application.RailTrain, error) {
 	var t application.RailTrain
 	err := row.Scan(&t.ID, &t.LineID, &t.OwnerKind, &t.OwnerID, &t.Name, &t.Status, &t.AtStop, &t.GameActionID,
-		&t.Wagons, &t.SchedPos, &t.Heading, &t.LegNo, &t.NextEventAt, &t.WaitingSince, &t.StuckNotified, &t.CreatedAt)
+		&t.Wagons, &t.SchedPos, &t.Heading, &t.LegNo, &t.NextEventAt, &t.WaitingSince, &t.StuckNotified, &t.Served, &t.WaitReason, &t.CreatedAt)
 	return t, err
 }
 
@@ -263,9 +263,9 @@ func (r *RailRepository) TrainsOfSettlement(ctx context.Context, settlementID st
 func (r *RailRepository) SetTrain(ctx context.Context, t application.RailTrain) error {
 	tag, err := r.q.Exec(ctx, `
 		UPDATE rail_trains SET status = $2, at_stop = $3::uuid, heading = $4, leg_no = $5, sched_pos = $6, next_event_at = $7, game_action_id = $8::uuid,
-		       waiting_since = $9, stuck_notified = $10, name = $11, wagons = $12
+		       waiting_since = $9, stuck_notified = $10, name = $11, wagons = $12, served = $13, wait_reason = $14
 		 WHERE id = $1::uuid`,
-		t.ID, t.Status, nullable(t.AtStop), t.Heading, t.LegNo, t.SchedPos, t.NextEventAt, nullable(t.GameActionID), t.WaitingSince, t.StuckNotified, t.Name, t.Wagons)
+		t.ID, t.Status, nullable(t.AtStop), t.Heading, t.LegNo, t.SchedPos, t.NextEventAt, nullable(t.GameActionID), t.WaitingSince, t.StuckNotified, t.Name, t.Wagons, t.Served, t.WaitReason)
 	if err != nil {
 		return fmt.Errorf("postgres: writing a train: %w", err)
 	}

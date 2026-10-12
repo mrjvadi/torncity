@@ -37,10 +37,10 @@ import (
 	"github.com/mrjvadi/torncity/internal/infrastructure/centrifugo"
 	infranats "github.com/mrjvadi/torncity/internal/infrastructure/nats"
 	"github.com/mrjvadi/torncity/internal/infrastructure/postgres"
-	"github.com/mrjvadi/torncity/internal/settlementcfg"
 	infraredis "github.com/mrjvadi/torncity/internal/infrastructure/redis"
 	"github.com/mrjvadi/torncity/internal/infrastructure/storage"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
+	"github.com/mrjvadi/torncity/internal/settlementcfg"
 	"github.com/mrjvadi/torncity/internal/shared/money"
 	"github.com/mrjvadi/torncity/internal/statesync"
 	"github.com/mrjvadi/torncity/internal/telegram/i18n"
@@ -257,10 +257,10 @@ func run(ctx context.Context, e env, cfg *config.Config, logger *slog.Logger) er
 		Buildings: postgres.NewSettlementBuildingReader(pool), World: worldSvc, Content: registry,
 		VillageGridLots: cfg.Settlement.VillageGridLots, Now: time.Now,
 		Citizens: postgres.NewCitizenReader(pool),
-		Land: postgres.NewLandReader(pool), LandRules: settlementcfg.Land(cfg.Settlement),
+		Land:     postgres.NewLandReader(pool), LandRules: settlementcfg.Land(cfg.Settlement),
 		Farm: postgres.NewFarmReader(pool), FarmRules: settlementcfg.Farm(cfg.Settlement),
 		Registry: postgres.NewRegistryReader(pool), Slope: settlementcfg.Registry(cfg.Settlement).Slope,
-		Overlay:  postgres.NewVillageFacts(pool), StockBaseCapacity: cfg.Settlement.StockBaseCapacity, HomesPerBuildCrew: cfg.Settlement.BuildHomesPerCrew,
+		Overlay: postgres.NewVillageFacts(pool), StockBaseCapacity: cfg.Settlement.StockBaseCapacity, HomesPerBuildCrew: cfg.Settlement.BuildHomesPerCrew,
 		CitizenTerms: application.CitizenBounds{
 			LotPrice: cfg.Settlement.CitizenLotPrice, LotPriceMin: cfg.Settlement.CitizenLotPriceMin, LotPriceMax: cfg.Settlement.CitizenLotPriceMax,
 			PermitFee: cfg.Settlement.CitizenPermitFee, PermitFeeMax: cfg.Settlement.CitizenPermitFeeMax,

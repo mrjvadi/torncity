@@ -769,6 +769,19 @@ func (h *VillageHandler) startProduction(ctx context.Context, tx application.Tx,
 	if err := tx.Items().LockOrg(ctx, application.SettlementOrg(s.CityID)); err != nil {
 		return err
 	}
+	// a pit or a minehead digs a deposit: the post of the shift, its goods and what it burns (docs/adr/0075); the hint of a post rides
+	// in the recipe argument of a workplace that has no recipes
+	var mineWork *mineJob
+	if d.Mining != nil && farmWork == nil {
+		hint := ""
+		if d.Mining.Deep {
+			hint, recipeUsed = recipe, ""
+		}
+		var merr error
+		if d, mineWork, merr = h.mineShape(ctx, tx, snap, s, b, d, p, hint); merr != nil {
+			return merr
+		}
+	}
 	buildings, err := tx.SettlementBuildings().List(ctx, s.CityID)
 	if err != nil {
 		return err
@@ -888,6 +901,9 @@ func (h *VillageHandler) startProduction(ctx context.Context, tx application.Tx,
 		}
 	}
 	outputBPS = outputBPS * toolFactor / labor.BPS
+	if mineWork != nil && mineWork.factorBPS > 0 {
+		outputBPS = outputBPS * mineWork.factorBPS / labor.BPS
+	}
 	if bare {
 		outputBPS = outputBPS * h.realItems.BareHandsBPS / labor.BPS
 	}
@@ -946,6 +962,9 @@ func (h *VillageHandler) startProduction(ctx context.Context, tx application.Tx,
 		sh.FarmCycle, sh.FarmPhase = farmWork.cycle.ID, farmWork.phase
 	}
 	sh.Recipe = recipeUsed
+	if mineWork != nil {
+		sh.StaffRole, sh.MineLimit, sh.DepositID, sh.DepositDepth, sh.DepositReserve = mineWork.role, mineWork.limit, mineWork.depositID, mineWork.depth, mineWork.reserve
+	}
 	if err := tx.SettlementTreasury().StartShift(ctx, sh, d.Workers); err != nil {
 		switch {
 		case stderrors.Is(err, application.ErrWorkplaceFull):
@@ -1081,6 +1100,17 @@ func (h *VillageHandler) Worked(ctx context.Context, meta envelope.Metadata, req
 		if err := tx.SettlementTreasury().SetCarry(ctx, sh.BuildingID, carry); err != nil && !stderrors.Is(err, application.ErrBuildingNotFound) {
 			return err
 		}
+		// the ore of a shift comes off the deposit: no more than is left within its depth (the shift is paid on what it delivered)
+		var extraction *application.OreExtraction
+		if sh.DepositID != "" {
+			resource := ""
+			if bd, ok := snap.SettlementBuildingDef(buildingType(buildings, sh.BuildingID)); ok && bd.Mining != nil {
+				resource = bd.Mining.Resource
+			}
+			if extraction, err = h.mineTrim(ctx, tx, sh, made, resource, now); err != nil {
+				return err
+			}
+		}
 
 		treasury, err := treasuryBalance(ctx, tx, sh.SettlementID)
 		if err != nil {
@@ -1114,6 +1144,12 @@ func (h *VillageHandler) Worked(ctx context.Context, meta envelope.Metadata, req
 		}
 		fresh, err := tx.SettlementTreasury().FinishShift(ctx, sh.ID, made, pay, txID, now)
 		if err != nil || !fresh {
+			return err
+		}
+		if err := h.mineAfter(ctx, tx, sh, extraction, made, now); err != nil {
+			return err
+		}
+		if err := h.recordHour(ctx, tx, sh, made, now); err != nil {
 			return err
 		}
 		if local {

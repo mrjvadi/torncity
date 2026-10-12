@@ -88,3 +88,23 @@ func TestBookConservesGoodsInTransit(t *testing.T) {
 		t.Fatal("nothing is on the road, nothing may arrive")
 	}
 }
+
+func TestAllocateFillsCarriersInOrderAndAddsUp(t *testing.T) {
+	// 30 sacks of 25 kg on carts of 600 kg (24 sacks) and 1000 kg (40 sacks)
+	got, ok := Allocate(30, 25_000, []int64{600, 1000})
+	if !ok || got[0] != 24 || got[1] != 6 {
+		t.Fatalf("allocation %v %v", got, ok)
+	}
+	if _, ok := Allocate(100, 25_000, []int64{600, 1000}); ok {
+		t.Fatal("the carriers cannot take 100 sacks")
+	}
+	if got, ok := Allocate(10, 25_000, []int64{600, 1000}); !ok || got[0] != 10 || got[1] != 0 {
+		t.Fatalf("one carrier is enough: %v %v", got, ok)
+	}
+	if _, ok := Allocate(0, 25_000, []int64{600}); ok {
+		t.Fatal("nothing to carry is not a consignment")
+	}
+	if _, ok := Allocate(1, 50_000, []int64{10}); ok {
+		t.Fatal("a unit heavier than the carrier cannot be carried")
+	}
+}

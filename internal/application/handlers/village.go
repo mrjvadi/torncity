@@ -110,6 +110,8 @@ type VillageHandler struct {
 	trade TradeRules
 	// house are the NPC households' rules (village_households.go).
 	house application.HouseholdRules
+	// mining are the rules of deposits, mines, carriage and rail (village_mine.go, docs/adr/0075).
+	mining application.MiningRules
 	// raid are the rules of raids, falls and detection (village_raid.go, docs/adr/0074); raidScale is the game clock's scale for the stay a fall costs.
 	raid      application.RaidRules
 	raidScale gametime.Scale

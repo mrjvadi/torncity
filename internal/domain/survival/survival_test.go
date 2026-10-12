@@ -15,7 +15,9 @@ func params() Params {
 
 var t0 = time.Date(2026, 10, 12, 8, 0, 0, 0, time.UTC)
 
-func constant(e climate.Env) func(time.Time) climate.Env { return func(time.Time) climate.Env { return e } }
+func constant(e climate.Env) func(time.Time) climate.Env {
+	return func(time.Time) climate.Env { return e }
+}
 
 func TestParamsValidate(t *testing.T) {
 	if err := params().Validate(); err != nil {

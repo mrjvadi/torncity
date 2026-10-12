@@ -63,9 +63,10 @@ CREATE TABLE mine_state (
     adit_m        integer     NOT NULL DEFAULT 0,
     pump          smallint    NOT NULL DEFAULT -1,
     vent          boolean     NOT NULL DEFAULT false,
+    fall_m        integer     NOT NULL DEFAULT -1,
     day_done      bigint      NOT NULL DEFAULT 0,
     updated_at    timestamptz NOT NULL,
-    CONSTRAINT mine_state_check CHECK (shafts BETWEEN 0 AND 2 AND hoist BETWEEN -1 AND 1 AND pump BETWEEN -1 AND 1 AND adit_m >= 0)
+    CONSTRAINT mine_state_check CHECK (shafts BETWEEN 0 AND 2 AND hoist BETWEEN -1 AND 1 AND pump BETWEEN -1 AND 1 AND adit_m >= 0 AND fall_m >= -1)
 );
 CREATE INDEX mine_state_settlement_idx ON mine_state (settlement_id);
 
@@ -244,6 +245,8 @@ CREATE TABLE rail_trains (
     game_action_id uuid        NULL,
     waiting_since  timestamptz NULL,
     stuck_notified boolean     NOT NULL DEFAULT false,
+    served         boolean     NOT NULL DEFAULT false,
+    wait_reason    text        NOT NULL DEFAULT '',
     created_at     timestamptz NOT NULL,
     CONSTRAINT rail_trains_owner_check CHECK (owner_kind IN ('settlement', 'player')),
     CONSTRAINT rail_trains_status_check CHECK (status IN ('idle', 'running', 'waiting')),

@@ -102,11 +102,11 @@ func (r *MineRepository) PutSurvey(ctx context.Context, s application.DepositSur
 	return tag.RowsAffected() == 1, nil
 }
 
-const mineStateColumns = `building_id::text, settlement_id::text, shafts, hoist, ore_bin, adit_m, pump, vent, day_done, updated_at`
+const mineStateColumns = `building_id::text, settlement_id::text, shafts, hoist, ore_bin, adit_m, pump, vent, fall_m, day_done, updated_at`
 
 func scanMineState(row pgx.Row) (application.MineState, error) {
 	var s application.MineState
-	err := row.Scan(&s.BuildingID, &s.SettlementID, &s.Shafts, &s.Hoist, &s.OreBin, &s.AditM, &s.Pump, &s.Vent, &s.DayDone, &s.UpdatedAt)
+	err := row.Scan(&s.BuildingID, &s.SettlementID, &s.Shafts, &s.Hoist, &s.OreBin, &s.AditM, &s.Pump, &s.Vent, &s.FallM, &s.DayDone, &s.UpdatedAt)
 	return s, err
 }
 
@@ -137,8 +137,8 @@ func (r *MineRepository) EnsureState(ctx context.Context, buildingID, settlement
 
 // SetState writes the modules.
 func (r *MineRepository) SetState(ctx context.Context, s application.MineState) error {
-	tag, err := r.q.Exec(ctx, `UPDATE mine_state SET shafts = $2, hoist = $3, ore_bin = $4, adit_m = $5, pump = $6, vent = $7, updated_at = $8 WHERE building_id = $1::uuid`,
-		s.BuildingID, s.Shafts, s.Hoist, s.OreBin, s.AditM, s.Pump, s.Vent, s.UpdatedAt.UTC())
+	tag, err := r.q.Exec(ctx, `UPDATE mine_state SET shafts = $2, hoist = $3, ore_bin = $4, adit_m = $5, pump = $6, vent = $7, fall_m = $8, updated_at = $9 WHERE building_id = $1::uuid`,
+		s.BuildingID, s.Shafts, s.Hoist, s.OreBin, s.AditM, s.Pump, s.Vent, s.FallM, s.UpdatedAt.UTC())
 	if err != nil {
 		return fmt.Errorf("postgres: writing the mine: %w", err)
 	}

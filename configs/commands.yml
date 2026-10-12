@@ -443,6 +443,10 @@ commands:
   settlement.households: {channel: group, client: true}
   settlement.raid: {channel: group, client: true}
   settlement.insurance: {channel: group, client: true}
+  settlement.mining: {channel: group, client: true}
+  settlement.haul: {channel: group, client: true}
+  settlement.rail: {channel: group, client: true}
+  settlement.chain: {channel: group, client: true}
   settlement.knowledge.buy: {channel: group, client: true}
   settlement.build: {channel: group, client: true}
   settlement.build.lots: {channel: group, client: true}

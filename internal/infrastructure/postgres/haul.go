@@ -89,8 +89,9 @@ func (r *HaulRepository) CarriersOf(ctx context.Context, settlementID string) ([
 }
 
 // SetCarrierStatus moves a carrier between statuses exactly once.
-func (r *HaulRepository) SetCarrierStatus(ctx context.Context, id, from, to string, at time.Time) (bool, error) {
-	tag, err := r.q.Exec(ctx, `UPDATE carriers SET status = $3, built_at = CASE WHEN $2 = 'building' THEN $4 ELSE built_at END WHERE id = $1::uuid AND status = $2`, id, from, to, at.UTC())
+func (r *HaulRepository) SetCarrierStatus(ctx context.Context, id, from, to, settlementID string, at time.Time) (bool, error) {
+	tag, err := r.q.Exec(ctx, `UPDATE carriers SET status = $3, built_at = CASE WHEN $2 = 'building' THEN $4::timestamptz ELSE built_at END,
+		settlement_id = COALESCE(NULLIF($5, '')::uuid, settlement_id) WHERE id = $1::uuid AND status = $2`, id, from, to, at.UTC(), settlementID)
 	if err != nil {
 		return false, fmt.Errorf("postgres: moving a carrier: %w", err)
 	}
