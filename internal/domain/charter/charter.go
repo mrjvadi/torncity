@@ -158,7 +158,7 @@ var catalogue = []Def{
 	{TreatyPropose, "foreign", false, true}, {UnionPropose, "foreign", false, true},
 	{UnionRatify, "foreign", false, true}, {UnionAdmit, "foreign", false, true}, {UnionExpel, "foreign", false, true},
 	{TreatySign, "foreign", false, true}, {TreatyEnd, "foreign", false, true}, {WarDeclare, "foreign", false, true}, {WarPeace, "foreign", false, true},
-	{BorderClose, "foreign", false, true}, {CustomsSet, "foreign", false, true}, {SanctionImpose, "foreign", false, true},
+	{BorderClose, "foreign", false, false}, {CustomsSet, "foreign", false, false}, {SanctionImpose, "foreign", false, true},
 	{MilitaryCommand, "defence", false, true}, {MilitaryProcure, "defence", true, true}, {MilitaryLicence, "defence", false, true},
 	{DebtBorrow, "money", true, true}, {DebtLend, "money", true, true}, {DebtRestructure, "money", false, true},
 	{WorksTender, "works", true, true}, {WorksAccept, "works", false, true}, {RaidDeclare, "foreign", false, true}, {InsuranceRun, "treasury", false, true}, {MineRun, "land", false, true}, {RailDraw, "land", false, true}, {HaulOrder, "treasury", false, true},
