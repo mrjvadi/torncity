@@ -53,6 +53,10 @@ var ownerTables = map[application.AccountKind]string{
 	application.AccountHouseholdWallet: "households",
 	// A tender's escrow (migration 0154, ADR 0076).
 	application.AccountWorksEscrow: "tenders",
+	// A project's fund, the escrow of its contract, and the escrow of a licence auction or application (migration 0155, ADR 0077).
+	application.AccountProjectFund:   "special_projects",
+	application.AccountProjectEscrow: "project_contracts",
+	application.AccountLicenceEscrow: "(SELECT id FROM licence_auctions UNION ALL SELECT id FROM licence_applications) AS escrows",
 	// A holder's balance in a currency that is not the neutral one: the owner is a player, a
 	// settlement or a company (migration 0127, docs/adr/0029 section 5.2).
 	application.AccountForeignHolding: "(SELECT id FROM players UNION ALL SELECT id FROM cities UNION ALL SELECT id FROM companies) AS holders",
