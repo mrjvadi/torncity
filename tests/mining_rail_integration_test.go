@@ -285,7 +285,12 @@ func TestMiningThePitIsUntouchedInTheGrace(t *testing.T) {
 		r.RuleAt = time.Now().Add(-time.Hour)
 		r.From = time.Now().Add(24 * time.Hour)
 	})
-	e.village.WithMining(func() application.MiningRules { r := e.rules; r.RuleAt = e.clock.Now().Add(-time.Hour); r.From = e.clock.Now().Add(24 * time.Hour); return r }())
+	e.village.WithMining(func() application.MiningRules {
+		r := e.rules
+		r.RuleAt = e.clock.Now().Add(-time.Hour)
+		r.From = e.clock.Now().Add(24 * time.Hour)
+		return r
+	}())
 	pit := e.building("iron_pit")
 	w := e.crew()
 	for i := 0; i < 3; i++ {
@@ -312,10 +317,10 @@ func TestMineheadOutputIsCappedByFaceHoistAndHaul(t *testing.T) {
 	}
 	// the half-hour shift breaks 100 kg (4 sacks of 25 kg); a windlass at 30 m lifts 15 kg a minute x 30 x 30 / 60, the hauler 10 x 30 at the road's pace
 	cases := []struct {
-		name            string
+		name             string
 		windlass, unmade int64
-		limit           string
-		share           int64 // of the face, in basis points
+		limit            string
+		share            int64 // of the face, in basis points
 	}{
 		{"face", 16, 10_000, village.MineLimitFace, 10_000},
 		{"hoist", 8, 10_000, village.MineLimitHoist, 6_000}, // 8 x 30 x 30 / 60 = 120 kg is more than the face; 4 -> 60 kg
@@ -1203,3 +1208,102 @@ func TestARoadToAnotherTownAndACartAreBuilt(t *testing.T) {
 }
 
 func haulLotsOf(lengthM int64) int64 { return max((lengthM+29)/30, 1) }
+
+// A drawn line is laid whole, a train is made of wagons and a team, its schedule is written through the screen, and it runs the owner's own
+// goods across and back; the rate and a passing loop are set by the owner.
+func TestATrainIsMadeScheduledAndRunThroughTheScreen(t *testing.T) {
+	e := newMineEnv(t, 200_000, nil)
+	other, _, _ := e.second()
+	ctx := testCtx(t)
+	station := func(city string, x int) string {
+		id := newUUID(t)
+		if _, err := e.pool.Raw().Exec(ctx, `INSERT INTO settlement_buildings (id, settlement_id, type_code, lot_x, lot_y, status, queued_at, completed_at) VALUES ($1::uuid, $2::uuid, 'rail_station', $3, 4, 'complete', now(), now())`, id, city, x); err != nil {
+			t.Fatal(err)
+		}
+		return id
+	}
+	a, b := station(e.cityID, 82), station(other, 83)
+	v := e.railAct(handlers.VillageRailRequest{Action: village.RailActionDraw, Code: "wagonway", N: a, M: b})
+	if len(v.Lines) != 1 {
+		t.Fatalf("no line was drawn: %+v", v)
+	}
+	line, sections := v.Lines[0].ID, v.Lines[0].Sections
+	e.stock("sleeper", 400)
+	e.stock("wooden_rail", 200)
+	e.stock("stone", 200)
+	e.railAct(handlers.VillageRailRequest{Action: village.RailActionBuild, Code: line, N: "99"})
+	e.runWork(e.lastWork(application.WorkRailSections))
+	if got := e.scalar(`SELECT count(*) FROM rail_lines WHERE id = $1::uuid AND status = 'open' AND sections_built = $2`, line, sections); got != 1 {
+		t.Fatal("the line is not open after all its sections are laid")
+	}
+	// a train needs wagons and a team; with no timber it is refused, with it the team's price and the builders leave the treasury
+	before := treasuryOf(t, e.pool, e.cityID)
+	e.railAct(handlers.VillageRailRequest{Action: village.RailActionTrain, Code: line, N: "2", M: "first"})
+	if e.scalar(`SELECT count(*) FROM rail_trains WHERE line_id = $1::uuid`, line) != 0 || treasuryOf(t, e.pool, e.cityID) != before {
+		t.Fatal("a train was made without wagons' timber")
+	}
+	e.stock("timber", 12)
+	e.stock("plank", 8)
+	v = e.railAct(handlers.VillageRailRequest{Action: village.RailActionTrain, Code: line, N: "2", M: "first"})
+	if len(v.Trains) != 1 || v.Trains[0].Wagons != 2 || v.Trains[0].CapacityKg != 4000 {
+		t.Fatalf("the train: %+v", v.Trains)
+	}
+	if got := before - treasuryOf(t, e.pool, e.cityID); got < 1800 {
+		t.Errorf("the team and the wagons cost %d, the team alone is 1800", got)
+	}
+	if n := e.scalar(`SELECT count(*) FROM ledger_entries WHERE reason = 'team_purchase' AND amount > 0`); n < 1 {
+		t.Error("no team_purchase in the ledger")
+	}
+	// too many wagons for one team
+	e.railAct(handlers.VillageRailRequest{Action: village.RailActionTrain, Code: line, N: "9"})
+	if e.scalar(`SELECT count(*) FROM rail_trains WHERE line_id = $1::uuid`, line) != 1 {
+		t.Error("a team drew more wagons than it can")
+	}
+	train := v.Trains[0].ID
+	stops := v.Lines[0].Stops
+	if len(stops) != 2 {
+		t.Fatalf("stops: %+v", stops)
+	}
+	// the schedule: load ore at the owner's station, unload at the other; a train with one step cannot start
+	e.railAct(handlers.VillageRailRequest{Action: village.RailActionStart, Code: train})
+	if e.trainState(train).status != application.TrainIdle {
+		t.Fatal("a train with no schedule started")
+	}
+	e.railAct(handlers.VillageRailRequest{Action: village.RailActionStep, Code: train, N: stops[0].ID, M: application.StepLoad, K: "iron_ore"})
+	e.railAct(handlers.VillageRailRequest{Action: village.RailActionStep, Code: train, N: stops[0].ID, M: application.StepUnload})
+	e.railAct(handlers.VillageRailRequest{Action: village.RailActionStep, Code: train, N: stops[1].ID, M: application.StepUnload})
+	e.railAct(handlers.VillageRailRequest{Action: village.RailActionStep, Code: train, N: newUUID(t), M: application.StepPass})
+	if got := e.scalar(`SELECT count(*) FROM rail_schedules WHERE train_id = $1::uuid`, train); got != 2 {
+		t.Fatalf("the schedule has %d steps, want 2 (the repeat of a stop and an unknown stop are refused)", got)
+	}
+	e.stock("wheat", 10)
+	e.stockAt(other, "wheat", 10)
+	e.stock("iron_ore", 20)
+	e.railAct(handlers.VillageRailRequest{Action: village.RailActionStart, Code: train})
+	s := e.trainState(train)
+	if s.status != application.TrainRunning {
+		t.Fatalf("the train did not leave: %+v", s)
+	}
+	if got := e.heldAt(e.cityID, "iron_ore"); got != 0 {
+		t.Fatalf("the train left with the ore still in the store: %d", got)
+	}
+	e.clock.Advance(s.next.Sub(e.clock.Now()) + time.Minute)
+	e.railEvent(train, s.leg)
+	if got := e.heldAt(other, "iron_ore"); got != 20 {
+		t.Fatalf("the ore did not arrive: %d", got)
+	}
+	// the owner sets the rate and a loop; a train running refuses the loop
+	e.railAct(handlers.VillageRailRequest{Action: village.RailActionRate, Code: line, N: "77"})
+	if e.scalar(`SELECT rate_per_tonne_km FROM rail_lines WHERE id = $1::uuid`, line) != 77 {
+		t.Error("the rate was not set")
+	}
+	var seg string
+	if err := e.pool.Raw().QueryRow(ctx, `SELECT id::text FROM rail_segments WHERE line_id = $1::uuid AND seq = 2`, line).Scan(&seg); err != nil {
+		t.Fatal(err)
+	}
+	e.railAct(handlers.VillageRailRequest{Action: village.RailActionLoop, Code: seg, N: "1"})
+	if e.scalar(`SELECT count(*) FROM rail_segments WHERE id = $1::uuid AND loop`, seg) != 0 {
+		t.Error("a loop was set under a running train")
+	}
+	e.verifyMining()
+}
