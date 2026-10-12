@@ -307,6 +307,14 @@ func (w laborWorker) npc() bool { return w.player == nil }
 func (h *VillageHandler) startLaborShift(ctx context.Context, tx application.Tx, meta envelope.Metadata, snap *content.Snapshot,
 	s application.FoundedSettlement, jobID string, w laborWorker, wageOf func(j application.LaborJob) int64,
 ) error {
+	return h.refuseWithoutTrace(ctx, func(ctx context.Context, tx application.Tx) error {
+		return h.startLaborShiftBody(ctx, tx, meta, snap, s, jobID, w, wageOf)
+	})
+}
+
+func (h *VillageHandler) startLaborShiftBody(ctx context.Context, tx application.Tx, meta envelope.Metadata, snap *content.Snapshot,
+	s application.FoundedSettlement, jobID string, w laborWorker, wageOf func(j application.LaborJob) int64,
+) error {
 	repo := tx.SettlementTreasury()
 	job, err := repo.LockJob(ctx, jobID)
 	if stderrors.Is(err, application.ErrJobNotFound) {
@@ -633,8 +641,7 @@ func (h *VillageHandler) fillCrewRun(ctx context.Context, tx application.Tx, met
 			return started, firstErr(first, refuseVillage(village.LaborNoNPC, village.AddrLaborSite+":"+job.BuildingID))
 		}
 		wage := m.line.NPCWage
-		// A savepoint keeps a refusal from poisoning the transaction: nothing has
-		// been written when one is raised (every refusal precedes the first write).
+		// startLaborShift is a savepoint: a refusal it raises leaves nothing written.
 		err = h.startLaborShift(ctx, tx, meta, snap, s, jobID, laborWorker{bps: h.labor.NPCProductivityBPS},
 			func(application.LaborJob) int64 { return wage })
 		if err != nil {

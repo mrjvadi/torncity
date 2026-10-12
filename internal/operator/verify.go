@@ -295,6 +295,7 @@ func VerifyChecks(v postgres.LedgerVerification, cfg *config.Config) []Check {
 	if v.Village && v.WorkNodes {
 		t := v.VillageInvariants
 		out.add(t.MealOpenedRows == t.MealOpenedKitchen && t.MealEatenShifts == t.MealEatenKitchen, fmt.Sprintf("kitchens: the points opened (%d = %d) and eaten (%d = %d) match the meal rows and the shifts that ate", t.MealOpenedRows, t.MealOpenedKitchen, t.MealEatenShifts, t.MealEatenKitchen))
+		out.add(t.MealsWithoutShift == 0 && t.InputMovesWithoutShift == 0 && t.ActionsWithoutShift == 0, fmt.Sprintf("no refused start left a trace: meal openings without a shift (%d), input movements without a shift not given back (%d), pending finish actions without a shift (%d); repair with `admin settlement repair-orphan-shifts`", t.MealsWithoutShift, t.InputMovesWithoutShift, t.ActionsWithoutShift))
 		out.add(t.MealJournalUnits == t.MealRowUnits, fmt.Sprintf("food units opened for meals in the item journal match the opening rows (%d = %d)", t.MealJournalUnits, t.MealRowUnits))
 		out.add(t.CraftInputsJournal == t.CraftInputsRows && t.CraftMadeJournal == t.CraftMadeRows && t.CraftOverPlanned == 0,
 			fmt.Sprintf("the goods that left home stores for crafts match the jobs (%d = %d), the goods that came in match the finished jobs (%d = %d), no job made more than it planned (%d over)",

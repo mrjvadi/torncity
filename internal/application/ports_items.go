@@ -158,6 +158,9 @@ const (
 	// ItemRepairMaterials is an end: the materials of a repair job (ADR 0041 6.10), taken
 	// from the stock when the job is posted; the movement's reference is the job.
 	ItemRepairMaterials ItemReason = "repair_materials"
+	// ItemRefusedShiftRefund is an origin: the goods a refused shift took and the repair gave back (`admin settlement repair-orphan-shifts`);
+	// the movement's reference is the original movement, reference type item_movement.
+	ItemRefusedShiftRefund ItemReason = "refused_shift_refund"
 	// MealReference is the reference_type of those movements.
 )
 
@@ -185,6 +188,7 @@ var itemReasons = map[ItemReason]bool{
 	ItemRepairMaterials:        true,
 	ItemFitoutMaterials:        true,
 	ItemSalvage:                true,
+	ItemRefusedShiftRefund:     true,
 }
 
 // Known reports whether r is in the closed set.

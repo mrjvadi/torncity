@@ -37,6 +37,15 @@ func settlementUsage() {
                           country's state treasury and defence fund in proportion, the rest from the
                           system source, reason levy_refund. Prints each refund. Audited; a second
                           run refunds nothing
+  repair-orphan-shifts --reason "why" [--apply] [--by NAME]
+                          repair what shift starts refused after they wrote left behind (the bug fixed
+                          with the savepoint of every start): meal openings with no shift (the points
+                          the kitchen ate for them go back to the pot; the rows stay, detached), the
+                          inputs and board food moved for a shift that does not exist (given back,
+                          reason refused_shift_refund, referencing the original movement) and the
+                          pending finish actions of such shifts (cancelled). A DRY RUN by default: it
+                          prints what it would do and writes nothing; --apply writes, audited, in one
+                          transaction. A second run finds nothing
   charter-currencies --reason "why" [--by NAME]
                           charter, once, the money of every founded settlement that named one and
                           has none yet: the fee (currency.charter_fee) and a deposit of the smaller
@@ -110,6 +119,8 @@ func settlementCommand(ctx context.Context, args []string) error {
 		return settlementCharterCurrencies(ctx, args[1:])
 	case "refund-national-levy":
 		return settlementRefundLevy(ctx, args[1:])
+	case "repair-orphan-shifts":
+		return settlementRepairOrphanShifts(ctx, args[1:])
 	}
 	settlementUsage()
 	os.Exit(2)
@@ -334,5 +345,56 @@ func settlementHouseholds(ctx context.Context, args []string) error {
 		return fmt.Errorf("settlement households: no settlement %s", *id)
 	}
 	fmt.Printf("settlement:  %s\nhouseholds:  %s -> %s\nset by:      %s\nreason:      %s\n", *id, before, *state, who, *reason)
+	return nil
+}
+
+func settlementRepairOrphanShifts(ctx context.Context, args []string) error {
+	fs := flag.NewFlagSet("settlement repair-orphan-shifts", flag.ExitOnError)
+	fs.Usage = settlementUsage
+	reason := fs.String("reason", "", "why (required)")
+	apply := fs.Bool("apply", false, "write the repair (the default is a dry run that changes nothing)")
+	op := addOperatorFlags(fs)
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	*reason = strings.TrimSpace(*reason)
+	if *reason == "" {
+		return errors.New("settlement repair-orphan-shifts: --reason is required; goods and points moved without a recorded reason cannot be accounted for later")
+	}
+	who, err := op.resolve("settlement repair-orphan-shifts", os.LookupEnv)
+	if err != nil {
+		return err
+	}
+	ops, _, closeFn, err := settlementOps(ctx)
+	if err != nil {
+		return err
+	}
+	defer closeFn()
+	rep, err := ops.RepairOrphanShifts(ctx, operator.Actor{Name: who, Reason: *reason, At: time.Now()}, *apply)
+	if err != nil {
+		return err
+	}
+	mode := "DRY RUN (nothing written; add --apply)"
+	if rep.Applied {
+		mode = "APPLIED"
+	}
+	fmt.Printf("%s\n", mode)
+	var meals int
+	for _, k := range rep.Kitchens {
+		meals += len(k.Meals)
+		fmt.Printf("kitchen %s: %d meal openings with no shift (%d points opened, they stay in the pot), %d eaten points go back to the pot\n", k.SettlementID, len(k.Meals), k.OpenedPoints, k.GivenBack)
+	}
+	for _, m := range rep.Refunds {
+		side := m.FromOrgKind + " " + m.FromOrg
+		if m.FromPlayer != "" {
+			side = "player " + m.FromPlayer
+		}
+		fmt.Printf("give back %d x %s (%s, movement %s) to %s %s\n", m.Qty, m.Item, m.Reason, m.ID, side, m.FromHolding)
+	}
+	for _, id := range rep.Actions {
+		fmt.Printf("cancel finish action %s\n", id)
+	}
+	fmt.Printf("meal openings: %d in %d kitchens\ninput movements to give back: %d\npending finish actions to cancel: %d\nby: %s\nreason: %s\n",
+		meals, len(rep.Kitchens), len(rep.Refunds), len(rep.Actions), who, *reason)
 	return nil
 }

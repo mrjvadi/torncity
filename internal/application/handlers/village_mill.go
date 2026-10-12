@@ -183,6 +183,14 @@ func (h *VillageHandler) MillGrind(ctx context.Context, meta envelope.Metadata, 
 func (h *VillageHandler) startGrind(ctx context.Context, tx application.Tx, meta envelope.Metadata, snap *content.Snapshot,
 	s application.FoundedSettlement, b application.SettlementBuildingInstance, d content.SettlementBuildingDef, p *application.Player,
 ) error {
+	return h.refuseWithoutTrace(ctx, func(ctx context.Context, tx application.Tx) error {
+		return h.startGrindBody(ctx, tx, meta, snap, s, b, d, p)
+	})
+}
+
+func (h *VillageHandler) startGrindBody(ctx context.Context, tx application.Tx, meta envelope.Metadata, snap *content.Snapshot,
+	s application.FoundedSettlement, b application.SettlementBuildingInstance, d content.SettlementBuildingDef, p *application.Player,
+) error {
 	back := village.AddrWork
 	st, err := h.loadHomeStock(ctx, tx, snap, s, p.ID)
 	if err != nil {
