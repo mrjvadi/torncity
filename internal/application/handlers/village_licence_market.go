@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	stderrors "errors"
 	"strings"
 	"time"
 
@@ -310,6 +311,8 @@ func (h *VillageHandler) licenceBid(ctx context.Context, tx application.Tx, p *a
 	return err
 }
 
+var errAuctionClosedElsewhere = stderrors.New("handlers: the auction was closed by another replica")
+
 // tickLicenceAuction closes the auction: the highest sealed bid at or above the reserve wins and pays what it bid; every other bid is returned in
 // full. The award is one conditional update, so with any number of replicas exactly one closes it.
 func (h *VillageHandler) tickLicenceAuction(ctx context.Context, tx application.Tx, meta envelope.Metadata, id string, now time.Time) error {
@@ -367,12 +370,15 @@ func (h *VillageHandler) tickLicenceAuction(ctx context.Context, tx application.
 	}
 	wb := byBidder[win.ID]
 	licenceID := h.ids.NewID()
-	if moved, err := tx.Licences().AwardAuction(ctx, a.ID, wb.ID, licenceID, wb.Amount, now); err != nil || !moved {
-		return err
-	}
+	// the licence first (the auction names it), then the award: one conditional update under the auction's lock, so exactly one replica closes it
 	l, err := h.grantLicence(ctx, tx, licenceID, a.Kind, a.IssuerID, wb.BidderKind, wb.BidderID, a.TargetRef, "auction", wb.Amount, a.Transferable, now, now.Add(time.Duration(a.TermDays)*24*time.Hour), "", now)
 	if err != nil {
 		return err
+	}
+	if moved, err := tx.Licences().AwardAuction(ctx, a.ID, wb.ID, licenceID, wb.Amount, now); err != nil {
+		return err
+	} else if !moved {
+		return errAuctionClosedElsewhere // the transaction is rolled back with the licence in it
 	}
 	treasury, err := cityTreasury(ctx, tx, a.IssuerID)
 	if err != nil {

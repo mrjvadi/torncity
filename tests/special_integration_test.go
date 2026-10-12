@@ -1240,3 +1240,121 @@ func TestALicenceIsRequiredAfterAGraceAndTheIncumbentsTakeTheFirstGrant(t *testi
 	}
 	e.verifySpecial()
 }
+
+// afterGrace sets a kind and lets its grace pass, so the market of the kind is open.
+func (e *specialEnv) afterGrace(code, mode string, fee, reserve, term int64, transferable bool) {
+	e.t.Helper()
+	e.know(e.cityID, "record_keeping", "craft_guild_charter")
+	if kind := e.setKind(e.head, code, mode, fee, reserve, term, transferable); kind != "" {
+		e.t.Fatalf("setting %s: %q", code, kind)
+	}
+	e.clock.Advance(15 * 24 * time.Hour)
+}
+
+// The sealed-bid auction has one winner whatever the number of replicas that close it and the number of bidders that bid at once: the highest bid
+// at or above the reserve, paid at what it bid; every other bid comes back in full; nobody bids twice; the amounts of others are never shown.
+func TestASealedBidAuctionHasOneWinnerAndReturnsEveryOtherBid(t *testing.T) {
+	e := newSpecialEnv(t, nil)
+	e.afterGrace("stall_right", "auction", 0, 500, 30, true)
+	e.mustLicence(e.head, handlers.VillageLicenceRequest{Action: village.LicenceActionAuction, Code: "stall_right", Window: "24", Reserve: "500"})
+	auction := e.text(`SELECT id::text FROM licence_auctions WHERE status = 'open'`)
+	// an official cannot buy what he sells; a bid under the reserve is refused
+	grant(t, e.pool, application.AccountPlayerCash, e.head.ID, 5000)
+	if _, kind := e.licence(e.head, handlers.VillageLicenceRequest{Action: village.LicenceActionBid, ID: auction, Amount: "900"}); kind != village.LicenceConflict {
+		t.Fatalf("an official does not buy his own licence, got %q", kind)
+	}
+	bidders := make([]*application.Player, 5)
+	amounts := []int64{600, 1500, 900, 1500, 700}
+	for i := range bidders {
+		bidders[i] = e.rich("A", 5000)
+	}
+	if _, kind := e.licence(bidders[0], handlers.VillageLicenceRequest{Action: village.LicenceActionBid, ID: auction, Amount: "499"}); kind != village.LicenceBelowReserve {
+		t.Fatalf("under the reserve, got %q", kind)
+	}
+	var wg sync.WaitGroup
+	for i := range bidders {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			e.clock.Advance(0)
+			if _, kind := e.licence(bidders[i], handlers.VillageLicenceRequest{Action: village.LicenceActionBid, ID: auction, Amount: fmt.Sprint(amounts[i])}); kind != "" {
+				t.Errorf("bid %d was refused: %q", i, kind)
+			}
+		}(i)
+	}
+	wg.Wait()
+	if _, kind := e.licence(bidders[1], handlers.VillageLicenceRequest{Action: village.LicenceActionBid, ID: auction, Amount: "2000"}); kind != village.LicenceHaveBid {
+		t.Fatalf("one bid for each bidder, got %q", kind)
+	}
+	var total int64
+	for _, a := range amounts {
+		total += a
+	}
+	if got := e.escrowOf("licence_escrow"); got != total {
+		t.Fatalf("every bid is held in the auction's escrow: %d, want %d", got, total)
+	}
+	// the amounts of others are sealed: a bidder sees only their own
+	v := e.mustLicence(bidders[2], handlers.VillageLicenceRequest{Action: village.LicenceActionOpen})
+	if len(v.Auctions) != 1 || v.Auctions[0].MyBid == nil || v.Auctions[0].MyBid.Amount != 900 || v.Auctions[0].Bids != 5 {
+		t.Fatalf("a bidder sees their own bid and the number of bids, not the others: %+v", v.Auctions)
+	}
+	if _, kind := e.licence(bidders[2], handlers.VillageLicenceRequest{Action: village.LicenceActionBid, ID: auction, Amount: "700"}); kind != village.LicenceHaveBid {
+		t.Fatal("a bidder cannot change a sealed bid")
+	}
+	treasury0 := e.cityCash(e.cityID)
+	cash0 := make([]int64, len(bidders))
+	for i, b := range bidders {
+		cash0[i] = e.cash(b)
+	}
+	// closing: six replicas at once; before the time nothing closes
+	e.tickOf(application.TickLicenceAuction, auction)
+	if e.text(`SELECT status FROM licence_auctions WHERE id = $1::uuid`, auction) != "open" {
+		t.Fatal("an auction does not close before its time")
+	}
+	e.clock.Advance(25 * time.Hour)
+	for i := 0; i < 6; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			e.tickOf(application.TickLicenceAuction, auction)
+		}()
+	}
+	wg.Wait()
+	if e.scalarInt(`SELECT count(*) FROM licences WHERE kind = 'stall_right' AND via = 'auction'`) != 1 {
+		t.Fatal("one licence comes of one auction")
+	}
+	// the two highest bids tie at 1500: the earlier one wins (the clock does not move between bids, so the lower bid id decides), and pays what it bid
+	winner := e.text(`SELECT holder_id::text FROM licences WHERE via = 'auction'`)
+	if winner != bidders[1].ID && winner != bidders[3].ID {
+		t.Fatalf("the winner is one of the two highest bids, got %s", winner)
+	}
+	paid := e.scalarInt(`SELECT price FROM licence_auctions WHERE id = $1::uuid`, auction)
+	if paid != 1500 || e.cityCash(e.cityID)-treasury0 != 1500 {
+		t.Fatalf("the winner pays what it bid, first price: %d, treasury %+d", paid, e.cityCash(e.cityID)-treasury0)
+	}
+	for i, b := range bidders {
+		got := e.cash(b) - cash0[i]
+		if b.ID == winner {
+			if got != 0 {
+				t.Errorf("the winner's bid stays in the price: %+d", got)
+			}
+			continue
+		}
+		if got != amounts[i] {
+			t.Errorf("bidder %d is returned the whole bid: %+d, want %d", i, got, amounts[i])
+		}
+	}
+	if e.escrowOf("licence_escrow") != 0 {
+		t.Fatal("the escrow is empty after the close")
+	}
+	if e.scalarInt(`SELECT count(*) FROM licence_bids WHERE auction_id = $1::uuid AND status = 'won'`, auction) != 1 {
+		t.Fatal("one bid is marked won")
+	}
+	// an auction nobody reached the reserve in is void and gives everything back
+	e.mustLicence(e.head, handlers.VillageLicenceRequest{Action: village.LicenceActionAuction, Code: "stall_right", Window: "24", Reserve: "9000"})
+	void := e.text(`SELECT id::text FROM licence_auctions WHERE status = 'open'`)
+	if _, kind := e.licence(bidders[0], handlers.VillageLicenceRequest{Action: village.LicenceActionBid, ID: void, Amount: "8999"}); kind != village.LicenceBelowReserve {
+		t.Fatalf("under this reserve, got %q", kind)
+	}
+	e.verifySpecial()
+}
