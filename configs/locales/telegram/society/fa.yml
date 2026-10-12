@@ -279,6 +279,7 @@ diplomacy:
   treaty:
     alliance: "پیمان نظامی"
     non_aggression: "پیمان عدم تجاوز"
+    passage: "پیمان عبور"
     trade_agreement: "موافقت‌نامهٔ تجاری"
   sanctions:
     title: "⛔ تحریم‌های {country}"

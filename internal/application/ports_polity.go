@@ -217,12 +217,22 @@ type UnionRepository interface {
 	HeldIn(ctx context.Context, unionID, playerID string) (charter.Held, error)
 	// HoldersOf lists the players who hold an office that holds the permission (the awarding officials, the second holder test).
 	HoldersOf(ctx context.Context, unionID string, p charter.Permission) ([]string, error)
+	// Admitted says the members passed a motion to admit the settlement at or after `since`.
+	Admitted(ctx context.Context, unionID, settlementID string, since time.Time) (bool, error)
+	// PlayerByCode finds an active player by public code (an office holder named in a draft charter); false for none.
+	PlayerByCode(ctx context.Context, code string) (string, bool, error)
+	// TreasuryIncome is the money that came into a settlement's treasury between two instants: the base of a dues share.
+	TreasuryIncome(ctx context.Context, settlementID string, from, to time.Time) (int64, error)
+	// ResidenceOf is the settlement a player lives in, "" for none.
+	ResidenceOf(ctx context.Context, playerID string) (string, error)
 	// Ballots.
 	InsertBallot(ctx context.Context, b UnionBallot) (bool, error)
 	Ballot(ctx context.Context, id string, lock bool) (*UnionBallot, error)
 	OpenBallotFor(ctx context.Context, proposalID, settlementID string) (*UnionBallot, error)
 	RecallBallotOf(ctx context.Context, officeID, targetID string) (*UnionBallot, error)
 	SetBallot(ctx context.Context, id, from, to string, result []byte, at time.Time) (bool, error)
+	// OpenRecall turns a recall petition into a vote that runs until closes.
+	OpenRecall(ctx context.Context, id string, opens, closes time.Time) (bool, error)
 	Cast(ctx context.Context, ballotID, voterID string, yes bool, at time.Time) (bool, error)
 	Tally(ctx context.Context, ballotID string) (yes, no int64, err error)
 	Sign(ctx context.Context, ballotID, signerID string, at time.Time) (bool, error)

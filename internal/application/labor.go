@@ -41,6 +41,8 @@ const (
 
 	LaborEmployerSettlement = "settlement"
 	LaborEmployerPlayer     = "player"
+	// LaborEmployerCompany is a contractor company that won the construction of a building by tender (docs/adr/0076 10.4).
+	LaborEmployerCompany = "company"
 
 	LaborWorkerPlayer = "player"
 	LaborWorkerNPC    = "npc"

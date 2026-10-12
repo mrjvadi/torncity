@@ -274,6 +274,7 @@ diplomacy:
   treaty:
     alliance: "military alliance"
     non_aggression: "non-aggression pact"
+    passage: "passage treaty"
     trade_agreement: "trade agreement"
   sanctions:
     title: "⛔ Sanctions of {country}"

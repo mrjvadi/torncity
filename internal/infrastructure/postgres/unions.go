@@ -831,3 +831,62 @@ func (r *UnionRepository) InsertSettlement(ctx context.Context, unionID, settlem
 	}
 	return tag.RowsAffected() == 1, nil
 }
+
+// PlayerByCode finds an active player by public code.
+func (r *UnionRepository) PlayerByCode(ctx context.Context, code string) (string, bool, error) {
+	var id string
+	err := r.q.QueryRow(ctx, `SELECT id::text FROM players WHERE upper(public_code) = upper($1) AND status = 'active'`, code).Scan(&id)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return "", false, nil
+	}
+	if err != nil {
+		return "", false, fmt.Errorf("postgres: finding a player by code: %w", err)
+	}
+	return id, true, nil
+}
+
+// TreasuryIncome sums the credits that reached a settlement's treasury in [from, to), leaving out what moved between treasuries as
+// union dues and payouts (so dues are not charged on dues).
+func (r *UnionRepository) TreasuryIncome(ctx context.Context, settlementID string, from, to time.Time) (int64, error) {
+	var n int64
+	err := r.q.QueryRow(ctx, `SELECT COALESCE(sum(e.amount), 0)::bigint FROM ledger_entries e
+		JOIN accounts a ON a.id = e.account_id
+		WHERE a.kind = 'city_treasury' AND a.owner_id = $1::uuid AND e.amount > 0 AND e.created_at >= $2 AND e.created_at < $3
+		  AND e.reason NOT IN ('union_exit_settlement', 'union_dissolution_payout', 'sovereign_loan_disbursement')`, settlementID, from.UTC(), to.UTC()).Scan(&n)
+	if err != nil {
+		return 0, fmt.Errorf("postgres: summing a treasury's income: %w", err)
+	}
+	return n, nil
+}
+
+// ResidenceOf is the settlement a player lives in.
+func (r *UnionRepository) ResidenceOf(ctx context.Context, playerID string) (string, error) {
+	var id *string
+	err := r.q.QueryRow(ctx, `SELECT residence_city_id::text FROM players WHERE id = $1::uuid`, playerID).Scan(&id)
+	if errors.Is(err, pgx.ErrNoRows) || id == nil {
+		return "", nil
+	}
+	if err != nil {
+		return "", fmt.Errorf("postgres: reading a residence: %w", err)
+	}
+	return *id, nil
+}
+
+// Admitted says the members passed a motion to admit the settlement at or after since.
+func (r *UnionRepository) Admitted(ctx context.Context, unionID, settlementID string, since time.Time) (bool, error) {
+	var ok bool
+	if err := r.q.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM union_motions WHERE union_id = $1::uuid AND kind = 'admit' AND subject_id = $2::uuid AND status = 'passed' AND settled_at >= $3)`,
+		unionID, settlementID, since.UTC()).Scan(&ok); err != nil {
+		return false, fmt.Errorf("postgres: reading an admission: %w", err)
+	}
+	return ok, nil
+}
+
+// OpenRecall turns a recall petition into a vote.
+func (r *UnionRepository) OpenRecall(ctx context.Context, id string, opens, closes time.Time) (bool, error) {
+	tag, err := r.q.Exec(ctx, `UPDATE union_ballots SET status = 'open', opens_at = $2, closes_at = $3 WHERE id = $1::uuid AND status = 'petition'`, id, opens.UTC(), closes.UTC())
+	if err != nil {
+		return false, fmt.Errorf("postgres: opening a recall vote: %w", err)
+	}
+	return tag.RowsAffected() == 1, nil
+}

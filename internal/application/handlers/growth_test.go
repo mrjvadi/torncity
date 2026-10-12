@@ -161,7 +161,7 @@ func TestAppendixADGatesFollowWhatTheSettlementHas(t *testing.T) {
 		}
 	}
 	// Deferred rows say so and are never compared.
-	for _, k := range [][2]string{{"office", "mayor"}, {"government_action", "country.war"}, {"treaty_type", "alliance"},
+	for _, k := range [][2]string{{"office", "mayor"}, {"government_action", "country.war"},
 		{"place", "bus_terminal"}, {"transport_mode", "train"}, {"career", "hospitality"}, {"finance_service", "ton_exchange"}} {
 		r := rowOf(t, by["city"], k[0], k[1])
 		if r.Class != SweepDeferred || r.Compared {
