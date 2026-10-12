@@ -1612,3 +1612,98 @@ func TestAKeptGreatBeaconSeesRaidersAndABlindedPostSeesLess(t *testing.T) {
 		t.Fatal("the seed is one that the open post sees")
 	}
 }
+
+// A delay done to a work holds the stage that is otherwise ready until the delay is over; the least time of the stage passing does not accept it.
+func TestADelayHoldsAReadyStageUntilItIsOver(t *testing.T) {
+	e := newSpecialEnv(t, nil)
+	e.know(e.cityID, "masonry", "canal_irrigation")
+	id := e.startProject(e.head, "aqueduct")
+	e.putStock(e.cityID, "stone", 40)
+	e.putStock(e.cityID, "clay", 20)
+	e.topUp(id, 32)
+	e.mustProject(e.head, handlers.VillageProjectRequest{Action: village.ProjectActionDeliver, ID: id, Code: "stone", N: "40"})
+	e.pool.Raw().Exec(testCtx(t), `UPDATE special_projects SET delayed_until = $2 WHERE id = $1::uuid`, id, e.clock.Now().Add(20*time.Hour))
+	e.mustProject(e.head, handlers.VillageProjectRequest{Action: village.ProjectActionDeliver, ID: id, Code: "clay", N: "20"})
+	l := e.lineOf(e.head, id)
+	if l.Stage != 1 || l.Waiting != village.ProjectWaitTime {
+		t.Fatalf("with everything in, the least time is what it waits for first: %+v", l)
+	}
+	e.clock.Advance(13 * time.Hour)
+	e.tick(application.TickProjectStage, id, "1")
+	if l := e.lineOf(e.head, id); l.Stage != 1 || l.Waiting != village.ProjectWaitDelay {
+		t.Fatalf("the least time is over, but the delay still holds it: %+v", l)
+	}
+	e.clock.Advance(8 * time.Hour)
+	e.tick(application.TickProjectStage, id, "1")
+	if got := e.scalarInt(`SELECT stage FROM special_projects WHERE id = $1::uuid`, id); got != 2 {
+		t.Fatalf("when the delay is over the stage is accepted, stage %d", got)
+	}
+	e.verifySpecial()
+}
+
+// A contractor that does not finish forfeits its bond to the fund, the unpaid part of the escrow goes back, and it is kept from public works for a time.
+func TestAContractorWhoMissesTheDeadlineForfeitsItsBondAndIsDebarred(t *testing.T) {
+	e := newSpecialEnv(t, nil)
+	e.know(e.cityID, "masonry", "canal_irrigation")
+	e.clock.Advance(4 * 24 * time.Hour)
+	id := e.startProject(e.head, "aqueduct")
+	e.mustProject(e.head, handlers.VillageProjectRequest{Action: village.ProjectActionAllocate, ID: id, Amount: "6000"})
+	owner, c := e.contractor("A", 20_000)
+	e.mustProject(e.head, handlers.VillageProjectRequest{Action: village.ProjectActionTender, ID: id, Cap: "4000", Due: "1", Window: "24", Rule: "lowest_price"})
+	contract := e.contractOf(id)
+	if kind := e.bidOn(owner, contract, c, 2000, 1); kind != "" {
+		t.Fatalf("the bid stands, got %q", kind)
+	}
+	e.clock.Advance(25 * time.Hour)
+	e.tickOf(application.TickContractClose, contract)
+	if e.text(`SELECT status FROM project_contracts WHERE id = $1::uuid`, contract) != "awarded" {
+		t.Fatal("the only bid wins")
+	}
+	fund0 := e.fundOf(id)
+	company0 := e.companyCash(c)
+	e.tickOf(application.TickContractDue, contract) // not yet overdue
+	if e.text(`SELECT status FROM project_contracts WHERE id = $1::uuid`, contract) != "awarded" {
+		t.Fatal("before the deadline and its grace nothing is forfeited")
+	}
+	e.clock.Advance(time.Duration(1*24)*time.Hour + e.rules.TenderGrace + time.Hour)
+	e.tickOf(application.TickContractDue, contract)
+	e.tickOf(application.TickContractDue, contract)
+	if e.text(`SELECT status FROM project_contracts WHERE id = $1::uuid`, contract) != "failed" {
+		t.Fatal("a missed deadline fails the contract")
+	}
+	if got := e.fundOf(id) - fund0; got != 2000+200 {
+		t.Fatalf("the unpaid escrow and the forfeited bond (10 percent) go back to the fund: %+d", got)
+	}
+	if e.projectEscrow(contract) != 0 {
+		t.Fatal("the escrow is empty")
+	}
+	if got := company0 - e.companyCash(c); got != 0 {
+		t.Fatalf("the company's bond was already in the escrow, nothing more is taken: %d", got)
+	}
+	if e.scalarInt(`SELECT count(*) FROM tender_debarments WHERE company_id = $1::uuid`, c) != 1 {
+		t.Fatal("the company is debarred")
+	}
+	// another work, another tender: the debarred company cannot bid
+	id2 := e.startProject(e.head, "aqueduct")
+	e.mustProject(e.head, handlers.VillageProjectRequest{Action: village.ProjectActionAllocate, ID: id2, Amount: "3000"})
+	e.mustProject(e.head, handlers.VillageProjectRequest{Action: village.ProjectActionTender, ID: id2, Cap: "4000", Due: "1", Window: "24", Rule: "lowest_price"})
+	if kind := e.bidOn(owner, e.contractOf(id2), c, 2000, 1); kind != village.ProjectDebarred {
+		t.Fatalf("a debarred company is refused, got %q", kind)
+	}
+	e.verifySpecial()
+}
+
+// contractor is a contractor company and its owner; what the item wrote about them is taken away before they go.
+func (e *specialEnv) contractor(place string, funds int64) (*application.Player, string) {
+	e.t.Helper()
+	owner, c := e.polityEnv.contractor(place, funds)
+	e.t.Cleanup(e.cleanSpecial)
+	return owner, c
+}
+
+func (e *specialEnv) companyFor(owner *application.Player, city string, funds int64) string {
+	e.t.Helper()
+	c := e.polityEnv.companyFor(owner, city, funds)
+	e.t.Cleanup(e.cleanSpecial)
+	return c
+}
