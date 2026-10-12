@@ -347,6 +347,9 @@ type Pack struct {
 	SpecialProjects []SpecialProjectDef
 	IntelOps        []IntelOpDef
 	LicenceKinds    []LicenceKindDef
+	// Law and the underworld (law.go, docs/adr/0078).
+	Offences     []OffenceDef
+	ShadowSupply []ShadowSupplyDef
 
 	// world.yml: world generation content (worldgen.go). LoadWorldGen is
 	// the function a caller actually generating a world uses; these fields

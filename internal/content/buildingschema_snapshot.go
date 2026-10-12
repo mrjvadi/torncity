@@ -27,6 +27,8 @@ type buildingSchemaIndex struct {
 	projects    []SpecialProjectDef
 	intelOps    []IntelOpDef
 	licences    []LicenceKindDef
+	offences    []OffenceDef
+	shadow      []ShadowSupplyDef
 }
 
 func (s *Snapshot) buildBuildingSchema(p *Pack) {
@@ -96,6 +98,8 @@ func (s *Snapshot) buildBuildingSchema(p *Pack) {
 	ix.projects = append(ix.projects, p.SpecialProjects...)
 	ix.intelOps = append(ix.intelOps, p.IntelOps...)
 	ix.licences = append(ix.licences, p.LicenceKinds...)
+	ix.offences = append(ix.offences, p.Offences...)
+	ix.shadow = append(ix.shadow, p.ShadowSupply...)
 	s.schema = ix
 }
 

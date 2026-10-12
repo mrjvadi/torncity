@@ -18,6 +18,7 @@ import (
 var knownSwitches = []struct{ key, def string }{
 	{switches.KeyTelegramPlay, switches.PlayOn},
 	{switches.KeyTelegramNotices, switches.NoticesOn},
+	{switches.KeyMature, switches.MatureOff},
 }
 
 // System > Switches (migrations/0041_runtime_switches): the operator's

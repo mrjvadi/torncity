@@ -171,6 +171,8 @@ type file struct {
 	SpecialProjects         []SpecialProjectDef         `yaml:"special_projects"`
 	IntelOps                []IntelOpDef                `yaml:"intel_ops"`
 	LicenceKinds            []LicenceKindDef            `yaml:"licence_kinds"`
+	Offences                []OffenceDef                `yaml:"offences"`
+	ShadowSupply            []ShadowSupplyDef           `yaml:"shadow_supply"`
 
 	// World generation (world.yml): the biomes, resource-geology rules and
 	// naming material worldgen.Generate reads. See worldgen.go. These are
@@ -374,6 +376,8 @@ func Load(dir string) (*Pack, error) {
 		pack.SpecialProjects = append(pack.SpecialProjects, doc.SpecialProjects...)
 		pack.IntelOps = append(pack.IntelOps, doc.IntelOps...)
 		pack.LicenceKinds = append(pack.LicenceKinds, doc.LicenceKinds...)
+		pack.Offences = append(pack.Offences, doc.Offences...)
+		pack.ShadowSupply = append(pack.ShadowSupply, doc.ShadowSupply...)
 		if doc.Rail != nil {
 			pack.Rail = append(pack.Rail, *doc.Rail)
 		}

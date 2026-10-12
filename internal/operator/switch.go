@@ -32,6 +32,10 @@ func (o Ops) SetSwitch(ctx context.Context, key, value string, actor Actor) (pos
 		if !switches.ValidNoticeMode(value) {
 			return postgres.SwitchState{}, fmt.Errorf("operator: %s takes on or off, not %q", key, value)
 		}
+	case switches.KeyMature:
+		if !switches.ValidMatureMode(value) {
+			return postgres.SwitchState{}, fmt.Errorf("operator: %s takes on or off, not %q", key, value)
+		}
 	}
 	return postgres.NewSwitchOps(o.Pool).Set(ctx, postgres.SwitchChange{Key: key, Value: value, Actor: actor.panel()})
 }

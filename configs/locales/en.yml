@@ -390,6 +390,9 @@ settlement_building:
   airport: Airport
   home_workshop: Home workshop
   market_stall: Market stall
+  courthouse: "Courthouse"
+  jail: "Jail"
+  customs_house: "Customs house"
 
 # Group founding (docs/adr/0028-world-and-settlements.md section 3): a group
 # admin registers the group and the game places the new city on the map.
@@ -1565,6 +1568,15 @@ staff_role:
   prospector: "Prospector"
   stationmaster: "Stationmaster"
   loader: "Station loader"
+  constable: "Constable"
+  police_officer: "Station officer"
+  desk_clerk: "Station desk clerk"
+  court_clerk: "Court clerk"
+  bailiff: "Bailiff"
+  warder: "Jail warder"
+  jail_cook: "Jail cook"
+  customs_inspector: "Customs inspector"
+  customs_clerk: "Customs clerk"
 building_function:
   intelligence_office: "Intelligence office"
   great_beacon: "Great beacon"
@@ -1647,6 +1659,11 @@ building_function:
   exchange_house: "Exchange house"
   bank: "Bank"
   rail_station: "Rail station"
+  constable_post: "Constable post"
+  police_post: "Police station"
+  courthouse: "Courthouse"
+  jail: "Jail"
+  customs_house: "Customs house"
 recipe:
   hide_wrap: "Hide wrap"
   hide_boots: "Hide boots"

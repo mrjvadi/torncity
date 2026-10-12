@@ -73,6 +73,25 @@ const (
 	PoliceFine   Permission = "police.fine"
 	CourtJudge   Permission = "court.judge"
 
+	// Police, courts, jail, audits and customs of a settlement (docs/adr/0078 3.2). Nobody holds them by default; the charter creates the
+	// offices that do. court.judge takes a limit: the largest fine the holder may hand down (0: none); police.fine the largest fine on the spot.
+	PoliceInvestigate  Permission = "police.investigate"
+	PoliceArrest       Permission = "police.arrest"
+	PoliceWarrantAsk   Permission = "police.warrant_ask"
+	PoliceInformantRun Permission = "police.informant_run"
+	ProsecuteCharge    Permission = "prosecute.charge"
+	ProsecuteDrop      Permission = "prosecute.drop"
+	DefenceAppear      Permission = "defence.appear"
+	CourtWarrant       Permission = "court.warrant"
+	CourtAppealHear    Permission = "court.appeal_hear"
+	JailRun            Permission = "jail.run"
+	Pardon             Permission = "pardon"
+	AuditIntegrity     Permission = "audit.integrity"
+	AuditBooks         Permission = "audit.books"
+	CustomsInspect     Permission = "customs.inspect"
+	// LawSet lists the offences the settlement outlaws and chooses its legal model.
+	LawSet Permission = "law.set"
+
 	ElectionCall  Permission = "election.call"
 	OfficeCreate  Permission = "office.create"
 	OfficeEdit    Permission = "office.edit"
@@ -165,7 +184,11 @@ var catalogue = []Def{
 	{CitizenAdmit, "people", false, true}, {CitizenBan, "people", false, false},
 	{StaffHire, "people", false, true}, {StaffFire, "people", false, true}, {JobsPost, "people", false, true},
 	{ResearchStart, "knowledge", false, true}, {ResearchShare, "knowledge", false, true}, {TradeExport, "treasury", false, true},
-	{PolicePatrol, "order", false, false}, {PoliceFine, "order", true, false}, {CourtJudge, "order", false, false},
+	{PolicePatrol, "order", false, true}, {PoliceFine, "order", true, true}, {CourtJudge, "order", true, true},
+	{PoliceInvestigate, "order", false, true}, {PoliceArrest, "order", false, true}, {PoliceWarrantAsk, "order", false, true}, {PoliceInformantRun, "order", false, true},
+	{ProsecuteCharge, "order", false, true}, {ProsecuteDrop, "order", false, true}, {DefenceAppear, "order", false, true}, {CourtWarrant, "order", false, true},
+	{CourtAppealHear, "order", false, true}, {JailRun, "order", false, true}, {Pardon, "order", false, true}, {AuditIntegrity, "order", false, true},
+	{AuditBooks, "order", false, true}, {CustomsInspect, "order", false, true}, {LawSet, "order", false, true},
 	{ElectionCall, "politics", false, false},
 	{OfficeCreate, "politics", false, true}, {OfficeEdit, "politics", false, true},
 	{OfficeAppoint, "politics", false, true}, {OfficeDismiss, "politics", false, true},
@@ -281,6 +304,9 @@ type Office struct {
 
 // Limits are the caps of rail R4 (config charter.*).
 type Limits struct {
+	// Inquisitorial lifts the separation of the prosecutor and the judge (a magistrate who investigates and judges, with an appeal to another
+	// office); the adversarial model, the default, keeps them in different offices (docs/adr/0078 3.2).
+	Inquisitorial bool
 	MaxOffices, MaxSeats, MaxPermissions int
 	TitleMin, TitleMax                   int
 	// Reserved are extra words no title may be (content: founding.yml reserved_names).
@@ -301,6 +327,8 @@ var (
 	ErrSeatsFull     = errors.New("charter: the office has no free seat")
 	ErrAlreadySeated = errors.New("charter: the player already holds this office")
 	ErrOfficeClosed  = errors.New("charter: the office is closed")
+	// ErrSeparation: one office may not hold powers the legal model keeps apart (docs/adr/0078 3.2).
+	ErrSeparation = errors.New("charter: this office would hold powers that must stay apart")
 )
 
 // reserved words nobody may use as a title whatever the content says (operator names).
@@ -402,6 +430,35 @@ func ValidateOffice(o Office, openAfter int, l Limits) error {
 	case AcquireHead, AcquireAppointment, AcquireElection:
 	default:
 		return ErrAcquisition
+	}
+	return ValidateSeparation(o, l.Inquisitorial)
+}
+
+// ValidateSeparation keeps apart the powers a fair process keeps apart (docs/adr/0078 3.2): in the adversarial model one office does not hold both
+// prosecute.charge and court.judge; and the office that audits the police for integrity does not hold the power to arrest. The founder's office
+// holds every power, so it is exempt here and is held to the same by the case itself (a person who charged a case never judges it).
+func ValidateSeparation(o Office, inquisitorial bool) error {
+	if o.Acquisition == AcquireHead {
+		return nil
+	}
+	var charge, judge, audit, arrest bool
+	for _, g := range o.Grants {
+		switch g.Permission {
+		case ProsecuteCharge:
+			charge = true
+		case CourtJudge:
+			judge = true
+		case AuditIntegrity:
+			audit = true
+		case PoliceArrest:
+			arrest = true
+		}
+	}
+	if charge && judge && !inquisitorial {
+		return fmt.Errorf("%w: %s and %s", ErrSeparation, ProsecuteCharge, CourtJudge)
+	}
+	if audit && arrest {
+		return fmt.Errorf("%w: %s and %s", ErrSeparation, AuditIntegrity, PoliceArrest)
 	}
 	return nil
 }

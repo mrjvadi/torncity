@@ -41,7 +41,25 @@ const (
 	// KeyTelegramNotices controls whether Telegram notices still go out
 	// while telegram_play is off (NoticesOn, NoticesOff).
 	KeyTelegramNotices = "telegram_notices"
+	// KeyMature is the one global operator switch of the mature content (docs/adr/0035 8, 0078 3.9): off by default, never per group or per
+	// player. When it is off nothing mature is listed, sent or traded. When it is on there is still no explicit content: NPC only, names only.
+	KeyMature = "mature"
 )
+
+// mature's values.
+const (
+	MatureOff = "off"
+	MatureOn  = "on"
+)
+
+// ValidMatureMode reports whether v is one mature accepts.
+func ValidMatureMode(v string) bool { return v == MatureOff || v == MatureOn }
+
+// MatureEnabled reads the mature switch. "Cannot tell" means off: a failing read, a missing source and a switch nobody ever set all answer false.
+func MatureEnabled(ctx context.Context, r *Reader) bool {
+	v, _, err := r.Get(ctx, KeyMature, MatureOff)
+	return err == nil && v == MatureOn
+}
 
 // telegram_play's values.
 const (

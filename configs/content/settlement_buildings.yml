@@ -228,6 +228,47 @@ settlement_buildings:
     upkeep: 20
     effects: []
 
+  # Law (docs/adr/0078 3.3): the courthouse, the jail and the customs house are working buildings with staff, inputs and a daily service
+  # (building_functions.yml); the constable post and the police post (below, in the security block) are un-gated by the same item.
+  - code: courthouse
+    name: "دادگاه"
+    role: governance
+    tier: 2
+    footprint: [2, 2]
+    requires_knowledge: [written_law, record_keeping]
+    requires_building_role: {role: governance, tier: 1}
+    cost_money: 2500
+    cost_materials: {timber: 8, paper: 4}
+    build_time: 3h
+    upkeep: 40
+    effects: []
+
+  - code: jail
+    name: "زندان"
+    role: security
+    tier: 3
+    footprint: [2, 2]
+    requires_knowledge: [penal_custody, written_law]
+    requires_building_role: {role: security, tier: 2}
+    cost_money: 4000
+    cost_materials: {timber: 10, stone: 10}
+    build_time: 5h
+    upkeep: 50
+    effects: []
+
+  - code: customs_house
+    name: "گمرک"
+    role: market
+    tier: 3
+    footprint: [2, 2]
+    requires_knowledge: [customs_duty, record_keeping]
+    requires_building_role: {role: market, tier: 1}
+    cost_money: 2000
+    cost_materials: {timber: 6, paper: 4}
+    build_time: 3h
+    upkeep: 35
+    effects: []
+
   # The bureau of ADR 0077: a clerk's office with an analyst and a handler (building_functions.yml: intelligence_office).
   - code: intelligence_office
     name: "دفتر اطلاعات"
@@ -328,7 +369,6 @@ settlement_buildings:
 
   - code: constable_post
     name: "پاسگاه ژاندارمری"
-    waits_for: "B14: the police powers (a constable and his deputies, patrols, arrests, a lock-up); a post that only adds a percentage is not offered (moved from B10 by ADR 0074, owner 2026-10-11)"
     role: security
     tier: 1
     footprint: [1, 1]
@@ -340,7 +380,6 @@ settlement_buildings:
 
   - code: police_post
     name: "کلانتری"
-    waits_for: "B14: the police (officers, patrols, investigation, a station with cells and a prosecutor); a post that only adds a percentage is not offered"
     role: security
     tier: 2
     footprint: [2, 2]
