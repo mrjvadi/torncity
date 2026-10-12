@@ -785,7 +785,10 @@ func (e *specialEnv) pinChance(bps int64) {
 // watchOf records a judged day of a settlement with one open watch post, so the target has someone to notice a stranger.
 func (e *specialEnv) watchOf(city string) string {
 	e.t.Helper()
-	post := newUUID(e.t)
+	post := e.text(`SELECT COALESCE((SELECT id::text FROM settlement_buildings WHERE settlement_id = $1::uuid AND type_code = 'lookout_post' LIMIT 1), '')`, city)
+	if post == "" {
+		post = e.put(city, "lookout_post")
+	}
 	err := postgres.NewUnitOfWork(e.pool, testDefaultLanguage).Do(testCtx(e.t), func(ctx context.Context, tx application.Tx) error {
 		s, err := tx.Settlements().ByID(ctx, city)
 		if err != nil {
@@ -793,6 +796,7 @@ func (e *specialEnv) watchOf(city string) string {
 		}
 		today := clockOf(e.t).DayAtIn(e.clock.Now(), s.Zone())
 		for off := int64(-3); off <= 3; off++ {
+			// a day already judged stays as it is (the row is the fence)
 			if _, err := tx.ServiceDays().RecordDay(ctx, application.ServiceDay{SettlementID: city, Day: today + off, At: e.clock.Now(),
 				Posts: []application.ServicePost{{BuildingID: post, Service: "local_security", Held: true, Staff: 1}}}); err != nil {
 				return err
@@ -906,4 +910,85 @@ func (e *specialEnv) drainStock(item string) {
 	if err != nil {
 		e.t.Fatal(err)
 	}
+}
+
+// A blown operation tests the target's open watch posts, one seeded roll for each post and operation; a post that notices puts the agent out of the
+// settlement for a time, with nothing of theirs lost. The sponsor is named to the target only if the trace rolls true.
+func TestABlownOperationIsNoticedByTheWatchAndPutsTheAgentOut(t *testing.T) {
+	e := newSpecialEnv(t, nil)
+	e.pinChance(0) // every operation is blown
+	e.retune(func(r *application.SpecialRules) { r.Intel.DetectBPS, r.Intel.AttributionBPS = 10_000, 0 })
+	agent, agentID := e.agentOf()
+	post := e.watchOf(e.attCity)
+	cash0 := e.cash(agent)
+	home := e.text(`SELECT residence_city_id::text FROM players WHERE id = $1::uuid`, agent.ID)
+	if home != e.attCity {
+		t.Fatal("the agent lives in the target")
+	}
+	v := e.mustIntel(agent, handlers.VillageIntelRequest{Action: village.IntelActionOp, ID: agentID, Code: "survey_stock"})
+	if v.Notice != village.IntelNoticeExposed {
+		t.Fatalf("a watch that sees a blown operation exposes the agent, the notice was %q", v.Notice)
+	}
+	if e.scalarInt(`SELECT count(*) FROM intel_reports`) != 0 {
+		t.Fatal("a blown operation brings no report")
+	}
+	if e.scalarInt(`SELECT count(*) FROM intel_exposures WHERE detector_id = $1::uuid AND detected`, post) != 1 {
+		t.Fatal("the post's roll is written once")
+	}
+	if e.text(`SELECT status FROM intel_agents WHERE id = $1::uuid`, agentID) != "expelled" {
+		t.Fatal("the agent is put out")
+	}
+	until := e.text(`SELECT until::text FROM intel_expulsions WHERE agent_id = $1::uuid`, agentID)
+	if until == "" || e.scalarInt(`SELECT count(*) FROM intel_expulsions WHERE agent_id = $1::uuid AND NOT attributed`, agentID) != 1 {
+		t.Fatal("the stay is recorded and, the trace failing, the sponsor is not named")
+	}
+	if e.cash(agent) < cash0 {
+		t.Fatalf("nothing the agent has is taken: %d -> %d", cash0, e.cash(agent))
+	}
+	// the target sees that someone was put out, not who sent them
+	tv := e.mustIntel(e.att, handlers.VillageIntelRequest{Action: village.IntelActionOpen})
+	if len(tv.Expelled) != 1 || tv.Expelled[0].Sponsor != nil {
+		t.Fatalf("the target sees the expulsion and no sponsor: %+v", tv.Expelled)
+	}
+	// the operation is not repeated for the same agent: the agent is out
+	if _, kind := e.intel(agent, handlers.VillageIntelRequest{Action: village.IntelActionOp, ID: agentID, Code: "survey_garrison"}); kind != village.IntelNoAgent {
+		t.Fatalf("an agent put out works no more, got %q", kind)
+	}
+	// the residence in the target ended: they were sent to the neutral city, with their money
+	if now := e.text(`SELECT COALESCE(residence_city_id::text, '') FROM players WHERE id = $1::uuid`, agent.ID); now == e.attCity {
+		t.Fatalf("the agent's residence in the target ended, still %s", now)
+	}
+	e.pool.Raw().Exec(testCtx(t), `UPDATE players SET residence_city_id = $1::uuid WHERE id = $2::uuid`, e.attCity, agent.ID)
+	// a new offer to the same person: while the stay lasts the cover is void
+	e.mustIntel(e.head, handlers.VillageIntelRequest{Action: village.IntelActionEngage, Player: agent.PublicCode, Code: e.codeOf(e.attCity)})
+	again := e.text(`SELECT id::text FROM intel_agents WHERE player_id = $1::uuid AND status = 'offered'`, agent.ID)
+	e.mustIntel(agent, handlers.VillageIntelRequest{Action: village.IntelActionAccept, ID: again})
+	if _, kind := e.intel(agent, handlers.VillageIntelRequest{Action: village.IntelActionOp, ID: again, Code: "survey_garrison"}); kind != village.IntelExpelled {
+		t.Fatalf("an agent put out may not work there again until the stay is over, got %q", kind)
+	}
+	// with a trace that always lands, the target is told whose agent it was
+	e.retune(func(r *application.SpecialRules) { r.Intel.AttributionBPS = 10_000 })
+	e.clock.Advance(time.Duration(e.special.Intel.ExpelDays+1) * 24 * time.Hour)
+	e.watchOf(e.attCity) // before anyone looks at the new day of the target
+	e.mustIntel(e.head, handlers.VillageIntelRequest{Action: village.IntelActionRecall, ID: again})
+	e.mustIntel(e.head, handlers.VillageIntelRequest{Action: village.IntelActionEngage, Player: agent.PublicCode, Code: e.codeOf(e.attCity)})
+	third := e.text(`SELECT id::text FROM intel_agents WHERE player_id = $1::uuid AND status = 'offered'`, agent.ID)
+	e.mustIntel(agent, handlers.VillageIntelRequest{Action: village.IntelActionAccept, ID: third})
+	e.stock("paper", 20)
+	e.earn(e.cityID, 5000)
+	e.pool.Raw().Exec(testCtx(t), `UPDATE players SET residence_city_id = $1::uuid WHERE id = $2::uuid`, e.attCity, agent.ID)
+	if v := e.mustIntel(agent, handlers.VillageIntelRequest{Action: village.IntelActionOp, ID: third, Code: "survey_stock"}); v.Notice != village.IntelNoticeExposed {
+		t.Fatalf("the second exposure, got %q", v.Notice)
+	}
+	tv = e.mustIntel(e.att, handlers.VillageIntelRequest{Action: village.IntelActionOpen})
+	named := 0
+	for _, x := range tv.Expelled {
+		if x.Sponsor != nil && x.Sponsor.Code == e.codeOf(e.cityID) {
+			named++
+		}
+	}
+	if named != 1 {
+		t.Fatalf("when the trace lands the target is told whose agent it was: %+v", tv.Expelled)
+	}
+	e.verifySpecial()
 }
