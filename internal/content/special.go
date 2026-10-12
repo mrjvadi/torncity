@@ -45,6 +45,8 @@ type SpecialProjectDef struct {
 	Function string `yaml:"function" json:"function"`
 	// Effect names the system that reads a held work (one of the ProjectEffect constants).
 	Effect string `yaml:"effect" json:"effect"`
+	// EffectName is the effect in words for the player.
+	EffectName string `yaml:"effect_name,omitempty" json:"effect_name,omitempty"`
 	// Amount is the size of the effect where it has one: households watered, seats added, units of a visit's load.
 	Amount int64             `yaml:"amount,omitempty" json:"amount,omitempty"`
 	Stages []ProjectStageDef `yaml:"stages" json:"stages"`
@@ -92,6 +94,8 @@ type LicenceKindDef struct {
 	Name string `yaml:"name,omitempty" json:"name,omitempty"`
 	// Target is what an exclusive right is over: "" (not exclusive), deposit, link or craft. An exclusive right names its target.
 	Target string `yaml:"target,omitempty" json:"target,omitempty"`
+	// TargetName is what the target is, in words for the player (a craft, a deposit, a road).
+	TargetName string `yaml:"target_name,omitempty" json:"target_name,omitempty"`
 	// Gate is the action that stops without the licence once the settlement requires it: stall, craft or works. "" means the register only.
 	Gate string `yaml:"gate,omitempty" json:"gate,omitempty"`
 	// WaitsFor names the system a kind with no gate waits for. A kind with no reader cannot be required by a charter or applied for: a licence

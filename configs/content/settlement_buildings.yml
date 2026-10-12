@@ -254,7 +254,7 @@ settlement_buildings:
     build_time: 1h
     effects: []
   - code: city_wall
-    name: "حصار شهر"
+    name: "دیوار شهر"
     role: security
     tier: 3
     footprint: [2, 2]

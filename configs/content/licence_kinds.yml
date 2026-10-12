@@ -16,30 +16,33 @@ licence_kinds:
     requires: {knowledge: [record_keeping]}
     gate: stall
     transferable: true
-    duty: "keep the stall open and pay the fee of the term"
+    duty: "غرفه را باز نگه دارد و حق هر دوره را بپردازد"
   - code: craft_privilege
     source: "ADR 0077 7.2"
     evidence: D
     name: "امتیاز یک پیشه"
     requires: {knowledge: [record_keeping, craft_guild_charter]}
     target: craft
+    target_name: "پیشه"
     gate: craft
-    duty: "work the craft in the settlement and take apprentices"
+    duty: "پیشه را در شهر کار کند و شاگرد بپذیرد"
   - code: concession
     source: "ADR 0077 7.2"
     evidence: D
     name: "امتیاز بهره‌برداری"
     requires: {knowledge: [record_keeping]}
     target: deposit
+    target_name: "معدن یا کانسار"
     waits_for: "a pit, quarry or woodcutter that a citizen or a company owns (today the pits and forests are worked for the treasury, which needs no licence from itself)"
-    duty: "work the deposit safely and pay the royalty on what it yields"
+    duty: "معدن را بی‌خطر کار کند و سهم شهر را از بهره‌اش بدهد"
   - code: toll_franchise
     source: "ADR 0077 7.2"
     evidence: D
     name: "امتیاز عوارض راه"
     requires: {knowledge: [record_keeping]}
     target: link
-    duty: "keep the link in repair and remit the settlement's share of the toll"
+    target_name: "راه"
+    duty: "راه را سالم نگه دارد و سهم شهر را از عوارض بدهد"
     waits_for: "a collector of the road and rail toll other than the owning settlement (docs/adr/0075, docs/adr/0077 15)"
   - code: works_class
     source: "ADR 0077 7.2"
@@ -47,4 +50,4 @@ licence_kinds:
     name: "رتبهٔ پیمانکاری"
     requires: {knowledge: [record_keeping]}
     gate: works
-    duty: "do the public works awarded and keep the bond"
+    duty: "کارهای عمومیِ واگذارشده را انجام دهد و ضمانتش را نگه دارد"

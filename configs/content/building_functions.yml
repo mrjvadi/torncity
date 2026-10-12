@@ -1424,7 +1424,7 @@ building_functions:
   - code: city_wall
     source: "ADR 0077 4.2; ADR 0074 7.1"
     evidence: D
-    name: "حصار شهر"
+    name: "دیوار شهر"
     requires: {knowledge: [mounted_militia, masonry]}
     kind: service
     family: security

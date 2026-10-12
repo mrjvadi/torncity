@@ -8,6 +8,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/content"
 	"github.com/mrjvadi/torncity/internal/domain/charter"
+	"github.com/mrjvadi/torncity/internal/domain/intel"
 	"github.com/mrjvadi/torncity/internal/presentation"
 	"github.com/mrjvadi/torncity/internal/presentation/village"
 )
@@ -31,6 +32,23 @@ func (h *VillageHandler) intelView(ctx context.Context, tx application.Tx, snap 
 		return presentation.Named{Code: st.Code, Name: st.Name}
 	}
 	// the viewer's own engagements and offers, wherever they work
+	founded, err := tx.Settlements().Founded(ctx)
+	if err != nil {
+		return v, err
+	}
+	for _, f := range founded {
+		if !has || f.CityID != s.CityID {
+			v.Targets = append(v.Targets, village.IntelTargetLine{Target: presentation.Named{Code: f.Code, Name: f.Name}, Kind: "settlement"})
+		}
+	}
+	tune := h.special.Intel
+	v.Caps = village.IntelCaps{WeeklyLimit: tune.SabotageWeeklyLimit, DelayHours: tune.SabotageDelayHours, SpoilPercent: tune.SabotageSpoilBPS / 100, BlindPercent: tune.SabotageBlindBPS / 100,
+		SkipDays: tune.SabotageSkipDays, PerTargetDays: tune.SabotagePerTargetDays, Cost: tune.SabotageCost}
+	if has {
+		if v.Caps.UsedThisWeek, err = tx.Intel().ActsSince(ctx, s.CityID, now.Add(-7*24*time.Hour)); err != nil {
+			return v, err
+		}
+	}
 	mineAgents, err := tx.Intel().AgentsOfPlayer(ctx, p.ID, 20)
 	if err != nil {
 		return v, err
@@ -52,6 +70,11 @@ func (h *VillageHandler) intelView(ctx context.Context, tx application.Tx, snap 
 				return v, err
 			}
 			line.OpsToday = n
+			if h.sabotageOpen() {
+				if line.Choices, err = h.sabotageChoices(ctx, tx, snap, a.TargetID); err != nil {
+					return v, err
+				}
+			}
 			v.Agents = append(v.Agents, line)
 		}
 	}
@@ -169,4 +192,52 @@ func sortedFieldKeys(m map[string]string) []string {
 	}
 	sort.Strings(out)
 	return out
+}
+
+// sabotageChoices lists what each act may be aimed at in the target: its projects in progress, the kinds of goods in its warehouse (no
+// quantities) and its detector and service buildings. Only what a sponsor could plausibly see from outside.
+func (h *VillageHandler) sabotageChoices(ctx context.Context, tx application.Tx, snap *content.Snapshot, targetID string) ([]village.IntelChoiceLine, error) {
+	var out []village.IntelChoiceLine
+	projects, err := tx.Projects().OfSettlement(ctx, targetID, 20)
+	if err != nil {
+		return nil, err
+	}
+	for _, pr := range projects {
+		if !pr.Active() {
+			continue
+		}
+		name := pr.Kind
+		if d, ok := snap.SpecialProject(pr.Kind); ok {
+			name = d.Name
+		}
+		out = append(out, village.IntelChoiceLine{Op: intel.DelayWork, Ref: presentation.Named{Code: pr.ID, Name: name}, Kind: "project"})
+	}
+	stacks, _, err := tx.Items().OrgHoldings(ctx, application.SettlementOrg(targetID), application.HoldWarehouse)
+	if err != nil {
+		return nil, err
+	}
+	seen := map[string]bool{}
+	sort.Slice(stacks, func(i, j int) bool { return stacks[i].Item < stacks[j].Item })
+	for _, st := range stacks {
+		if st.Qty < 1 || seen[st.Item] {
+			continue
+		}
+		seen[st.Item] = true
+		name := st.Item
+		if d, ok := snap.ItemDef(st.Item); ok {
+			name = d.Name
+		}
+		out = append(out, village.IntelChoiceLine{Op: intel.SpoilStock, Ref: presentation.Named{Code: st.Item, Name: name}, Kind: "item"})
+	}
+	buildings, err := tx.SettlementBuildings().List(ctx, targetID)
+	if err != nil {
+		return nil, err
+	}
+	for _, d := range detectorPosts(snap, buildings) {
+		out = append(out, village.IntelChoiceLine{Op: intel.BlindPost, Ref: presentation.Named{Code: d.b.ID, Name: h.buildingName(d.b.TypeCode)}, Kind: "building"})
+	}
+	for _, d := range servicePosts(snap, buildings) {
+		out = append(out, village.IntelChoiceLine{Op: intel.SkipServiceDay, Ref: presentation.Named{Code: d.b.ID, Name: h.buildingName(d.b.TypeCode)}, Kind: "building"})
+	}
+	return out, nil
 }

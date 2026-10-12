@@ -394,7 +394,7 @@ biome:
 settlement_building:
   intelligence_office: "دفتر اطلاعات"
   great_beacon: "فانوس بزرگ"
-  city_wall: "حصار شهر"
+  city_wall: "دیوار شهر"
   great_library: "کتابخانهٔ بزرگ"
   aqueduct: "قنات آب شهر"
   great_canal: "کانال بزرگ"
@@ -1673,7 +1673,7 @@ staff_role:
 building_function:
   intelligence_office: "دفتر اطلاعات"
   great_beacon: "فانوس بزرگ"
-  city_wall: "حصار شهر"
+  city_wall: "دیوار شهر"
   great_library: "کتابخانهٔ بزرگ"
   aqueduct: "قنات آب شهر"
   great_canal: "کانال بزرگ"

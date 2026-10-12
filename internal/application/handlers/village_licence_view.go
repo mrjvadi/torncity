@@ -39,7 +39,7 @@ func (h *VillageHandler) licenceView(ctx context.Context, tx application.Tx, sna
 		if err != nil {
 			return v, err
 		}
-		line := village.LicenceKindLine{Code: d.Code, Name: d.Name, Target: d.Target, Gate: d.Gate, Duty: d.Duty, Available: len(missing) == 0, Missing: missing, Deferred: d.Gate == ""}
+		line := village.LicenceKindLine{Code: d.Code, Name: d.Name, Target: d.Target, TargetName: d.TargetName, Options: h.licenceOptions(snap, d), Gate: d.Gate, Duty: d.Duty, Available: len(missing) == 0, Missing: missing, Deferred: d.Gate == ""}
 		if r, ok := ruleOf[d.Code]; ok {
 			at := r.EffectiveAt
 			line.Required, line.Mode, line.Fee, line.Reserve, line.TermDays, line.Transferable, line.EffectiveAt = true, r.Mode, r.Fee, r.Reserve, r.TermDays, r.Transferable, &at
@@ -167,4 +167,25 @@ func (h *VillageHandler) licenceLine(ctx context.Context, tx application.Tx, l a
 	line.MayList = mine && l.Status == "active" && l.Transferable && now.Before(l.TermEnd) && h.licenceRules().TransferOpen(l.CreatedAt, now)
 	line.MayRevoke = l.Status == "active" && !mineList
 	return line, nil
+}
+
+// licenceOptions are the things an exclusive right may be over, to pick from: the crafts for a craft right. A deposit or a road has no
+// catalogue to pick from yet (those kinds wait for their reader), so the list is empty.
+func (h *VillageHandler) licenceOptions(snap *content.Snapshot, d content.LicenceKindDef) []presentation.Named {
+	if d.Target != "craft" {
+		return nil
+	}
+	cd, ok := snap.Crafting()
+	if !ok {
+		return nil
+	}
+	names := map[string]string{}
+	for _, sk := range snap.Skills() {
+		names[sk.Code] = sk.Name
+	}
+	var out []presentation.Named
+	for _, c := range cd.Apprenticeship.Crafts {
+		out = append(out, presentation.Named{Code: c.Craft, Name: names[c.Craft]})
+	}
+	return out
 }

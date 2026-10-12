@@ -17,6 +17,7 @@ special_projects:
     requires: {knowledge: [communal_watch, signal_fires, masonry]}
     function: great_beacon
     effect: detector
+    effect_name: "دیده‌بانی از دور"
     stages:
       - {materials: {stone: 40, timber: 10}, labour_hours: 24, min_hours: 12}
       - {materials: {stone: 60, timber: 10}, labour_hours: 32, min_hours: 12}
@@ -25,10 +26,11 @@ special_projects:
   - code: city_wall
     source: "ADR 0077 4.2"
     evidence: D
-    name: "حصار شهر"
+    name: "دیوار شهر"
     requires: {knowledge: [mounted_militia, masonry]}
     function: city_wall
     effect: garrison
+    effect_name: "جای نگهبان بیشتر"
     stages:
       - {materials: {stone: 60, timber: 10}, labour_hours: 40, min_hours: 12}
       - {materials: {stone: 80}, labour_hours: 48, min_hours: 12}
@@ -41,6 +43,7 @@ special_projects:
     requires: {knowledge: [basic_literacy, masonry]}
     function: great_library
     effect: research
+    effect_name: "کرسی‌های دانشمند"
     stages:
       - {materials: {stone: 30, timber: 20}, labour_hours: 24, min_hours: 12}
       - {materials: {brick: 30, plank: 20}, labour_hours: 32, min_hours: 12}
@@ -52,6 +55,7 @@ special_projects:
     requires: {knowledge: [masonry, canal_irrigation]}
     function: aqueduct
     effect: household_water
+    effect_name: "آب خانه‌ها"
     amount: 40
     stages:
       - {materials: {stone: 40, clay: 20}, labour_hours: 32, min_hours: 12}
@@ -64,6 +68,7 @@ special_projects:
     requires: {knowledge: [masonry, canal_irrigation]}
     function: great_canal
     effect: farm_water
+    effect_name: "آب مزرعه‌ها"
     stages:
       - {materials: {timber: 20, stone: 20}, labour_hours: 48, min_hours: 12}
       - {materials: {stone: 40, clay: 20}, labour_hours: 56, min_hours: 12}
@@ -76,6 +81,7 @@ special_projects:
     requires: {knowledge: [temple_school, masonry]}
     function: great_temple
     effect: trade_footfall
+    effect_name: "رفت‌وآمد بازار"
     amount: 20
     stages:
       - {materials: {stone: 50, timber: 10}, labour_hours: 32, min_hours: 12}

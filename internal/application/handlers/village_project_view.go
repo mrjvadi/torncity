@@ -47,7 +47,7 @@ func (h *VillageHandler) projectView(ctx context.Context, tx application.Tx, sna
 		if err != nil {
 			return v, err
 		}
-		v.Kinds = append(v.Kinds, village.ProjectKindLine{Code: d.Code, Name: d.Name, Stages: len(d.Stages), Effect: d.Effect, Available: len(missing) == 0, Missing: missing})
+		v.Kinds = append(v.Kinds, village.ProjectKindLine{Code: d.Code, Name: d.Name, Stages: len(d.Stages), Effect: d.Effect, EffectName: d.EffectName, Available: len(missing) == 0, Missing: missing})
 	}
 	projects, err := tx.Projects().OfSettlement(ctx, s.CityID, 20)
 	if err != nil {
