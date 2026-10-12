@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"math"
 	stderrors "errors"
 	"strings"
 	"time"
@@ -11,6 +12,7 @@ import (
 	"github.com/mrjvadi/torncity/internal/domain/charter"
 	"github.com/mrjvadi/torncity/internal/domain/diplomacy"
 	"github.com/mrjvadi/torncity/internal/domain/polity"
+	"github.com/mrjvadi/torncity/internal/domain/raid"
 	"github.com/mrjvadi/torncity/internal/domain/worldgen"
 	"github.com/mrjvadi/torncity/internal/messaging/nats/envelope"
 	"github.com/mrjvadi/torncity/internal/presentation"
@@ -549,4 +551,79 @@ func lockParties(ctx context.Context, tx application.Tx, a, b string) error {
 		return err
 	}
 	return tx.Unions().LockParty(ctx, second)
+}
+
+// alliedBeacons are the open beacon towers of the settlements allied with the defender by a treaty whose type carries the beacon relay, as nodes
+// of the relay chain: their places on the plane of the defender's centre, taken from the settlements' places on the world and the lots of the
+// towers. A tower is open when its settlement's last service day held it. Before the rules start, or with no alliance, there are none.
+func (h *VillageHandler) alliedBeacons(ctx context.Context, tx application.Tx, snap *content.Snapshot, defender application.FoundedSettlement) ([]raid.Beacon, error) {
+	if !h.polityOpen() {
+		return nil, nil
+	}
+	founded, err := tx.Settlements().Founded(ctx)
+	if err != nil {
+		return nil, err
+	}
+	now := h.now()
+	types := h.treatyTypes(snap)
+	ours, err := h.polityJurisdictions(ctx, tx, defender.CityID, defender.JurisdictionID)
+	if err != nil {
+		return nil, err
+	}
+	var out []raid.Beacon
+	var w *worldgen.World
+	for _, o := range founded {
+		if o.CityID == defender.CityID {
+			continue
+		}
+		theirs, err := h.polityJurisdictions(ctx, tx, o.CityID, o.JurisdictionID)
+		if err != nil {
+			return nil, err
+		}
+		ts, err := h.treatiesAmong(ctx, tx, ours, theirs)
+		if err != nil {
+			return nil, err
+		}
+		if len(ts) == 0 {
+			continue
+		}
+		allied := false
+		for _, a := range ours {
+			for _, b := range theirs {
+				allied = allied || diplomacy.Allied(ts, types, a, b, now)
+			}
+		}
+		if !allied {
+			continue
+		}
+		buildings, err := tx.SettlementBuildings().List(ctx, o.CityID)
+		if err != nil {
+			return nil, err
+		}
+		day, err := tx.ServiceDays().Last(ctx, o.CityID)
+		if err != nil {
+			return nil, err
+		}
+		if day == nil {
+			continue
+		}
+		if w == nil {
+			if w, err = h.world(ctx); err != nil {
+				return nil, err
+			}
+		}
+		if int(defender.WorldCellID) >= len(w.Cells) || int(o.WorldCellID) >= len(w.Cells) || defender.WorldCellID < 0 || o.WorldCellID < 0 {
+			continue
+		}
+		dp, op := w.Cells[defender.WorldCellID].Point, w.Cells[o.WorldCellID].Point
+		const earthM = 6_371_000.0
+		dx := (op.LonDeg - dp.LonDeg) * math.Pi / 180 * math.Cos(dp.LatDeg*math.Pi/180) * earthM
+		dy := (op.LatDeg - dp.LatDeg) * math.Pi / 180 * earthM
+		for _, p := range detectorPosts(snap, buildings) {
+			if p.beacon() && day.HeldPost(p.b.ID) {
+				out = append(out, raid.Beacon{ID: "ally:" + p.b.ID, X: dx + float64(p.b.LotX)*30, Y: dy + float64(p.b.LotY)*30, Held: true})
+			}
+		}
+	}
+	return out, nil
 }
