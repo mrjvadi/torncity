@@ -317,7 +317,7 @@ CREATE TABLE sovereign_loans (
     replaces        uuid        NULL,
     closed_at       timestamptz NULL,
     CONSTRAINT sovereign_loans_parties_check CHECK (NOT (lender_kind = borrower_kind AND lender_id = borrower_id)),
-    CONSTRAINT sovereign_loans_paid_check CHECK (paid <= periods)
+    CONSTRAINT sovereign_loans_paid_total_check CHECK (paid <= periods)
 );
 CREATE INDEX sovereign_loans_lender_idx ON sovereign_loans (lender_kind, lender_id);
 CREATE INDEX sovereign_loans_borrower_idx ON sovereign_loans (borrower_kind, borrower_id);
