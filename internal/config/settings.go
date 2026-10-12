@@ -1830,12 +1830,6 @@ var coreSettings = []setting{
 	moneySetting("projects", "cancel_before_stage",
 		func(c *Config) *int64 { return &c.Projects.CancelBeforeStage },
 		func(f *fileConfig) *int64 { return f.Projects.CancelBeforeStage }),
-	moneySetting("projects", "upkeep_period_hours",
-		func(c *Config) *int64 { return &c.Projects.UpkeepPeriodHours },
-		func(f *fileConfig) *int64 { return f.Projects.UpkeepPeriodHours }),
-	moneySetting("projects", "neglect_after_periods",
-		func(c *Config) *int64 { return &c.Projects.NeglectAfterPeriods },
-		func(f *fileConfig) *int64 { return f.Projects.NeglectAfterPeriods }),
 	moneySetting("projects", "max_open",
 		func(c *Config) *int64 { return &c.Projects.MaxOpen },
 		func(f *fileConfig) *int64 { return f.Projects.MaxOpen }),
@@ -3423,19 +3417,17 @@ type currencySettings struct {
 }
 
 type projectsSettings struct {
-	RuleAt              *string `yaml:"rule_at"`
-	GraceDays           *int64  `yaml:"grace_days"`
-	StartFee            *int64  `yaml:"start_fee"`
-	PledgeMin           *int64  `yaml:"pledge_min"`
-	CancelBeforeStage   *int64  `yaml:"cancel_before_stage"`
-	UpkeepPeriodHours   *int64  `yaml:"upkeep_period_hours"`
-	NeglectAfterPeriods *int64  `yaml:"neglect_after_periods"`
-	MaxOpen             *int64  `yaml:"max_open"`
-	ShiftMinutes        *int64  `yaml:"shift_minutes"`
-	ShiftHours          *int64  `yaml:"shift_hours"`
-	WagePerHour         *int64  `yaml:"wage_per_hour"`
-	NPCWagePerHour      *int64  `yaml:"npc_wage_per_hour"`
-	NPCHoursPerDay      *int64  `yaml:"npc_hours_per_day"`
+	RuleAt            *string `yaml:"rule_at"`
+	GraceDays         *int64  `yaml:"grace_days"`
+	StartFee          *int64  `yaml:"start_fee"`
+	PledgeMin         *int64  `yaml:"pledge_min"`
+	CancelBeforeStage *int64  `yaml:"cancel_before_stage"`
+	MaxOpen           *int64  `yaml:"max_open"`
+	ShiftMinutes      *int64  `yaml:"shift_minutes"`
+	ShiftHours        *int64  `yaml:"shift_hours"`
+	WagePerHour       *int64  `yaml:"wage_per_hour"`
+	NPCWagePerHour    *int64  `yaml:"npc_wage_per_hour"`
+	NPCHoursPerDay    *int64  `yaml:"npc_hours_per_day"`
 }
 
 type intelSettings struct {

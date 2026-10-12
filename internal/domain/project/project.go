@@ -123,25 +123,6 @@ func Refunds(fund int64, pledges []Pledge) map[string]int64 {
 // CancelOpen says whether a project may still be cancelled: before the stage named by cancelBefore starts.
 func CancelOpen(stage int, cancelBefore int64) bool { return int64(stage) < cancelBefore }
 
-// Upkeep is the state of a finished work's keeping.
-type Upkeep struct {
-	Unpaid    int
-	Neglected bool
-}
-
-// Period settles one upkeep period: paid, the work is kept and the count of missed periods is cleared (a neglected work is mended by the
-// payment); unpaid, the count rises and after limit periods the work is neglected. A neglected work is never destroyed.
-func (u Upkeep) Period(paid bool, limit int64) Upkeep {
-	if paid {
-		return Upkeep{}
-	}
-	u.Unpaid++
-	if int64(u.Unpaid) >= limit {
-		u.Neglected = true
-	}
-	return u
-}
-
 // Errors of the pure rules.
 var (
 	ErrNoStages = errors.New("project: a kind with no stages")

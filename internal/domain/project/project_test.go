@@ -82,22 +82,6 @@ func TestACancelIsOpenOnlyBeforeTheLimitStage(t *testing.T) {
 	}
 }
 
-func TestAWorkIsNeglectedAfterTheLimitAndMendedByAPayment(t *testing.T) {
-	u := Upkeep{}
-	u = u.Period(false, 2)
-	if u.Neglected || u.Unpaid != 1 {
-		t.Fatalf("one miss: %+v", u)
-	}
-	u = u.Period(false, 2)
-	if !u.Neglected {
-		t.Fatalf("two misses: %+v", u)
-	}
-	u = u.Period(true, 2)
-	if u.Neglected || u.Unpaid != 0 {
-		t.Fatalf("a payment mends it: %+v", u)
-	}
-}
-
 func TestNPCHoursAreCappedByTheDayAndByWhatTheStageStillAsks(t *testing.T) {
 	if NPCHours(8, 3, 100) != 5 || NPCHours(8, 8, 100) != 0 || NPCHours(8, 0, 2) != 2 || NPCHours(8, 0, 0) != 0 {
 		t.Fatal("npc hours")

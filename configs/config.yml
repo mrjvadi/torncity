@@ -1292,8 +1292,6 @@ projects:
   start_fee: 500   # the filing fee of a project, minor units, treasury to sink
   pledge_min: 100   # the least pledge to a project, minor units
   cancel_before_stage: 2   # a project may be cancelled (the unspent fund returns pro rata) only before this stage starts
-  upkeep_period_hours: 168   # real hours of one upkeep period of a finished work
-  neglect_after_periods: 2   # upkeep periods unpaid after which a finished work is neglected (its effect off, never destroyed)
   max_open: 3   # most unfinished projects of one settlement at a time
   shift_minutes: 20   # real minutes one crew shift on a project lasts
   shift_hours: 4   # crew-hours one shift adds to the stage

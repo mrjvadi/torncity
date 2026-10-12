@@ -29,9 +29,6 @@ CREATE TABLE special_projects (
     -- a stage cannot be accepted before this instant (a delay by sabotage moves it)
     delayed_until    timestamptz NULL,
     status           text        NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'finished', 'cancelled')),
-    neglected        boolean     NOT NULL DEFAULT false,
-    unpaid_periods   integer     NOT NULL DEFAULT 0 CHECK (unpaid_periods >= 0),
-    upkeep_due_at    timestamptz NULL,
     started_at       timestamptz NOT NULL,
     finished_at      timestamptz NULL,
     cancelled_at     timestamptz NULL,

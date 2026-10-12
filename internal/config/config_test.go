@@ -739,8 +739,6 @@ projects:
   start_fee: 8002
   pledge_min: 8003
   cancel_before_stage: 8004
-  upkeep_period_hours: 8005
-  neglect_after_periods: 8006
   max_open: 8007
   shift_minutes: 9006
   shift_hours: 9007
@@ -1578,8 +1576,6 @@ var envOverrides = map[string]string{
 	"TORN_PROJECTS_START_FEE":             "7002",
 	"TORN_PROJECTS_PLEDGE_MIN":            "7003",
 	"TORN_PROJECTS_CANCEL_BEFORE_STAGE":   "7004",
-	"TORN_PROJECTS_UPKEEP_PERIOD_HOURS":   "7005",
-	"TORN_PROJECTS_NEGLECT_AFTER_PERIODS": "7006",
 	"TORN_PROJECTS_MAX_OPEN":              "7007",
 	"TORN_INTEL_RULE_AT":                  "2031-01-02T03:04:05Z",
 	"TORN_INTEL_SABOTAGE_RULE_AT":         "2031-01-02T03:04:05Z",

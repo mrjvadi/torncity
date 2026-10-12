@@ -1931,19 +1931,17 @@ func Defaults() *Config {
 			TributeMin:           100,
 		},
 		Projects: Projects{
-			RuleAt:              "2099-01-01T00:00:00Z",
-			GraceDays:           14,
-			StartFee:            500,
-			PledgeMin:           100,
-			CancelBeforeStage:   2,
-			UpkeepPeriodHours:   168,
-			NeglectAfterPeriods: 2,
-			MaxOpen:             3,
-			ShiftMinutes:        20,
-			ShiftHours:          4,
-			WagePerHour:         80,
-			NPCWagePerHour:      60,
-			NPCHoursPerDay:      8,
+			RuleAt:            "2099-01-01T00:00:00Z",
+			GraceDays:         14,
+			StartFee:          500,
+			PledgeMin:         100,
+			CancelBeforeStage: 2,
+			MaxOpen:           3,
+			ShiftMinutes:      20,
+			ShiftHours:        4,
+			WagePerHour:       80,
+			NPCWagePerHour:    60,
+			NPCHoursPerDay:    8,
 		},
 		Intel: Intel{
 			RuleAt:                "2099-01-01T00:00:00Z",
@@ -3011,19 +3009,17 @@ type Mining struct {
 
 // Projects is the tuning of ADR 0077 (docs/adr/0077 4: special projects).
 type Projects struct {
-	RuleAt              string // projects.rule_at
-	GraceDays           int64  // projects.grace_days
-	StartFee            int64  // projects.start_fee
-	PledgeMin           int64  // projects.pledge_min
-	CancelBeforeStage   int64  // projects.cancel_before_stage
-	UpkeepPeriodHours   int64  // projects.upkeep_period_hours
-	NeglectAfterPeriods int64  // projects.neglect_after_periods
-	MaxOpen             int64  // projects.max_open
-	ShiftMinutes        int64  // projects.shift_minutes
-	ShiftHours          int64  // projects.shift_hours
-	WagePerHour         int64  // projects.wage_per_hour
-	NPCWagePerHour      int64  // projects.npc_wage_per_hour
-	NPCHoursPerDay      int64  // projects.npc_hours_per_day
+	RuleAt            string // projects.rule_at
+	GraceDays         int64  // projects.grace_days
+	StartFee          int64  // projects.start_fee
+	PledgeMin         int64  // projects.pledge_min
+	CancelBeforeStage int64  // projects.cancel_before_stage
+	MaxOpen           int64  // projects.max_open
+	ShiftMinutes      int64  // projects.shift_minutes
+	ShiftHours        int64  // projects.shift_hours
+	WagePerHour       int64  // projects.wage_per_hour
+	NPCWagePerHour    int64  // projects.npc_wage_per_hour
+	NPCHoursPerDay    int64  // projects.npc_hours_per_day
 }
 
 // Intel is the tuning of ADR 0077 (docs/adr/0077 5-6: intelligence bureau, agents, sabotage).
