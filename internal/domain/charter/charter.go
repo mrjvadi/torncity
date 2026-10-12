@@ -114,6 +114,21 @@ const (
 	RailDraw  Permission = "rail.draw"
 	HaulOrder Permission = "haul.order"
 
+	// Special projects, intelligence and the licence market (docs/adr/0077 8): starting and cancelling a project, spending the treasury on its
+	// fund and stock, accepting a stage; running the bureau, reading and sharing its reports, setting the vetting policy; creating the requirement
+	// of a licence, granting on application, auctioning a right, revoking one.
+	ProjectStart   Permission = "project.start"
+	ProjectFund    Permission = "project.fund"
+	ProjectAccept  Permission = "project.accept"
+	IntelRun       Permission = "intel.run"
+	IntelRead      Permission = "intel.read"
+	IntelShare     Permission = "intel.share"
+	CounterVet     Permission = "counter.vet"
+	LicenceSetKind Permission = "licence.set_kind"
+	LicenceIssue   Permission = "licence.issue"
+	LicenceAuction Permission = "licence.auction"
+	LicenceRevoke  Permission = "licence.revoke"
+
 	NoticePost Permission = "notice.post"
 
 	// SettingsTimezone changes the settlement's own time zone, which its daily
@@ -162,6 +177,9 @@ var catalogue = []Def{
 	{MilitaryCommand, "defence", false, true}, {MilitaryProcure, "defence", true, true}, {MilitaryLicence, "defence", false, true},
 	{DebtBorrow, "money", true, true}, {DebtLend, "money", true, true}, {DebtRestructure, "money", false, true},
 	{WorksTender, "works", true, true}, {WorksAccept, "works", false, true}, {RaidDeclare, "foreign", false, true}, {InsuranceRun, "treasury", false, true}, {MineRun, "land", false, true}, {RailDraw, "land", false, true}, {HaulOrder, "treasury", false, true},
+	{ProjectStart, "works", false, true}, {ProjectFund, "works", true, true}, {ProjectAccept, "works", false, true},
+	{IntelRun, "intel", false, true}, {IntelRead, "intel", false, true}, {IntelShare, "intel", false, true}, {CounterVet, "intel", false, true},
+	{LicenceSetKind, "licence", false, true}, {LicenceIssue, "licence", false, true}, {LicenceAuction, "licence", false, true}, {LicenceRevoke, "licence", false, true},
 	{NoticePost, "info", false, false},
 	{SettingsTimezone, "settings", false, true},
 	{CurrencyCharter, "currency", false, true},

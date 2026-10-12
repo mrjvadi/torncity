@@ -156,6 +156,9 @@ type VillageHandler struct {
 	// polity are the rules of unions, countries, treaties, tenders and sovereign loans (WithPolity, docs/adr/0076).
 	polity application.PolityRules
 
+	// special are the rules of special projects, intelligence and the licence market (WithSpecial, docs/adr/0077).
+	special application.SpecialRules
+
 	idempotencyTTL time.Duration
 	now            func() time.Time
 }
