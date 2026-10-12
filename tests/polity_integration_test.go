@@ -1136,3 +1136,236 @@ func TestAContractorThatMissesItsDeadlineForfeitsItsBondAndIsDebarred(t *testing
 	}
 	e.verifyPolity()
 }
+
+func (e *polityEnv) debt(p *application.Player, req handlers.VillageDebtRequest) (village.DebtView, string) {
+	e.t.Helper()
+	resp, err := e.village.Debt(testCtx(e.t), e.metaOf(p, "settlement.debt", "debt"), req)
+	if err != nil {
+		e.t.Fatalf("debt %s: %v", req.Action, err)
+	}
+	if resp.Screen == village.ScreenDebt {
+		var v village.DebtView
+		if err := presentation.DecodeView(resp.View, &v); err != nil {
+			e.t.Fatal(err)
+		}
+		return v, ""
+	}
+	return village.DebtView{}, refusalKind(e.t, resp.View)
+}
+
+func (e *polityEnv) mustDebt(p *application.Player, req handlers.VillageDebtRequest) village.DebtView {
+	e.t.Helper()
+	v, kind := e.debt(p, req)
+	if kind != "" {
+		e.t.Fatalf("debt %s was refused: %s", req.Action, kind)
+	}
+	return v
+}
+
+func (e *polityEnv) loanStatus(id string) string {
+	return e.text(`SELECT status FROM sovereign_loans WHERE id = $1::uuid`, id)
+}
+
+// pairCash is the money in the two settlements' treasuries together.
+func (e *polityEnv) pairCash() int64 { return e.cityCash(e.cityID) + e.cityCash(e.attCity) }
+
+// A loan between polities creates no money: the principal moves from one treasury to the other and the instalments move back; a borrower
+// that cannot pay is late, then in default, and the lender restructures by agreement or writes the debt off as a book entry; no loan is
+// offered that the lender cannot spare or the borrower could not carry (ADR 0076 11).
+func TestASovereignLoanCreatesNoMoneyAndADefaultIsHandled(t *testing.T) {
+	e := newPolityEnv(t, nil)
+	e.clock.Advance(4 * 24 * time.Hour)
+	codeA, codeB := e.codeOf(e.cityID), e.codeOf(e.attCity)
+	e.earn(e.attCity, 20_000)
+	e.clock.Advance(time.Hour)
+	// the rails of the offer
+	if _, kind := e.debt(e.head, handlers.VillageDebtRequest{Action: village.DebtActionOffer, Code: codeA, Principal: "1000", Rate: "1000", Periods: "4"}); kind != village.DebtSelf {
+		t.Fatalf("a polity cannot lend to itself: %q", kind)
+	}
+	if _, kind := e.debt(e.head, handlers.VillageDebtRequest{Action: village.DebtActionOffer, Code: codeB, Principal: "9000000", Rate: "1000", Periods: "4"}); kind != village.DebtLender {
+		t.Fatalf("a lender that does not hold it cannot lend: %q", kind)
+	}
+	if _, kind := e.debt(e.head, handlers.VillageDebtRequest{Action: village.DebtActionOffer, Code: codeB, Principal: "1000", Rate: "9999", Periods: "4"}); kind != village.DebtTerms {
+		t.Fatalf("a rate over the bound: %q", kind)
+	}
+	if _, kind := e.debt(e.head, handlers.VillageDebtRequest{Action: village.DebtActionOffer, Code: e.codeOf(e.cityC), Principal: "50000", Rate: "1000", Periods: "1"}); kind != village.DebtService {
+		t.Fatalf("C earns 60000 a period and could not carry a single instalment of 50000: %q", kind)
+	}
+	// a resident with no power cannot lend for the town
+	if _, kind := e.debt(e.resident("A"), handlers.VillageDebtRequest{Action: village.DebtActionOffer, Code: codeB, Principal: "1000", Rate: "1000", Periods: "4"}); kind != village.VillageNotOfficeHolder {
+		t.Fatalf("lending is a power of the charter: %q", kind)
+	}
+
+	money0 := e.pairCash()
+	e.mustDebt(e.head, handlers.VillageDebtRequest{Action: village.DebtActionOffer, Code: codeB, Principal: "4000", Rate: "1000", Periods: "4"})
+	loan := e.text(`SELECT id::text FROM sovereign_loans WHERE status = 'offered' ORDER BY offered_at DESC LIMIT 1`)
+	if e.pairCash() != money0 {
+		t.Fatal("an offer moves nothing")
+	}
+	// only the borrower accepts
+	if _, kind := e.debt(e.head, handlers.VillageDebtRequest{Action: village.DebtActionAccept, ID: loan}); kind != village.DebtNotParty {
+		t.Fatalf("the lender cannot accept its own offer: %q", kind)
+	}
+	aBefore := e.cityCash(e.cityID)
+	e.mustDebt(e.att, handlers.VillageDebtRequest{Action: village.DebtActionAccept, ID: loan})
+	if e.cityCash(e.cityID) != aBefore-4000 || e.pairCash() != money0 {
+		t.Fatalf("the principal moved from the lender to the borrower, creating nothing: %d, %d -> %d", e.cityCash(e.cityID), money0, e.pairCash())
+	}
+	// an instalment falls due each period; it is paid from the borrower's treasury, once
+	e.clock.Advance(e.rules.DebtPeriod + time.Hour)
+	aMid := e.cityCash(e.cityID)
+	e.tick(application.TickLoanDue, loan, "")
+	e.tick(application.TickLoanDue, loan, "")
+	if got := e.cityCash(e.cityID) - aMid; got != 1007 {
+		t.Fatalf("the first instalment of 1000 + 7 reached the lender once: %d", got)
+	}
+	if e.pairCash() != money0 {
+		t.Fatalf("repaying moves money between the two, never creates it: %d != %d", e.pairCash(), money0)
+	}
+	if e.scalarInt(`SELECT paid FROM sovereign_loans WHERE id = $1::uuid`, loan) != 1 {
+		t.Fatal("one instalment paid")
+	}
+	e.verifyPolity()
+
+	// the borrower is drained and misses: late, late, in default
+	if err := postgres.NewUnitOfWork(e.pool, testDefaultLanguage).Do(testCtx(t), func(ctx context.Context, tx application.Tx) error {
+		acct, err := tx.Ledger().AccountFor(ctx, application.AccountCityTreasury, e.attCity)
+		if err != nil {
+			return err
+		}
+		bal, err := tx.Ledger().Balance(ctx, acct.ID)
+		if err != nil {
+			return err
+		}
+		_, err = tx.Ledger().Post(ctx, application.LedgerTransaction{Reason: application.ReasonAdminGrant, CreatedAt: e.clock.Now(), Entries: []application.LedgerEntry{
+			{AccountID: acct.ID, Amount: money.FromMinor(-bal.Minor())}, {AccountID: application.SystemSinkAccountID, Amount: bal}}})
+		return err
+	}); err != nil {
+		t.Fatal(err)
+	}
+	for i := 0; i < 3; i++ {
+		e.clock.Advance(e.rules.DebtPeriod + time.Hour)
+		e.tick(application.TickLoanDue, loan, "")
+	}
+	if e.loanStatus(loan) != "defaulted" {
+		t.Fatalf("three missed instalments default the loan: %s", e.loanStatus(loan))
+	}
+	if e.scalarInt(`SELECT count(*) FROM sovereign_loan_events WHERE loan_id = $1::uuid AND kind = 'missed'`, loan) < 2 || e.scalarInt(`SELECT count(*) FROM sovereign_loan_events WHERE loan_id = $1::uuid AND kind = 'defaulted'`, loan) != 1 {
+		t.Fatal("the misses and the default are in the loan's log")
+	}
+	// the borrower's record is public and shows it
+	v := e.mustDebt(e.head, handlers.VillageDebtRequest{})
+	if len(v.Others) == 0 || v.Others[0].Defaulted != 1 {
+		t.Fatalf("the lender sees the borrower's record: %+v", v.Others)
+	}
+	// nothing is taken beyond what the borrower held, and nothing created
+	money1 := e.pairCash()
+	// a lender restructures by agreement: less principal over more periods; the borrower accepts; no money moves
+	e.mustDebt(e.head, handlers.VillageDebtRequest{Action: village.DebtActionRestructure, ID: loan, Principal: "2000", Rate: "500", Periods: "8"})
+	if _, kind := e.debt(e.head, handlers.VillageDebtRequest{Action: village.DebtActionRestructure, ID: loan, Principal: "99999", Rate: "500", Periods: "8"}); kind != village.DebtRaise {
+		t.Fatalf("a restructuring may not raise the debt: %q", kind)
+	}
+	newLoan := e.text(`SELECT id::text FROM sovereign_loans WHERE replaces = $1::uuid`, loan)
+	e.mustDebt(e.att, handlers.VillageDebtRequest{Action: village.DebtActionAccept, ID: newLoan})
+	if e.loanStatus(loan) != "restructured" || e.loanStatus(newLoan) != "active" || e.pairCash() != money1 {
+		t.Fatalf("the old loan is closed, the new one runs, no money moved: %s %s", e.loanStatus(loan), e.loanStatus(newLoan))
+	}
+	// the new loan defaults too, and the lender writes it off: a book entry, no money
+	for i := 0; i < 3; i++ {
+		e.clock.Advance(e.rules.DebtPeriod + time.Hour)
+		e.tick(application.TickLoanDue, newLoan, "")
+	}
+	if e.loanStatus(newLoan) != "defaulted" {
+		t.Fatalf("the restructured loan defaulted: %s", e.loanStatus(newLoan))
+	}
+	if _, kind := e.debt(e.att, handlers.VillageDebtRequest{Action: village.DebtActionWriteOff, ID: newLoan}); kind == "" {
+		t.Fatal("only the lender writes off")
+	}
+	money2 := e.pairCash()
+	e.mustDebt(e.head, handlers.VillageDebtRequest{Action: village.DebtActionWriteOff, ID: newLoan})
+	if e.loanStatus(newLoan) != "written_off" || e.pairCash() != money2 {
+		t.Fatal("a write-off moves no money")
+	}
+	e.verifyPolity()
+}
+
+// societyEntries lists the entries the society hub offers a player standing in their settlement.
+func (e *polityEnv) societyEntries(p *application.Player) []string {
+	e.t.Helper()
+	if _, err := e.pool.Raw().Exec(testCtx(e.t), `UPDATE players SET city_id = residence_city_id WHERE id = $1::uuid`, p.ID); err != nil {
+		e.t.Fatal(err)
+	}
+	resp, err := e.village.SocietyHub(testCtx(e.t), e.metaOf(p, "society.hub", "hub"))
+	if err != nil {
+		e.t.Fatal(err)
+	}
+	var v struct {
+		Entries []struct {
+			Code string `json:"code"`
+		} `json:"entries"`
+	}
+	if err := json.Unmarshal(resp.View, &v); err != nil {
+		e.t.Fatalf("the society hub: %v (%s)", err, resp.Screen)
+	}
+	out := make([]string, 0, len(v.Entries))
+	for _, x := range v.Entries {
+		out = append(out, x.Code)
+	}
+	return out
+}
+
+func has(list []string, want string) bool {
+	for _, x := range list {
+		if x == want {
+			return true
+		}
+	}
+	return false
+}
+
+// The army and the war board are the army of a country the players founded: a barracks standing in a settlement under the commons opens
+// nothing; in a settlement of a player country it opens for the holder of a power of war or of the forces in that country's charter, and for
+// nobody else (ADR 0076 8, ADR 0063).
+func TestTheBarracksShowOnlyToAPlayerCountrysOfficeHolder(t *testing.T) {
+	e := newPolityEnv(t, nil)
+	e.clock.Advance(4 * 24 * time.Hour)
+	ra := e.resident("A")
+	if _, err := e.pool.Raw().Exec(testCtx(t), `INSERT INTO settlement_buildings (id, settlement_id, type_code, lot_x, lot_y, status, queued_at, completed_at)
+		VALUES (gen_random_uuid(), $1::uuid, 'barracks', 4, 4, 'complete', now(), now())`, e.cityID); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		_, _ = e.pool.Raw().Exec(testCtx(t), `DELETE FROM settlement_buildings WHERE settlement_id = $1::uuid AND type_code = 'barracks'`, e.cityID)
+	})
+	// under the commons: the barracks stands and opens nothing, for the head or for anybody
+	if has(e.societyEntries(e.head), "war") || has(e.societyEntries(ra), "war") {
+		t.Fatal("a settlement under the commons has no army to show")
+	}
+	if err := e.village.MilitaryOpen(testCtx(t), e.metaOf(e.head, "military.ministry", "ministry")); err == nil {
+		t.Fatal("the military commands are closed to a settlement without a country of its own")
+	}
+	// the settlement founds a country of one; the head holds the powers of war and of the forces
+	e.foundCountryOfOne(e.head, "Armed State", e.head, ra)
+	if !has(e.societyEntries(e.head), "war") {
+		t.Fatal("the holder of the country's powers sees the army and the war board")
+	}
+	if err := e.village.MilitaryOpen(testCtx(t), e.metaOf(e.head, "military.ministry", "ministry")); err != nil {
+		t.Fatalf("the holder may use the military commands: %v", err)
+	}
+	if has(e.societyEntries(ra), "war") {
+		t.Fatal("a resident who holds no office of the charter is shown no army")
+	}
+	if err := e.village.MilitaryOpen(testCtx(t), e.metaOf(ra, "military.ministry", "ministry")); err == nil {
+		t.Fatal("the military commands refuse a resident without a power")
+	}
+	// the head gives the resident a post with the power over the forces: now the resident sees it
+	id := e.unionIDByName("Armed State")
+	e.mustUnion(e.head, handlers.VillageUnionRequest{Action: village.UnionActionOffice, ID: id, Title: "Marshal", Seats: 1,
+		Grants: []handlers.VillageCharterGrant{{Permission: "military.command"}}})
+	marshal := e.text(`SELECT id::text FROM union_offices WHERE union_id = $1::uuid AND title = 'Marshal'`, id)
+	e.mustUnion(e.head, handlers.VillageUnionRequest{Action: village.UnionActionAppoint, ID: id, Office: marshal, Player: ra.PublicCode})
+	if !has(e.societyEntries(ra), "war") {
+		t.Fatal("the marshal sees the army")
+	}
+	e.verifyPolity()
+}
