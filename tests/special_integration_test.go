@@ -752,3 +752,158 @@ func parseNum(s string) int64 {
 	}
 	return n
 }
+
+// retune changes the rules the handler runs by in the middle of a test.
+func (e *specialEnv) retune(f func(*application.SpecialRules)) {
+	f(&e.special)
+	e.village.WithSpecial(e.special)
+}
+
+// agentOf sets up a bureau of A, a player of B who works for it, and the offer taken: it returns the player and the agent's id.
+func (e *specialEnv) agentOf() (*application.Player, string) {
+	e.t.Helper()
+	e.know(e.cityID, "field_craft", "subversion_craft", "record_keeping", "communal_watch")
+	if e.scalarInt(`SELECT count(*) FROM settlement_buildings WHERE settlement_id = $1::uuid AND type_code = 'intelligence_office'`, e.cityID) == 0 {
+		e.put(e.cityID, "intelligence_office")
+	}
+	e.stock("paper", 50)
+	e.earn(e.cityID, 5000)
+	agent := e.resident("B")
+	e.mustIntel(e.head, handlers.VillageIntelRequest{Action: village.IntelActionEngage, Player: agent.PublicCode, Code: e.codeOf(e.attCity)})
+	id := e.text(`SELECT id::text FROM intel_agents WHERE player_id = $1::uuid AND status = 'offered'`, agent.ID)
+	e.mustIntel(agent, handlers.VillageIntelRequest{Action: village.IntelActionAccept, ID: id})
+	return agent, id
+}
+
+// surer makes every operation succeed or fail as the test wants: the chance is pinned.
+func (e *specialEnv) pinChance(bps int64) {
+	e.retune(func(r *application.SpecialRules) {
+		r.Intel.BaseChanceBPS, r.Intel.ChanceFloorBPS, r.Intel.ChanceCapBPS = bps, bps, bps
+	})
+}
+
+// watchOf records a judged day of a settlement with one open watch post, so the target has someone to notice a stranger.
+func (e *specialEnv) watchOf(city string) string {
+	e.t.Helper()
+	post := newUUID(e.t)
+	err := postgres.NewUnitOfWork(e.pool, testDefaultLanguage).Do(testCtx(e.t), func(ctx context.Context, tx application.Tx) error {
+		s, err := tx.Settlements().ByID(ctx, city)
+		if err != nil {
+			return err
+		}
+		today := clockOf(e.t).DayAtIn(e.clock.Now(), s.Zone())
+		for off := int64(-3); off <= 3; off++ {
+			if _, err := tx.ServiceDays().RecordDay(ctx, application.ServiceDay{SettlementID: city, Day: today + off, At: e.clock.Now(),
+				Posts: []application.ServicePost{{BuildingID: post, Service: "local_security", Held: true, Staff: 1}}}); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		e.t.Fatal(err)
+	}
+	return post
+}
+
+// A survey brings back bands and nothing else: no figure, no name, a confidence and an age; the bureau's fee and the agent's wage are paid whatever
+// the day brought, and no report stands without an operation behind it.
+func TestAReportHoldsBandNamesAndNeverAFigureOrAPerson(t *testing.T) {
+	e := newSpecialEnv(t, nil)
+	e.pinChance(10_000)
+	agent, agentID := e.agentOf()
+	// the target's money is known exactly to the engine: 60 000 and a few hundred more; the report must not say so
+	treasuryB := e.cityCash(e.attCity)
+	e.putStock(e.attCity, "wheat", 777)
+	treasuryA := e.cityCash(e.cityID)
+	cash0 := e.cash(agent)
+	v := e.mustIntel(agent, handlers.VillageIntelRequest{Action: village.IntelActionOp, ID: agentID, Code: "survey_stock"})
+	if v.Notice != village.IntelNoticeClean && v.Notice != village.IntelNoticePartial {
+		t.Fatalf("the day should bring a report, the notice was %q", v.Notice)
+	}
+	if got := treasuryA - e.cityCash(e.cityID); got != e.special.Intel.OpFee+e.special.Intel.AgentWage {
+		t.Fatalf("the bureau pays its fee to the sink and the agent's wage: %d, fee %d wage %d", got, e.special.Intel.OpFee, e.special.Intel.AgentWage)
+	}
+	if got := e.cash(agent) - cash0; got != e.special.Intel.AgentWage {
+		t.Fatalf("the agent is paid, got %d", got)
+	}
+	// the sponsor's reader sees bands
+	iv := e.mustIntel(e.head, handlers.VillageIntelRequest{Action: village.IntelActionOpen})
+	if len(iv.Reports) != 1 {
+		t.Fatalf("one report, got %d", len(iv.Reports))
+	}
+	r := iv.Reports[0]
+	if r.Target.Code != e.codeOf(e.attCity) || r.Confidence == "" || len(r.Fields) != 3 {
+		t.Fatalf("the report names the target, its confidence and three metrics: %+v", r)
+	}
+	for _, f := range r.Fields {
+		for _, ch := range f.Band + f.Metric {
+			if ch >= '0' && ch <= '9' {
+				t.Fatalf("a report field holds a figure: %+v", f)
+			}
+		}
+	}
+	raw := e.text(`SELECT fields::text FROM intel_reports LIMIT 1`)
+	for _, secret := range []string{fmt.Sprint(treasuryB), "777", agent.PublicCode, e.head.PublicCode} {
+		if strings.Contains(raw, secret) {
+			t.Fatalf("the stored report %s gives away %s", raw, secret)
+		}
+	}
+	// the day's limit: the same operation on the same target is done once a day
+	if _, kind := e.intel(agent, handlers.VillageIntelRequest{Action: village.IntelActionOp, ID: agentID, Code: "survey_stock"}); kind != village.IntelDone {
+		t.Fatalf("an operation is done once a day, got %q", kind)
+	}
+	// a stranger's agent cannot read: the target has no report of its own and sees none of the sponsor's
+	if tv := e.mustIntel(e.att, handlers.VillageIntelRequest{Action: village.IntelActionOpen}); len(tv.Reports) != 0 {
+		t.Fatalf("the target sees no report about itself, got %d", len(tv.Reports))
+	}
+	e.verifySpecial()
+}
+
+// An agent has to live in the target: cover is a real residence. A bureau that is closed for the day sends nobody out. Without the research
+// the operation is refused too.
+func TestAnAgentNeedsRealCoverAnOpenBureauAndTheResearch(t *testing.T) {
+	e := newSpecialEnv(t, nil)
+	e.pinChance(10_000)
+	agent, agentID := e.agentOf()
+	// the agent moves house: no cover in the target any more
+	e.pool.Raw().Exec(testCtx(t), `UPDATE players SET residence_city_id = $1::uuid WHERE id = $2::uuid`, e.cityC, agent.ID)
+	if _, kind := e.intel(agent, handlers.VillageIntelRequest{Action: village.IntelActionOp, ID: agentID, Code: "survey_stock"}); kind != village.IntelNoCover {
+		t.Fatalf("an agent living elsewhere has no cover, got %q", kind)
+	}
+	e.pool.Raw().Exec(testCtx(t), `UPDATE players SET residence_city_id = $1::uuid WHERE id = $2::uuid`, e.attCity, agent.ID)
+	// the bureau runs out of paper: closed for the day
+	e.drainStock("paper")
+	e.clock.Advance(48 * time.Hour)
+	if _, kind := e.intel(agent, handlers.VillageIntelRequest{Action: village.IntelActionOp, ID: agentID, Code: "survey_stock"}); kind != village.IntelBureauClosed {
+		t.Fatalf("a bureau without paper stands closed, got %q", kind)
+	}
+	e.stock("paper", 20)
+	e.earn(e.cityID, 5000)
+	e.clock.Advance(48 * time.Hour)
+	// a sponsor that has not researched what the operation asks cannot send it
+	e.pool.Raw().Exec(testCtx(t), `DELETE FROM settlement_knowledge_owned WHERE settlement_id = $1::uuid AND code = 'field_craft'`, e.cityID)
+	if _, kind := e.intel(agent, handlers.VillageIntelRequest{Action: village.IntelActionOp, ID: agentID, Code: "survey_stock"}); kind != village.IntelResearch {
+		t.Fatalf("no research, no operation, got %q", kind)
+	}
+	e.know(e.cityID, "field_craft")
+	if _, kind := e.intel(agent, handlers.VillageIntelRequest{Action: village.IntelActionOp, ID: agentID, Code: "survey_stock"}); kind != "" {
+		t.Fatalf("with cover, an open bureau and the research the day works, got %q", kind)
+	}
+	e.verifySpecial()
+}
+
+func (e *specialEnv) drainStock(item string) {
+	e.t.Helper()
+	n := e.stockOf(e.cityID, item)
+	if n == 0 {
+		return
+	}
+	err := postgres.NewUnitOfWork(e.pool, testDefaultLanguage).Do(testCtx(e.t), func(ctx context.Context, tx application.Tx) error {
+		return tx.Items().Move(ctx, application.ItemMove{ID: newUUID(e.t), Item: item, Qty: n, FromOrg: application.SettlementOrg(e.cityID), FromHolding: application.HoldWarehouse,
+			Reason: application.ItemUsed, ReferenceType: "test", ReferenceID: newUUID(e.t), At: time.Now().UTC()})
+	})
+	if err != nil {
+		e.t.Fatal(err)
+	}
+}
