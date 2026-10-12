@@ -132,3 +132,43 @@ func TestCaps(t *testing.T) {
 		t.Errorf("unknown acquisition: %v", err)
 	}
 }
+
+// In the adversarial model no office may hold both the power to charge and the power to judge, and the office that audits for integrity never also
+// arrests (docs/adr/0078 3.2). The founder's office holds every power and is exempt: the case itself keeps the roles apart. The inquisitorial model lifts
+// the first rule only.
+func TestNoOfficeHoldsTheChargeAndTheJudgmentOrTheAuditAndTheArrest(t *testing.T) {
+	office := func(acq Acquisition, perms ...Permission) Office {
+		o := Office{ID: "o", Title: "x", Seats: 1, Acquisition: acq}
+		for _, p := range perms {
+			o.Grants = append(o.Grants, Grant{Permission: p})
+		}
+		return o
+	}
+	l := Limits{MaxOffices: 5, MaxSeats: 5, MaxPermissions: 90, TitleMin: 2, TitleMax: 32}
+	if err := ValidateOffice(office(AcquireAppointment, ProsecuteCharge, CourtJudge), 1, l); !errors.Is(err, ErrSeparation) {
+		t.Errorf("charge and judge in one office: %v", err)
+	}
+	if err := ValidateOffice(office(AcquireElection, CourtJudge, ProsecuteCharge, PolicePatrol), 1, l); !errors.Is(err, ErrSeparation) {
+		t.Errorf("an elected office too: %v", err)
+	}
+	if err := ValidateOffice(office(AcquireAppointment, AuditIntegrity, PoliceArrest), 1, l); !errors.Is(err, ErrSeparation) {
+		t.Errorf("audit and arrest in one office: %v", err)
+	}
+	for _, ok := range [][]Permission{{ProsecuteCharge, ProsecuteDrop}, {CourtJudge, CourtWarrant, CourtAppealHear}, {AuditIntegrity, AuditBooks}, {PoliceArrest, PoliceInvestigate}} {
+		if err := ValidateOffice(office(AcquireAppointment, ok...), 1, l); err != nil {
+			t.Errorf("%v is a fine office: %v", ok, err)
+		}
+	}
+	l.Inquisitorial = true
+	if err := ValidateOffice(office(AcquireAppointment, ProsecuteCharge, CourtJudge), 1, l); err != nil {
+		t.Errorf("a magistrate may do both in the inquisitorial model: %v", err)
+	}
+	if err := ValidateOffice(office(AcquireAppointment, AuditIntegrity, PoliceArrest), 1, l); !errors.Is(err, ErrSeparation) {
+		t.Errorf("the audit and the arrest stay apart in every model: %v", err)
+	}
+	l.Inquisitorial = false
+	head := FoundersOffice("h", "head")
+	if err := ValidateOffice(head, 1, Limits{MaxOffices: 5, MaxSeats: 5, MaxPermissions: 200, TitleMin: 2, TitleMax: 32}); err != nil {
+		t.Errorf("the founder's office holds every power: %v", err)
+	}
+}
