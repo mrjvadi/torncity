@@ -122,7 +122,7 @@ func (h *VillageHandler) sightingLead(ctx context.Context, tx application.Tx, de
 func (h *VillageHandler) scheduleSightings(ctx context.Context, tx application.Tx, snap *content.Snapshot, r application.SettlementRaid,
 	defender, attacker application.FoundedSettlement, transport string, now time.Time,
 ) error {
-	buildings, err := buildingsWithWorks(ctx, tx, snap, defender.CityID)
+	buildings, err := h.buildingsWithWorks(ctx, tx, snap, defender.CityID)
 	if err != nil {
 		return err
 	}
@@ -188,7 +188,7 @@ func (h *VillageHandler) RaidSighting(ctx context.Context, meta envelope.Metadat
 		if err != nil {
 			return err
 		}
-		buildings, err := buildingsWithWorks(ctx, tx, snap, defender.CityID)
+		buildings, err := h.buildingsWithWorks(ctx, tx, snap, defender.CityID)
 		if err != nil {
 			return err
 		}
@@ -314,7 +314,7 @@ func (h *VillageHandler) relayDelay(buildings []application.SettlementBuildingIn
 
 // watchLines reads the settlement's detectors and whether each was open on its last day.
 func (h *VillageHandler) watchLines(ctx context.Context, tx application.Tx, snap *content.Snapshot, s application.FoundedSettlement) ([]village.WatchLine, error) {
-	buildings, err := buildingsWithWorks(ctx, tx, snap, s.CityID)
+	buildings, err := h.buildingsWithWorks(ctx, tx, snap, s.CityID)
 	if err != nil {
 		return nil, err
 	}

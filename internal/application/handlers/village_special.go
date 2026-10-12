@@ -168,7 +168,10 @@ func projectWorks(ctx context.Context, tx application.Tx, snap *content.Snapshot
 }
 
 // withWorks adds the works of a settlement to the buildings a system reads.
-func withWorks(ctx context.Context, tx application.Tx, snap *content.Snapshot, settlementID string, buildings []application.SettlementBuildingInstance) ([]application.SettlementBuildingInstance, error) {
+func (h *VillageHandler) withWorks(ctx context.Context, tx application.Tx, snap *content.Snapshot, settlementID string, buildings []application.SettlementBuildingInstance) ([]application.SettlementBuildingInstance, error) {
+	if !h.projectsOpen() {
+		return buildings, nil // before the rule date no work stands
+	}
 	works, err := projectWorks(ctx, tx, snap, settlementID, centreOf(buildings))
 	if err != nil || len(works) == 0 {
 		return buildings, err
@@ -180,6 +183,9 @@ func withWorks(ctx context.Context, tx application.Tx, snap *content.Snapshot, s
 // amounts of the works of the kind that are open. A work is open when its keepers are paid and its fuel burnt; the day is judged now if nobody
 // has judged it.
 func (h *VillageHandler) workHeld(ctx context.Context, tx application.Tx, snap *content.Snapshot, s application.FoundedSettlement, effect string) (amount int64, held bool, err error) {
+	if !h.projectsOpen() {
+		return 0, false, nil
+	}
 	buildings, err := tx.SettlementBuildings().List(ctx, s.CityID)
 	if err != nil {
 		return 0, false, err
@@ -228,12 +234,12 @@ func centreOf(buildings []application.SettlementBuildingInstance) [2]int {
 }
 
 // buildingsWithWorks lists the buildings of a settlement and its finished works.
-func buildingsWithWorks(ctx context.Context, tx application.Tx, snap *content.Snapshot, settlementID string) ([]application.SettlementBuildingInstance, error) {
+func (h *VillageHandler) buildingsWithWorks(ctx context.Context, tx application.Tx, snap *content.Snapshot, settlementID string) ([]application.SettlementBuildingInstance, error) {
 	buildings, err := tx.SettlementBuildings().List(ctx, settlementID)
 	if err != nil {
 		return nil, err
 	}
-	return withWorks(ctx, tx, snap, settlementID, buildings)
+	return h.withWorks(ctx, tx, snap, settlementID, buildings)
 }
 
 // cityTreasury is a settlement's treasury account.

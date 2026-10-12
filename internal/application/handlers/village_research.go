@@ -145,7 +145,7 @@ func (h *VillageHandler) researchToday(ctx context.Context, tx application.Tx, s
 ) (*researchState, error) {
 	rules := h.research.rules()
 	// the great library of a finished special project is a research building too (docs/adr/0077 4.2)
-	buildings, err := withWorks(ctx, tx, snap, s.CityID, buildings)
+	buildings, err := h.withWorks(ctx, tx, snap, s.CityID, buildings)
 	if err != nil {
 		return nil, err
 	}

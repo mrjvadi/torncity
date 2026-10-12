@@ -135,7 +135,7 @@ func (h *VillageHandler) SettleServiceDay(ctx context.Context, tx application.Tx
 		return nil, nil
 	}
 	// the finished special projects of the settlement stand among its posts (docs/adr/0077 4): kept and paid every day, idle when nobody keeps them
-	standing, err := withWorks(ctx, tx, snap, s.CityID, buildings)
+	standing, err := h.withWorks(ctx, tx, snap, s.CityID, buildings)
 	if err != nil {
 		return nil, err
 	}
@@ -185,7 +185,7 @@ func (h *VillageHandler) SettleServiceDay(ctx context.Context, tx application.Tx
 		wage := slots * (base * bps / 10_000)
 		row := application.ServicePost{BuildingID: p.b.ID, Service: p.service()}
 		// a day an act of sabotage skipped is a day the post does not open (docs/adr/0077 6.5): it pays and uses up nothing
-		if skipped, err := tx.Intel().SkippedDay(ctx, p.b.ID, today); err != nil {
+		if skipped, err := h.skippedToday(ctx, tx, p.b.ID, today); err != nil {
 			return nil, err
 		} else if skipped {
 			row.Idle = application.ServiceIdleSabotaged
@@ -320,4 +320,12 @@ func (h *VillageHandler) ServiceOpen(ctx context.Context, tx application.Tx, set
 		return false, err
 	}
 	return d.HeldService(service), nil
+}
+
+// skippedToday reports a day an act of sabotage shut the post; before sabotage begins nothing was skipped.
+func (h *VillageHandler) skippedToday(ctx context.Context, tx application.Tx, buildingID string, day int64) (bool, error) {
+	if !h.sabotageOpen() {
+		return false, nil
+	}
+	return tx.Intel().SkippedDay(ctx, buildingID, day)
 }
