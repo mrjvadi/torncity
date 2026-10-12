@@ -4,6 +4,7 @@ import (
 	"context"
 	stderrors "errors"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -385,7 +386,7 @@ func (h *VillageHandler) projectDeliver(ctx context.Context, tx application.Tx, 
 	if err := tx.Projects().AddStock(ctx, pr.ID, item, qty); err != nil {
 		return "", err
 	}
-	if err := tx.Projects().StartStage(ctx, pr.ID, now); err != nil {
+	if err := h.beginStage(ctx, tx, pr, st, now); err != nil {
 		return "", err
 	}
 	done, err := h.projectAdvance(ctx, tx, meta, snap, s, pr, now)
@@ -488,7 +489,7 @@ func (h *VillageHandler) projectWork(ctx context.Context, tx application.Tx, met
 	} else if !ok {
 		return refuseVillage(village.ProjectBusy, village.AddrProject)
 	}
-	if err := tx.Projects().StartStage(ctx, pr.ID, now); err != nil {
+	if err := h.beginStage(ctx, tx, pr, st, now); err != nil {
 		return err
 	}
 	return h.schedulePolity(ctx, tx, application.TickProjectShift, application.ProjectReference, sh.ID, "", p.ID, now, sh.EndsAt)
@@ -556,7 +557,7 @@ func (h *VillageHandler) projectHire(ctx context.Context, tx application.Tx, met
 		return "", err
 	}
 	pr.StageHours += hours
-	if err := tx.Projects().StartStage(ctx, pr.ID, now); err != nil {
+	if err := h.beginStage(ctx, tx, pr, st, now); err != nil {
 		return "", err
 	}
 	done, err := h.projectAdvance(ctx, tx, meta, snap, s, pr, now)
@@ -759,4 +760,38 @@ func (h *VillageHandler) projectCancel(ctx context.Context, tx application.Tx, m
 		}
 	}
 	return specialEvent(ctx, tx, meta, "project_cancelled", s.CityID, map[string]any{"project": pr.ID, "by": p.ID})
+}
+
+// beginStage marks the stage in hand begun, once, and puts the end of its least time on the clock: a stage whose materials and crew are all there
+// still waits until then, and something must look at it when the time is over.
+func (h *VillageHandler) beginStage(ctx context.Context, tx application.Tx, pr *application.SpecialProject, st content.ProjectStageDef, now time.Time) error {
+	if pr.StageStartedAt != nil {
+		return nil
+	}
+	if err := tx.Projects().StartStage(ctx, pr.ID, now); err != nil {
+		return err
+	}
+	pr.StageStartedAt = &now
+	if st.MinHours > 0 {
+		return h.schedulePolity(ctx, tx, application.TickProjectStage, application.ProjectReference, pr.ID, strconv.Itoa(pr.Stage), pr.StartedBy, now, now.Add(time.Duration(st.MinHours)*time.Hour))
+	}
+	return nil
+}
+
+// tickProjectStage looks at a stage when its least time (or a delay done to it) is over. The stage number is the fence: a tick for a stage that
+// has been done already finds the project in the next one and changes nothing.
+func (h *VillageHandler) tickProjectStage(ctx context.Context, tx application.Tx, meta envelope.Metadata, id, aux string, now time.Time) error {
+	pr, err := tx.Projects().ByID(ctx, id, true)
+	if err != nil || pr == nil || !pr.Active() {
+		return err
+	}
+	if n, perr := strconv.Atoi(aux); perr == nil && n != pr.Stage {
+		return nil
+	}
+	s, err := tx.Settlements().ByID(ctx, pr.SettlementID)
+	if err != nil {
+		return err
+	}
+	_, err = h.projectAdvance(ctx, tx, meta, h.content.Current(), s, pr, now)
+	return err
 }

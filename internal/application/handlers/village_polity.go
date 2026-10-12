@@ -79,6 +79,8 @@ func (h *VillageHandler) PolityTick(ctx context.Context, meta envelope.Metadata,
 			return h.tickLoanOffer(ctx, tx, meta, pl.ID, now)
 		case application.TickProjectShift:
 			return h.tickProjectShift(ctx, tx, meta, pl.ID, now)
+		case application.TickProjectStage:
+			return h.tickProjectStage(ctx, tx, meta, pl.ID, pl.Aux, now)
 		case application.TickContractClose:
 			return h.tickContractClose(ctx, tx, meta, pl.ID, now)
 		case application.TickContractDue:

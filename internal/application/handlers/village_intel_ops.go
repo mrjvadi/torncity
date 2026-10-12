@@ -125,7 +125,12 @@ func (h *VillageHandler) sabotageDo(ctx context.Context, tx application.Tx, meta
 		if t.project.DelayedUntil != nil {
 			standing = *t.project.DelayedUntil
 		}
-		if err := tx.Projects().SetDelay(ctx, t.project.ID, rules.Delay(standing, now)); err != nil {
+		until := rules.Delay(standing, now)
+		if err := tx.Projects().SetDelay(ctx, t.project.ID, until); err != nil {
+			return err
+		}
+		// someone must look at the stage when the delay is over
+		if err := h.schedulePolity(ctx, tx, application.TickProjectStage, application.ProjectReference, t.project.ID, strconv.Itoa(t.project.Stage), a.PlayerID, now, until); err != nil {
 			return err
 		}
 		act.Repair = "passes"

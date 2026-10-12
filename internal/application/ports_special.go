@@ -66,6 +66,7 @@ const (
 // The kinds of tick of this item (they ride the polity_tick action, the payload says which).
 const (
 	TickProjectShift    = "project_shift"
+	TickProjectStage    = "project_stage"
 	TickContractClose   = "project_contract_close"
 	TickContractDue     = "project_contract_due"
 	TickContractRelease = "project_contract_release"
