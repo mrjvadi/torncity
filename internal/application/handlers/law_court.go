@@ -978,4 +978,3 @@ func (h *VillageHandler) lawJailCheck(ctx context.Context, tx application.Tx, lc
 	}
 	return nil
 }
-

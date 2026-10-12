@@ -956,7 +956,9 @@ func TestTheCustomsRollsOnAnUndeclaredManifest(t *testing.T) {
 	trader := e.rich("B", 5000)
 	e.carry(trader, "bread", 5)
 	always := func(r *application.LawRules) { r.T.InspectBaseBPS, r.T.InspectCapBPS = 10_000, 10_000 }
-	never := func(r *application.LawRules) { r.T.InspectBaseBPS, r.T.InspectPerInspectorBPS, r.T.InspectSizeBPS = 0, 0, 0 }
+	never := func(r *application.LawRules) {
+		r.T.InspectBaseBPS, r.T.InspectPerInspectorBPS, r.T.InspectSizeBPS = 0, 0, 0
+	}
 	dest := e.codeOf(e.cityID)
 
 	// the declaration cannot name what is not carried
