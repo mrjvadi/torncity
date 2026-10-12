@@ -1939,6 +1939,11 @@ func Defaults() *Config {
 			UpkeepPeriodHours:   168,
 			NeglectAfterPeriods: 2,
 			MaxOpen:             3,
+			ShiftMinutes:        20,
+			ShiftHours:          4,
+			WagePerHour:         80,
+			NPCWagePerHour:      60,
+			NPCHoursPerDay:      8,
 		},
 		Intel: Intel{
 			RuleAt:                "2099-01-01T00:00:00Z",
@@ -1968,6 +1973,7 @@ func Defaults() *Config {
 			SabotagePerTargetDays: 7,
 			SabotageSkipDays:      30,
 			SabotageCost:          400,
+			SkillXPPerOp:          50,
 		},
 		Licence: Licence{
 			RuleAt:               "2099-01-01T00:00:00Z",
@@ -1982,6 +1988,7 @@ func Defaults() *Config {
 			CoiShareBPS:          1,
 			ListingFee:           50,
 			TermMaxDays:          365,
+			ShareCapFrom:         5,
 		},
 		Polity: Polity{
 			RuleAt:                "2026-10-12T15:30:00Z",
@@ -3012,6 +3019,11 @@ type Projects struct {
 	UpkeepPeriodHours   int64  // projects.upkeep_period_hours
 	NeglectAfterPeriods int64  // projects.neglect_after_periods
 	MaxOpen             int64  // projects.max_open
+	ShiftMinutes        int64  // projects.shift_minutes
+	ShiftHours          int64  // projects.shift_hours
+	WagePerHour         int64  // projects.wage_per_hour
+	NPCWagePerHour      int64  // projects.npc_wage_per_hour
+	NPCHoursPerDay      int64  // projects.npc_hours_per_day
 }
 
 // Intel is the tuning of ADR 0077 (docs/adr/0077 5-6: intelligence bureau, agents, sabotage).
@@ -3043,6 +3055,7 @@ type Intel struct {
 	SabotagePerTargetDays int64  // intel.sabotage_per_target_days
 	SabotageSkipDays      int64  // intel.sabotage_skip_days
 	SabotageCost          int64  // intel.sabotage_cost
+	SkillXPPerOp          int64  // intel.skill_xp_per_op
 }
 
 // Licence is the tuning of ADR 0077 (docs/adr/0077 7: the licence market).
@@ -3059,4 +3072,5 @@ type Licence struct {
 	CoiShareBPS          int64  // licence.coi_share_bps
 	ListingFee           int64  // licence.listing_fee
 	TermMaxDays          int64  // licence.term_max_days
+	ShareCapFrom         int64  // licence.share_cap_from
 }

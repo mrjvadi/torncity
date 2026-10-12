@@ -1295,6 +1295,11 @@ projects:
   upkeep_period_hours: 168   # real hours of one upkeep period of a finished work
   neglect_after_periods: 2   # upkeep periods unpaid after which a finished work is neglected (its effect off, never destroyed)
   max_open: 3   # most unfinished projects of one settlement at a time
+  shift_minutes: 20   # real minutes one crew shift on a project lasts
+  shift_hours: 4   # crew-hours one shift adds to the stage
+  wage_per_hour: 80   # the fund's wage for one crew-hour of a player, minor units
+  npc_wage_per_hour: 60   # the fund's wage for one hour of hired labour of the pool, minor units, to the sink
+  npc_hours_per_day: 8   # most hours of hired labour of the pool one project may take in a game day
 
 # Intel (docs/adr/0077 5-6: intelligence bureau, agents, sabotage, plan B13). Every figure is a draft (evidence D) until a balance run; the rule dates are placeholders far in the future until the deploy sets them.
 intel:
@@ -1325,6 +1330,7 @@ intel:
   sabotage_per_target_days: 7   # days between two acts of the same kind on the same target
   sabotage_skip_days: 30   # days between two skipped service days of the same building
   sabotage_cost: 400   # what one act of sabotage costs the sponsor, minor units, to the sink
+  skill_xp_per_op: 50   # fieldwork experience an agent gains from an operation
 
 # Licence (docs/adr/0077 7: the licence market, plan B13). Every figure is a draft (evidence D) until a balance run; the rule dates are placeholders far in the future until the deploy sets them.
 licence:
@@ -1340,6 +1346,7 @@ licence:
   coi_share_bps: 1   # an issuing official holding at least this share of a company may not issue to it, basis points
   listing_fee: 50   # the fee for listing a licence on the exchange board, minor units, to the sink
   term_max_days: 365   # the longest term of a licence, real days
+  share_cap_from: 5   # live licences of a kind in a settlement from which the share cap applies
 
 # NPC households (docs/adr/0073-npc-households.md, plan B9): the people behind the labour pool. They start from rule_at (a placeholder far in the
 # future until the deploy sets it); a settlement enrolls itself then, runs a dual run, and flips when its households can fill the old pool.

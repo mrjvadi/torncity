@@ -742,6 +742,11 @@ projects:
   upkeep_period_hours: 8005
   neglect_after_periods: 8006
   max_open: 8007
+  shift_minutes: 9006
+  shift_hours: 9007
+  wage_per_hour: 9008
+  npc_wage_per_hour: 9009
+  npc_hours_per_day: 9010
 intel:
   rule_at: "2098-01-01T00:00:00Z"
   sabotage_rule_at: "2098-01-01T00:00:00Z"
@@ -770,6 +775,7 @@ intel:
   sabotage_per_target_days: 8030
   sabotage_skip_days: 8031
   sabotage_cost: 8032
+  skill_xp_per_op: 9014
 licence:
   rule_at: "2098-01-01T00:00:00Z"
   grace_days: 8033
@@ -783,6 +789,7 @@ licence:
   coi_share_bps: 8041
   listing_fee: 8042
   term_max_days: 8043
+  share_cap_from: 9012
 growth:
   capabilities: off
   cache_ttl: 6s
@@ -1558,6 +1565,13 @@ var envOverrides = map[string]string{
 	"TORN_POLITY_DEBT_MAX_INSTALMENTS":      "6026",
 	"TORN_POLITY_DEBT_PERIOD_HOURS":         "6027",
 	"TORN_POLITY_DEBT_MAX_RATE_BPS":         "6028",
+	"TORN_INTEL_SKILL_XP_PER_OP":            "9013",
+	"TORN_LICENCE_SHARE_CAP_FROM":           "9011",
+	"TORN_PROJECTS_SHIFT_MINUTES":           "9001",
+	"TORN_PROJECTS_SHIFT_HOURS":             "9002",
+	"TORN_PROJECTS_WAGE_PER_HOUR":           "9003",
+	"TORN_PROJECTS_NPC_WAGE_PER_HOUR":       "9004",
+	"TORN_PROJECTS_NPC_HOURS_PER_DAY":       "9005",
 
 	"TORN_PROJECTS_RULE_AT":               "2031-01-02T03:04:05Z",
 	"TORN_PROJECTS_GRACE_DAYS":            "7001",

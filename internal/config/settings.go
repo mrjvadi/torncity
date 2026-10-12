@@ -1956,6 +1956,27 @@ var coreSettings = []setting{
 	moneySetting("licence", "term_max_days",
 		func(c *Config) *int64 { return &c.Licence.TermMaxDays },
 		func(f *fileConfig) *int64 { return f.Licence.TermMaxDays }),
+	moneySetting("projects", "shift_minutes",
+		func(c *Config) *int64 { return &c.Projects.ShiftMinutes },
+		func(f *fileConfig) *int64 { return f.Projects.ShiftMinutes }),
+	moneySetting("projects", "shift_hours",
+		func(c *Config) *int64 { return &c.Projects.ShiftHours },
+		func(f *fileConfig) *int64 { return f.Projects.ShiftHours }),
+	moneySetting("projects", "wage_per_hour",
+		func(c *Config) *int64 { return &c.Projects.WagePerHour },
+		func(f *fileConfig) *int64 { return f.Projects.WagePerHour }),
+	moneySetting("projects", "npc_wage_per_hour",
+		func(c *Config) *int64 { return &c.Projects.NPCWagePerHour },
+		func(f *fileConfig) *int64 { return f.Projects.NPCWagePerHour }),
+	moneySetting("projects", "npc_hours_per_day",
+		func(c *Config) *int64 { return &c.Projects.NPCHoursPerDay },
+		func(f *fileConfig) *int64 { return f.Projects.NPCHoursPerDay }),
+	moneySetting("licence", "share_cap_from",
+		func(c *Config) *int64 { return &c.Licence.ShareCapFrom },
+		func(f *fileConfig) *int64 { return f.Licence.ShareCapFrom }),
+	moneySetting("intel", "skill_xp_per_op",
+		func(c *Config) *int64 { return &c.Intel.SkillXPPerOp },
+		func(f *fileConfig) *int64 { return f.Intel.SkillXPPerOp }),
 	stringSetting("households", "rule_at",
 		func(c *Config) *string { return &c.Households.RuleAt },
 		func(f *fileConfig) *string { return f.Households.RuleAt }),
@@ -3410,6 +3431,11 @@ type projectsSettings struct {
 	UpkeepPeriodHours   *int64  `yaml:"upkeep_period_hours"`
 	NeglectAfterPeriods *int64  `yaml:"neglect_after_periods"`
 	MaxOpen             *int64  `yaml:"max_open"`
+	ShiftMinutes        *int64  `yaml:"shift_minutes"`
+	ShiftHours          *int64  `yaml:"shift_hours"`
+	WagePerHour         *int64  `yaml:"wage_per_hour"`
+	NPCWagePerHour      *int64  `yaml:"npc_wage_per_hour"`
+	NPCHoursPerDay      *int64  `yaml:"npc_hours_per_day"`
 }
 
 type intelSettings struct {
@@ -3440,6 +3466,7 @@ type intelSettings struct {
 	SabotagePerTargetDays *int64  `yaml:"sabotage_per_target_days"`
 	SabotageSkipDays      *int64  `yaml:"sabotage_skip_days"`
 	SabotageCost          *int64  `yaml:"sabotage_cost"`
+	SkillXPPerOp          *int64  `yaml:"skill_xp_per_op"`
 }
 
 type licenceSettings struct {
@@ -3455,4 +3482,5 @@ type licenceSettings struct {
 	CoiShareBPS          *int64  `yaml:"coi_share_bps"`
 	ListingFee           *int64  `yaml:"listing_fee"`
 	TermMaxDays          *int64  `yaml:"term_max_days"`
+	ShareCapFrom         *int64  `yaml:"share_cap_from"`
 }
