@@ -230,7 +230,7 @@ var _ sync.Mutex
 func (e *specialEnv) startProject(p *application.Player, kind string) string {
 	e.t.Helper()
 	e.mustProject(p, handlers.VillageProjectRequest{Action: village.ProjectActionStart, Code: kind})
-	return e.text(`SELECT id::text FROM special_projects WHERE kind = $1 ORDER BY started_at DESC LIMIT 1`, kind)
+	return e.text(`SELECT id::text FROM special_projects WHERE kind = $1 AND status = 'active' ORDER BY started_at DESC LIMIT 1`, kind)
 }
 
 func (e *specialEnv) lineOf(p *application.Player, id string) village.ProjectLine {
@@ -373,4 +373,176 @@ func (e *specialEnv) resident(place string) *application.Player {
 	p := e.polityEnv.resident(place)
 	e.t.Cleanup(e.cleanSpecial)
 	return p
+}
+
+// Pledges from anyone, residents or outsiders, make the fund; the donor roll shows the name of a named gift and hides that of an anonymous one;
+// a gift comes back only before the first stage has started; a cancelled work returns what is left of the fund in proportion to what each gave.
+func TestPledgesFormADonorRollAndComeBackOnlyBeforeTheWorkStarts(t *testing.T) {
+	e := newSpecialEnv(t, nil)
+	e.know(e.cityID, "masonry", "canal_irrigation")
+	id := e.startProject(e.head, "aqueduct")
+	d1, d2 := e.resident("B"), e.resident("C")
+	grant(t, e.pool, application.AccountPlayerCash, d1.ID, 5000)
+	grant(t, e.pool, application.AccountPlayerCash, d2.ID, 5000)
+	if _, kind := e.project(d1, handlers.VillageProjectRequest{Action: village.ProjectActionPledge, ID: id, Amount: "50"}); kind != village.ProjectBelowMin {
+		t.Fatalf("a gift under the least is refused, got %q", kind)
+	}
+	if _, kind := e.project(d1, handlers.VillageProjectRequest{Action: village.ProjectActionPledge, ID: id, Amount: "999999"}); kind != village.ProjectNoMoney {
+		t.Fatalf("a gift of more than one has is refused, got %q", kind)
+	}
+	// outsiders may give: d1 lives in B and d2 in C, the work is A's
+	e.mustProject(d1, handlers.VillageProjectRequest{Action: village.ProjectActionPledge, ID: id, Amount: "1000"})
+	e.mustProject(d2, handlers.VillageProjectRequest{Action: village.ProjectActionPledge, ID: id, Amount: "500", Anonymous: "1"})
+	e.mustProject(e.head, handlers.VillageProjectRequest{Action: village.ProjectActionAllocate, ID: id, Amount: "500"})
+	if got := e.fundOf(id); got != 2000 {
+		t.Fatalf("the fund is the sum of the gifts, got %d", got)
+	}
+	// the donor roll, as the head sees it, and as the anonymous donor sees it
+	l := e.lineOf(e.head, id)
+	var named, anonymous, treasury int
+	for _, d := range l.Donors {
+		switch {
+		case d.Kind == "allocation":
+			treasury++
+		case d.Anonymous && d.Name == "":
+			anonymous++
+		case !d.Anonymous && d.Name != "":
+			named++
+		}
+	}
+	if len(l.Donors) != 3 || named != 1 || anonymous != 1 || treasury != 1 {
+		t.Fatalf("the roll names the open gift, hides the anonymous one and shows the treasury's: %+v", l.Donors)
+	}
+	if mine := e.lineOf(d2, id); len(mine.Donors) != 3 {
+		t.Fatalf("the donor sees the roll too: %+v", mine.Donors)
+	} else {
+		own := 0
+		for _, d := range mine.Donors {
+			if d.Mine && d.Name != "" && d.Refunds {
+				own++
+			}
+		}
+		if own != 1 {
+			t.Fatalf("an anonymous donor sees their own gift and may take it back: %+v", mine.Donors)
+		}
+	}
+	// d1 takes the gift back before the work has begun, once
+	pledge := e.text(`SELECT id::text FROM project_pledges WHERE player_id = $1::uuid`, d1.ID)
+	e.mustProject(d1, handlers.VillageProjectRequest{Action: village.ProjectActionUnpledge, ID: pledge})
+	if e.cash(d1) != 5000 || e.fundOf(id) != 1000 {
+		t.Fatalf("the gift returned whole: cash %d, fund %d", e.cash(d1), e.fundOf(id))
+	}
+	if _, kind := e.project(d1, handlers.VillageProjectRequest{Action: village.ProjectActionUnpledge, ID: pledge}); kind != village.ProjectNoPledge {
+		t.Fatalf("a gift cannot be taken back twice, got %q", kind)
+	}
+	// the work begins with the first material; from then the gifts are spent
+	e.mustProject(d1, handlers.VillageProjectRequest{Action: village.ProjectActionPledge, ID: id, Amount: "700"})
+	pledge2 := e.text(`SELECT id::text FROM project_pledges WHERE player_id = $1::uuid AND status = 'held'`, d1.ID)
+	e.mustProject(e.head, handlers.VillageProjectRequest{Action: village.ProjectActionHire, ID: id, N: "8"}) // starts the stage
+	if _, kind := e.project(d1, handlers.VillageProjectRequest{Action: village.ProjectActionUnpledge, ID: pledge2}); kind != village.ProjectSpent {
+		t.Fatalf("a gift cannot be taken back once the work has begun, got %q", kind)
+	}
+	// a cancel before stage 2 returns what is left in proportion; no one but the holder of the power cancels
+	if _, kind := e.project(d2, handlers.VillageProjectRequest{Action: village.ProjectActionCancel, ID: id}); kind != village.VillageNotOfficeHolder {
+		t.Fatalf("a donor cannot cancel the work, got %q", kind)
+	}
+	fund := e.fundOf(id)
+	cash1, cash2, treasury0 := e.cash(d1), e.cash(d2), e.cityCash(e.cityID)
+	e.mustProject(e.head, handlers.VillageProjectRequest{Action: village.ProjectActionCancel, ID: id})
+	back1, back2, backT := e.cash(d1)-cash1, e.cash(d2)-cash2, e.cityCash(e.cityID)-treasury0
+	if back1+back2+backT != fund || e.fundOf(id) != 0 {
+		t.Fatalf("the whole fund goes back: %d + %d + %d of %d, left %d", back1, back2, backT, fund, e.fundOf(id))
+	}
+	if !(back1 > back2 && back2 >= backT-1 && back1 > 0) {
+		t.Fatalf("in proportion to what each gave (700, 500, 500): %d, %d, %d", back1, back2, backT)
+	}
+	if e.text(`SELECT status FROM special_projects WHERE id = $1::uuid`, id) != "cancelled" || e.scalarInt(`SELECT count(*) FROM project_pledges WHERE project_id = $1::uuid AND status = 'held'`, id) != 0 {
+		t.Fatal("a cancelled work holds no gift")
+	}
+	if _, kind := e.project(d1, handlers.VillageProjectRequest{Action: village.ProjectActionPledge, ID: id, Amount: "200"}); kind != village.ProjectNotActive {
+		t.Fatalf("nobody gives to a cancelled work, got %q", kind)
+	}
+	// from stage two a work cannot be cancelled
+	id2 := e.startProject(e.head, "aqueduct")
+	e.pool.Raw().Exec(testCtx(t), `UPDATE special_projects SET stage = 2 WHERE id = $1::uuid`, id2)
+	if _, kind := e.project(e.head, handlers.VillageProjectRequest{Action: village.ProjectActionCancel, ID: id2}); kind != village.ProjectTooLate {
+		t.Fatalf("after the first stage it is too late, got %q", kind)
+	}
+	e.pool.Raw().Exec(testCtx(t), `UPDATE special_projects SET stage = 1 WHERE id = $1::uuid`, id2)
+	e.verifySpecial()
+}
+
+func (e *specialEnv) finishedWork(city, kind string, stages int) string {
+	e.t.Helper()
+	id := newUUID(e.t)
+	if _, err := e.pool.Raw().Exec(testCtx(e.t), `INSERT INTO special_projects (id, kind, settlement_id, started_by, stages, stage, status, started_at, finished_at)
+		VALUES ($1::uuid, $2, $3::uuid, $4::uuid, $5, $5, 'finished', now(), now())`, id, kind, city, e.head.ID, stages); err != nil {
+		e.t.Fatal(err)
+	}
+	for k := 1; k <= stages; k++ {
+		if _, err := e.pool.Raw().Exec(testCtx(e.t), `INSERT INTO project_stages (project_id, stage, hours, completed_at) VALUES ($1::uuid, $2, 10, now())`, id, k); err != nil {
+			e.t.Fatal(err)
+		}
+	}
+	return id
+}
+
+// lastDay is the settlement's last judged service day.
+func (e *specialEnv) lastDay(city string) *application.ServiceDay {
+	e.t.Helper()
+	var d *application.ServiceDay
+	err := postgres.NewUnitOfWork(e.pool, testDefaultLanguage).Do(testCtx(e.t), func(ctx context.Context, tx application.Tx) error {
+		var err error
+		d, err = tx.ServiceDays().Last(ctx, city)
+		return err
+	})
+	if err != nil {
+		e.t.Fatal(err)
+	}
+	return d
+}
+
+func (e *specialEnv) postOf(day *application.ServiceDay, id string) *application.ServicePost {
+	if day == nil {
+		return nil
+	}
+	for i := range day.Posts {
+		if day.Posts[i].BuildingID == id {
+			return &day.Posts[i]
+		}
+	}
+	return nil
+}
+
+// A finished work is a post of the town like any other: its keepers are paid and its fuel burnt every day. With nobody to pay them or nothing to burn it stands
+// idle - neglected, not destroyed - and opens again when the town can keep it. The great beacon is then a detector that sees.
+func TestAFinishedWorkStandsIdleWhenNobodyKeepsItAndOpensWhenKept(t *testing.T) {
+	e := newSpecialEnv(t, nil)
+	work := e.finishedWork(e.cityID, "great_beacon", 4)
+	e.drainTreasury()
+	e.overview() // judges today
+	post := e.postOf(e.lastDay(e.cityID), work)
+	if post == nil || post.Held || post.Idle == "" {
+		t.Fatalf("a work nobody pays or feeds stands idle: %+v", post)
+	}
+	if e.text(`SELECT status FROM special_projects WHERE id = $1::uuid`, work) != "finished" {
+		t.Fatal("neglect never destroys a work")
+	}
+	// a day on, with wood in the store and money in the treasury, its keepers are paid and the fire is lit
+	e.clock.Advance(48 * time.Hour)
+	e.stock("firewood", 20)
+	e.earn(e.cityID, 5000)
+	treasury0 := e.treasury()
+	e.overview()
+	post = e.postOf(e.lastDay(e.cityID), work)
+	if post == nil || !post.Held || post.Staff < 1 {
+		t.Fatalf("with wood and a wage the work stands open: %+v", post)
+	}
+	if e.treasury() >= treasury0 {
+		t.Fatal("the keepers' wage came out of the treasury")
+	}
+	if got := e.held("firewood"); got >= 20 {
+		t.Fatalf("the fire burnt wood, %d left", got)
+	}
+	e.verifySpecial()
 }

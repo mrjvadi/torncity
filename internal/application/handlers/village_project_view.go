@@ -32,6 +32,11 @@ func (h *VillageHandler) projectView(ctx context.Context, tx application.Tx, sna
 	}
 	v.Companies = comps
 	if !has {
+		if openID != "" {
+			if err := h.openForeign(ctx, tx, snap, p, openID, nil, &v); err != nil {
+				return v, err
+			}
+		}
 		return v, h.projectBoard(ctx, tx, p, &v)
 	}
 	mayStart, mayFund, mayAccept, mayTender := hasPermission(ctx, tx, s, p.ID, charter.ProjectStart), hasPermission(ctx, tx, s, p.ID, charter.ProjectFund),
@@ -67,8 +72,37 @@ func (h *VillageHandler) projectView(ctx context.Context, tx application.Tx, sna
 		}
 		v.Projects = append(v.Projects, line)
 	}
-	_ = openID
+	// a work of another town, opened by name: anyone may look at it and give to it
+	if openID != "" {
+		found := false
+		for _, l := range v.Projects {
+			found = found || l.ID == openID
+		}
+		if !found {
+			if err := h.openForeign(ctx, tx, snap, p, openID, lastDay, &v); err != nil {
+				return v, err
+			}
+		}
+	}
 	return v, h.projectBoard(ctx, tx, p, &v)
+}
+
+// openForeign adds the line of a work of another town to the screen, for looking and for giving.
+func (h *VillageHandler) openForeign(ctx context.Context, tx application.Tx, snap *content.Snapshot, p *application.Player, id string, lastDay *application.ServiceDay, v *village.ProjectView) error {
+	pr, err := tx.Projects().ByID(ctx, id, false)
+	if err != nil || pr == nil {
+		return err
+	}
+	owner, err := tx.Settlements().ByID(ctx, pr.SettlementID)
+	if err != nil {
+		return err
+	}
+	line, err := h.projectLine(ctx, tx, snap, owner, p, *pr, lastDay, projectFlags{})
+	if err != nil {
+		return err
+	}
+	v.Projects = append(v.Projects, line)
+	return nil
 }
 
 func hasFinished(ps []application.SpecialProject) bool {
