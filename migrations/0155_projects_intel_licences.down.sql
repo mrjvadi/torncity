@@ -14,6 +14,7 @@ DROP FUNCTION sabotage_acts_no_delete();
 DROP TABLE licence_events;
 DROP FUNCTION licence_events_append_only();
 DROP TABLE licence_listings;
+DROP TABLE licence_applications;
 DROP TABLE licence_bids;
 DROP TABLE licence_auctions;
 DROP TABLE licences;

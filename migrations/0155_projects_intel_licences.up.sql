@@ -32,7 +32,7 @@ CREATE TABLE special_projects (
     started_at       timestamptz NOT NULL,
     finished_at      timestamptz NULL,
     cancelled_at     timestamptz NULL,
-    CONSTRAINT special_projects_stage_check CHECK (stage <= stages),
+    CONSTRAINT special_projects_stage_le_check CHECK (stage <= stages),
     CONSTRAINT special_projects_finished_check CHECK ((status = 'finished') = (finished_at IS NOT NULL)),
     CONSTRAINT special_projects_cancelled_check CHECK ((status = 'cancelled') = (cancelled_at IS NOT NULL))
 );
@@ -161,15 +161,17 @@ CREATE TABLE intel_agents (
     player_id   uuid        NOT NULL REFERENCES players (id),
     sponsor_id  uuid        NOT NULL REFERENCES cities (id),
     target_id   uuid        NOT NULL REFERENCES cities (id),
-    status      text        NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'expelled', 'recalled')),
-    cover_since timestamptz NOT NULL,
+    status      text        NOT NULL DEFAULT 'offered' CHECK (status IN ('offered', 'active', 'declined', 'expelled', 'recalled')),
+    offered_by  uuid        NOT NULL REFERENCES players (id),
+    cover_since timestamptz NULL,
     created_at  timestamptz NOT NULL,
     ended_at    timestamptz NULL,
     CONSTRAINT intel_agents_apart_check CHECK (sponsor_id <> target_id),
-    CONSTRAINT intel_agents_ended_check CHECK ((status = 'active') = (ended_at IS NULL))
+    CONSTRAINT intel_agents_ended_check CHECK ((status IN ('offered', 'active')) = (ended_at IS NULL)),
+    CONSTRAINT intel_agents_cover_check CHECK ((status = 'active') <= (cover_since IS NOT NULL))
 );
--- one active assignment per agent and target
-CREATE UNIQUE INDEX intel_agents_active_idx ON intel_agents (player_id, target_id) WHERE status = 'active';
+-- one open offer or active assignment per agent and target
+CREATE UNIQUE INDEX intel_agents_open_idx ON intel_agents (player_id, target_id) WHERE status IN ('offered', 'active');
 CREATE INDEX intel_agents_sponsor_idx ON intel_agents (sponsor_id, created_at DESC);
 
 CREATE TABLE intel_ops (
@@ -315,6 +317,8 @@ CREATE TABLE licences (
     last_used_at timestamptz NULL,
     notice_until timestamptz NULL,
     cause        text        NULL,
+    -- a revocation without cause waits here for the second holder of licence.revoke
+    revoke_proposed_by uuid  NULL REFERENCES players (id),
     transferred_at timestamptz NULL,
     from_licence uuid        NULL REFERENCES licences (id),
     created_at   timestamptz NOT NULL,
@@ -358,6 +362,28 @@ CREATE TABLE licence_bids (
     at          timestamptz NOT NULL,
     UNIQUE (auction_id, bidder_kind, bidder_id)
 );
+
+-- an application for a licence at the posted fee: the fee is held in the escrow of the application until an official decides
+CREATE TABLE licence_applications (
+    id          uuid        PRIMARY KEY,
+    issuer_id   uuid        NOT NULL REFERENCES cities (id),
+    kind        text        NOT NULL,
+    target_ref  text        NOT NULL DEFAULT '',
+    holder_kind text        NOT NULL CHECK (holder_kind IN ('player', 'company')),
+    holder_id   uuid        NOT NULL,
+    applied_by  uuid        NOT NULL REFERENCES players (id),
+    fee         bigint      NOT NULL CHECK (fee >= 0),
+    term_days   integer     NOT NULL CHECK (term_days > 0),
+    transferable boolean    NOT NULL DEFAULT false,
+    status      text        NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'granted', 'refused', 'withdrawn')),
+    decided_by  uuid        NULL REFERENCES players (id),
+    licence_id  uuid        NULL REFERENCES licences (id),
+    at          timestamptz NOT NULL,
+    decided_at  timestamptz NULL,
+    CONSTRAINT licence_applications_decided_check CHECK ((status = 'pending') = (decided_at IS NULL))
+);
+CREATE UNIQUE INDEX licence_applications_one_idx ON licence_applications (issuer_id, kind, target_ref, holder_kind, holder_id) WHERE status = 'pending';
+CREATE INDEX licence_applications_open_idx ON licence_applications (issuer_id, at) WHERE status = 'pending';
 
 CREATE TABLE licence_listings (
     id         uuid        PRIMARY KEY,
