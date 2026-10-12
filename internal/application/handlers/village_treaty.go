@@ -616,7 +616,7 @@ func (h *VillageHandler) alliedBeacons(ctx context.Context, tx application.Tx, s
 		if !allied {
 			continue
 		}
-		buildings, err := tx.SettlementBuildings().List(ctx, o.CityID)
+		buildings, err := buildingsWithWorks(ctx, tx, snap, o.CityID)
 		if err != nil {
 			return nil, err
 		}

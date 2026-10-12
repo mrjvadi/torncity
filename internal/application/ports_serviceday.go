@@ -34,6 +34,8 @@ const (
 	ServiceIdleNoStaff    = "no_staff"
 	ServiceIdleNoWage     = "no_wage"
 	ServiceIdleNoSupplies = "no_supplies"
+	// ServiceIdleSabotaged: an act of sabotage skipped the day (docs/adr/0077 6.5).
+	ServiceIdleSabotaged = "sabotaged"
 )
 
 // ServicePost is one post's day.

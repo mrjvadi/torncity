@@ -156,6 +156,8 @@ const (
 	// MarketRefusedStallLimit: the player holds the most stalls they may.
 	MarketRefusedStallsFull = "stalls_full"
 	MarketRefusedStallLimit = "stall_limit"
+	// MarketRefusedNoLicence: the settlement requires a stall right of a seller and the player has none (docs/adr/0077).
+	MarketRefusedNoLicence = "no_licence"
 )
 
 // MarketRefusalView is a refused market request.

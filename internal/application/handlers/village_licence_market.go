@@ -726,30 +726,58 @@ func (h *VillageHandler) tickLicenceExpiry(ctx context.Context, tx application.T
 	return h.licenceAudit(ctx, tx, l.IssuerID, l.ID, "", "expired", nil, now)
 }
 
-// licenceGate stops an action the settlement licenses, for someone with no licence for it. Before the requirement binds (its grace), with no
-// requirement, or after the requirement is closed, nothing is asked. A licence found is marked used (it feeds the non-use rule).
-func (h *VillageHandler) licenceGate(ctx context.Context, tx application.Tx, issuerID, kind, target string, holders ...[2]string) error {
-	if !h.licenceOpen() {
-		return nil
+// licenceAllowed asks whether an action the settlement licenses may be done by one of the holders: before the market opens, with no requirement,
+// during its grace or after it is closed, nothing is asked. A licence found is marked used (it feeds the non-use rule).
+func licenceAllowed(ctx context.Context, tx application.Tx, openAt, now time.Time, issuerID, kind, target string, holders ...[2]string) (bool, error) {
+	if openAt.IsZero() || now.Before(openAt) {
+		return true, nil
 	}
 	rule, err := tx.Licences().Rule(ctx, issuerID, kind)
 	if err != nil || rule == nil {
-		return err
+		return true, err
 	}
-	now := h.now()
 	if !requirementOf(*rule).InForce(now) {
-		return nil
+		return true, nil
 	}
 	for _, hd := range holders {
 		live, err := tx.Licences().LiveOfHolder(ctx, hd[0], hd[1])
 		if err != nil {
-			return err
+			return false, err
 		}
 		for _, l := range live {
 			if l.IssuerID == issuerID && l.Kind == kind && (target == "" || l.TargetRef == target || l.TargetRef == "") && now.Before(l.TermEnd) {
-				return tx.Licences().Touch(ctx, l.ID, now)
+				return true, tx.Licences().Touch(ctx, l.ID, now)
 			}
 		}
 	}
-	return refuseVillage(village.LicenceMissing, village.AddrLicence)
+	return false, nil
+}
+
+// holdersOfPlayer are the licence holders a player acts for: themselves and the companies they own.
+func holdersOfPlayer(ctx context.Context, tx application.Tx, playerID string) ([][2]string, error) {
+	out := [][2]string{{"player", playerID}}
+	cs, err := tx.Companies().Of(ctx, playerID)
+	if err != nil {
+		return nil, err
+	}
+	for _, c := range cs {
+		out = append(out, [2]string{"company", c.ID})
+	}
+	return out, nil
+}
+
+// licenceGate is licenceAllowed as a refusal, for the village handlers.
+func (h *VillageHandler) licenceGate(ctx context.Context, tx application.Tx, p *application.Player, issuerID, kind, target string) error {
+	holders, err := holdersOfPlayer(ctx, tx, p.ID)
+	if err != nil {
+		return err
+	}
+	ok, err := licenceAllowed(ctx, tx, h.special.LicenceAt, h.now(), issuerID, kind, target, holders...)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return refuseVillage(village.LicenceMissing, village.AddrLicence)
+	}
+	return nil
 }

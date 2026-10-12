@@ -146,7 +146,7 @@ func specialEvent(ctx context.Context, tx application.Tx, meta envelope.Metadata
 
 // projectWorks are the finished special projects of a settlement as the buildings the service day, the detectors and the research desk read.
 // A work has no lot on the map: it is a post of the settlement, kept and paid every local day, idle when nobody keeps it.
-func projectWorks(ctx context.Context, tx application.Tx, snap *content.Snapshot, settlementID string) ([]application.SettlementBuildingInstance, error) {
+func projectWorks(ctx context.Context, tx application.Tx, snap *content.Snapshot, settlementID string, centre [2]int) ([]application.SettlementBuildingInstance, error) {
 	done, err := tx.Projects().Finished(ctx, settlementID)
 	if err != nil || len(done) == 0 {
 		return nil, err
@@ -161,7 +161,7 @@ func projectWorks(ctx context.Context, tx application.Tx, snap *content.Snapshot
 		if p.FinishedAt != nil {
 			at = *p.FinishedAt
 		}
-		out = append(out, application.SettlementBuildingInstance{ID: p.ID, SettlementID: p.SettlementID, TypeCode: k.Code, LotX: -1, LotY: -1, Status: "complete",
+		out = append(out, application.SettlementBuildingInstance{ID: p.ID, SettlementID: p.SettlementID, TypeCode: k.Code, LotX: centre[0], LotY: centre[1], Status: "complete",
 			QueuedAt: at, CompletedAt: &at})
 	}
 	return out, nil
@@ -169,19 +169,24 @@ func projectWorks(ctx context.Context, tx application.Tx, snap *content.Snapshot
 
 // withWorks adds the works of a settlement to the buildings a system reads.
 func withWorks(ctx context.Context, tx application.Tx, snap *content.Snapshot, settlementID string, buildings []application.SettlementBuildingInstance) ([]application.SettlementBuildingInstance, error) {
-	works, err := projectWorks(ctx, tx, snap, settlementID)
+	works, err := projectWorks(ctx, tx, snap, settlementID, centreOf(buildings))
 	if err != nil || len(works) == 0 {
 		return buildings, err
 	}
 	return append(append([]application.SettlementBuildingInstance(nil), buildings...), works...), nil
 }
 
-// workHeldToday reports whether the finished work of the kind stands open in the settlement today: its keepers paid, its fuel burnt. The day is
-// judged now if nobody has judged it.
-func (h *VillageHandler) workHeldToday(ctx context.Context, tx application.Tx, snap *content.Snapshot, s application.FoundedSettlement, effect string) (bool, error) {
-	works, err := projectWorks(ctx, tx, snap, s.CityID)
+// workHeld reports whether a finished work with the effect stands open in the settlement today, and the size of the effect: the sum of the
+// amounts of the works of the kind that are open. A work is open when its keepers are paid and its fuel burnt; the day is judged now if nobody
+// has judged it.
+func (h *VillageHandler) workHeld(ctx context.Context, tx application.Tx, snap *content.Snapshot, s application.FoundedSettlement, effect string) (amount int64, held bool, err error) {
+	buildings, err := tx.SettlementBuildings().List(ctx, s.CityID)
+	if err != nil {
+		return 0, false, err
+	}
+	works, err := projectWorks(ctx, tx, snap, s.CityID, centreOf(buildings))
 	if err != nil || len(works) == 0 {
-		return false, err
+		return 0, false, err
 	}
 	var mine []application.SettlementBuildingInstance
 	for _, w := range works {
@@ -190,22 +195,45 @@ func (h *VillageHandler) workHeldToday(ctx context.Context, tx application.Tx, s
 		}
 	}
 	if len(mine) == 0 {
-		return false, nil
-	}
-	buildings, err := tx.SettlementBuildings().List(ctx, s.CityID)
-	if err != nil {
-		return false, err
+		return 0, false, nil
 	}
 	day, err := h.SettleServiceDay(ctx, tx, snap, s, buildings)
 	if err != nil || day == nil {
-		return false, err
+		return 0, false, err
 	}
 	for _, w := range mine {
 		if day.HeldPost(w.ID) {
-			return true, nil
+			k, _ := snap.SpecialProject(w.TypeCode)
+			amount += k.Amount
+			held = true
 		}
 	}
-	return false, nil
+	return amount, held, nil
+}
+
+// workHeldToday is workHeld without the amount.
+func (h *VillageHandler) workHeldToday(ctx context.Context, tx application.Tx, snap *content.Snapshot, s application.FoundedSettlement, effect string) (bool, error) {
+	_, held, err := h.workHeld(ctx, tx, snap, s, effect)
+	return held, err
+}
+
+// centreOf is where a work stands for the systems that measure: the settlement's civic hall (the centre of its roads), or the origin.
+func centreOf(buildings []application.SettlementBuildingInstance) [2]int {
+	for _, b := range buildings {
+		if b.TypeCode == "civic_hall" && b.Status == "complete" {
+			return [2]int{b.LotX, b.LotY}
+		}
+	}
+	return [2]int{}
+}
+
+// buildingsWithWorks lists the buildings of a settlement and its finished works.
+func buildingsWithWorks(ctx context.Context, tx application.Tx, snap *content.Snapshot, settlementID string) ([]application.SettlementBuildingInstance, error) {
+	buildings, err := tx.SettlementBuildings().List(ctx, settlementID)
+	if err != nil {
+		return nil, err
+	}
+	return withWorks(ctx, tx, snap, settlementID, buildings)
 }
 
 // cityTreasury is a settlement's treasury account.

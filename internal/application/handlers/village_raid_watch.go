@@ -122,7 +122,7 @@ func (h *VillageHandler) sightingLead(ctx context.Context, tx application.Tx, de
 func (h *VillageHandler) scheduleSightings(ctx context.Context, tx application.Tx, snap *content.Snapshot, r application.SettlementRaid,
 	defender, attacker application.FoundedSettlement, transport string, now time.Time,
 ) error {
-	buildings, err := tx.SettlementBuildings().List(ctx, defender.CityID)
+	buildings, err := buildingsWithWorks(ctx, tx, snap, defender.CityID)
 	if err != nil {
 		return err
 	}
@@ -188,7 +188,7 @@ func (h *VillageHandler) RaidSighting(ctx context.Context, meta envelope.Metadat
 		if err != nil {
 			return err
 		}
-		buildings, err := tx.SettlementBuildings().List(ctx, defender.CityID)
+		buildings, err := buildingsWithWorks(ctx, tx, snap, defender.CityID)
 		if err != nil {
 			return err
 		}
@@ -214,6 +214,12 @@ func (h *VillageHandler) RaidSighting(ctx context.Context, meta envelope.Metadat
 		held := day != nil && day.HeldPost(post.b.ID)
 		night := nightAt(now, defender.Zone())
 		chance := h.raid.Rules.Chance(int64(post.det.DetectChanceBPS), held, night, 0)
+		// a post blinded by sabotage sees less (docs/adr/0077 6.5)
+		if blind, err := tx.Intel().BlindBPS(ctx, post.b.ID, now); err != nil {
+			return err
+		} else if blind > 0 {
+			chance -= chance * int64(blind) / raid.BPS
+		}
 		roll := raid.Roll(row.Seed, "detect:"+post.b.ID)
 		detected := held && raid.Detected(chance, roll)
 		// told: by a runner from the post, or at once along a chain of open beacons
@@ -308,7 +314,7 @@ func (h *VillageHandler) relayDelay(buildings []application.SettlementBuildingIn
 
 // watchLines reads the settlement's detectors and whether each was open on its last day.
 func (h *VillageHandler) watchLines(ctx context.Context, tx application.Tx, snap *content.Snapshot, s application.FoundedSettlement) ([]village.WatchLine, error) {
-	buildings, err := tx.SettlementBuildings().List(ctx, s.CityID)
+	buildings, err := buildingsWithWorks(ctx, tx, snap, s.CityID)
 	if err != nil {
 		return nil, err
 	}

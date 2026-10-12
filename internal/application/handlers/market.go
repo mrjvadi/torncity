@@ -85,6 +85,8 @@ type MarketHandler struct {
 	carry carryEnv
 	// village is the village book's stalls and market day (market_village.go).
 	village VillageMarketRules
+	// licenceAt is when the licence market begins (docs/adr/0077 7): from then a settlement that requires a stall right asks it of a seller.
+	licenceAt time.Time
 }
 
 // WithCarry has a bid refused when its goods would not fit in the bags, and
@@ -513,6 +515,18 @@ func (h *MarketHandler) Order(ctx context.Context, meta envelope.Metadata, req M
 		vb, err := h.villageBookOf(ctx, tx, snap, w.city, now)
 		if err != nil {
 			return err
+		}
+		if vb.active && side == market.Sell {
+			// a stall sells only with a stall right where the settlement requires one (docs/adr/0077 7.4)
+			holders, err := holdersOfPlayer(ctx, tx, p.ID)
+			if err != nil {
+				return err
+			}
+			if ok, err := licenceAllowed(ctx, tx, h.licenceAt, now, w.city.ID, "stall_right", "", holders...); err != nil {
+				return err
+			} else if !ok {
+				return refuseMarket(economy.MarketRefusedNoLicence)
+			}
 		}
 		if vb.active {
 			used, mine, err := tx.Market().CountOpenIn(ctx, w.city.ID, p.ID)
@@ -1147,4 +1161,10 @@ func appendMarketEvent(ctx context.Context, tx application.Tx, meta envelope.Met
 	return tx.Outbox().Append(ctx, application.OutboxRecord{
 		EventID: ev.ID, Subject: subjects.Event("market", name), Metadata: meta, Payload: ev.Payload,
 	})
+}
+
+// WithLicenceMarket gives the market the instant the licence market begins.
+func (h *MarketHandler) WithLicenceMarket(at time.Time) *MarketHandler {
+	h.licenceAt = at
+	return h
 }

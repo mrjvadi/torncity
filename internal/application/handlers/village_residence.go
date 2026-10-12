@@ -123,6 +123,12 @@ func (h *VillageHandler) Join(ctx context.Context, meta envelope.Metadata, req V
 			return refuseVillage(village.VillageAlreadyResident)
 		}
 		now := h.now()
+		// an agent put out of a settlement may not come back before the stay is over (docs/adr/0077 6.4)
+		if until, err := tx.Intel().ExpelledUntil(ctx, p.ID, s.CityID); err != nil {
+			return err
+		} else if until.After(now) {
+			return refuseVillage(village.IntelExpelled)
+		}
 		if !req.confirmed() {
 			confirm = true
 			return h.residenceGate(ctx, tx, p.ID, now)

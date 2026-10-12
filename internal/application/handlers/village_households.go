@@ -568,6 +568,8 @@ type houseDay struct {
 	careBPS   int64
 	foods     []foodChoice
 	waterItem string
+	// piped are the households the aqueduct of a special project waters today (docs/adr/0077 4.2), the first by id up to its size.
+	piped map[string]bool
 	// the shelf, read once for the batch (village_households_shop.go)
 	shop                      *shopState
 	shopOff                   bool
@@ -640,6 +642,21 @@ func (h *VillageHandler) settleHouseholds(ctx context.Context, tx application.Tx
 	})
 	if c, ok := snap.Climate(); ok {
 		d.waterItem = c.Survival.WaterItem
+	}
+	if n, held, err := h.workHeld(ctx, tx, snap, s, content.ProjectEffectHouseWater); err != nil {
+		return 0, err
+	} else if held && n > 0 {
+		living, err := repo.Living(ctx, s.CityID)
+		if err != nil {
+			return 0, err
+		}
+		d.piped = map[string]bool{}
+		for i, x := range living {
+			if int64(i) >= n {
+				break
+			}
+			d.piped[x.ID] = true
+		}
 	}
 	var left int64
 	for _, hh := range due {
@@ -751,7 +768,10 @@ func (h *VillageHandler) settleOneHousehold(ctx context.Context, tx application.
 	// Water: the well's output in the stock, free of charge.
 	needW := household.Quantity(persons, h.house.WaterMilli)
 	haveW := int64(0)
-	if d.waterItem != "" && needW > 0 {
+	if d.piped[hh.ID] && needW > 0 {
+		// the aqueduct brings the water: it is drunk from the pipe, and the stock's well is left alone
+		haveW = needW
+	} else if d.waterItem != "" && needW > 0 {
 		haveW = min(needW, d.stock[d.waterItem])
 		if haveW > 0 {
 			if err := tx.Items().Move(ctx, application.ItemMove{ID: h.ids.NewID(), Item: d.waterItem, Qty: haveW, FromOrg: d.org, FromHolding: application.HoldWarehouse,

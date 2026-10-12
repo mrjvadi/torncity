@@ -110,6 +110,22 @@ func (h *VillageHandler) workOpenToday(ctx context.Context, tx application.Tx, s
 func (h *VillageHandler) waterOf(ctx context.Context, tx application.Tx, snap *content.Snapshot, s application.FoundedSettlement,
 	kit farmKit, b application.SettlementBuildingInstance, buildings []application.SettlementBuildingInstance, now time.Time,
 ) (waterState, error) {
+	ws, err := h.waterOfWorks(ctx, tx, snap, s, kit, b, buildings, now)
+	if err != nil || kit.branch.Rainfed || ws.factor != kit.cfg.WaterUnservedBPS {
+		return ws, err
+	}
+	// a farm no water work serves is served by the great canal of a special project while its masters keep the sluices (docs/adr/0077 4.2)
+	if open, err := h.workHeldToday(ctx, tx, snap, s, content.ProjectEffectFarmWater); err != nil {
+		return waterState{}, err
+	} else if open {
+		return waterState{factor: kit.cfg.WaterServedBPS, line: &village.FarmWater{Served: true, Open: true, ConditionBPS: labor.BPS}}, nil
+	}
+	return ws, nil
+}
+
+func (h *VillageHandler) waterOfWorks(ctx context.Context, tx application.Tx, snap *content.Snapshot, s application.FoundedSettlement,
+	kit farmKit, b application.SettlementBuildingInstance, buildings []application.SettlementBuildingInstance, now time.Time,
+) (waterState, error) {
 	if kit.branch.Rainfed {
 		return waterState{factor: kit.cfg.WaterServedBPS}, nil
 	}
