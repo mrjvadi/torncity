@@ -235,3 +235,16 @@ village:
     law_too_many_informants: "No more informants can be kept."
     law_treasury_short: "The treasury cannot cover it."
     law_weak_evidence: "The evidence is not enough."
+
+offence:
+  theft: "Theft"
+  fraud: "Fraud"
+  assault: "Assault"
+  smuggling: "Smuggling"
+  forgery: "Forgery"
+  bribery: "Bribery"
+  laundering: "Money laundering"
+  false_evidence: "False evidence"
+  espionage: "Espionage"
+  racketeering: "Organised racketeering"
+  contempt: "Contempt of court"

@@ -73,7 +73,7 @@ func renderLaw(c Context, v village.LawView) *presenter.Response {
 	var os []string
 	for _, o := range v.Offences {
 		if o.Listed {
-			os = append(os, c.T("law.offence", map[string]any{"name": o.Name, "class": c.T("law.class."+o.Class, nil)}))
+			os = append(os, c.T("law.offence", map[string]any{"name": lawOffenceName(c, o.Code, o.Name), "class": c.T("law.class."+o.Class, nil)}))
 		}
 	}
 	if len(os) > 0 {
@@ -87,7 +87,7 @@ func renderLaw(c Context, v village.LawView) *presenter.Response {
 	// the cases
 	var cs []string
 	for _, k := range v.Cases {
-		cs = append(cs, c.T("law.case", map[string]any{"no": strconv.FormatInt(k.No, 10), "offence": k.Offence.Name, "accused": k.Accused.Name,
+		cs = append(cs, c.T("law.case", map[string]any{"no": strconv.FormatInt(k.No, 10), "offence": lawOffenceName(c, k.Offence.Code, k.Offence.Name), "accused": k.Accused.Name,
 			"state": c.T("law.state."+k.State, nil), "strength": FormatNumber(c, k.Strength)}))
 		lawBtn(c, kb, "open", map[string]any{"no": strconv.FormatInt(k.No, 10)}, village.LawActionOpen, k.ID)
 	}
@@ -222,6 +222,15 @@ func renderLaw(c Context, v village.LawView) *presenter.Response {
 		}
 	}
 	return nav()
+}
+
+// lawOffenceName words an offence by its code in the viewer's language, falling back to the name the content gave.
+func lawOffenceName(c Context, code, fallback string) string {
+	key := "offence." + code
+	if t := c.T(key, nil); t != "" && t != key {
+		return t
+	}
+	return fallback
 }
 
 func orDefault(s, d string) string {

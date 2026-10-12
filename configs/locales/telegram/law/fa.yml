@@ -235,3 +235,16 @@ village:
     law_too_many_informants: "بیش از این خبرچین نمی‌شود نگه داشت."
     law_treasury_short: "خزانهٔ شهر نمی‌رسد."
     law_weak_evidence: "مدرک کافی نیست."
+
+offence:
+  theft: "دزدی"
+  fraud: "کلاهبرداری"
+  assault: "ضرب و جرح"
+  smuggling: "قاچاق"
+  forgery: "جعل سند"
+  bribery: "رشوه"
+  laundering: "پول‌شویی"
+  false_evidence: "شهادت و گزارش دروغ"
+  espionage: "جاسوسی"
+  racketeering: "اخاذی سازمان‌یافته"
+  contempt: "بی‌احترامی به دادگاه"
