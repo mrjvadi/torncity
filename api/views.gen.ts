@@ -675,6 +675,61 @@ export interface CertificateLine {
   route: string
 }
 
+export interface ChainFeedLine {
+  item: Named
+  need_milli: number
+  have_milli: number
+  makers: Named[] | null
+  stock: number
+}
+
+export interface ChainLineLine {
+  node: Named
+  item: Named
+  need_milli: number
+  have_milli: number
+  count: number
+  running: number
+  add: number
+  starved: boolean
+  depth: number
+}
+
+export interface ChainNodeLine {
+  node: Named
+  built: number
+  running: number
+  shift_minutes: number
+  slots: number
+  out: ChainRateLine[] | null
+  in: ChainRateLine[] | null
+  feeds: ChainFeedLine[] | null
+  last_hour: ChainRateLine[] | null
+}
+
+export interface ChainRateLine {
+  item: Named
+  milli: number
+}
+
+export interface ChainRawLine {
+  item: Named
+  need_milli: number
+  stock: number
+}
+
+export interface ChainView {
+  village: string
+  open: boolean
+  targets: Named[] | null
+  target: Named
+  per_hour_milli: number
+  lines: ChainLineLine[] | null
+  raw: ChainRawLine[] | null
+  first: ChainLineLine | null
+  nodes: ChainNodeLine[] | null
+}
+
 export interface CharterActingView {
   player: CharterPersonView
   office: string
@@ -2581,6 +2636,74 @@ export interface GrazingLine {
   radius: number
 }
 
+export interface HaulCarrierLine {
+  id: string
+  mode: Named
+  kind: string
+  capacity_kg: number
+  status: string
+  settlement: Named
+}
+
+export interface HaulLinkLine {
+  id: string
+  other: Named
+  class: string
+  length_m: number
+  condition_bps: number
+  toll: number
+  status: string
+  mine: boolean
+}
+
+export interface HaulLoadLine {
+  id: string
+  item: Named
+  qty: number
+  from: Named
+  to: Named
+  due_at: string | null
+  left_seconds: number
+  carrier: string
+}
+
+export interface HaulModeLine {
+  mode: Named
+  capacity_kg: number
+  surface: string
+  cost: MaterialLine[] | null
+  wage: number
+  hours: number
+  can_order: boolean
+  missing: Named[] | null
+}
+
+export interface HaulOrderLine {
+  id: string
+  item: Named
+  qty: number
+  from: Named
+  to: Named
+  mode: string
+  fee: number
+  status: string
+  at: string | null
+}
+
+export interface HaulView {
+  village: string
+  open: boolean
+  may_order: boolean
+  may_draw: boolean
+  carriers: HaulCarrierLine[] | null
+  links: HaulLinkLine[] | null
+  loads: HaulLoadLine[] | null
+  orders: HaulOrderLine[] | null
+  modes: HaulModeLine[] | null
+  targets: Named[] | null
+  notice: string
+}
+
 export interface HealthFacility {
   kind: string
   building: Named
@@ -4077,6 +4200,54 @@ export interface MillTollView {
   max_bps: number
 }
 
+export interface MineCrewLine {
+  role: Named
+  slots: number
+  working: number
+}
+
+export interface MineDepositLine {
+  resource: Named
+  surveyed: boolean
+  grade_permille: number
+  band: string
+  capacity_estimate: number
+  taken_units: number
+  left_bps: number[]
+  item: Named
+}
+
+export interface MineLevelLine {
+  depth: number
+  depth_m: number
+  condition_bps: number
+  water_bps: number
+  status: string
+  drained: boolean
+  left_bps: number
+}
+
+export interface MineLine {
+  building: Named
+  building_id: string
+  shafts: number
+  hoist: number
+  pump: number
+  ore_bin: boolean
+  vent: boolean
+  adit_m: number
+  fall_m: number
+  adit_need_m: number[]
+  levels: MineLevelLine[] | null
+  crew: MineCrewLine[] | null
+  face_kg: number
+  hoist_kg: number
+  haul_kg: number
+  output_kg: number
+  limit: string
+  reasons: string[] | null
+}
+
 export interface MineLot {
   x: number
   y: number
@@ -4086,6 +4257,17 @@ export interface MineLot {
   state: string
   finish_at: string | null
   left_seconds: number
+}
+
+export interface MineModuleLine {
+  module: Named
+  have: number
+  max: number
+  cost: MaterialLine[] | null
+  wage: number
+  unit: number
+  missing: Named[] | null
+  can_order: boolean
 }
 
 export interface MineView {
@@ -4101,6 +4283,28 @@ export interface MineView {
   tax_bps: number
   debt: number
   debt_periods: number
+  notice: string
+}
+
+export interface MineWorkLine {
+  id: string
+  module: Named
+  detail: number
+  due_at: string | null
+  left_seconds: number
+  building: string
+}
+
+export interface MiningView {
+  village: string
+  open: boolean
+  starts_at: string | null | null
+  pits_from: string | null | null
+  may_run: boolean
+  deposits: MineDepositLine[] | null
+  mines: MineLine[] | null
+  works: MineWorkLine[] | null
+  modules: MineModuleLine[] | null
   notice: string
 }
 
@@ -5167,6 +5371,119 @@ export interface RaidView {
   mine: RaidLine[] | null
   targets: RaidTarget[] | null
   watch: WatchLine[] | null
+  notice: string
+}
+
+export interface RailBookingLine {
+  id: string
+  line: string
+  item: Named
+  qty: number
+  from: Named
+  to: Named
+  fee: number
+  status: string
+}
+
+export interface RailCargoLine {
+  item: Named
+  qty: number
+  to: Named
+}
+
+export interface RailClassLine {
+  class: Named
+  speed_kmh: number
+  consist_kg: number
+  wagon_kg: number
+  max_grade_bps: number
+  lot_cost: MaterialLine[] | null
+  lot_hours: number
+  lot_minutes: number
+  team_price: number
+  wagon_cost: MaterialLine[] | null
+  can_lay: boolean
+  missing: Named[] | null
+}
+
+export interface RailLineLine {
+  id: string
+  name: string
+  class: Named
+  status: string
+  sections: number
+  built: number
+  length_m: number
+  worst_condition_bps: number
+  rate_per_tonne_km: number
+  mine: boolean
+  stops: RailStopLine[] | null
+  loops: number[] | null
+  laying: boolean
+  due_at: string | null | null
+  trains: number
+}
+
+export interface RailQuoteLine {
+  class: Named
+  from: Named
+  to: Named
+  sections: number
+  lots: number
+  length_m: number
+  max_grade_bps: number
+  materials: MaterialLine[] | null
+  wage: number
+  minutes: number
+}
+
+export interface RailStepLine {
+  seq: number
+  stop: RailStopLine
+  op: string
+  item: Named
+  stock_floor: number
+  wait_minutes: number
+}
+
+export interface RailStopLine {
+  id: string
+  building: Named
+  settlement: Named
+  after_seq: number
+  open: boolean
+}
+
+export interface RailTrainLine {
+  id: string
+  line: string
+  name: string
+  status: string
+  wagons: number
+  capacity_kg: number
+  at: Named
+  heading: number
+  pos: number
+  steps: RailStepLine[] | null
+  cargo: RailCargoLine[] | null
+  next_at: string | null | null
+  reason: string
+  stuck: boolean
+  mine: boolean
+  legs: number
+}
+
+export interface RailView {
+  village: string
+  open: boolean
+  may_draw: boolean
+  may_order: boolean
+  stations: RailStopLine[] | null
+  classes: RailClassLine[] | null
+  lines: RailLineLine[] | null
+  trains: RailTrainLine[] | null
+  bookings: RailBookingLine[] | null
+  quote: RailQuoteLine | null
   notice: string
 }
 
@@ -7411,9 +7728,11 @@ export interface ScreenViews {
   settlement_build_lots: LotGridView
   settlement_build_menu: BuildMenuView
   settlement_building_view: BuildingView
+  settlement_chain: ChainView
   settlement_construction_progress: ConstructionProgressView
   settlement_found_draft: FoundDraftView
   settlement_founded: SettlementFoundedView
+  settlement_haul: HaulView
   settlement_insurance: SettlementInsuranceView
   settlement_knowledge_list: KnowledgeListView
   settlement_land: LandView
@@ -7423,11 +7742,13 @@ export interface ScreenViews {
   settlement_lot_buy_done: LotBuyView
   settlement_lot_repair_done: LotRepairView
   settlement_mine: MineView
+  settlement_mining: MiningView
   settlement_private_confirm: PrivateConfirmView
   settlement_private_lots: PrivateLotsView
   settlement_private_menu: PrivateMenuView
   settlement_raid: RaidView
   settlement_raid_notice: RaidNoticeView
+  settlement_rail: RailView
   settlement_refusal: SettlementRefusalView
   settlement_road_cancelled: RoadCancelledView
   settlement_road_planned: RoadQuoteView

@@ -514,7 +514,7 @@ func (h *VillageHandler) bumpLevel(ctx context.Context, tx application.Tx, build
 
 // recordHour adds a finished shift to the hour's statistics of its building (the ratio view reads them).
 func (h *VillageHandler) recordHour(ctx context.Context, tx application.Tx, sh *application.SettlementShift, made map[string]int64, now time.Time) error {
-	if !h.mining.Enabled() {
+	if !h.haulOpen() {
 		return nil
 	}
 	return tx.Mines().AddStats(ctx, application.NodeStat{
@@ -526,7 +526,7 @@ func (h *VillageHandler) recordHour(ctx context.Context, tx application.Tx, sh *
 // mineBinRoom is the spaces of yard the ore bins of a settlement's mineheads add.
 func (h *VillageHandler) mineBinRoom(ctx context.Context, tx application.Tx, snap *content.Snapshot, settlementID string) int64 {
 	repo := tx.Mines()
-	if repo == nil {
+	if repo == nil || !h.haulOpen() {
 		return 0
 	}
 	mk, ok := snap.ModuleKind("ore_bin")
