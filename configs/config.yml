@@ -1204,7 +1204,7 @@ raid:
 # future until the deploy sets it); every figure is a draft (evidence D) until the verifier has proved it. Content (rail.yml, building_functions.yml) holds the
 # classes and the modules; these are the numbers.
 mining:
-  rule_at: "2099-01-01T00:00:00Z"   # mining and rail start from this instant plus grace_days; a placeholder far in the future until the deploy sets it (ADR 0075)
+  rule_at: "2026-10-12T12:00:00Z"   # mining and rail start from this instant plus grace_days; a placeholder far in the future until the deploy sets it (ADR 0075)
   grace_days: 14   # days after rule_at before an iron pit draws on its deposit (it digs as before until then)
   reserve_divisor: 2   # the world's abstract reserve divided by this is the ore a deposit holds
   surface_share_bps: 500   # share of a deposit a pit reaches (surface, to 3 m)

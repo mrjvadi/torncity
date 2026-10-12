@@ -1923,7 +1923,7 @@ func Defaults() *Config {
 			TributeMin:           100,
 		},
 		Mining: Mining{
-			RuleAt:                "2099-01-01T00:00:00Z",
+			RuleAt:                "2026-10-12T12:00:00Z",
 			GraceDays:             14,
 			ReserveDivisor:        2,
 			SurfaceShareBPS:       500,
