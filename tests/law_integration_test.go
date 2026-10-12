@@ -4,6 +4,7 @@ package tests
 
 import (
 	"context"
+	"encoding/json"
 	"strings"
 	"sync"
 	"testing"
@@ -225,6 +226,13 @@ func (e *lawEnv) verifyLaw() {
 	}
 }
 
+// tickQuiet sends a deadline and gives the error back, for tests that race it.
+func (e *lawEnv) tickQuiet(kind, id, aux string) error {
+	payload, _ := json.Marshal(handlers.PolityTickPayload{Kind: kind, ID: id, Aux: aux})
+	_, err := e.village.PolityTick(testCtx(e.t), e.sched("polity.tick"), handlers.CrimeScheduledRequest{Payload: payload})
+	return err
+}
+
 func (e *lawEnv) caseState(id string) string {
 	return e.text(`SELECT state FROM law_cases WHERE id = $1::uuid`, id)
 }
@@ -350,6 +358,277 @@ func TestAWarrantNeedsAJudgeAndNeverRestsOnTipsAlone(t *testing.T) {
 	w3 := e.text(`SELECT id::text FROM law_warrants WHERE case_id = $1::uuid AND status = 'asked'`, id3)
 	if kind := e.refused(judge, handlers.VillageLawRequest{Action: village.LawActionWarrantSign, ID: w3}); kind != village.LawWeakEvidence {
 		t.Fatalf("improper evidence is not enough for a warrant, got %q", kind)
+	}
+	e.verifyLaw()
+}
+
+// setPost opens or closes a post on every judged day of the test, as a day with no wage or no staff would.
+func (e *lawEnv) setPost(building string, held bool) {
+	e.t.Helper()
+	q := `UPDATE service_day_posts SET held = false, idle = 'no_staff', staff = 0, wage = 0, used = '{}'::jsonb WHERE building_id = $1::uuid`
+	if held {
+		q = `UPDATE service_day_posts SET held = true, idle = '', staff = 2 WHERE building_id = $1::uuid`
+	}
+	if _, err := e.pool.Raw().Exec(testCtx(e.t), q, building); err != nil {
+		e.t.Fatal(err)
+	}
+}
+
+// toHearing puts a case in a hearing as a charge and a hearing day would, charged by a person.
+func (e *lawEnv) toHearing(id string, by *application.Player) {
+	e.t.Helper()
+	for _, q := range []string{
+		`UPDATE law_cases SET state = 'hearing', charged_by = $2::uuid, charged_at = now(), hearing_at = now() WHERE id = $1::uuid`,
+		`INSERT INTO law_case_stages (case_id, stage, at) VALUES ($1::uuid, 'charged', now())`,
+		`INSERT INTO law_case_stages (case_id, stage, at) VALUES ($1::uuid, 'hearing', now())`,
+	} {
+		var args []any
+		args = append(args, id)
+		if strings.Contains(q, "$2") {
+			args = append(args, by.ID)
+		}
+		if _, err := e.pool.Raw().Exec(testCtx(e.t), q, args...); err != nil {
+			e.t.Fatal(err)
+		}
+	}
+}
+
+func (e *lawEnv) verdicts(id string) int64 {
+	return e.scalarInt(`SELECT count(*) FROM law_verdicts WHERE case_id = $1::uuid`, id)
+}
+
+// A trial sits only in a courthouse that is open: without one the hearing is put off a day and nothing is decided. With a judge among the holders of the
+// power the case waits for him, and when the wait is over the NPC judge decides by a threshold on the evidence that stands - so a settlement is never
+// without a court. Each party appeals once; an appeal nobody hears is decided by the NPC panel, which asks for a little more.
+func TestATrialSitsOnlyInAStaffedCourthouseTheNPCJudgeFillsInAndEachPartyAppealsOnce(t *testing.T) {
+	e := newLawEnv(t)
+	ids := e.station(e.cityID, "constabulary", "court")
+	e.list("bribery")
+	prosecutor := e.officer("A", "prosecute.charge")
+	accused := e.rich("A", 10_000)
+	id := e.newCase("bribery", accused, nil, "audit")
+	e.evidence(id, "ledger_trace", 30, true)
+	e.evidence(id, "record", 25, true)
+	e.evidence(id, "witness", 20, true)
+
+	// a charge needs a prosecutor; a resident cannot charge
+	if kind := e.refused(e.resident("A"), handlers.VillageLawRequest{Action: village.LawActionCharge, ID: id}); kind == "" {
+		t.Fatal("a resident charged a case")
+	}
+	e.mustLaw(prosecutor, handlers.VillageLawRequest{Action: village.LawActionCharge, ID: id})
+	if e.caseState(id) != "charged" {
+		t.Fatalf("the case is charged, it is %s", e.caseState(id))
+	}
+	// the courthouse is shut that day: the hearing is put off, nothing is decided
+	e.setPost(ids["court"], false)
+	e.tick(application.TickLawHearing, id, "")
+	if e.caseState(id) != "charged" || e.verdicts(id) != 0 {
+		t.Fatalf("a hearing in a shut courthouse decides nothing: %s, %d verdicts", e.caseState(id), e.verdicts(id))
+	}
+	if e.scalarInt(`SELECT count(*) FROM law_case_stages WHERE case_id = $1::uuid AND stage LIKE 'postponed:%%'`, id) != 1 {
+		t.Fatal("the put-off is written once")
+	}
+	e.tick(application.TickLawHearing, id, "") // the same day again: no second put-off
+	if e.scalarInt(`SELECT count(*) FROM law_case_stages WHERE case_id = $1::uuid AND stage LIKE 'postponed:%%'`, id) != 1 {
+		t.Fatal("the put-off of a day is written once")
+	}
+	// open: the head holds the judge's power and did not charge, so the case waits for a verdict
+	e.setPost(ids["court"], true)
+	e.tick(application.TickLawHearing, id, "")
+	if e.caseState(id) != "hearing" || e.verdicts(id) != 0 {
+		t.Fatalf("with a judge to decide the case waits: %s, %d", e.caseState(id), e.verdicts(id))
+	}
+	// the wait is over: the NPC judge decides. 62 of evidence clears the threshold of 55.
+	e.tick(application.TickLawHearing, id, "wait")
+	if e.caseState(id) != "decided" || e.verdicts(id) != 1 {
+		t.Fatalf("the NPC judge decides when the wait is over: %s, %d", e.caseState(id), e.verdicts(id))
+	}
+	if e.scalarInt(`SELECT count(*) FROM law_verdicts WHERE case_id = $1::uuid AND npc AND guilty AND instance = 1`, id) != 1 {
+		t.Fatal("a verdict of the NPC judge, guilty")
+	}
+	// no jail stands, so the sentence is a fine, a part of the offence's ceiling, taken at once
+	if e.scalarInt(`SELECT count(*) FROM law_sentences WHERE case_id = $1::uuid AND kind = 'jail'`, id) != 0 {
+		t.Fatal("no jail sentence where no jail stands")
+	}
+	fine := e.scalarInt(`SELECT fine_paid FROM law_sentences WHERE case_id = $1::uuid AND kind = 'fine'`, id)
+	if fine != 6000 || e.cash(accused) != 4000 {
+		t.Fatalf("a fine of half the ceiling, taken: %d, cash %d", fine, e.cash(accused))
+	}
+	// the same tick again decides nothing twice
+	e.tick(application.TickLawHearing, id, "wait")
+	if e.verdicts(id) != 1 || e.scalarInt(`SELECT count(*) FROM law_sentences WHERE case_id = $1::uuid`, id) != 1 {
+		t.Fatal("a second delivery found the step done")
+	}
+
+	// the accused appeals once
+	e.mustLaw(accused, handlers.VillageLawRequest{Action: village.LawActionAppealAccused, ID: id})
+	if kind := e.refused(accused, handlers.VillageLawRequest{Action: village.LawActionAppealAccused, ID: id}); kind != village.LawAppealUsed {
+		t.Fatalf("a party appeals once, got %q", kind)
+	}
+	// so does the prosecution, and nobody else
+	if kind := e.refused(e.resident("A"), handlers.VillageLawRequest{Action: village.LawActionAppealProsecution, ID: id}); kind == "" {
+		t.Fatal("a resident appealed for the prosecution")
+	}
+	e.mustLaw(prosecutor, handlers.VillageLawRequest{Action: village.LawActionAppealProsecution, ID: id})
+	if e.scalarInt(`SELECT count(*) FROM law_appeals WHERE case_id = $1::uuid`, id) != 2 {
+		t.Fatal("one appeal for each party")
+	}
+	// nobody on the bench hears it: the NPC panel asks for more than the trial did (62 against 65) and quashes
+	e.tick(application.TickLawAppeal, id, "accused")
+	if e.caseState(id) != "final" || e.scalarInt(`SELECT count(*) FROM law_verdicts WHERE case_id = $1::uuid AND instance = 2 AND NOT guilty`, id) != 1 {
+		t.Fatalf("the NPC panel quashes: %s", e.caseState(id))
+	}
+	if e.scalarInt(`SELECT count(*) FROM law_sentences WHERE case_id = $1::uuid AND status = 'quashed'`, id) != 1 {
+		t.Fatal("the sentence is quashed")
+	}
+	if e.cash(accused) != 10_000-200+200 {
+		t.Fatalf("the fine and the appeal fee come back: %d", e.cash(accused))
+	}
+	e.tick(application.TickLawAppeal, id, "prosecution") // the second party's tick finds it heard
+	if e.scalarInt(`SELECT count(*) FROM law_verdicts WHERE case_id = $1::uuid AND instance = 2`, id) != 1 {
+		t.Fatal("an appeal is heard once")
+	}
+	e.verifyLaw()
+
+	// when the only holders of the judge's power are the one who charged and the accused, the NPC judge decides at the hearing
+	id2 := e.newCase("bribery", e.rich("A", 100), nil, "audit")
+	e.evidence(id2, "ledger_trace", 30, true)
+	e.evidence(id2, "record", 25, true)
+	e.evidence(id2, "witness", 20, true)
+	e.mustLaw(e.head, handlers.VillageLawRequest{Action: village.LawActionCharge, ID: id2})
+	if _, err := e.pool.Raw().Exec(testCtx(t), `DELETE FROM charter_seats WHERE office_id IN (SELECT id FROM charter_offices WHERE settlement_id = $1::uuid AND acquisition <> 'head')`, e.cityID); err != nil {
+		t.Fatal(err)
+	}
+	e.tick(application.TickLawHearing, id2, "")
+	if e.caseState(id2) != "decided" || e.verdicts(id2) != 1 {
+		t.Fatalf("with no one to judge but the charger the NPC judge decides at once: %s", e.caseState(id2))
+	}
+	e.verifyLaw()
+}
+
+// A jail sentence is served in a real jail, in a cell, and only where a jail stands, is open and has a cell free. A court that tries to sentence to jail
+// where none stands is refused; the jail's prisoners are let out when it is closed, fed from the treasury for the days served, and bail buys the rest.
+func TestNoJailSentenceWithoutAJailBuildingAndTheJailKeepsItsPrisoners(t *testing.T) {
+	e := newLawEnv(t)
+	ids := e.station(e.cityID, "constabulary", "court", "custody")
+	e.list("forgery")
+	judge := e.officer("A", "court.judge")
+	accused := e.rich("A", 50_000)
+	id := e.newCase("forgery", accused, e.head, "audit")
+	e.toHearing(id, e.head)
+	e.evidence(id, "record", 25, true)
+
+	// the jail is shut (it stands but nobody keeps it): no sentence to it
+	e.setPost(ids["custody"], false)
+	if kind := e.refused(judge, handlers.VillageLawRequest{Action: village.LawActionVerdict, ID: id, Code: "guilty", Items: "jail:10"}); kind != village.LawNoJail {
+		t.Fatalf("a jail sentence where no open jail has a cell is refused, got %q", kind)
+	}
+	// a sentence over the ceiling of the offence, or of a kind it does not carry
+	e.setPost(ids["custody"], true)
+	if kind := e.refused(judge, handlers.VillageLawRequest{Action: village.LawActionVerdict, ID: id, Code: "guilty", Items: "jail:9999"}); kind != village.LawOverBound {
+		t.Fatalf("over the ceiling, got %q", kind)
+	}
+	if kind := e.refused(judge, handlers.VillageLawRequest{Action: village.LawActionVerdict, ID: id, Code: "guilty", Items: "caution"}); kind != village.LawKindNotAllowed {
+		t.Fatalf("forgery carries no caution, got %q", kind)
+	}
+	// a fine and a term inside the ceilings, with a jail open: the verdict stands
+	e.mustLaw(judge, handlers.VillageLawRequest{Action: village.LawActionVerdict, ID: id, Code: "guilty", Items: "fine:7000,jail:10"})
+	if e.verdicts(id) != 1 {
+		t.Fatalf("the verdict stands, %d", e.verdicts(id))
+	}
+	if e.scalarInt(`SELECT count(*) FROM law_sentences WHERE case_id = $1::uuid AND kind = 'jail' AND jail_building = $2::uuid AND cell BETWEEN 1 AND 10`, id, ids["custody"]) != 1 {
+		t.Fatal("a jail sentence names the jail and a cell")
+	}
+	// the prisoner is held: a second person cannot take the same cell, a closed jail lets the prisoner out
+	sent := e.text(`SELECT id::text FROM law_sentences WHERE case_id = $1::uuid AND kind = 'jail'`, id)
+	treasury := e.cityCash(e.cityID)
+	e.setPost(ids["custody"], false)
+	e.mustLaw(judge, handlers.VillageLawRequest{Action: village.LawActionOpen})
+	if e.text(`SELECT status FROM law_sentences WHERE id = $1::uuid`, sent) != "released" {
+		t.Fatal("a jail that is shut holds nobody")
+	}
+	if e.cityCash(e.cityID) >= treasury {
+		t.Fatal("the food of the days served is paid from the treasury")
+	}
+	// bail: a new prisoner buys the rest of the term
+	e.setPost(ids["custody"], true)
+	id2 := e.newCase("forgery", accused, e.head, "audit")
+	e.toHearing(id2, e.head)
+	e.mustLaw(judge, handlers.VillageLawRequest{Action: village.LawActionVerdict, ID: id2, Code: "guilty", Items: "jail:10"})
+	sent2 := e.text(`SELECT id::text FROM law_sentences WHERE case_id = $1::uuid AND kind = 'jail'`, id2)
+	cash := e.cash(accused)
+	e.mustLaw(accused, handlers.VillageLawRequest{Action: village.LawActionBail, ID: sent2})
+	if e.text(`SELECT status FROM law_sentences WHERE id = $1::uuid`, sent2) != "bailed" || e.cash(accused) >= cash {
+		t.Fatal("bail pays for the rest of the term")
+	}
+	// a served term ends by itself
+	id3 := e.newCase("forgery", accused, e.head, "audit")
+	e.toHearing(id3, e.head)
+	e.mustLaw(judge, handlers.VillageLawRequest{Action: village.LawActionVerdict, ID: id3, Code: "guilty", Items: "jail:2"})
+	sent3 := e.text(`SELECT id::text FROM law_sentences WHERE case_id = $1::uuid AND kind = 'jail'`, id3)
+	e.clock.Advance(3 * time.Hour)
+	e.tick(application.TickLawJail, sent3, "")
+	if e.text(`SELECT status FROM law_sentences WHERE id = $1::uuid`, sent3) != "served" {
+		t.Fatal("a term that is over is served")
+	}
+	e.verifyLaw()
+}
+
+// Two replicas working one case at once decide it once: the hearing, the verdict and the end of the case are each fenced by a stage row.
+func TestTheStagesOfACaseAreTakenByOneReplica(t *testing.T) {
+	e := newLawEnv(t)
+	e.station(e.cityID, "constabulary", "court")
+	e.list("bribery")
+	if _, err := e.pool.Raw().Exec(testCtx(t), `DELETE FROM charter_seats WHERE office_id IN (SELECT id FROM charter_offices WHERE settlement_id = $1::uuid AND acquisition <> 'head')`, e.cityID); err != nil {
+		t.Fatal(err)
+	}
+	accused := e.rich("A", 20_000)
+	id := e.newCase("bribery", accused, nil, "audit")
+	e.evidence(id, "ledger_trace", 30, true)
+	e.evidence(id, "record", 25, true)
+	e.evidence(id, "witness", 20, true)
+	e.mustLaw(e.head, handlers.VillageLawRequest{Action: village.LawActionCharge, ID: id})
+	var wg sync.WaitGroup
+	for i := 0; i < 8; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			// a transaction that loses the race may be refused for a deadlock; the broker would redeliver it
+			for try := 0; try < 3; try++ {
+				if err := e.tickQuiet(application.TickLawHearing, id, ""); err == nil {
+					return
+				}
+			}
+		}()
+	}
+	wg.Wait()
+	if e.verdicts(id) != 1 {
+		t.Fatalf("eight replicas, one verdict, got %d", e.verdicts(id))
+	}
+	if e.scalarInt(`SELECT count(*) FROM law_sentences WHERE case_id = $1::uuid`, id) != 1 {
+		t.Fatal("one sentence")
+	}
+	if e.scalarInt(`SELECT count(*) FROM law_case_stages WHERE case_id = $1::uuid AND stage IN ('charged', 'hearing', 'decided')`, id) != 3 {
+		t.Fatal("each stage is written once")
+	}
+	if e.cash(accused) != 20_000-6000 {
+		t.Fatalf("the fine is taken once: %d", e.cash(accused))
+	}
+	// the final tick of the appeal window: two replicas, one end
+	for i := 0; i < 4; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for try := 0; try < 3; try++ {
+				if err := e.tickQuiet(application.TickLawFinal, id, ""); err == nil {
+					return
+				}
+			}
+		}()
+	}
+	wg.Wait()
+	if e.caseState(id) != "final" || e.scalarInt(`SELECT count(*) FROM law_case_stages WHERE case_id = $1::uuid AND stage = 'final'`, id) != 1 {
+		t.Fatalf("the case ends once: %s", e.caseState(id))
 	}
 	e.verifyLaw()
 }

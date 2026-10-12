@@ -225,7 +225,7 @@ func (h *VillageHandler) lawAfterConviction(ctx context.Context, tx application.
 		if err != nil {
 			return err
 		}
-		to, err := lawAcct(ctx, tx, application.AccountPlayerBank, c.OpenedBy)
+		to, err := lawAcct(ctx, tx, application.AccountPlayerCash, c.OpenedBy)
 		if err != nil {
 			return err
 		}

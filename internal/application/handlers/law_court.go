@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	stderrors "errors"
 	"strconv"
 	"strings"
 	"time"
@@ -496,19 +497,20 @@ func (h *VillageHandler) lawVerdict(ctx context.Context, tx application.Tx, lc *
 
 // lawCheckSentence maps the pure rule's refusals to the refusals a player reads.
 func (h *VillageHandler) lawCheckSentence(b law.Bounds, s law.Sentence, judgeFineLimit int64, jailFree bool) error {
-	switch err := law.ValidateSentence(b, s, judgeFineLimit, jailFree); err {
-	case nil:
+	err := law.ValidateSentence(b, s, judgeFineLimit, jailFree)
+	switch {
+	case err == nil:
 		if s.Kind == "ban" && s.Ban != BanMarket && s.Ban != BanOffice {
 			return lawRefuse(village.LawBadArgs)
 		}
 		return nil
-	case law.ErrNoJail:
+	case stderrors.Is(err, law.ErrNoJail):
 		return lawRefuse(village.LawNoJail)
-	case law.ErrJudgeLimit:
+	case stderrors.Is(err, law.ErrJudgeLimit):
 		return lawRefuse(village.LawJudgeLimit)
-	case law.ErrKindNotAllowed:
+	case stderrors.Is(err, law.ErrKindNotAllowed):
 		return lawRefuse(village.LawKindNotAllowed)
-	case law.ErrOverBound:
+	case stderrors.Is(err, law.ErrOverBound):
 		return lawRefuse(village.LawOverBound)
 	}
 	return lawRefuse(village.LawBadArgs)
@@ -533,7 +535,7 @@ func (h *VillageHandler) lawApplySentences(ctx context.Context, tx application.T
 		case "restitution":
 			to := tr.ID
 			if c.OpenedBy != "" {
-				if a, e := lawAcct(ctx, tx, application.AccountPlayerBank, c.OpenedBy); e == nil {
+				if a, e := lawAcct(ctx, tx, application.AccountPlayerCash, c.OpenedBy); e == nil {
 					to = a.ID
 				}
 			}
@@ -804,7 +806,7 @@ func (h *VillageHandler) lawQuash(ctx context.Context, tx application.Tx, lc *la
 	if err != nil {
 		return err
 	}
-	acct, err := lawAcct(ctx, tx, application.AccountPlayerBank, c.AccusedID)
+	acct, err := lawAcct(ctx, tx, application.AccountPlayerCash, c.AccusedID)
 	if err != nil {
 		return err
 	}
@@ -943,29 +945,37 @@ func (h *VillageHandler) lawEndJail(ctx context.Context, tx application.Tx, lc *
 	return lawPost(ctx, tx, lc, application.ReasonJailFood, application.LawSentenceReference, s.ID, tr.ID, sink.ID, min(bal, days*lc.t.JailFoodPerDay))
 }
 
-// lawJailCheck lets out the prisoners of a settlement whose jail was not open today (no warder, no food, no wage): a closed jail holds nobody, and
-// nobody is starved.
+// lawJailCheck lets out the prisoners of a settlement whose term is over, and those whose jail was not open today (no warder, no food, no wage): a closed
+// jail holds nobody, and nobody is starved.
 func (h *VillageHandler) lawJailCheck(ctx context.Context, tx application.Tx, lc *lawCtx) error {
 	if !lc.has || !h.courtsOpen() {
 		return nil
 	}
-	st, err := tx.Law().DueJails(ctx, lc.now, 50)
+	js, err := tx.Law().JailsIn(ctx, lc.s.CityID)
+	if err != nil || len(js) == 0 {
+		return err
+	}
+	open := map[string]bool{}
+	posts, err := h.lawOpenPosts(ctx, tx, lc, "custody")
 	if err != nil {
 		return err
 	}
-	for i := range st {
-		if err := h.lawEndJailIfHere(ctx, tx, lc, &st[i], "served"); err != nil {
-			return err
+	for _, ps := range posts {
+		open[ps.Building.ID] = true
+	}
+	for i := range js {
+		s := js[i]
+		switch {
+		case s.EndsAt != nil && !lc.now.Before(*s.EndsAt):
+			if err := h.lawEndJail(ctx, tx, lc, &s, "served"); err != nil {
+				return err
+			}
+		case !open[s.JailBuilding]:
+			if err := h.lawEndJail(ctx, tx, lc, &s, "released"); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
 }
 
-// lawEndJailIfHere ends a due sentence when it belongs to this settlement.
-func (h *VillageHandler) lawEndJailIfHere(ctx context.Context, tx application.Tx, lc *lawCtx, s *application.LawSentence, status string) error {
-	c, err := tx.Law().CaseByID(ctx, s.CaseID, false)
-	if err != nil || c == nil || c.SettlementID != lc.s.CityID {
-		return err
-	}
-	return h.lawEndJail(ctx, tx, lc, s, status)
-}

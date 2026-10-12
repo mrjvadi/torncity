@@ -159,6 +159,12 @@ func (r *LawRepository) DueJails(ctx context.Context, now time.Time, limit int) 
 	return r.sentences(ctx, `SELECT `+lawSentenceColumns+` FROM law_sentences WHERE kind = 'jail' AND status = 'active' AND ends_at <= $1 ORDER BY ends_at, id LIMIT $2`, utcT(now), limit)
 }
 
+// JailsIn are the jail sentences being served in the cases of a settlement, oldest first.
+func (r *LawRepository) JailsIn(ctx context.Context, settlementID string) ([]application.LawSentence, error) {
+	return r.sentences(ctx, `SELECT `+lawSentenceColumns+` FROM law_sentences WHERE kind = 'jail' AND status = 'active' AND case_id IN
+		(SELECT id FROM law_cases WHERE settlement_id = $1::uuid) ORDER BY starts_at, id`, settlementID)
+}
+
 // Banned says a person is under an active ban from a scope.
 func (r *LawRepository) Banned(ctx context.Context, playerID, settlementID, ban string, now time.Time) (bool, error) {
 	var ok bool
