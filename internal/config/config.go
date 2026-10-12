@@ -1925,7 +1925,7 @@ func Defaults() *Config {
 			TributeMin:           100,
 		},
 		Polity: Polity{
-			RuleAt:                "2099-01-01T00:00:00Z",
+			RuleAt:                "2026-10-12T15:30:00Z",
 			RatifyDays:            14,
 			ExitNoticeDays:        14,
 			CountryMinResidents:   15,

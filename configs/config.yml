@@ -1256,7 +1256,7 @@ mining:
 # Unions, countries, treaties between settlements, tenders and sovereign loans (docs/adr/0076-unions-countries-contractors-sovereign-loans.md, plan B12).
 # They start from rule_at (a placeholder far in the future until the deploy sets it); every figure is an owner default of 2026-10-12.
 polity:
-  rule_at: "2099-01-01T00:00:00Z"   # the unions, treaties of settlements, tenders and sovereign loans start from this instant; a placeholder far in the future until the deploy sets it (ADR 0076)
+  rule_at: "2026-10-12T15:30:00Z"   # the unions, treaties of settlements, tenders and sovereign loans start from this instant; a placeholder far in the future until the deploy sets it (ADR 0076)
   ratify_days: 14   # real days a union proposal waits for the invited settlements to ratify
   exit_notice_days: 14   # real days between a member's notice and its leaving a union
   country_min_residents: 15   # combined residents a country charter needs (a league needs none)
