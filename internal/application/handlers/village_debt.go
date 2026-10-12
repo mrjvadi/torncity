@@ -539,6 +539,9 @@ func (h *VillageHandler) tickLoan(ctx context.Context, tx application.Tx, meta e
 		if _, err := move(ctx, tx, borrower.account.ID, lender.account.ID, c.Fees, application.ReasonSovereignPenalty, application.DebtReference, l.ID, "", now); err != nil {
 			return err
 		}
+		if err := tx.Debts().AddEvent(ctx, h.ids.NewID(), l.ID, "fee_paid", map[string]any{"fee": c.Fees}, now); err != nil {
+			return err
+		}
 	}
 	standing := sovereign.StandingOf(c)
 	var next *time.Time

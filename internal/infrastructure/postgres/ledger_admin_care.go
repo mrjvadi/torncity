@@ -56,6 +56,9 @@ func (a *EconomyAdmin) verifyCare(ctx context.Context, v *LedgerVerification) er
 	if err := a.verifyRaids(ctx, v); err != nil {
 		return err
 	}
+	if err := a.verifyPolity(ctx, v); err != nil {
+		return err
+	}
 	return a.verifyMining(ctx, v)
 }
 

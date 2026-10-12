@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"sort"
 	"strings"
 	"time"
 
@@ -219,6 +220,24 @@ func (h *VillageHandler) dissolve(ctx context.Context, tx application.Tx, meta e
 		return err
 	}
 	shares := polity.SharesAll(bal, paid)
+	if len(shares) == 0 && bal > 0 {
+		// nobody paid dues (the purse is all gifts): it is shared equally among the members that remain, the remainder to the first by id
+		var ids []string
+		for _, m := range ms {
+			if m.Active() {
+				ids = append(ids, m.SettlementID)
+			}
+		}
+		sort.Strings(ids)
+		if len(ids) > 0 {
+			var given int64
+			for _, id := range ids {
+				shares[id] = bal / int64(len(ids))
+				given += shares[id]
+			}
+			shares[ids[0]] += bal - given
+		}
+	}
 	for _, m := range ms {
 		if !m.Active() {
 			continue
@@ -254,21 +273,6 @@ func (h *VillageHandler) dissolve(ctx context.Context, tx application.Tx, meta e
 			}
 			if err := tx.Unions().SetParent(ctx, st.JurisdictionID, parent); err != nil {
 				return err
-			}
-		}
-	}
-	// a purse nobody paid into (all gifts) stays with the jurisdiction, which is closed: the remainder goes to the first member by id
-	if rest, err := accountBalance(ctx, tx, purse); err == nil && rest > 0 && len(ms) > 0 {
-		for _, m := range ms {
-			if m.Active() {
-				treasury, err := tx.Ledger().AccountFor(ctx, application.AccountCityTreasury, m.SettlementID)
-				if err != nil {
-					return err
-				}
-				if _, err := move(ctx, tx, purse.ID, treasury.ID, rest, application.ReasonUnionDissolutionPayout, application.UnionReference, u.ID, "", now); err != nil {
-					return err
-				}
-				break
 			}
 		}
 	}
