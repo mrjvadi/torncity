@@ -807,7 +807,8 @@ func (h *VillageHandler) unionLineOf(ctx context.Context, tx application.Tx, u a
 }
 
 func (h *VillageHandler) unionView(ctx context.Context, tx application.Tx, s application.FoundedSettlement, has bool, p *application.Player, openID string) (village.UnionView, error) {
-	v := village.UnionView{Open: h.polityOpen(), OpenAt: h.polity.RuleAt, CountryMinResidents: h.polity.CountryMinResidents}
+	v := village.UnionView{Open: h.polityOpen(), OpenAt: h.polity.RuleAt, CountryMinResidents: h.polity.CountryMinResidents,
+		FeeLeague: h.polity.LeagueFee, FeeCountry: h.polity.CountryFee}
 	for _, c := range polity.Classes() {
 		v.Classes = append(v.Classes, string(c))
 	}
@@ -919,6 +920,16 @@ func (h *VillageHandler) unionDetail(ctx context.Context, tx application.Tx, id 
 		return nil, err
 	}
 	d := &village.UnionDetail{UnionLine: line}
+	for _, def := range charter.Catalogue() {
+		if !def.Active {
+			continue // a permission no act asks for stays in code (docs/adr/0064)
+		}
+		pv := village.CharterPermissionView{Code: string(def.Code), Group: def.Group, Limited: def.Limited, Active: def.Active}
+		if c, ok := polity.ClassOf(def.Code); ok {
+			pv.Class = string(c)
+		}
+		d.Permissions = append(d.Permissions, pv)
+	}
 	held, err := tx.Unions().HeldIn(ctx, u.ID, p.ID)
 	if err != nil {
 		return nil, err
@@ -1006,6 +1017,27 @@ func (h *VillageHandler) unionDetail(ctx context.Context, tx application.Tx, id 
 				}
 			}
 			ml.MayVote = status != "" && ml.MyVote == "" && m.SubjectID != s.CityID
+		}
+		if voters, err := h.motionVoters(ctx, tx, &m); err == nil {
+			rules := polity.Rules{Mode: polity.Mode(u.VoteMode), WeightCapBPS: h.polity.WeightCapBPS, MembersBPS: h.polity.MembersMajorityBPS, PopulationBPS: h.polity.PopulationMajorityBPS}
+			ml.Mode = u.VoteMode
+			switch {
+			case m.Kind == "dissolve":
+				ml.Mode, ml.MembersBPS = "two_thirds", 6667
+			case rules.Mode == polity.DoubleMajority:
+				ml.MembersBPS, ml.PopulationBPS = rules.MembersBPS, rules.PopulationBPS
+			case rules.Mode == polity.Weighted:
+				ml.PopulationBPS = 5000
+			default:
+				ml.MembersBPS = 5000
+			}
+			no := map[string]bool{}
+			for id, y := range votes {
+				no[id] = !y
+			}
+			ty, tn := rules.Carries(voters, votes), rules.Carries(voters, no)
+			ml.Members, ml.YesMembers, ml.NoMembers = ty.Members, ty.YesMembers, tn.YesMembers
+			ml.Weight, ml.YesWeight, ml.NoWeight = ty.Weight, ty.YesWeight, tn.YesWeight
 		}
 		d.Motions = append(d.Motions, ml)
 	}

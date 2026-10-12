@@ -44,6 +44,8 @@ const (
 	SocietyElections  = "elections"
 	SocietyGovernment = "government"
 	SocietyWar        = "war"
+	// SocietyUnions is the leagues and countries of settlements (ADR 0076).
+	SocietyUnions = "unions"
 )
 
 // HubView is a hub: where the player stands and what exists for them there.

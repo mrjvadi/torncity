@@ -255,7 +255,8 @@ func (h *VillageHandler) SocietyHub(ctx context.Context, meta envelope.Metadata)
 		view.Entries = append(view.Entries,
 			plife.ActivityEntry{Code: plife.SocietyFriends, Command: "social.friend.list"},
 			plife.ActivityEntry{Code: plife.SocietyElections, Command: "election.list"},
-			plife.ActivityEntry{Code: plife.SocietyGovernment, Command: "gov.city"})
+			plife.ActivityEntry{Code: plife.SocietyGovernment, Command: "gov.city"},
+			plife.ActivityEntry{Code: plife.SocietyUnions, Command: "settlement.union"})
 		// The army and the war board exist only where a barracks stands, and
 		// are not mentioned at all otherwise (not even as a locked tile).
 		showWar := false

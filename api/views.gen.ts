@@ -816,6 +816,7 @@ export interface CharterPermissionView {
   group: string
   limited: boolean
   active: boolean
+  class: string
 }
 
 export interface CharterPersonView {
@@ -6177,6 +6178,7 @@ export interface SettlementTreatyLine {
   other: Named
   status: string
   mine: boolean
+  ended_party: Named | null
   proposed_at: string | null
   expires_at: string | null
   ended_at: string | null | null
@@ -6196,6 +6198,8 @@ export interface SettlementTreatyView {
   treaties: SettlementTreatyLine[] | null
   kinds: SettlementTreatyKindLine[] | null
   targets: Named[] | null
+  parties: TreatyPartyLine[] | null
+  cooling_days: number
   notice: string
 }
 
@@ -6800,6 +6804,7 @@ export interface TenderLine {
 }
 
 export interface TenderSiteLine {
+  id: string
   building: Named
   work_required: number
   work_done: number
@@ -7069,6 +7074,11 @@ export interface TreatyLine {
   since_seconds: number
 }
 
+export interface TreatyPartyLine {
+  party: Named
+  kind: string
+}
+
 export interface TreatyView {
   country: Place
   other: Place
@@ -7130,6 +7140,7 @@ export interface UnionDetail {
   motions: UnionMotionLine[] | null
   ballots: UnionBallotLine[] | null
   audit: UnionAuditLine[] | null
+  permissions: CharterPermissionView[] | null
   held: string[] | null
   may_office: boolean
   may_appoint: boolean
@@ -7179,6 +7190,15 @@ export interface UnionMotionLine {
   no: number
   my_vote: string
   may_vote: boolean
+  mode: string
+  members: number
+  yes_members: number
+  no_members: number
+  weight: number
+  yes_weight: number
+  no_weight: number
+  members_bps: number
+  population_bps: number
 }
 
 export interface UnionOfficeLine {
@@ -7216,6 +7236,8 @@ export interface UnionView {
   detail: UnionDetail | null
   targets: Named[] | null
   classes: string[] | null
+  fee_league: number
+  fee_country: number
   notice: string
 }
 

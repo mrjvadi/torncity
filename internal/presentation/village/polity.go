@@ -37,7 +37,7 @@ const (
 	UnionActionCloseOffice = "office_close"
 	UnionActionAppoint     = "appoint"
 	UnionActionDismiss     = "dismiss"
-	UnionActionRecall      = "recall"      // start or sign a recall petition (id: the office, player: the holder's code)
+	UnionActionRecall      = "recall"      // start or sign a recall petition (id: the union, office: the office id, player: the holder's public code)
 	UnionActionRecallVote  = "recall_vote" // vote in a recall ballot is UnionActionVote
 	UnionActionRules       = "rules"       // change the dues
 	UnionActionOpen        = "open"        // show one union
@@ -129,6 +129,15 @@ type UnionMotionLine struct {
 	Yes, No  int
 	MyVote   string
 	MayVote  bool
+	// The tally, kept apart: member settlements (yes, no, out of Members, who may vote) and population (the capped weight of each;
+	// a member that has not voted is in neither). The thresholds are in basis points of the total; a mode with no population half
+	// (one member one vote, two thirds for dissolving) sends PopulationBPS 0. Mode is the rule that decides the motion.
+	Mode                      string
+	Members                   int
+	YesMembers, NoMembers     int
+	Weight                    int64
+	YesWeight, NoWeight       int64
+	MembersBPS, PopulationBPS int64
 }
 
 // UnionBallotLine is a ballot of residents the viewer may take part in.
@@ -177,6 +186,10 @@ type UnionDetail struct {
 	Motions []UnionMotionLine
 	Ballots []UnionBallotLine
 	Audit   []UnionAuditLine
+	// Permissions is the catalogue for the union charter editor: every permission an act asks for, a union office included
+	// (the union-only ones too). Class is the delegation the members must have handed over before an office may hold it
+	// (empty: the union's own power, no delegation needed).
+	Permissions []CharterPermissionView
 	// Held are the permissions the viewer holds in the union's charter.
 	Held []string
 	// MayAdmit, MayExpel and so on say what the viewer may do here.
@@ -221,7 +234,9 @@ type UnionView struct {
 	Targets []presentation.Named
 	// Classes are the delegation classes a proposal may name.
 	Classes []string
-	Notice  string
+	// FeeLeague and FeeCountry are the filing fees of a proposal, from config.
+	FeeLeague, FeeCountry int64
+	Notice                string
 }
 
 var screenUnion = presentation.Define[UnionView](ScreenUnion, "village")
@@ -267,11 +282,13 @@ const (
 
 // SettlementTreatyLine is a treaty of the viewer's party.
 type SettlementTreatyLine struct {
-	No                int64
-	Kind              presentation.Named
-	Other             presentation.Named
-	Status            string
-	Mine              bool // proposed by the viewer's party
+	No     int64
+	Kind   presentation.Named
+	Other  presentation.Named
+	Status string
+	Mine   bool // proposed by the viewer's party
+	// EndedParty is who broke or ended it (the party's name); nil while it stands.
+	EndedParty        *presentation.Named
 	ProposedAt        time.Time
 	ExpiresAt         time.Time
 	EndedAt           *time.Time
@@ -300,7 +317,19 @@ type SettlementTreatyView struct {
 	Treaties                    []SettlementTreatyLine
 	Kinds                       []SettlementTreatyKindLine
 	Targets                     []presentation.Named
-	Notice                      string
+	// Parties are everyone the viewer's party could propose to: settlements and unions, each with its kind
+	// (settlement, league, country). A proposal to a union names it in to_union.
+	Parties []TreatyPartyLine
+	// CoolingDays is how long a party that broke a treaty may not declare war or a raid, from config.
+	CoolingDays int64
+	Notice      string
+}
+
+// TreatyPartyLine is a party a treaty could be proposed to.
+type TreatyPartyLine struct {
+	Party presentation.Named
+	// Kind is settlement, league or country.
+	Kind string
 }
 
 var screenTreaty = presentation.Define[SettlementTreatyView](ScreenTreaty, "village")
@@ -406,6 +435,8 @@ type TenderLine struct {
 
 // TenderSiteLine is a public building under construction that could be put out to tender.
 type TenderSiteLine struct {
+	// ID is the building instance's id: the building argument of settlement.tender post.
+	ID                     string
 	Building               presentation.Named
 	WorkRequired, WorkDone int64
 }
