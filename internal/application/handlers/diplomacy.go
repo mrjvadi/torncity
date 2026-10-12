@@ -927,7 +927,7 @@ func (h *DiplomacyHandler) End(ctx context.Context, meta envelope.Metadata, req 
 		if err != nil {
 			return refuseDiplomacy(society.DiplomacyRefusedState, c, society.AddrTreaties, c.Code)
 		}
-		t.Status, t.EndedBy, t.EndedOffice, t.EndedAt = status, p.ID, seat.OfficeCode, &now
+		t.Status, t.EndedBy, t.EndedOffice, t.EndedAt, t.EndedParty = status, p.ID, seat.OfficeCode, &now, c.ID
 		if err := tx.Diplomacy().SaveTreaty(ctx, *t); err != nil {
 			return err
 		}
