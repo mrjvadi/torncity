@@ -1496,6 +1496,12 @@ func (h *VillageHandler) workedSite(ctx context.Context, tx application.Tx, meta
 			}
 		}
 	}
+	if ok {
+		// a site that belongs to a contractor pays the stages the work has reached (docs/adr/0076 10.4)
+		if err := h.tenderProgress(ctx, tx, meta, sh.BuildingID, now); err != nil {
+			return err
+		}
+	}
 	if err := appendVillageEvent(ctx, tx, meta, "shift_done", s.CityID, map[string]any{
 		"settlement_id": s.CityID, "shift_id": sh.ID, "building_id": sh.BuildingID, "player_id": sh.PlayerID, "worker": sh.WorkerKind,
 		"kind": sh.Kind, "wage": pay, "fee": fee, "work_done": done, "work_required": required,

@@ -890,3 +890,13 @@ func (r *UnionRepository) OpenRecall(ctx context.Context, id string, opens, clos
 	}
 	return tag.RowsAffected() == 1, nil
 }
+
+// PurseIncome sums the credits that reached an account between two instants.
+func (r *UnionRepository) PurseIncome(ctx context.Context, accountID string, from, to time.Time) (int64, error) {
+	var n int64
+	if err := r.q.QueryRow(ctx, `SELECT COALESCE(sum(amount), 0)::bigint FROM ledger_entries WHERE account_id = $1::uuid AND amount > 0 AND created_at >= $2 AND created_at < $3
+		AND reason NOT IN ('sovereign_loan_disbursement')`, accountID, from.UTC(), to.UTC()).Scan(&n); err != nil {
+		return 0, fmt.Errorf("postgres: summing a purse's income: %w", err)
+	}
+	return n, nil
+}

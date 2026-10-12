@@ -256,3 +256,12 @@ func (r *TenderRepository) Record(ctx context.Context, companyID string) (int, e
 	}
 	return n, nil
 }
+
+// SetSiteEmployer moves the open construction job of a building to another employer.
+func (r *TenderRepository) SetSiteEmployer(ctx context.Context, buildingID, kind, id string) (int64, error) {
+	tag, err := r.q.Exec(ctx, `UPDATE labor_jobs SET employer_kind = $2, employer_id = $3::uuid WHERE building_id = $1::uuid AND kind = 'construction' AND status = 'open'`, buildingID, kind, id)
+	if err != nil {
+		return 0, fmt.Errorf("postgres: moving a site's employer: %w", err)
+	}
+	return tag.RowsAffected(), nil
+}

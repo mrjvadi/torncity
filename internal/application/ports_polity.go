@@ -223,6 +223,8 @@ type UnionRepository interface {
 	PlayerByCode(ctx context.Context, code string) (string, bool, error)
 	// TreasuryIncome is the money that came into a settlement's treasury between two instants: the base of a dues share.
 	TreasuryIncome(ctx context.Context, settlementID string, from, to time.Time) (int64, error)
+	// PurseIncome is the money that came into a union's purse between two instants.
+	PurseIncome(ctx context.Context, accountID string, from, to time.Time) (int64, error)
 	// ResidenceOf is the settlement a player lives in, "" for none.
 	ResidenceOf(ctx context.Context, playerID string) (string, error)
 	// Ballots.
@@ -299,6 +301,8 @@ type TenderRepository interface {
 	DebarredUntil(ctx context.Context, companyID string) (time.Time, error)
 	Debar(ctx context.Context, companyID string, until time.Time, reason, tenderID string, at time.Time) error
 	Record(ctx context.Context, companyID string) (int, error)
+	// SetSiteEmployer moves the open construction job of a building to another employer (the contractor that won it, or back to the settlement).
+	SetSiteEmployer(ctx context.Context, buildingID, kind, id string) (int64, error)
 }
 
 // SovereignLoan is a loan between two polities.
