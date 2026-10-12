@@ -740,6 +740,11 @@ func (h *VillageHandler) startProduction(ctx context.Context, tx application.Tx,
 			recipe = job.Recipe
 		}
 	}
+	// at a minehead the argument names the post a player asks for, not a recipe (docs/adr/0075)
+	mineHint := ""
+	if d.Mining != nil && d.Mining.Deep {
+		mineHint, recipe = recipe, ""
+	}
 	// a workplace a citizen owns runs on its owner's store and money (docs/adr/0066)
 	if owner, err := h.privateOwnerOf(ctx, tx, b.ID); err != nil {
 		return err
@@ -769,16 +774,11 @@ func (h *VillageHandler) startProduction(ctx context.Context, tx application.Tx,
 	if err := tx.Items().LockOrg(ctx, application.SettlementOrg(s.CityID)); err != nil {
 		return err
 	}
-	// a pit or a minehead digs a deposit: the post of the shift, its goods and what it burns (docs/adr/0075); the hint of a post rides
-	// in the recipe argument of a workplace that has no recipes
+	// a pit or a minehead digs a deposit: the post of the shift, its goods and what it burns (docs/adr/0075)
 	var mineWork *mineJob
 	if d.Mining != nil && farmWork == nil {
-		hint := ""
-		if d.Mining.Deep {
-			hint, recipeUsed = recipe, ""
-		}
 		var merr error
-		if d, mineWork, merr = h.mineShape(ctx, tx, snap, s, b, d, p, hint); merr != nil {
+		if d, mineWork, merr = h.mineShape(ctx, tx, snap, s, b, d, p, mineHint); merr != nil {
 			return merr
 		}
 	}
