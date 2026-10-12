@@ -7,12 +7,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/mrjvadi/torncity/internal/application"
 	"github.com/mrjvadi/torncity/internal/application/handlers"
 	"github.com/mrjvadi/torncity/internal/config"
+	"github.com/mrjvadi/torncity/internal/domain/gametime"
 	"github.com/mrjvadi/torncity/internal/domain/roads"
 	"github.com/mrjvadi/torncity/internal/domain/worldgen"
 	"github.com/mrjvadi/torncity/internal/infrastructure/postgres"
@@ -97,6 +99,10 @@ func (e *polityEnv) truncatePolity() {
 	}
 	for _, stmt := range []string{
 		`UPDATE jurisdictions SET parent_id = (SELECT id FROM jurisdictions WHERE kind = 'country' AND code = 'default_country') WHERE parent_id IN (SELECT jurisdiction_id FROM unions)`,
+		`ALTER TABLE diplomacy_events DISABLE TRIGGER diplomacy_events_append_only`,
+		`DELETE FROM diplomacy_events WHERE treaty_id IN (SELECT id FROM treaties WHERE proposer_id IN (SELECT jurisdiction_id FROM cities WHERE id IN ($1::uuid, $2::uuid, $3::uuid) UNION SELECT jurisdiction_id FROM unions) OR partner_id IN (SELECT jurisdiction_id FROM cities WHERE id IN ($1::uuid, $2::uuid, $3::uuid) UNION SELECT jurisdiction_id FROM unions))`,
+		`ALTER TABLE diplomacy_events ENABLE TRIGGER diplomacy_events_append_only`,
+		`DELETE FROM treaties WHERE proposer_id IN (SELECT jurisdiction_id FROM cities WHERE id IN ($1::uuid, $2::uuid, $3::uuid) UNION SELECT jurisdiction_id FROM unions) OR partner_id IN (SELECT jurisdiction_id FROM cities WHERE id IN ($1::uuid, $2::uuid, $3::uuid) UNION SELECT jurisdiction_id FROM unions)`,
 		`ALTER TABLE union_audit DISABLE TRIGGER union_audit_no_change`,
 		`ALTER TABLE sovereign_loan_events DISABLE TRIGGER sovereign_loan_events_no_change`,
 		`DELETE FROM game_actions WHERE action_type = 'polity_tick'`,
@@ -107,10 +113,6 @@ func (e *polityEnv) truncatePolity() {
 		`ALTER TABLE sovereign_loan_events ENABLE TRIGGER sovereign_loan_events_no_change`,
 		`DELETE FROM jurisdictions WHERE kind IN ('league', 'country') AND content_version_id IS NULL`,
 		`DELETE FROM settlement_claims WHERE settlement_id IN ($1::uuid, $2::uuid, $3::uuid)`,
-		`ALTER TABLE diplomacy_events DISABLE TRIGGER diplomacy_events_append_only`,
-		`DELETE FROM diplomacy_events WHERE treaty_id IN (SELECT id FROM treaties WHERE proposer_id IN (SELECT jurisdiction_id FROM cities WHERE id IN ($1::uuid, $2::uuid, $3::uuid)) OR partner_id IN (SELECT jurisdiction_id FROM cities WHERE id IN ($1::uuid, $2::uuid, $3::uuid)))`,
-		`ALTER TABLE diplomacy_events ENABLE TRIGGER diplomacy_events_append_only`,
-		`DELETE FROM treaties WHERE proposer_id IN (SELECT jurisdiction_id FROM cities WHERE id IN ($1::uuid, $2::uuid, $3::uuid)) OR partner_id IN (SELECT jurisdiction_id FROM cities WHERE id IN ($1::uuid, $2::uuid, $3::uuid))`,
 		`DELETE FROM company_shareholders WHERE company_id IN (SELECT id FROM companies WHERE type_code = 'works_contractor')`,
 		`DELETE FROM companies WHERE type_code = 'works_contractor'`,
 	} {
@@ -787,4 +789,350 @@ func TestAWayOverAnotherSettlementsClaimNeedsAPassageTreaty(t *testing.T) {
 	if _, err := e.pool.Raw().Exec(testCtx(t), `DELETE FROM settlement_claims WHERE settlement_id = $1::uuid`, e.cityC); err != nil {
 		t.Fatal(err)
 	}
+}
+
+// foundCountryOfOne founds a country of one settlement by the shortcut of ADR 0044: the settlement proposes alone, its assembly (every
+// resident in the list) votes yes, and it returns the union's id.
+func (e *polityEnv) foundCountryOfOne(head *application.Player, name string, voters ...*application.Player) string {
+	e.t.Helper()
+	e.mustUnion(head, handlers.VillageUnionRequest{Action: village.UnionActionPropose, Name: name, Kind: "country", Mode: "double_majority", Exit: "free",
+		Delegations: "war,treaty,courts,defence", Offices: countryOffice(head)})
+	prop := e.text(`SELECT id::text FROM union_proposals WHERE name = $1 AND status = 'pending'`, name)
+	e.mustUnion(head, handlers.VillageUnionRequest{Action: village.UnionActionRatify, ID: prop})
+	ballot := e.text(`SELECT id::text FROM union_ballots WHERE proposal_id = $1::uuid AND status = 'open'`, prop)
+	for _, v := range voters {
+		e.mustUnion(v, handlers.VillageUnionRequest{Action: village.UnionActionVote, ID: ballot, Choice: "yes"})
+	}
+	if e.unionStatus(prop) != "in_force" {
+		e.t.Fatalf("the country %q is not in force: %s", name, e.unionStatus(prop))
+	}
+	return e.unionIDByName(name)
+}
+
+// A player country's war is declared by its charter's holder of war.declare; a country that ended an alliance lately cannot declare war on
+// the one it left until the cooling-off has run (ADR 0076 7.2, 8).
+func TestAWarOfAPlayerCountryNeedsItsCharterAndTheCoolingOffAfterABrokenAlliance(t *testing.T) {
+	e := newPolityEnv(t, nil)
+	e.clock.Advance(4 * 24 * time.Hour)
+	ra, rb := e.resident("A"), e.resident("B")
+	alpha := e.foundCountryOfOne(e.head, "Alpha", e.head, ra)
+	beta := e.foundCountryOfOne(e.att, "Beta", e.att, rb)
+	alphaJ := e.text(`SELECT jurisdiction_id::text FROM unions WHERE id = $1::uuid`, alpha)
+	betaJ := e.text(`SELECT jurisdiction_id::text FROM unions WHERE id = $1::uuid`, beta)
+	t.Cleanup(func() { purgeWar(t, e.pool, []string{alphaJ, betaJ}, "") })
+
+	cat, _ := e.foundingEnv.world(t)
+	_ = cat
+	snap := loadTestContent(t)
+	uow := postgres.NewUnitOfWork(e.pool, testDefaultLanguage)
+	cities := postgres.NewCityRepository(e.pool)
+	policy := postgres.NewPolicyReader(e.pool, e.clock.Now)
+	wars := handlers.NewWarHandler(uow, workIDs{t}, nil, registryOf(snap), cities, policy, gametime.Scale(60), handlers.WarRules{
+		DeclarationNotice: time.Hour, ProposalTTL: 48 * time.Hour, EndedShownFor: 168 * time.Hour, BoardOperations: 8, NoticeCap: 50}, time.Hour, e.clock.Now).
+		WithCooling(e.rules.TreatyCooling)
+	declare := func(by *application.Player, target string) *presentation.Response {
+		resp, err := wars.Declare(testCtx(t), e.metaOf(by, "war.declare", "declare"), handlers.WarRequest{Target: target, Ground: "aggression", Confirm: "yes"})
+		if err != nil {
+			t.Fatal(err)
+		}
+		return resp
+	}
+	betaCode := e.text(`SELECT code FROM jurisdictions WHERE id = $1::uuid`, betaJ)
+	alphaCode := e.text(`SELECT code FROM jurisdictions WHERE id = $1::uuid`, alphaJ)
+
+	// the alliance of two countries is signed through their charters (each side's holder of the treaty powers)
+	e.mustTreaty(e.head, handlers.VillageTreatyRequest{Action: village.TreatyActionPropose, Union: alpha, ToUnion: beta, Kind: "alliance"})
+	no := e.text(`SELECT no::text FROM treaties WHERE kind = 'alliance' AND status = 'proposed'`)
+	e.mustTreaty(e.att, handlers.VillageTreatyRequest{Action: village.TreatyActionAccept, Union: beta, No: no})
+	// a resident without the power cannot sign for the country
+	if _, kind := e.treaty(ra, handlers.VillageTreatyRequest{Action: village.TreatyActionEnd, Union: alpha, No: no}); kind == "" {
+		t.Fatal("a resident of Alpha who holds no office of the charter cannot end its treaty")
+	}
+	e.mustTreaty(e.head, handlers.VillageTreatyRequest{Action: village.TreatyActionEnd, Union: alpha, No: no})
+	if e.text(`SELECT ended_party::text FROM treaties WHERE no = $1::bigint`, no) != alphaJ {
+		t.Fatal("Alpha is the party that ended the alliance")
+	}
+	// the war: refused for Alpha, in its cooling-off
+	resp := declare(e.head, betaCode)
+	if k := refusalKind(t, resp.View); k != "cooling" {
+		t.Fatalf("Alpha ended an alliance lately and may not declare war on Beta: %q (%s)", k, resp.Screen)
+	}
+	if e.scalarInt(`SELECT count(*) FROM wars WHERE attacker_id = $1::uuid`, alphaJ) != 0 {
+		t.Fatal("no war was declared")
+	}
+	// the one who was left may declare: Beta's charter holder
+	resp = declare(e.att, alphaCode)
+	if k := refusalKind(t, resp.View); k != "" {
+		t.Fatalf("Beta, which was left, may declare war: %q", k)
+	}
+	if e.scalarInt(`SELECT count(*) FROM wars WHERE attacker_id = $1::uuid AND defender_id = $2::uuid`, betaJ, alphaJ) != 1 {
+		t.Fatal("Beta's war is declared, by its charter")
+	}
+	if got := e.text(`SELECT declared_office FROM wars WHERE attacker_id = $1::uuid`, betaJ); got != "Government" {
+		t.Fatalf("the office the war was declared from is the charter's title: %q", got)
+	}
+	// a resident of Beta who holds no office cannot declare anything for it
+	resp = declare(rb, alphaCode)
+	if k := refusalKind(t, resp.View); k == "" {
+		t.Fatal("a resident without the power cannot declare war")
+	}
+}
+
+func (e *polityEnv) tender(p *application.Player, req handlers.VillageTenderRequest) (village.TenderView, string) {
+	e.t.Helper()
+	resp, err := e.village.Tender(testCtx(e.t), e.metaOf(p, "settlement.tender", "tender"), req)
+	if err != nil {
+		e.t.Fatalf("tender %s: %v", req.Action, err)
+	}
+	if resp.Screen == village.ScreenTender {
+		var v village.TenderView
+		if err := presentation.DecodeView(resp.View, &v); err != nil {
+			e.t.Fatal(err)
+		}
+		return v, ""
+	}
+	return village.TenderView{}, refusalKind(e.t, resp.View)
+}
+
+func (e *polityEnv) mustTender(p *application.Player, req handlers.VillageTenderRequest) village.TenderView {
+	e.t.Helper()
+	v, kind := e.tender(p, req)
+	if kind != "" {
+		e.t.Fatalf("tender %s was refused: %s", req.Action, kind)
+	}
+	return v
+}
+
+// contractor is a building contractor company of a settlement, owned by a resident, with money in its treasury.
+func (e *polityEnv) contractor(place string, funds int64) (*application.Player, string) {
+	e.t.Helper()
+	owner := e.resident(place)
+	city := map[string]string{"A": e.cityID, "B": e.attCity, "C": e.cityC}[place]
+	return owner, e.companyFor(owner, city, funds)
+}
+
+func (e *polityEnv) companyFor(owner *application.Player, city string, funds int64) string {
+	e.t.Helper()
+	id, code := newUUID(e.t), "T"+randomTokenUpper(e.t, 6)
+	if _, err := e.pool.Raw().Exec(testCtx(e.t), `INSERT INTO companies (id, code, name, name_key, type_code, city_id, owner_player_id, status, price_bps, total_shares, registration_fee, content_version, founded_at, updated_at)
+		VALUES ($1::uuid, $2, $3, $3, 'works_contractor', $4::uuid, $5::uuid, 'active', 10000, 100, 0, 1, now(), now())`, id, code, "Builders "+code, city, owner.ID); err != nil {
+		e.t.Fatal(err)
+	}
+	if _, err := e.pool.Raw().Exec(testCtx(e.t), `INSERT INTO company_shareholders (company_id, player_id, shares, acquired_at) VALUES ($1::uuid, $2::uuid, 100, now())`, id, owner.ID); err != nil {
+		e.t.Fatal(err)
+	}
+	if funds > 0 {
+		grant(e.t, e.pool, application.AccountCompanyTreasury, id, funds)
+	}
+	return id
+}
+
+func (e *polityEnv) companyCode(id string) string {
+	return e.text(`SELECT code FROM companies WHERE id = $1::uuid`, id)
+}
+
+func (e *polityEnv) companyCash(id string) int64 {
+	return e.scalarInt(`SELECT COALESCE(sum(balance), 0)::bigint FROM accounts WHERE kind = 'company_treasury' AND owner_id = $1::uuid`, id)
+}
+
+func (e *polityEnv) escrowCash(tender string) int64 {
+	return e.scalarInt(`SELECT COALESCE(sum(balance), 0)::bigint FROM accounts WHERE kind = 'works_escrow' AND owner_id = $1::uuid`, tender)
+}
+
+func (e *polityEnv) bid(owner *application.Player, tender, company string, price, days int64) string {
+	_, kind := e.tender(owner, handlers.VillageTenderRequest{Action: village.TenderActionBid, ID: tender, Company: e.companyCode(company), Price: fmt.Sprint(price), Days: fmt.Sprint(days)})
+	return kind
+}
+
+// A tender has one winner even when every replica tries to award it at once; an official cannot award to a company he owns, manages or holds
+// shares of; the contractor's crew is paid by its company, the price is paid in stages from the escrow with a retention, and the bond and the
+// retention come back when the defects period ends; a missed deadline forfeits the bond and debars the company (ADR 0076 10).
+func TestATenderHasOneWinnerRefusesAConflictAndPaysByStages(t *testing.T) {
+	e := newPolityEnv(t, nil)
+	e.clock.Advance(4 * 24 * time.Hour)
+	site := e.place("road")
+	owner1, c1 := e.contractor("A", 20_000)
+	owner2, c2 := e.contractor("B", 20_000)
+	// an official's own company: the head of A owns a contractor too
+	own := e.companyFor(e.head, e.cityID, 20_000)
+
+	treasury0 := e.cityCash(e.cityID)
+	e.mustTender(e.head, handlers.VillageTenderRequest{Action: village.TenderActionPost, Building: site, Cap: "5000", Due: "2", Window: "24", Rule: "lowest_price"})
+	if got := treasury0 - e.cityCash(e.cityID); got != e.rules.TenderFee {
+		t.Fatalf("the filing fee is a sink: %d, fee %d", got, e.rules.TenderFee)
+	}
+	tid := e.text(`SELECT id::text FROM tenders WHERE building_id = $1::uuid`, site)
+	// a second tender for the same building is refused while the first stands
+	if _, kind := e.tender(e.head, handlers.VillageTenderRequest{Action: village.TenderActionPost, Building: site, Cap: "5000", Due: "2"}); kind != village.TenderHave {
+		t.Fatalf("one tender per building: %q", kind)
+	}
+	// the conflict of interest: the official who awards owns this company, so its bid is refused, in the open
+	if kind := e.bid(e.head, tid, own, 3000, 2); kind != village.TenderConflict {
+		t.Fatalf("an official's own company cannot bid: %q", kind)
+	}
+	// a bid over the cap or with no days is refused; a good one posts its bond
+	if kind := e.bid(owner1, tid, c1, 6000, 2); kind != village.TenderBadBid {
+		t.Fatalf("over the cap: %q", kind)
+	}
+	if kind := e.bid(owner1, tid, c1, 4000, 2); kind != "" {
+		t.Fatalf("bid 1: %q", kind)
+	}
+	if kind := e.bid(owner2, tid, c2, 3500, 2); kind != "" {
+		t.Fatalf("bid 2: %q", kind)
+	}
+	if kind := e.bid(owner2, tid, c2, 3000, 2); kind != village.TenderHaveBid {
+		t.Fatalf("one bid per company: %q", kind)
+	}
+	if e.escrowCash(tid) != 400+350 || e.companyCash(c1) != 20_000-400 {
+		t.Fatalf("the bonds are set aside: escrow %d, company %d", e.escrowCash(tid), e.companyCash(c1))
+	}
+	// before the close nobody can award
+	if _, kind := e.tender(e.head, handlers.VillageTenderRequest{Action: village.TenderActionAward, ID: tid}); kind != village.TenderNotYetDue {
+		t.Fatalf("the bidding is not over: %q", kind)
+	}
+	e.clock.Advance(25 * time.Hour)
+	// every replica awards at once: one wins
+	var wg sync.WaitGroup
+	for i := 0; i < 6; i++ {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			payload, _ := json.Marshal(handlers.PolityTickPayload{Kind: application.TickTender, ID: tid})
+			if i%2 == 0 {
+				if _, err := e.village.PolityTick(testCtx(t), e.sched("polity.tick"), handlers.CrimeScheduledRequest{Payload: payload}); err != nil {
+					t.Errorf("tick: %v", err)
+				}
+				return
+			}
+			if _, err := e.village.Tender(testCtx(t), e.metaOf(e.head, "settlement.tender", "tender"), handlers.VillageTenderRequest{Action: village.TenderActionAward, ID: tid}); err != nil {
+				t.Errorf("award: %v", err)
+			}
+		}(i)
+	}
+	wg.Wait()
+	if e.text(`SELECT status FROM tenders WHERE id = $1::uuid`, tid) != "awarded" || e.text(`SELECT company_id::text FROM tenders WHERE id = $1::uuid`, tid) != c2 {
+		t.Fatalf("the lower price wins, once: %s", e.text(`SELECT status || ' ' || COALESCE(company_id::text, '') FROM tenders WHERE id = $1::uuid`, tid))
+	}
+	if e.scalarInt(`SELECT count(*) FROM tender_bids WHERE tender_id = $1::uuid AND status = 'won'`, tid) != 1 || e.companyCash(c1) != 20_000 {
+		t.Fatal("one winning bid; the loser's bond is back")
+	}
+	// the price is funded into the escrow at the award, with the winner's bond: the government's treasury paid it
+	if e.escrowCash(tid) != 3500+350 {
+		t.Fatalf("the escrow holds the price and the winner's bond: %d", e.escrowCash(tid))
+	}
+	if e.text(`SELECT employer_kind FROM labor_jobs WHERE building_id = $1::uuid AND status = 'open'`, site) != "company" {
+		t.Fatal("the site's crew is now the contractor's")
+	}
+	e.verifyPolity()
+
+	// the contractor's crew is paid by the company: a resident takes the job and works a shift
+	worker := e.resident("A")
+	siteView, _ := e.site(worker, site)
+	if siteView.Job == nil {
+		t.Fatal("the site has a job")
+	}
+	// the road is small: make the work big enough that one shift is a sliver of it
+	if _, err := e.pool.Raw().Exec(testCtx(t), `UPDATE settlement_buildings SET work_required = work_required * 1000 WHERE id = $1::uuid`, site); err != nil {
+		t.Fatal(err)
+	}
+	cash0, wage := e.companyCash(c2), siteView.Job.Wage
+	if _, err := rrc(e.village.LaborTake(testCtx(t), e.as(worker, "settlement.labor.take", "labor.take"), handlers.VillageLaborRequest{ID: siteView.Job.ID})); err != nil {
+		t.Fatal(err)
+	}
+	shifts := e.workingShifts(site)
+	if len(shifts) != 1 {
+		t.Fatalf("a shift is working: %d", len(shifts))
+	}
+	e.clock.Advance(time.Hour + time.Minute)
+	e.end(shifts[0])
+	if got := cash0 - e.companyCash(c2); got != wage {
+		t.Fatalf("the company paid the worker's wage %d, got %d", wage, got)
+	}
+
+	// stages: a third each of the work done pays a third of the price less the retention, once
+	c2Before := e.companyCash(c2)
+	for i, pct := range []int{34, 67} {
+		if _, err := e.pool.Raw().Exec(testCtx(t), `UPDATE settlement_buildings SET work_done = work_required * $2 / 100 WHERE id = $1::uuid`, site, pct); err != nil {
+			t.Fatal(err)
+		}
+		e.mustTender(e.head, handlers.VillageTenderRequest{Action: village.TenderActionSettle, ID: tid})
+		e.mustTender(e.head, handlers.VillageTenderRequest{Action: village.TenderActionSettle, ID: tid}) // paid once
+		if got := e.scalarInt(`SELECT count(*) FROM tender_stages WHERE tender_id = $1::uuid`, tid); got != int64(i+1) {
+			t.Fatalf("after %d%% there are %d stages paid", pct, got)
+		}
+	}
+	if got := e.companyCash(c2) - c2Before; got != 2*(1166-59) {
+		t.Fatalf("two stages of 1166 less a retention of 59 each: %d", got)
+	}
+	if _, err := e.pool.Raw().Exec(testCtx(t), `UPDATE settlement_buildings SET work_done = work_required, status = 'complete', completed_at = now() WHERE id = $1::uuid`, site); err != nil {
+		t.Fatal(err)
+	}
+	e.mustTender(e.head, handlers.VillageTenderRequest{Action: village.TenderActionSettle, ID: tid})
+	if e.scalarInt(`SELECT stages_paid FROM tenders WHERE id = $1::uuid`, tid) != 3 || e.scalarInt(`SELECT retention_held FROM tenders WHERE id = $1::uuid`, tid) != 59+59+59 {
+		t.Fatalf("three stages paid, the retention held: %d", e.scalarInt(`SELECT retention_held FROM tenders WHERE id = $1::uuid`, tid))
+	}
+	if e.escrowCash(tid) != 177+350 {
+		t.Fatalf("the escrow holds the retention and the bond until the defects period ends: %d", e.escrowCash(tid))
+	}
+	e.verifyPolity()
+	// before the defects period ends nothing is released; after it the retention and the bond go back to the contractor
+	e.tick(application.TickRetention, tid, "")
+	if e.text(`SELECT status FROM tenders WHERE id = $1::uuid`, tid) != "awarded" {
+		t.Fatal("the retention is held for the defects period")
+	}
+	e.clock.Advance(time.Duration(e.rules.DefectsDays)*24*time.Hour + time.Hour)
+	before := e.companyCash(c2)
+	e.tick(application.TickRetention, tid, "")
+	e.tick(application.TickRetention, tid, "")
+	if e.text(`SELECT status FROM tenders WHERE id = $1::uuid`, tid) != "done" || e.companyCash(c2)-before != 177+350 || e.escrowCash(tid) != 0 {
+		t.Fatalf("done, once: retention and bond back, the escrow empty (%d)", e.escrowCash(tid))
+	}
+	e.verifyPolity()
+}
+
+// A contractor that does not finish forfeits its bond to the government, the unpaid price goes back, the site goes back to the
+// government's own crew and the company is kept from public tenders for the debarment days.
+func TestAContractorThatMissesItsDeadlineForfeitsItsBondAndIsDebarred(t *testing.T) {
+	e := newPolityEnv(t, nil)
+	e.clock.Advance(4 * 24 * time.Hour)
+	site := e.place("road")
+	owner, c := e.contractor("B", 20_000)
+	e.mustTender(e.head, handlers.VillageTenderRequest{Action: village.TenderActionPost, Building: site, Cap: "5000", Due: "2", Window: "24"})
+	tid := e.text(`SELECT id::text FROM tenders WHERE building_id = $1::uuid`, site)
+	if kind := e.bid(owner, tid, c, 4000, 2); kind != "" {
+		t.Fatal(kind)
+	}
+	e.clock.Advance(25 * time.Hour)
+	e.tick(application.TickTender, tid, "")
+	if e.text(`SELECT status FROM tenders WHERE id = $1::uuid`, tid) != "awarded" {
+		t.Fatal("the lone bid wins")
+	}
+	treasury := e.cityCash(e.cityID)
+	// the deadline and the grace pass with no work done
+	e.clock.Advance(2*24*time.Hour + e.rules.TenderGrace + time.Hour)
+	e.tick(application.TickTenderDue, tid, "")
+	e.tick(application.TickTenderDue, tid, "")
+	if e.text(`SELECT status FROM tenders WHERE id = $1::uuid`, tid) != "failed" {
+		t.Fatal("the work failed")
+	}
+	if got := e.cityCash(e.cityID) - treasury; got != 4000+400 {
+		t.Fatalf("the government got back the whole price and the bond %d", got)
+	}
+	if e.escrowCash(tid) != 0 || e.companyCash(c) != 20_000-400 {
+		t.Fatalf("the escrow is empty and the company lost its bond: %d, %d", e.escrowCash(tid), e.companyCash(c))
+	}
+	if e.text(`SELECT employer_kind FROM labor_jobs WHERE building_id = $1::uuid AND status = 'open'`, site) != "settlement" {
+		t.Fatal("the site went back to the government's own crew")
+	}
+	// debarred: a bid on the next tender is refused
+	site2 := e.place("road") // the same unfinished road: its first tender failed, the government puts it out again
+	e.mustTender(e.head, handlers.VillageTenderRequest{Action: village.TenderActionPost, Building: site2, Cap: "5000", Due: "2", Window: "24"})
+	tid2 := e.text(`SELECT id::text FROM tenders WHERE building_id = $1::uuid AND status = 'open'`, site2)
+	if kind := e.bid(owner, tid2, c, 3000, 2); kind != village.TenderDebarred {
+		t.Fatalf("a company that forfeited its bond is debarred: %q (tender %s)", kind, e.text(`SELECT status || ' closes ' || closes_at::text || ' now ' || now()::text FROM tenders WHERE id = $1::uuid`, tid2))
+	}
+	if got := e.scalarInt(`SELECT count(*) FROM tender_debarments WHERE company_id = $1::uuid AND until > now() + interval '13 days'`, c); got != 1 {
+		t.Fatal("the debarment runs the configured days")
+	}
+	e.verifyPolity()
 }
