@@ -1788,6 +1788,18 @@ export interface DonateView {
   settlement_id: string
 }
 
+export interface DonorLine {
+  id: string
+  name: string
+  kind: string
+  amount: number
+  at: string | null
+  status: string
+  mine: boolean
+  refunds: boolean
+  anonymous: boolean
+}
+
 export interface EducationLiteracy {
   share_bps: number
 }
@@ -3061,6 +3073,84 @@ export interface InsureConfirmView {
   payment: PaymentChoice
 }
 
+export interface IntelActLine {
+  kind: string
+  done: boolean
+  by_us: boolean
+  target: Named
+  sponsor: Named | null
+  at: string | null
+  repair: string
+  repaired: boolean
+}
+
+export interface IntelAgentLine {
+  id: string
+  player: Named
+  sponsor: Named
+  target: Named
+  status: string
+  cover_days: number
+  ops_today: number
+  mine: boolean
+  may_accept: boolean
+  may_recall: boolean
+  may_operate: boolean
+  created_at: string | null
+  ended_at: string | null | null
+}
+
+export interface IntelExpulsionLine {
+  sponsor: Named | null
+  until: string | null
+  at: string | null
+}
+
+export interface IntelFieldLine {
+  metric: string
+  band: string
+}
+
+export interface IntelOpLine {
+  code: string
+  name: string
+  kind: string
+  available: boolean
+  missing: string[] | null
+}
+
+export interface IntelReportLine {
+  id: string
+  op: string
+  target: Named
+  confidence: string
+  fields: IntelFieldLine[] | null
+  taken_at: string | null
+  old: boolean
+  shared: boolean
+  may_share: boolean
+}
+
+export interface IntelView {
+  village: string
+  open: boolean
+  bureau_built: boolean
+  bureau_open: boolean
+  may_run: boolean
+  may_read: boolean
+  may_vet: boolean
+  sabotage_open: boolean
+  agents: IntelAgentLine[] | null
+  offers: IntelAgentLine[] | null
+  reports: IntelReportLine[] | null
+  ops: IntelOpLine[] | null
+  acts: IntelActLine[] | null
+  expelled: IntelExpulsionLine[] | null
+  vetting_days: number
+  counter: string
+  notice: string
+}
+
 export interface InterventionLine {
   id: string
   side: string
@@ -3507,6 +3597,37 @@ export interface LeverEditView {
   next_change_in_seconds: number
 }
 
+export interface LicenceApplicationLine {
+  id: string
+  kind: string
+  target: string
+  holder: Named
+  holder_kind: string
+  fee: number
+  at: string | null
+  mine: boolean
+  may_decide: boolean
+}
+
+export interface LicenceAuctionLine {
+  id: string
+  kind: string
+  target: string
+  reserve: number
+  status: string
+  closes_at: string | null
+  price: number
+  bids: number
+  my_bid: LicenceBidLine | null
+  may_bid: boolean
+}
+
+export interface LicenceBidLine {
+  id: string
+  amount: number
+  status: string
+}
+
 export interface LicenceEntry {
   no: number
   company: CompanyRef
@@ -3516,11 +3637,86 @@ export interface LicenceEntry {
   effective_at: string | null
 }
 
+export interface LicenceEventLine {
+  kind: string
+  actor: Named
+  licence: number
+  at: string | null
+}
+
+export interface LicenceKindLine {
+  code: string
+  name: string
+  target: string
+  gate: string
+  duty: string
+  available: boolean
+  missing: string[] | null
+  required: boolean
+  mode: string
+  fee: number
+  reserve: number
+  term_days: number
+  transferable: boolean
+  effective_at: string | null | null
+  in_grace: boolean
+  deferred: boolean
+}
+
+export interface LicenceLine {
+  id: string
+  no: number
+  kind: string
+  holder: Named
+  holder_kind: string
+  target: string
+  via: string
+  status: string
+  paid: number
+  term_end: string | null
+  notice_until: string | null | null
+  cause: string
+  mine: boolean
+  may_renew: boolean
+  may_list: boolean
+  may_revoke: boolean
+  proposed: boolean
+}
+
+export interface LicenceListingLine {
+  id: string
+  licence: LicenceLine
+  price: number
+  fee: number
+  mine: boolean
+  may_buy: boolean
+}
+
 export interface LicenceNoticeView {
   kind: string
   company: CompanyRef
   country: GovPlace
   effective_at: string | null
+}
+
+export interface LicenceView {
+  village: string
+  open: boolean
+  may_set_kind: boolean
+  may_issue: boolean
+  may_auction: boolean
+  may_revoke: boolean
+  kinds: LicenceKindLine[] | null
+  mine: LicenceLine[] | null
+  register: LicenceLine[] | null
+  auctions: LicenceAuctionLine[] | null
+  applications: LicenceApplicationLine[] | null
+  board: LicenceListingLine[] | null
+  events: LicenceEventLine[] | null
+  companies: Named[] | null
+  transfer_fee_bps: number
+  listing_fee: number
+  notice: string
 }
 
 export interface LicencesView {
@@ -5189,6 +5385,121 @@ export interface ProfileWork {
   job: ProfileJob | null
   course: ProfileCourse | null
   certificates: number
+}
+
+export interface ProjectBidLine {
+  id: string
+  company: Named
+  price: number
+  days: number
+  record: number
+  bond: number
+  status: string
+  mine: boolean
+}
+
+export interface ProjectBoardLine {
+  contract: ProjectContractLine
+  project: Named
+  settlement: Named
+}
+
+export interface ProjectContractLine {
+  id: string
+  status: string
+  rule: string
+  budget_cap: number
+  bond_bps: number
+  retention_bps: number
+  defects_days: number
+  due_days: number
+  closes_at: string | null
+  company: Named | null
+  price: number
+  due_at: string | null | null
+  stages_paid: number
+  retention_held: number
+  bids: ProjectBidLine[] | null
+  may_bid: boolean
+  may_award: boolean
+  may_cancel: boolean
+  may_defect: boolean
+}
+
+export interface ProjectKindLine {
+  code: string
+  name: string
+  stages: number
+  effect: string
+  available: boolean
+  missing: string[] | null
+}
+
+export interface ProjectLine {
+  id: string
+  kind: Named
+  effect: string
+  status: string
+  stage: number
+  stages: number
+  hours: number
+  need_hour: number
+  fund: number
+  waiting: string
+  materials: ProjectMaterialLine[] | null
+  min_until: string | null | null
+  delay: string | null | null
+  held: boolean
+  idle: string
+  donors: DonorLine[] | null
+  done: ProjectStageLine[] | null
+  shifts: ProjectShiftLine[] | null
+  contract: ProjectContractLine | null
+  my_shift: ProjectShiftLine | null
+  may_pledge: boolean
+  may_fund: boolean
+  may_cancel: boolean
+  may_work: boolean
+  may_hire: boolean
+  may_tender: boolean
+  hired_today: number
+  hire_per_day: number
+  shift_hours: number
+}
+
+export interface ProjectMaterialLine {
+  item: string
+  need: number
+  have: number
+}
+
+export interface ProjectShiftLine {
+  id: string
+  player: Named
+  hours: number
+  status: string
+  ends_at: string | null
+  mine: boolean
+}
+
+export interface ProjectStageLine {
+  stage: number
+  hours: number
+  at: string | null
+}
+
+export interface ProjectView {
+  village: string
+  open: boolean
+  may_start: boolean
+  fee: number
+  pledge_min: number
+  shift_minutes: number
+  kinds: ProjectKindLine[] | null
+  projects: ProjectLine[] | null
+  board: ProjectBoardLine[] | null
+  companies: TenderCompanyLine[] | null
+  notice: string
 }
 
 export interface PromotionCriterionView {
@@ -8045,9 +8356,11 @@ export interface ScreenViews {
   settlement_founded: SettlementFoundedView
   settlement_haul: HaulView
   settlement_insurance: SettlementInsuranceView
+  settlement_intel: IntelView
   settlement_knowledge_list: KnowledgeListView
   settlement_land: LandView
   settlement_land_registry: LandRegistryView
+  settlement_licence: LicenceView
   settlement_lot_access: LotAccessView
   settlement_lot_buy_confirm: LotBuyView
   settlement_lot_buy_done: LotBuyView
@@ -8057,6 +8370,7 @@ export interface ScreenViews {
   settlement_private_confirm: PrivateConfirmView
   settlement_private_lots: PrivateLotsView
   settlement_private_menu: PrivateMenuView
+  settlement_project: ProjectView
   settlement_raid: RaidView
   settlement_raid_notice: RaidNoticeView
   settlement_rail: RailView
