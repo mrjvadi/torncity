@@ -101,11 +101,13 @@ const (
 
 // ProjectKindLine is a kind a settlement could start, with what it lacks.
 type ProjectKindLine struct {
-	Code      string
-	Name      string
-	Stages    int
-	Effect    string
-	Available bool
+	Code   string
+	Name   string
+	Stages int
+	Effect string
+	// EffectName is the effect in the player's words.
+	EffectName string
+	Available  bool
 	// Missing are the knowledge codes the settlement has not researched yet; the web names them.
 	Missing []string
 }
@@ -309,8 +311,35 @@ type IntelAgentLine struct {
 	MayAccept  bool
 	MayRecall  bool
 	MayOperate bool
-	CreatedAt  time.Time
-	EndedAt    *time.Time
+	// Choices are what each act of sabotage may be aimed at in the target settlement (only for an active agent of the viewer).
+	Choices   []IntelChoiceLine
+	CreatedAt time.Time
+	EndedAt   *time.Time
+}
+
+// IntelChoiceLine is one thing an act of sabotage may be aimed at: the id to send as ref, with its name. Kinds of goods, never quantities.
+type IntelChoiceLine struct {
+	Op   string
+	Ref  presentation.Named
+	Kind string // project, item or building
+}
+
+// IntelTargetLine is a settlement a bureau may engage an agent in or share a report with.
+type IntelTargetLine struct {
+	Target presentation.Named
+	Kind   string
+}
+
+// IntelCaps are the limits of sabotage from the config, so the web can say them.
+type IntelCaps struct {
+	WeeklyLimit   int64
+	UsedThisWeek  int64
+	DelayHours    int64
+	SpoilPercent  int64
+	BlindPercent  int64
+	SkipDays      int64
+	PerTargetDays int64
+	Cost          int64
 }
 
 // IntelFieldLine is one thing a report says: a metric and the name of its band.
@@ -369,6 +398,8 @@ type IntelView struct {
 	MayRun, MayRead         bool
 	MayVet                  bool
 	SabotageOpen            bool
+	Targets                 []IntelTargetLine
+	Caps                    IntelCaps
 	Agents                  []IntelAgentLine
 	Offers                  []IntelAgentLine
 	Reports                 []IntelReportLine
@@ -469,13 +500,17 @@ const (
 
 // LicenceKindLine is a kind of right and where the settlement stands on it.
 type LicenceKindLine struct {
-	Code      string
-	Name      string
-	Target    string
-	Gate      string
-	Duty      string
-	Available bool
-	Missing   []string
+	Code   string
+	Name   string
+	Target string
+	// TargetName says what the target is in the player's words; Options are the things to pick from (crafts for a craft right). Empty
+	// for a kind with no pickable target yet: a deposit or a road has no catalogue to pick from while the kind waits (Deferred).
+	TargetName string
+	Options    []presentation.Named
+	Gate       string
+	Duty       string
+	Available  bool
+	Missing    []string
 	// Required is set when the charter has created the requirement: its mode, fee, reserve and term, and the instant it binds.
 	Required     bool
 	Mode         string

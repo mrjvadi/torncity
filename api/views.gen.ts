@@ -3096,8 +3096,26 @@ export interface IntelAgentLine {
   may_accept: boolean
   may_recall: boolean
   may_operate: boolean
+  choices: IntelChoiceLine[] | null
   created_at: string | null
   ended_at: string | null | null
+}
+
+export interface IntelCaps {
+  weekly_limit: number
+  used_this_week: number
+  delay_hours: number
+  spoil_percent: number
+  blind_percent: number
+  skip_days: number
+  per_target_days: number
+  cost: number
+}
+
+export interface IntelChoiceLine {
+  op: string
+  ref: Named
+  kind: string
 }
 
 export interface IntelExpulsionLine {
@@ -3131,6 +3149,11 @@ export interface IntelReportLine {
   may_share: boolean
 }
 
+export interface IntelTargetLine {
+  target: Named
+  kind: string
+}
+
 export interface IntelView {
   village: string
   open: boolean
@@ -3140,6 +3163,8 @@ export interface IntelView {
   may_read: boolean
   may_vet: boolean
   sabotage_open: boolean
+  targets: IntelTargetLine[] | null
+  caps: IntelCaps
   agents: IntelAgentLine[] | null
   offers: IntelAgentLine[] | null
   reports: IntelReportLine[] | null
@@ -3648,6 +3673,8 @@ export interface LicenceKindLine {
   code: string
   name: string
   target: string
+  target_name: string
+  options: Named[] | null
   gate: string
   duty: string
   available: boolean
@@ -5431,6 +5458,7 @@ export interface ProjectKindLine {
   name: string
   stages: number
   effect: string
+  effect_name: string
   available: boolean
   missing: string[] | null
 }
