@@ -71,6 +71,11 @@ func (e *specialEnv) cleanSpecial() {
 			project_contract_stages, project_contract_bids, project_contracts, project_npc_days, project_shifts, project_pledges, project_stock, project_stages, special_projects CASCADE`,
 		`DELETE FROM settlement_buildings WHERE type_code IN ('intelligence_office', 'watch_hut', 'lookout_post', 'militia_hall') AND settlement_id IN ($1::uuid, $2::uuid, $3::uuid)`,
 		`DELETE FROM settlement_knowledge_owned WHERE acquired_via = 'researched' AND settlement_id IN ($1::uuid, $2::uuid, $3::uuid)`,
+		`ALTER TABLE charter_audit DISABLE TRIGGER charter_audit_no_change`,
+		`DELETE FROM charter_audit WHERE settlement_id IN ($1::uuid, $2::uuid, $3::uuid)`,
+		`ALTER TABLE charter_audit ENABLE TRIGGER charter_audit_no_change`,
+		`DELETE FROM charter_seats WHERE office_id IN (SELECT id FROM charter_offices WHERE settlement_id IN ($1::uuid, $2::uuid, $3::uuid) AND acquisition <> 'head')`,
+		`DELETE FROM charter_offices WHERE settlement_id IN ($1::uuid, $2::uuid, $3::uuid) AND acquisition <> 'head'`,
 	} {
 		var err error
 		if strings.Contains(stmt, "$1") {
@@ -1102,4 +1107,136 @@ func TestSabotageIsCappedAndNeverTouchesBuildingsPeopleOrHouses(t *testing.T) {
 	if v.VillageInvariants.SabotageMaxWeek > e.special.Intel.SabotageWeeklyLimit {
 		t.Fatalf("no sponsor did more than the limit in a week: %d", v.VillageInvariants.SabotageMaxWeek)
 	}
+}
+
+func (e *specialEnv) setKind(p *application.Player, code, mode string, fee, reserve, termDays int64, transferable bool) string {
+	e.t.Helper()
+	tr := ""
+	if transferable {
+		tr = "1"
+	}
+	_, kind := e.licence(p, handlers.VillageLicenceRequest{Action: village.LicenceActionSetKind, Code: code, Mode: mode, Fee: fmt.Sprint(fee), Reserve: fmt.Sprint(reserve), Term: fmt.Sprint(termDays), Transferable: tr})
+	return kind
+}
+
+func (e *specialEnv) escrowOf(kind string) int64 {
+	return e.scalarInt(`SELECT COALESCE(sum(balance), 0)::bigint FROM accounts WHERE kind = $1`, kind)
+}
+
+// resident with cash, in settlement A.
+func (e *specialEnv) rich(place string, cash int64) *application.Player {
+	e.t.Helper()
+	p := e.resident(place)
+	grant(e.t, e.pool, application.AccountPlayerCash, p.ID, cash)
+	return p
+}
+
+// appointRevoker gives a second player the power to revoke licences, through the charter as a player would.
+func (e *specialEnv) appointWith(perms []string, who *application.Player) {
+	e.t.Helper()
+	var gs []handlers.VillageCharterGrant
+	for _, p := range perms {
+		gs = append(gs, handlers.VillageCharterGrant{Permission: p})
+	}
+	title := "Clerk " + randomToken(e.t, 4)
+	resp, err := e.village.CharterOfficeSave(testCtx(e.t), e.metaOf(e.head, "settlement.charter.office.save", "save"), handlers.VillageCharterRequest{Title: title, Seats: 1, Grants: gs, Acquisition: "appointment"})
+	if err != nil || (resp != nil && resp.Screen == village.ScreenVillageRefusal) {
+		e.t.Fatalf("creating the office: %v %v", err, resp)
+	}
+	office := e.text(`SELECT id::text FROM charter_offices WHERE settlement_id = $1::uuid AND title = $2`, e.cityID, title)
+	resp, err = e.village.CharterAppoint(testCtx(e.t), e.metaOf(e.head, "settlement.charter.appoint", "appoint"), handlers.VillageCharterRequest{Office: office, Player: who.PublicCode})
+	if err != nil || (resp != nil && resp.Screen == village.ScreenVillageRefusal) {
+		e.t.Fatalf("appointing: %v %v", err, resp)
+	}
+}
+
+// A settlement licenses nothing by default. Once its charter creates the requirement the people already at work have a grace in which they take
+// the first grant at the base price; after it, a fixed-fee kind is asked for by application and decided by an official who may not grant to himself
+// or to a firm he stands behind, and the fee is held until the decision.
+func TestALicenceIsRequiredAfterAGraceAndTheIncumbentsTakeTheFirstGrant(t *testing.T) {
+	e := newSpecialEnv(t, nil)
+	e.know(e.cityID, "record_keeping", "craft_guild_charter")
+	// nothing is licensed until the charter says so
+	if _, kind := e.licence(e.rich("A", 5000), handlers.VillageLicenceRequest{Action: village.LicenceActionClaim, Code: "stall_right"}); kind != village.LicenceNoRule {
+		t.Fatalf("with no requirement there is nothing to claim, got %q", kind)
+	}
+	if kind := e.setKind(e.head, "stall_right", "auction", 0, 500, 30, true); kind != "" {
+		t.Fatalf("the head sets the requirement, got %q", kind)
+	}
+	if kind := e.setKind(e.resident("A"), "stall_right", "auction", 0, 500, 30, true); kind != village.VillageNotOfficeHolder {
+		t.Fatalf("a resident without the power cannot, got %q", kind)
+	}
+	if kind := e.setKind(e.head, "stall_right", "auction", 0, 50, 30, true); kind != village.LicenceReserveLow {
+		t.Fatalf("a reserve under the least is refused, got %q", kind)
+	}
+	e.know(e.attCity, "record_keeping")
+	if _, kind := e.licence(e.att, handlers.VillageLicenceRequest{Action: village.LicenceActionSetKind, Code: "craft_privilege", Mode: "fixed", Fee: "100", Term: "30"}); kind != village.LicenceResearch {
+		t.Fatalf("a town without the research cannot license a craft, got %q", kind)
+	}
+	// the first grant in the grace: the incumbent pays the base price, no auction
+	r1 := e.rich("A", 5000)
+	treasury0 := e.cityCash(e.cityID)
+	e.mustLicence(r1, handlers.VillageLicenceRequest{Action: village.LicenceActionClaim, Code: "stall_right"})
+	if got := e.cityCash(e.cityID) - treasury0; got != 500 || e.cash(r1) != 4500 {
+		t.Fatalf("the incumbent paid the reserve to the treasury: treasury %+d, cash %d", got, e.cash(r1))
+	}
+	if e.text(`SELECT via FROM licences WHERE holder_id = $1::uuid`, r1.ID) != "first_grant" {
+		t.Fatal("the grant is a first grant")
+	}
+	if _, kind := e.licence(e.head, handlers.VillageLicenceRequest{Action: village.LicenceActionAuction, Code: "stall_right"}); kind != village.LicenceInGrace {
+		t.Fatalf("no auction while the incumbents have their grace, got %q", kind)
+	}
+	// a craft by application at a posted fee
+	if kind := e.setKind(e.head, "craft_privilege", "fixed", 200, 0, 30, false); kind != "" {
+		t.Fatalf("a craft requirement, got %q", kind)
+	}
+	r2, r3 := e.rich("A", 5000), e.rich("A", 5000)
+	e.mustLicence(r2, handlers.VillageLicenceRequest{Action: village.LicenceActionApply, Code: "craft_privilege", Target: "smithing"})
+	if got := e.escrowOf("licence_escrow"); got != 200 || e.cash(r2) != 4800 {
+		t.Fatalf("the fee is held until an official decides: escrow %d, cash %d", got, e.cash(r2))
+	}
+	if _, kind := e.licence(r2, handlers.VillageLicenceRequest{Action: village.LicenceActionApply, Code: "craft_privilege", Target: "smithing"}); kind != village.LicenceHave {
+		t.Fatalf("one open application for a right, got %q", kind)
+	}
+	// an official's own application is refused, and so is a firm he stands behind
+	grant(t, e.pool, application.AccountPlayerCash, e.head.ID, 1000)
+	e.mustLicence(e.head, handlers.VillageLicenceRequest{Action: village.LicenceActionApply, Code: "craft_privilege", Target: "weaving"})
+	apps := e.mustLicence(e.head, handlers.VillageLicenceRequest{Action: village.LicenceActionOpen}).Applications
+	var smithing, weaving string
+	for _, a := range apps {
+		if a.Target == "smithing" {
+			smithing = a.ID
+		}
+		if a.Target == "weaving" {
+			weaving = a.ID
+		}
+	}
+	if _, kind := e.licence(e.head, handlers.VillageLicenceRequest{Action: village.LicenceActionIssue, ID: weaving}); kind != village.LicenceConflict {
+		t.Fatalf("an official does not grant to himself, got %q", kind)
+	}
+	if _, kind := e.licence(r2, handlers.VillageLicenceRequest{Action: village.LicenceActionIssue, ID: smithing}); kind != village.VillageNotOfficeHolder {
+		t.Fatalf("only the holder of licence.issue decides, got %q", kind)
+	}
+	e.mustLicence(e.head, handlers.VillageLicenceRequest{Action: village.LicenceActionIssue, ID: smithing})
+	if e.text(`SELECT target_ref FROM licences WHERE holder_id = $1::uuid`, r2.ID) != "smithing" || e.escrowOf("licence_escrow") != 200 /* the head's own fee is still held */ {
+		t.Fatalf("the right is granted and its fee left the escrow: escrow %d", e.escrowOf("licence_escrow"))
+	}
+	if _, kind := e.licence(r3, handlers.VillageLicenceRequest{Action: village.LicenceActionApply, Code: "craft_privilege", Target: "smithing"}); kind != village.LicenceTaken {
+		t.Fatalf("an exclusive right has one holder, got %q", kind)
+	}
+	// the head withdraws his own application: the fee comes back; a refused application's fee comes back too
+	e.mustLicence(e.head, handlers.VillageLicenceRequest{Action: village.LicenceActionWithdraw, ID: weaving})
+	e.mustLicence(r3, handlers.VillageLicenceRequest{Action: village.LicenceActionApply, Code: "craft_privilege", Target: "weaving"})
+	cash3 := e.cash(r3)
+	appW := e.text(`SELECT id::text FROM licence_applications WHERE holder_id = $1::uuid AND status = 'pending'`, r3.ID)
+	e.mustLicence(e.head, handlers.VillageLicenceRequest{Action: village.LicenceActionDecline, ID: appW})
+	if e.cash(r3) != cash3+200 || e.escrowOf("licence_escrow") != 0 {
+		t.Fatalf("a refused application gets its fee back: cash %d, escrow %d", e.cash(r3)-cash3, e.escrowOf("licence_escrow"))
+	}
+	// after the grace the first grant is over
+	e.clock.Advance(15 * 24 * time.Hour)
+	if _, kind := e.licence(e.rich("A", 5000), handlers.VillageLicenceRequest{Action: village.LicenceActionClaim, Code: "stall_right"}); kind != village.LicenceGraceOver {
+		t.Fatalf("after the grace the claim is over, got %q", kind)
+	}
+	e.verifySpecial()
 }
