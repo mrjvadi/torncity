@@ -465,3 +465,33 @@ func (h *VillageHandler) lawCustodyLapse(ctx context.Context, tx application.Tx,
 	_, err := tx.Law().Move(ctx, c.ID, []string{"open"}, "lapsed", lc.now)
 	return err
 }
+
+// lawEspionageCase is the charge against an agent a watch exposed (docs/adr/0077 6.6, docs/adr/0078 3.11). It exists only where the settlement lists
+// the offence of espionage and a courthouse stands, and only once the courts have begun: nothing exists by default, and until then the effect is the
+// expulsion alone. The case is against the agent, never against the sponsoring settlement; the trace is the evidence, and it names no one but him.
+func (h *VillageHandler) lawEspionageCase(ctx context.Context, tx application.Tx, target application.FoundedSettlement, agentPlayerID, expulsionID string, now time.Time) error {
+	if !h.courtsOpen() {
+		return nil
+	}
+	lc := &lawCtx{snap: h.content.Current(), s: target, has: true, now: now, t: h.law.T}
+	if o, err := tx.Law().OffenceIn(ctx, target.CityID, "espionage", now); err != nil || o == nil {
+		return err
+	}
+	buildings, err := tx.SettlementBuildings().List(ctx, target.CityID)
+	if err != nil {
+		return err
+	}
+	stands := false
+	for _, b := range buildings {
+		stands = stands || (b.TypeCode == "courthouse" && b.Status == "complete")
+	}
+	if !stands {
+		return nil
+	}
+	c, err := h.lawOpenOrFind(ctx, tx, lc, "espionage", agentPlayerID, "trace", "", 0)
+	if err != nil {
+		return err
+	}
+	_, err = h.lawEvidence(ctx, tx, lc, c.ID, law.EvIntelTrace, "x:"+expulsionID, true, -1, "", "")
+	return err
+}

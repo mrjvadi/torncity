@@ -282,7 +282,7 @@ type LawRepository interface {
 	JailsHeld(ctx context.Context, buildingID string) (int64, error)
 	FreeCell(ctx context.Context, buildingID string, cells int64) (int, bool, error)
 	DueJails(ctx context.Context, now time.Time, limit int) ([]LawSentence, error)
-	Banned(ctx context.Context, playerID, ban string, now time.Time) (bool, error)
+	Banned(ctx context.Context, playerID, settlementID, ban string, now time.Time) (bool, error)
 	InsertAppeal(ctx context.Context, a LawAppeal) (bool, error)
 	AppealsOf(ctx context.Context, caseID string) ([]LawAppeal, error)
 	SetAppeal(ctx context.Context, caseID, party, status string) (bool, error)

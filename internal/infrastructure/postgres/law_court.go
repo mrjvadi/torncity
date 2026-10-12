@@ -160,10 +160,10 @@ func (r *LawRepository) DueJails(ctx context.Context, now time.Time, limit int) 
 }
 
 // Banned says a person is under an active ban from a scope.
-func (r *LawRepository) Banned(ctx context.Context, playerID, ban string, now time.Time) (bool, error) {
+func (r *LawRepository) Banned(ctx context.Context, playerID, settlementID, ban string, now time.Time) (bool, error) {
 	var ok bool
-	if err := r.q.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM law_sentences WHERE player_id = $1::uuid AND kind = 'ban' AND ban = $2 AND status = 'active'
-		AND (ends_at IS NULL OR ends_at > $3))`, playerID, ban, utcT(now)).Scan(&ok); err != nil {
+	if err := r.q.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM law_sentences s JOIN law_cases c ON c.id = s.case_id WHERE s.player_id = $1::uuid AND s.kind = 'ban'
+		AND s.ban = $3 AND s.status = 'active' AND c.settlement_id = $2::uuid AND (s.ends_at IS NULL OR s.ends_at > $4))`, playerID, settlementID, ban, utcT(now)).Scan(&ok); err != nil {
 		return false, fmt.Errorf("postgres: reading a ban: %w", err)
 	}
 	return ok, nil

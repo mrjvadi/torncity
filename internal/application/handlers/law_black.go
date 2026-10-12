@@ -241,7 +241,7 @@ func (h *VillageHandler) lawList(ctx context.Context, tx application.Tx, lc *law
 	if qty < 1 || price < 1 {
 		return "", lawRefuse(village.LawBadArgs)
 	}
-	if banned, err := tx.Law().Banned(ctx, lc.p.ID, BanMarket, lc.now); err != nil {
+	if banned, err := tx.Law().Banned(ctx, lc.p.ID, lc.s.CityID, BanMarket, lc.now); err != nil {
 		return "", err
 	} else if banned {
 		return "", lawRefuse(village.LawBanned)
@@ -309,7 +309,7 @@ func (h *VillageHandler) lawBuy(ctx context.Context, tx application.Tx, lc *lawC
 	if l.SellerID == lc.p.ID {
 		return "", lawRefuse(village.LawSelf)
 	}
-	if banned, err := tx.Law().Banned(ctx, lc.p.ID, BanMarket, lc.now); err != nil {
+	if banned, err := tx.Law().Banned(ctx, lc.p.ID, lc.s.CityID, BanMarket, lc.now); err != nil {
 		return "", err
 	} else if banned {
 		return "", lawRefuse(village.LawBanned)

@@ -527,6 +527,12 @@ func (h *MarketHandler) Order(ctx context.Context, meta envelope.Metadata, req M
 			} else if !ok {
 				return refuseMarket(economy.MarketRefusedNoLicence)
 			}
+			// a sentence of a ban from the market keeps a seller off the village book while it runs (docs/adr/0078 3.5)
+			if banned, err := tx.Law().Banned(ctx, p.ID, w.city.ID, BanMarket, now); err != nil {
+				return err
+			} else if banned {
+				return refuseMarket(economy.MarketRefusedNoLicence)
+			}
 		}
 		if vb.active {
 			used, mine, err := tx.Market().CountOpenIn(ctx, w.city.ID, p.ID)

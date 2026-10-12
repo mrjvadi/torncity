@@ -430,8 +430,13 @@ func (h *VillageHandler) exposureTest(ctx context.Context, tx application.Tx, me
 		return false, nil
 	}
 	attributed := intel.Detected(rules.AttributionBPS, intel.Roll(fmt.Sprintf("trace:%s", op.ID)))
-	if _, err := tx.Intel().InsertExpulsion(ctx, application.IntelExpulsion{ID: h.ids.NewID(), OpID: op.ID, AgentID: a.ID, PlayerID: a.PlayerID, TargetID: target.CityID, SponsorID: sponsor.CityID,
+	expulsionID := h.ids.NewID()
+	if _, err := tx.Intel().InsertExpulsion(ctx, application.IntelExpulsion{ID: expulsionID, OpID: op.ID, AgentID: a.ID, PlayerID: a.PlayerID, TargetID: target.CityID, SponsorID: sponsor.CityID,
 		Attributed: attributed, Until: rules.Expel(now), At: now}); err != nil {
+		return false, err
+	}
+	// an exposed agent is a charge where the target outlaws espionage and a courthouse stands (docs/adr/0078 3.11)
+	if err := h.lawEspionageCase(ctx, tx, target, a.PlayerID, expulsionID, now); err != nil {
 		return false, err
 	}
 	if _, err := tx.Intel().Close(ctx, a.ID, "expelled", now); err != nil {

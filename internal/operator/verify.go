@@ -273,6 +273,22 @@ func VerifyChecks(v postgres.LedgerVerification, cfg *config.Config) []Check {
 		out.add(cfg == nil || t.LicenceMaxShareBPS <= cfg.Licence.MaxShareBPS, fmt.Sprintf("no holder has more than the allowed share of a kind (the largest %d bps)", t.LicenceMaxShareBPS))
 	}
 
+	if v.Village && v.Law {
+		t := v.VillageInvariants
+		out.add(t.LawDirtyStray == 0, fmt.Sprintf("every entry on a dirty balance carries one of the few reasons dirty cash may move for, in its direction, and clean money leaves it only by laundering (%d do not)", t.LawDirtyStray))
+		out.add(t.LawPotBroken == 0, fmt.Sprintf("every pot of the hidden board holds exactly its held escrow or unfinished batch and nothing after (%d do not)", t.LawPotBroken))
+		out.add(t.LawTradeLedger == t.LawTradeRows && t.LawFineLedger == t.LawFineRows && t.LawPenaltyLedger == t.LawPenaltyRows && t.LawLaunderFeeLedger == t.LawLaunderFeeRows,
+			fmt.Sprintf("released trades (%d = %d), fines (%d = %d), customs penalties (%d = %d) and laundering fees (%d = %d) in the ledger are what the rows say",
+				t.LawTradeLedger, t.LawTradeRows, t.LawFineLedger, t.LawFineRows, t.LawPenaltyLedger, t.LawPenaltyRows, t.LawLaunderFeeLedger, t.LawLaunderFeeRows))
+		out.add(t.LawJailNoCell == 0 && t.LawCellShared == 0, fmt.Sprintf("every jail sentence names a jail and a cell (%d do not) and no cell holds two (%d do)", t.LawJailNoCell, t.LawCellShared))
+		out.add(t.LawSentenceNoVerdict == 0 && t.LawVerdictNoHearing == 0 && t.LawAppealNoAppeal == 0 && t.LawStagesBroken == 0,
+			fmt.Sprintf("every sentence follows a guilty verdict (%d do not), every verdict a hearing (%d do not), every appeal verdict an appeal (%d do not) and no case skips a stage (%d do)", t.LawSentenceNoVerdict, t.LawVerdictNoHearing, t.LawAppealNoAppeal, t.LawStagesBroken))
+		out.add(t.LawWarrantTipsOnly == 0, fmt.Sprintf("no warrant was signed on informants' tips alone (%d were)", t.LawWarrantTipsOnly))
+		out.add(t.LawBribeNoMoney == 0 && (cfg == nil || t.LawBribeMaxEffect <= cfg.Law.BribeMaxEffectBPS), fmt.Sprintf("every accepted bribe moved money (%d did not) and none lowered a rung beyond the cap (the most %d bps)", t.LawBribeNoMoney, t.LawBribeMaxEffect))
+		out.add(t.LawMatureOff == 0, fmt.Sprintf("no mature listing stands while the operator switch is off (%d do)", t.LawMatureOff))
+		out.add(t.LawInformantNoRecord == 0, fmt.Sprintf("every informant has the record of his first contact (%d have not)", t.LawInformantNoRecord))
+	}
+
 	if v.Village && v.Mining {
 		t := v.VillageInvariants
 		out.add(t.MineTaken == t.MineExtracted && t.MineShiftMismatch == 0, fmt.Sprintf("the ore taken from the deposits is what the shifts brought up (%d = %d, %d extraction rows off their shift)", t.MineTaken, t.MineExtracted, t.MineShiftMismatch))
