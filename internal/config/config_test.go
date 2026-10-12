@@ -733,6 +733,56 @@ polity:
   debt_max_instalments: 5026
   debt_period_hours: 5027
   debt_max_rate_bps: 5028
+projects:
+  rule_at: "2098-01-01T00:00:00Z"
+  grace_days: 8001
+  start_fee: 8002
+  pledge_min: 8003
+  cancel_before_stage: 8004
+  upkeep_period_hours: 8005
+  neglect_after_periods: 8006
+  max_open: 8007
+intel:
+  rule_at: "2098-01-01T00:00:00Z"
+  sabotage_rule_at: "2098-01-01T00:00:00Z"
+  grace_days: 8008
+  report_ttl_days: 8009
+  op_fee: 8010
+  agent_wage: 8011
+  ops_per_day: 8012
+  cover_cap_days: 8013
+  cover_bps_per_day: 8014
+  base_chance_bps: 8015
+  skill_bps_per_level: 8016
+  chance_floor_bps: 8017
+  chance_cap_bps: 8018
+  counter_post_bps: 8019
+  counter_vet_bps: 8020
+  counter_small_bps: 8021
+  small_residents: 8022
+  detect_bps: 8023
+  attribution_bps: 8024
+  expel_days: 8025
+  sabotage_delay_hours: 8026
+  sabotage_spoil_bps: 8027
+  sabotage_blind_bps: 8028
+  sabotage_weekly_limit: 8029
+  sabotage_per_target_days: 8030
+  sabotage_skip_days: 8031
+  sabotage_cost: 8032
+licence:
+  rule_at: "2098-01-01T00:00:00Z"
+  grace_days: 8033
+  auction_min_hours: 8034
+  reserve_min: 8035
+  transfer_fee_bps: 8036
+  transfer_cooldown_days: 8037
+  max_share_bps: 8038
+  notice_days: 8039
+  nonuse_days: 8040
+  coi_share_bps: 8041
+  listing_fee: 8042
+  term_max_days: 8043
 growth:
   capabilities: off
   cache_ttl: 6s
@@ -1508,6 +1558,54 @@ var envOverrides = map[string]string{
 	"TORN_POLITY_DEBT_MAX_INSTALMENTS":      "6026",
 	"TORN_POLITY_DEBT_PERIOD_HOURS":         "6027",
 	"TORN_POLITY_DEBT_MAX_RATE_BPS":         "6028",
+
+	"TORN_PROJECTS_RULE_AT":               "2031-01-02T03:04:05Z",
+	"TORN_PROJECTS_GRACE_DAYS":            "7001",
+	"TORN_PROJECTS_START_FEE":             "7002",
+	"TORN_PROJECTS_PLEDGE_MIN":            "7003",
+	"TORN_PROJECTS_CANCEL_BEFORE_STAGE":   "7004",
+	"TORN_PROJECTS_UPKEEP_PERIOD_HOURS":   "7005",
+	"TORN_PROJECTS_NEGLECT_AFTER_PERIODS": "7006",
+	"TORN_PROJECTS_MAX_OPEN":              "7007",
+	"TORN_INTEL_RULE_AT":                  "2031-01-02T03:04:05Z",
+	"TORN_INTEL_SABOTAGE_RULE_AT":         "2031-01-02T03:04:05Z",
+	"TORN_INTEL_GRACE_DAYS":               "7008",
+	"TORN_INTEL_REPORT_TTL_DAYS":          "7009",
+	"TORN_INTEL_OP_FEE":                   "7010",
+	"TORN_INTEL_AGENT_WAGE":               "7011",
+	"TORN_INTEL_OPS_PER_DAY":              "7012",
+	"TORN_INTEL_COVER_CAP_DAYS":           "7013",
+	"TORN_INTEL_COVER_BPS_PER_DAY":        "7014",
+	"TORN_INTEL_BASE_CHANCE_BPS":          "7015",
+	"TORN_INTEL_SKILL_BPS_PER_LEVEL":      "7016",
+	"TORN_INTEL_CHANCE_FLOOR_BPS":         "7017",
+	"TORN_INTEL_CHANCE_CAP_BPS":           "7018",
+	"TORN_INTEL_COUNTER_POST_BPS":         "7019",
+	"TORN_INTEL_COUNTER_VET_BPS":          "7020",
+	"TORN_INTEL_COUNTER_SMALL_BPS":        "7021",
+	"TORN_INTEL_SMALL_RESIDENTS":          "7022",
+	"TORN_INTEL_DETECT_BPS":               "7023",
+	"TORN_INTEL_ATTRIBUTION_BPS":          "7024",
+	"TORN_INTEL_EXPEL_DAYS":               "7025",
+	"TORN_INTEL_SABOTAGE_DELAY_HOURS":     "7026",
+	"TORN_INTEL_SABOTAGE_SPOIL_BPS":       "7027",
+	"TORN_INTEL_SABOTAGE_BLIND_BPS":       "7028",
+	"TORN_INTEL_SABOTAGE_WEEKLY_LIMIT":    "7029",
+	"TORN_INTEL_SABOTAGE_PER_TARGET_DAYS": "7030",
+	"TORN_INTEL_SABOTAGE_SKIP_DAYS":       "7031",
+	"TORN_INTEL_SABOTAGE_COST":            "7032",
+	"TORN_LICENCE_RULE_AT":                "2031-01-02T03:04:05Z",
+	"TORN_LICENCE_GRACE_DAYS":             "7033",
+	"TORN_LICENCE_AUCTION_MIN_HOURS":      "7034",
+	"TORN_LICENCE_RESERVE_MIN":            "7035",
+	"TORN_LICENCE_TRANSFER_FEE_BPS":       "7036",
+	"TORN_LICENCE_TRANSFER_COOLDOWN_DAYS": "7037",
+	"TORN_LICENCE_MAX_SHARE_BPS":          "7038",
+	"TORN_LICENCE_NOTICE_DAYS":            "7039",
+	"TORN_LICENCE_NONUSE_DAYS":            "7040",
+	"TORN_LICENCE_COI_SHARE_BPS":          "7041",
+	"TORN_LICENCE_LISTING_FEE":            "7042",
+	"TORN_LICENCE_TERM_MAX_DAYS":          "7043",
 
 	"TORN_GROWTH_CAPABILITIES":   "shadow",
 	"TORN_GROWTH_CACHE_TTL":      "6s",

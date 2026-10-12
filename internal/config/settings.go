@@ -61,6 +61,9 @@ type fileConfig struct {
 	Raid          raidSettings          `yaml:"raid"`
 	Mining        miningSettings        `yaml:"mining"`
 	Polity        politySettings        `yaml:"polity"`
+	Projects      projectsSettings      `yaml:"projects"`
+	Intel         intelSettings         `yaml:"intel"`
+	Licence       licenceSettings       `yaml:"licence"`
 	Bag           bagSettings           `yaml:"bag"`
 	Merchant      merchantSettings      `yaml:"merchant"`
 	Premium       premiumSettings       `yaml:"premium"`
@@ -1812,6 +1815,147 @@ var coreSettings = []setting{
 	moneySetting("polity", "debt_max_rate_bps",
 		func(c *Config) *int64 { return &c.Polity.DebtMaxRateBPS },
 		func(f *fileConfig) *int64 { return f.Polity.DebtMaxRateBPS }),
+	stringSetting("projects", "rule_at",
+		func(c *Config) *string { return &c.Projects.RuleAt },
+		func(f *fileConfig) *string { return f.Projects.RuleAt }),
+	moneySetting("projects", "grace_days",
+		func(c *Config) *int64 { return &c.Projects.GraceDays },
+		func(f *fileConfig) *int64 { return f.Projects.GraceDays }),
+	moneySetting("projects", "start_fee",
+		func(c *Config) *int64 { return &c.Projects.StartFee },
+		func(f *fileConfig) *int64 { return f.Projects.StartFee }),
+	moneySetting("projects", "pledge_min",
+		func(c *Config) *int64 { return &c.Projects.PledgeMin },
+		func(f *fileConfig) *int64 { return f.Projects.PledgeMin }),
+	moneySetting("projects", "cancel_before_stage",
+		func(c *Config) *int64 { return &c.Projects.CancelBeforeStage },
+		func(f *fileConfig) *int64 { return f.Projects.CancelBeforeStage }),
+	moneySetting("projects", "upkeep_period_hours",
+		func(c *Config) *int64 { return &c.Projects.UpkeepPeriodHours },
+		func(f *fileConfig) *int64 { return f.Projects.UpkeepPeriodHours }),
+	moneySetting("projects", "neglect_after_periods",
+		func(c *Config) *int64 { return &c.Projects.NeglectAfterPeriods },
+		func(f *fileConfig) *int64 { return f.Projects.NeglectAfterPeriods }),
+	moneySetting("projects", "max_open",
+		func(c *Config) *int64 { return &c.Projects.MaxOpen },
+		func(f *fileConfig) *int64 { return f.Projects.MaxOpen }),
+	stringSetting("intel", "rule_at",
+		func(c *Config) *string { return &c.Intel.RuleAt },
+		func(f *fileConfig) *string { return f.Intel.RuleAt }),
+	stringSetting("intel", "sabotage_rule_at",
+		func(c *Config) *string { return &c.Intel.SabotageRuleAt },
+		func(f *fileConfig) *string { return f.Intel.SabotageRuleAt }),
+	moneySetting("intel", "grace_days",
+		func(c *Config) *int64 { return &c.Intel.GraceDays },
+		func(f *fileConfig) *int64 { return f.Intel.GraceDays }),
+	moneySetting("intel", "report_ttl_days",
+		func(c *Config) *int64 { return &c.Intel.ReportTTLDays },
+		func(f *fileConfig) *int64 { return f.Intel.ReportTTLDays }),
+	moneySetting("intel", "op_fee",
+		func(c *Config) *int64 { return &c.Intel.OpFee },
+		func(f *fileConfig) *int64 { return f.Intel.OpFee }),
+	moneySetting("intel", "agent_wage",
+		func(c *Config) *int64 { return &c.Intel.AgentWage },
+		func(f *fileConfig) *int64 { return f.Intel.AgentWage }),
+	moneySetting("intel", "ops_per_day",
+		func(c *Config) *int64 { return &c.Intel.OpsPerDay },
+		func(f *fileConfig) *int64 { return f.Intel.OpsPerDay }),
+	moneySetting("intel", "cover_cap_days",
+		func(c *Config) *int64 { return &c.Intel.CoverCapDays },
+		func(f *fileConfig) *int64 { return f.Intel.CoverCapDays }),
+	moneySetting("intel", "cover_bps_per_day",
+		func(c *Config) *int64 { return &c.Intel.CoverBPSPerDay },
+		func(f *fileConfig) *int64 { return f.Intel.CoverBPSPerDay }),
+	moneySetting("intel", "base_chance_bps",
+		func(c *Config) *int64 { return &c.Intel.BaseChanceBPS },
+		func(f *fileConfig) *int64 { return f.Intel.BaseChanceBPS }),
+	moneySetting("intel", "skill_bps_per_level",
+		func(c *Config) *int64 { return &c.Intel.SkillBPSPerLevel },
+		func(f *fileConfig) *int64 { return f.Intel.SkillBPSPerLevel }),
+	moneySetting("intel", "chance_floor_bps",
+		func(c *Config) *int64 { return &c.Intel.ChanceFloorBPS },
+		func(f *fileConfig) *int64 { return f.Intel.ChanceFloorBPS }),
+	moneySetting("intel", "chance_cap_bps",
+		func(c *Config) *int64 { return &c.Intel.ChanceCapBPS },
+		func(f *fileConfig) *int64 { return f.Intel.ChanceCapBPS }),
+	moneySetting("intel", "counter_post_bps",
+		func(c *Config) *int64 { return &c.Intel.CounterPostBPS },
+		func(f *fileConfig) *int64 { return f.Intel.CounterPostBPS }),
+	moneySetting("intel", "counter_vet_bps",
+		func(c *Config) *int64 { return &c.Intel.CounterVetBPS },
+		func(f *fileConfig) *int64 { return f.Intel.CounterVetBPS }),
+	moneySetting("intel", "counter_small_bps",
+		func(c *Config) *int64 { return &c.Intel.CounterSmallBPS },
+		func(f *fileConfig) *int64 { return f.Intel.CounterSmallBPS }),
+	moneySetting("intel", "small_residents",
+		func(c *Config) *int64 { return &c.Intel.SmallResidents },
+		func(f *fileConfig) *int64 { return f.Intel.SmallResidents }),
+	moneySetting("intel", "detect_bps",
+		func(c *Config) *int64 { return &c.Intel.DetectBPS },
+		func(f *fileConfig) *int64 { return f.Intel.DetectBPS }),
+	moneySetting("intel", "attribution_bps",
+		func(c *Config) *int64 { return &c.Intel.AttributionBPS },
+		func(f *fileConfig) *int64 { return f.Intel.AttributionBPS }),
+	moneySetting("intel", "expel_days",
+		func(c *Config) *int64 { return &c.Intel.ExpelDays },
+		func(f *fileConfig) *int64 { return f.Intel.ExpelDays }),
+	moneySetting("intel", "sabotage_delay_hours",
+		func(c *Config) *int64 { return &c.Intel.SabotageDelayHours },
+		func(f *fileConfig) *int64 { return f.Intel.SabotageDelayHours }),
+	moneySetting("intel", "sabotage_spoil_bps",
+		func(c *Config) *int64 { return &c.Intel.SabotageSpoilBPS },
+		func(f *fileConfig) *int64 { return f.Intel.SabotageSpoilBPS }),
+	moneySetting("intel", "sabotage_blind_bps",
+		func(c *Config) *int64 { return &c.Intel.SabotageBlindBPS },
+		func(f *fileConfig) *int64 { return f.Intel.SabotageBlindBPS }),
+	moneySetting("intel", "sabotage_weekly_limit",
+		func(c *Config) *int64 { return &c.Intel.SabotageWeeklyLimit },
+		func(f *fileConfig) *int64 { return f.Intel.SabotageWeeklyLimit }),
+	moneySetting("intel", "sabotage_per_target_days",
+		func(c *Config) *int64 { return &c.Intel.SabotagePerTargetDays },
+		func(f *fileConfig) *int64 { return f.Intel.SabotagePerTargetDays }),
+	moneySetting("intel", "sabotage_skip_days",
+		func(c *Config) *int64 { return &c.Intel.SabotageSkipDays },
+		func(f *fileConfig) *int64 { return f.Intel.SabotageSkipDays }),
+	moneySetting("intel", "sabotage_cost",
+		func(c *Config) *int64 { return &c.Intel.SabotageCost },
+		func(f *fileConfig) *int64 { return f.Intel.SabotageCost }),
+	stringSetting("licence", "rule_at",
+		func(c *Config) *string { return &c.Licence.RuleAt },
+		func(f *fileConfig) *string { return f.Licence.RuleAt }),
+	moneySetting("licence", "grace_days",
+		func(c *Config) *int64 { return &c.Licence.GraceDays },
+		func(f *fileConfig) *int64 { return f.Licence.GraceDays }),
+	moneySetting("licence", "auction_min_hours",
+		func(c *Config) *int64 { return &c.Licence.AuctionMinHours },
+		func(f *fileConfig) *int64 { return f.Licence.AuctionMinHours }),
+	moneySetting("licence", "reserve_min",
+		func(c *Config) *int64 { return &c.Licence.ReserveMin },
+		func(f *fileConfig) *int64 { return f.Licence.ReserveMin }),
+	moneySetting("licence", "transfer_fee_bps",
+		func(c *Config) *int64 { return &c.Licence.TransferFeeBPS },
+		func(f *fileConfig) *int64 { return f.Licence.TransferFeeBPS }),
+	moneySetting("licence", "transfer_cooldown_days",
+		func(c *Config) *int64 { return &c.Licence.TransferCooldownDays },
+		func(f *fileConfig) *int64 { return f.Licence.TransferCooldownDays }),
+	moneySetting("licence", "max_share_bps",
+		func(c *Config) *int64 { return &c.Licence.MaxShareBPS },
+		func(f *fileConfig) *int64 { return f.Licence.MaxShareBPS }),
+	moneySetting("licence", "notice_days",
+		func(c *Config) *int64 { return &c.Licence.NoticeDays },
+		func(f *fileConfig) *int64 { return f.Licence.NoticeDays }),
+	moneySetting("licence", "nonuse_days",
+		func(c *Config) *int64 { return &c.Licence.NonuseDays },
+		func(f *fileConfig) *int64 { return f.Licence.NonuseDays }),
+	moneySetting("licence", "coi_share_bps",
+		func(c *Config) *int64 { return &c.Licence.CoiShareBPS },
+		func(f *fileConfig) *int64 { return f.Licence.CoiShareBPS }),
+	moneySetting("licence", "listing_fee",
+		func(c *Config) *int64 { return &c.Licence.ListingFee },
+		func(f *fileConfig) *int64 { return f.Licence.ListingFee }),
+	moneySetting("licence", "term_max_days",
+		func(c *Config) *int64 { return &c.Licence.TermMaxDays },
+		func(f *fileConfig) *int64 { return f.Licence.TermMaxDays }),
 	stringSetting("households", "rule_at",
 		func(c *Config) *string { return &c.Households.RuleAt },
 		func(f *fileConfig) *string { return f.Households.RuleAt }),
@@ -3255,4 +3399,60 @@ type currencySettings struct {
 	MacroPiMaxBPS              *int64  `yaml:"macro_pi_max_bps"`
 	MacroWTradableBPS          *int64  `yaml:"macro_w_tradable_bps"`
 	InterventionDelay          *string `yaml:"intervention_delay"`
+}
+
+type projectsSettings struct {
+	RuleAt              *string `yaml:"rule_at"`
+	GraceDays           *int64  `yaml:"grace_days"`
+	StartFee            *int64  `yaml:"start_fee"`
+	PledgeMin           *int64  `yaml:"pledge_min"`
+	CancelBeforeStage   *int64  `yaml:"cancel_before_stage"`
+	UpkeepPeriodHours   *int64  `yaml:"upkeep_period_hours"`
+	NeglectAfterPeriods *int64  `yaml:"neglect_after_periods"`
+	MaxOpen             *int64  `yaml:"max_open"`
+}
+
+type intelSettings struct {
+	RuleAt                *string `yaml:"rule_at"`
+	SabotageRuleAt        *string `yaml:"sabotage_rule_at"`
+	GraceDays             *int64  `yaml:"grace_days"`
+	ReportTTLDays         *int64  `yaml:"report_ttl_days"`
+	OpFee                 *int64  `yaml:"op_fee"`
+	AgentWage             *int64  `yaml:"agent_wage"`
+	OpsPerDay             *int64  `yaml:"ops_per_day"`
+	CoverCapDays          *int64  `yaml:"cover_cap_days"`
+	CoverBPSPerDay        *int64  `yaml:"cover_bps_per_day"`
+	BaseChanceBPS         *int64  `yaml:"base_chance_bps"`
+	SkillBPSPerLevel      *int64  `yaml:"skill_bps_per_level"`
+	ChanceFloorBPS        *int64  `yaml:"chance_floor_bps"`
+	ChanceCapBPS          *int64  `yaml:"chance_cap_bps"`
+	CounterPostBPS        *int64  `yaml:"counter_post_bps"`
+	CounterVetBPS         *int64  `yaml:"counter_vet_bps"`
+	CounterSmallBPS       *int64  `yaml:"counter_small_bps"`
+	SmallResidents        *int64  `yaml:"small_residents"`
+	DetectBPS             *int64  `yaml:"detect_bps"`
+	AttributionBPS        *int64  `yaml:"attribution_bps"`
+	ExpelDays             *int64  `yaml:"expel_days"`
+	SabotageDelayHours    *int64  `yaml:"sabotage_delay_hours"`
+	SabotageSpoilBPS      *int64  `yaml:"sabotage_spoil_bps"`
+	SabotageBlindBPS      *int64  `yaml:"sabotage_blind_bps"`
+	SabotageWeeklyLimit   *int64  `yaml:"sabotage_weekly_limit"`
+	SabotagePerTargetDays *int64  `yaml:"sabotage_per_target_days"`
+	SabotageSkipDays      *int64  `yaml:"sabotage_skip_days"`
+	SabotageCost          *int64  `yaml:"sabotage_cost"`
+}
+
+type licenceSettings struct {
+	RuleAt               *string `yaml:"rule_at"`
+	GraceDays            *int64  `yaml:"grace_days"`
+	AuctionMinHours      *int64  `yaml:"auction_min_hours"`
+	ReserveMin           *int64  `yaml:"reserve_min"`
+	TransferFeeBPS       *int64  `yaml:"transfer_fee_bps"`
+	TransferCooldownDays *int64  `yaml:"transfer_cooldown_days"`
+	MaxShareBPS          *int64  `yaml:"max_share_bps"`
+	NoticeDays           *int64  `yaml:"notice_days"`
+	NonuseDays           *int64  `yaml:"nonuse_days"`
+	CoiShareBPS          *int64  `yaml:"coi_share_bps"`
+	ListingFee           *int64  `yaml:"listing_fee"`
+	TermMaxDays          *int64  `yaml:"term_max_days"`
 }
