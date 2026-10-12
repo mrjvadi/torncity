@@ -82,8 +82,43 @@ func (e *specialEnv) cleanSpecial() {
 			e.t.Errorf("cleanup %q: %v", stmtHead(stmt), err)
 		}
 	}
-	for _, id := range owners {
-		purgeLedgerFor(e.t, e.pool, id)
+	purgeLedgerForAll(e.t, e.pool, owners)
+}
+
+// purgeLedgerForAll is purgeLedgerFor for a set of owners at once: a fund, the escrow of its contract and the accounts they paid move money
+// among themselves, so reversing them one owner at a time would take an escrow below zero.
+func purgeLedgerForAll(t *testing.T, pool *postgres.Pool, owners []string) {
+	t.Helper()
+	if len(owners) == 0 {
+		return
+	}
+	ctx := testCtx(t)
+	tx, err := pool.Raw().Begin(ctx)
+	if err != nil {
+		t.Errorf("cleanup: begin: %v", err)
+		return
+	}
+	defer func() { _ = tx.Rollback(context.WithoutCancel(ctx)) }()
+	for _, stmt := range []string{
+		`ALTER TABLE ledger_entries DISABLE TRIGGER ledger_entries_append_only`,
+		`CREATE TEMP TABLE purge_tx ON COMMIT DROP AS SELECT DISTINCT e.transaction_id FROM ledger_entries e JOIN accounts a ON a.id = e.account_id WHERE a.owner_id = ANY($1::uuid[])`,
+		`UPDATE accounts a SET balance = a.balance - d.delta FROM (SELECT account_id, SUM(amount)::bigint AS delta FROM ledger_entries
+			WHERE transaction_id IN (SELECT transaction_id FROM purge_tx) GROUP BY account_id) d WHERE a.id = d.account_id`,
+		`DELETE FROM ledger_entries WHERE transaction_id IN (SELECT transaction_id FROM purge_tx)`,
+		`DELETE FROM accounts WHERE owner_id = ANY($1::uuid[])`,
+		`ALTER TABLE ledger_entries ENABLE TRIGGER ledger_entries_append_only`,
+	} {
+		var args []any
+		if strings.Contains(stmt, "$1") {
+			args = []any{owners}
+		}
+		if _, err := tx.Exec(ctx, stmt, args...); err != nil {
+			t.Errorf("cleanup %q: %v", stmtHead(stmt), err)
+			return
+		}
+	}
+	if err := tx.Commit(ctx); err != nil {
+		t.Errorf("cleanup: commit: %v", err)
 	}
 }
 
@@ -545,4 +580,175 @@ func TestAFinishedWorkStandsIdleWhenNobodyKeepsItAndOpensWhenKept(t *testing.T) 
 		t.Fatalf("the fire burnt wood, %d left", got)
 	}
 	e.verifySpecial()
+}
+
+func (e *specialEnv) contractOf(project string) string {
+	return e.text(`SELECT id::text FROM project_contracts WHERE project_id = $1::uuid ORDER BY opens_at DESC, id LIMIT 1`, project)
+}
+
+func (e *specialEnv) projectEscrow(contract string) int64 {
+	return e.scalarInt(`SELECT COALESCE(sum(balance), 0)::bigint FROM accounts WHERE kind = 'project_escrow' AND owner_id = $1::uuid`, contract)
+}
+
+// bidOn puts a company's bid on a project's contract and returns the refusal, if any.
+func (e *specialEnv) bidOn(owner *application.Player, contract, company string, price, days int64) string {
+	_, kind := e.project(owner, handlers.VillageProjectRequest{Action: village.ProjectActionBid, ID: contract, Company: e.companyCode(company), Price: fmt.Sprint(price), Days: fmt.Sprint(days)})
+	return kind
+}
+
+// readyStage puts everything a stage asks on the site by the head's hand except the last material, which the test delivers when it wants the stage looked at.
+func (e *specialEnv) topUp(project string, hours int64) {
+	e.t.Helper()
+	if _, err := e.pool.Raw().Exec(testCtx(e.t), `UPDATE special_projects SET stage_hours = $2 WHERE id = $1::uuid`, project, hours); err != nil {
+		e.t.Fatal(err)
+	}
+}
+
+// A work let to a contractor: one winner whatever the number of replicas, an official's own company refused, the contractor's crew paid by its
+// company, the price paid by the stages the project completes less a retention, and the bond and the retention returned when the defects period ends.
+func TestAProjectLetByTenderHasOneWinnerAndPaysByItsStages(t *testing.T) {
+	e := newSpecialEnv(t, nil)
+	e.know(e.cityID, "masonry", "canal_irrigation", "masonry_ii")
+	e.clock.Advance(4 * 24 * time.Hour)
+	id := e.startProject(e.head, "aqueduct")
+	e.mustProject(e.head, handlers.VillageProjectRequest{Action: village.ProjectActionAllocate, ID: id, Amount: "6000"})
+	owner1, c1 := e.contractor("A", 20_000)
+	owner2, c2 := e.contractor("B", 20_000)
+	own := e.companyFor(e.head, e.cityID, 20_000)
+
+	treasury0 := e.cityCash(e.cityID)
+	e.mustProject(e.head, handlers.VillageProjectRequest{Action: village.ProjectActionTender, ID: id, Cap: "4000", Due: "3", Window: "24", Rule: "lowest_price"})
+	if got := treasury0 - e.cityCash(e.cityID); got != e.rules.TenderFee {
+		t.Fatalf("the filing fee of a tender is a sink: %d, fee %d", got, e.rules.TenderFee)
+	}
+	contract := e.contractOf(id)
+	if kind := e.bidOn(e.head, contract, own, 2500, 2); kind != village.ProjectConflict {
+		t.Fatalf("the one who awards cannot award to his own company, got %q", kind)
+	}
+	if kind := e.bidOn(owner1, contract, c1, 4500, 2); kind != village.ProjectBadBid {
+		t.Fatalf("a bid over the cap is refused, got %q", kind)
+	}
+	if kind := e.bidOn(owner1, contract, c1, 3000, 2); kind != "" {
+		t.Fatalf("a fair bid stands, got %q", kind)
+	}
+	if kind := e.bidOn(owner2, contract, c2, 2800, 2); kind != "" {
+		t.Fatalf("a fair bid stands, got %q", kind)
+	}
+	if kind := e.bidOn(owner2, contract, c2, 2700, 2); kind != village.ProjectHaveBid {
+		t.Fatalf("a company bids once, got %q", kind)
+	}
+	// while the bids are taken the crew waits for the winner
+	w := e.resident("A")
+	if _, kind := e.project(w, handlers.VillageProjectRequest{Action: village.ProjectActionWork, ID: id}); kind != village.ProjectHasContract {
+		t.Fatalf("no shift while the work is being let, got %q", kind)
+	}
+	bond2 := e.projectEscrow(contract)
+	if bond2 != 300+280 {
+		t.Fatalf("the escrow holds the bonds of the standing bids, got %d", bond2)
+	}
+	e.clock.Advance(25 * time.Hour)
+	var wg sync.WaitGroup
+	for i := 0; i < 6; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			e.tickOf(application.TickContractClose, contract)
+		}()
+	}
+	wg.Wait()
+	if e.text(`SELECT status FROM project_contracts WHERE id = $1::uuid`, contract) != "awarded" || e.text(`SELECT company_id::text FROM project_contracts WHERE id = $1::uuid`, contract) != c2 {
+		t.Fatal("the lowest price wins, and one winner stands however many replicas close the bids")
+	}
+	if got := e.projectEscrow(contract); got != 2800+280 {
+		t.Fatalf("the escrow holds the price and the winner's bond, got %d", got)
+	}
+	if e.companyCash(c1) != 20_000 {
+		t.Fatalf("the loser's bond is back, got %d", e.companyCash(c1))
+	}
+	if e.fundOf(id) != 6000-2800 {
+		t.Fatalf("the fund paid the price into the escrow, got %d", e.fundOf(id))
+	}
+	// the crew of a let work is the contractor's: the settlement hires none, and only the company's own people work it
+	if _, kind := e.project(e.head, handlers.VillageProjectRequest{Action: village.ProjectActionHire, ID: id, N: "8"}); kind != village.ProjectNoCrew {
+		t.Fatalf("the settlement does not hire for a let work, got %q", kind)
+	}
+	if _, kind := e.project(w, handlers.VillageProjectRequest{Action: village.ProjectActionWork, ID: id}); kind != village.ProjectNoCrew {
+		t.Fatalf("a stranger does not work the contractor's site, got %q", kind)
+	}
+	company0 := e.companyCash(c2)
+	// the contractor comes from another town: its owner goes to the site
+	if _, kind := e.project(owner2, handlers.VillageProjectRequest{Action: village.ProjectActionWork, ID: id}); kind != village.ProjectNotHere {
+		t.Fatalf("a crew works at the site, not from afar, got %q", kind)
+	}
+	e.pool.Raw().Exec(testCtx(t), `UPDATE players SET city_id = $1::uuid WHERE id = $2::uuid`, e.cityID, owner2.ID)
+	e.mustProject(owner2, handlers.VillageProjectRequest{Action: village.ProjectActionWork, ID: id})
+	shift := e.text(`SELECT id::text FROM project_shifts WHERE player_id = $1::uuid`, owner2.ID)
+	e.clock.Advance(time.Duration(e.special.Projects.ShiftMinutes+1) * time.Minute)
+	e.tickOf(application.TickProjectShift, shift)
+	wage := e.special.Projects.ShiftHours * e.special.Projects.WagePerHour
+	if got := company0 - e.companyCash(c2); got != wage || e.cash(owner2) != wage {
+		t.Fatalf("the company pays its own crew: it paid %d, the worker got %d, wage %d", got, e.cash(owner2), wage)
+	}
+	// the three stages: the materials from the store, the hours topped up; each stage completed pays the contractor its share less the retention
+	stages := []struct {
+		items [][2]string
+		hours int64
+	}{{[][2]string{{"stone", "40"}, {"clay", "20"}}, 32}, {[][2]string{{"stone", "50"}, {"brick", "20"}, {"clay", "20"}}, 40}, {[][2]string{{"stone", "40"}, {"clay", "30"}}, 32}}
+	var paidTotal, heldTotal int64
+	for k, st := range stages {
+		e.topUp(id, st.hours)
+		for _, it := range st.items {
+			n := parseNum(it[1])
+			e.putStock(e.cityID, it[0], n)
+		}
+		before := e.companyCash(c2)
+		for i, it := range st.items {
+			if i == len(st.items)-1 {
+				e.clock.Advance(13 * time.Hour) // the least time of a stage
+			}
+			e.mustProject(e.head, handlers.VillageProjectRequest{Action: village.ProjectActionDeliver, ID: id, Code: it[0], N: it[1]})
+		}
+		stage := int64(k + 1)
+		if got := e.scalarInt(`SELECT count(*) FROM project_stages WHERE project_id = $1::uuid`, id); got != stage {
+			t.Fatalf("after delivering stage %d it is done (rows %d)", stage, got)
+		}
+		share := int64(2800) / 3
+		if stage == 3 {
+			share += 2800 % 3
+		}
+		held := (share*e.rules.RetentionBPS + 9999) / 10000
+		if got := e.companyCash(c2) - before; got != share-held {
+			t.Fatalf("stage %d pays its share less the retention: %d, want %d", stage, got, share-held)
+		}
+		paidTotal += share - held
+		heldTotal += held
+	}
+	if e.text(`SELECT status FROM special_projects WHERE id = $1::uuid`, id) != "finished" {
+		t.Fatal("the last stage finishes the work")
+	}
+	if got := e.projectEscrow(contract); got != heldTotal+280 {
+		t.Fatalf("the escrow holds the retention and the bond until the defects period is over, got %d want %d", got, heldTotal+280)
+	}
+	e.tickOf(application.TickContractRelease, contract) // too early: nothing moves
+	if e.text(`SELECT status FROM project_contracts WHERE id = $1::uuid`, contract) != "awarded" {
+		t.Fatal("the retention is not released before the defects period ends")
+	}
+	e.clock.Advance(time.Duration(e.rules.DefectsDays+1) * 24 * time.Hour)
+	e.tickOf(application.TickContractRelease, contract)
+	e.tickOf(application.TickContractRelease, contract)
+	if e.text(`SELECT status FROM project_contracts WHERE id = $1::uuid`, contract) != "done" || e.projectEscrow(contract) != 0 {
+		t.Fatal("the contract ends done with an empty escrow")
+	}
+	if got := e.companyCash(c2); got != 20_000-wage+2800 {
+		t.Fatalf("the company ends with the price, less its crew's wage: %d", got)
+	}
+	e.verifySpecial()
+}
+
+func parseNum(s string) int64 {
+	var n int64
+	for _, r := range s {
+		n = n*10 + int64(r-'0')
+	}
+	return n
 }

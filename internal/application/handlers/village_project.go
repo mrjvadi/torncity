@@ -331,21 +331,28 @@ func (h *VillageHandler) stageGate(ctx context.Context, tx application.Tx, snap 
 func (h *VillageHandler) projectDeliver(ctx context.Context, tx application.Tx, meta envelope.Metadata, snap *content.Snapshot, s application.FoundedSettlement, has bool,
 	p *application.Player, req VillageProjectRequest, give bool, now time.Time,
 ) (string, error) {
-	if !has {
-		return "", refuseVillage(village.VillageNoSettlement)
-	}
+	var pr *application.SpecialProject
+	var err error
 	if give {
+		// anyone standing at the site may bring what they carry, from wherever they come
+		if pr, s, err = h.siteOf(ctx, tx, strings.TrimSpace(req.ID)); err != nil {
+			return "", err
+		}
 		if ok, err := h.presentHere(ctx, tx, p, s); err != nil {
 			return "", err
 		} else if !ok {
 			return "", refuseVillage(village.ProjectNotHere, village.AddrProject)
 		}
-	} else if _, err := requirePermission(ctx, tx, s, p.ID, charter.ProjectFund); err != nil {
-		return "", err
-	}
-	pr, err := h.loadActive(ctx, tx, s, strings.TrimSpace(req.ID))
-	if err != nil {
-		return "", err
+	} else {
+		if !has {
+			return "", refuseVillage(village.VillageNoSettlement)
+		}
+		if _, err := requirePermission(ctx, tx, s, p.ID, charter.ProjectFund); err != nil {
+			return "", err
+		}
+		if pr, err = h.loadActive(ctx, tx, s, strings.TrimSpace(req.ID)); err != nil {
+			return "", err
+		}
 	}
 	def, _ := snap.SpecialProject(pr.Kind)
 	st, ok := stageNow(def, pr)
@@ -413,17 +420,15 @@ func runningHours(shifts []application.ProjectShift, stage int) int64 {
 func (h *VillageHandler) projectWork(ctx context.Context, tx application.Tx, meta envelope.Metadata, snap *content.Snapshot, s application.FoundedSettlement, has bool,
 	p *application.Player, req VillageProjectRequest, now time.Time,
 ) error {
-	if !has {
-		return refuseVillage(village.VillageNoSettlement)
+	// the crew goes to the site wherever it comes from: a company of another town works a let project in the town it stands in
+	pr, s, err := h.siteOf(ctx, tx, strings.TrimSpace(req.ID))
+	if err != nil {
+		return err
 	}
 	if ok, err := h.presentHere(ctx, tx, p, s); err != nil {
 		return err
 	} else if !ok {
 		return refuseVillage(village.ProjectNotHere, village.AddrProject)
-	}
-	pr, err := h.loadActive(ctx, tx, s, strings.TrimSpace(req.ID))
-	if err != nil {
-		return err
 	}
 	def, _ := snap.SpecialProject(pr.Kind)
 	st, ok := stageNow(def, pr)
@@ -794,4 +799,20 @@ func (h *VillageHandler) tickProjectStage(ctx context.Context, tx application.Tx
 	}
 	_, err = h.projectAdvance(ctx, tx, meta, h.content.Current(), s, pr, now)
 	return err
+}
+
+// siteOf reads an active project by its id under its lock, with the settlement it stands in.
+func (h *VillageHandler) siteOf(ctx context.Context, tx application.Tx, id string) (*application.SpecialProject, application.FoundedSettlement, error) {
+	pr, err := tx.Projects().ByID(ctx, id, true)
+	if err != nil {
+		return nil, application.FoundedSettlement{}, err
+	}
+	if pr == nil {
+		return nil, application.FoundedSettlement{}, refuseVillage(village.ProjectNoProject, village.AddrProject)
+	}
+	if !pr.Active() {
+		return nil, application.FoundedSettlement{}, refuseVillage(village.ProjectNotActive, village.AddrProject)
+	}
+	s, err := tx.Settlements().ByID(ctx, pr.SettlementID)
+	return pr, s, err
 }
