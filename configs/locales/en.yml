@@ -923,6 +923,13 @@ company_type:
 
 # Components and materials, by content code (configs/content/items.yml).
 component:
+  iron_ore_lean: "Lean iron ore"
+  iron_ore_rich: "Rich iron ore"
+  timber_prop: "Timber props"
+  splint: "Pine splints"
+  sleeper: "Sleepers"
+  wooden_rail: "Wooden rails"
+  rail: "Rail"
   hide_wrap: "Hide wrap"
   hide_boots: "Hide boots"
   wool_tunic: "Wool tunic"
