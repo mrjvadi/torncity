@@ -233,7 +233,9 @@ type LawCaseLine struct {
 	// Strength is the total that stands, a band for a reader who is no part of the case.
 	Strength int64
 	Custody  bool
-	At       time.Time
+	// CustodyUntil is when the accused's custody ends, nil when he is not held.
+	CustodyUntil *time.Time
+	At           time.Time
 }
 
 // LawEvidenceLine is an item of the file.
@@ -355,6 +357,39 @@ type LawBoard struct {
 	Listings  []LawListingLine
 	Escrows   []LawEscrowLine
 	Dirty     int64
+	// Brokers are the brokers the viewer may pick for an escrow (never himself); empty without standing.
+	Brokers []LawBrokerLine
+}
+
+// LawBrokerLine is a broker of the board. Player is the one to pass as the broker of a purchase.
+type LawBrokerLine struct {
+	Player     presentation.Named
+	Reputation int64
+	// Cap is the largest trade he holds.
+	Cap int64
+}
+
+// LawHolderLine is the holder of an office of the law, with the office's title and the rungs of the law his office decides (warrant, detection,
+// verdict): a bribe is offered to one with the rung, an integrity audit looks at any of them.
+type LawHolderLine struct {
+	Player presentation.Named
+	Office string
+	Rungs  []string
+}
+
+// LawGoodLine is a good the viewer carries, with how many.
+type LawGoodLine struct {
+	Item presentation.Named
+	Qty  int64
+}
+
+// LawGangLine is the viewer's group as a gang, shown to its leader (and to any member once it has been declared in the open).
+type LawGangLine struct {
+	Faction presentation.Named
+	Hidden  bool
+	Heat    int64
+	// Leader says the viewer may mark or declare it.
+	Leader bool
 }
 
 // LawView is the law screen: everything a settlement's police, courts, jail, informants, board and customs show the viewer.
@@ -377,6 +412,18 @@ type LawView struct {
 	Board                 LawBoard
 	Fronts                []LawFrontLine
 	Loads                 []LawLoadLine
+	// Goods are what the viewer carries, to declare at customs or to list on the board; filled when either is open to him.
+	Goods []LawGoodLine
+	// Destinations are the settlements a load may be declared for (customs open).
+	Destinations []presentation.Named
+	// Companies are the viewer's businesses here that are not yet fronts (laundering open).
+	Companies []presentation.Named
+	// People are the residents of the settlement other than the viewer; Code is what to send as the player. Pick lists for complain, recruit, tip and introduce.
+	People []presentation.Named
+	// Holders are the holders of the offices of the law, other than the viewer (bribe and audit pick lists); filled when the board is open or he may audit.
+	Holders []LawHolderLine
+	// Gang is the viewer's group when it is a gang he may know of; nil otherwise.
+	Gang *LawGangLine
 	Notice                string
 }
 

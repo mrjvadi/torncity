@@ -51,6 +51,44 @@ func (r *LawRepository) Broker(ctx context.Context, playerID string) (*applicati
 	return &b, nil
 }
 
+// Residents lists the active residents of a settlement by name.
+func (r *LawRepository) Residents(ctx context.Context, settlementID string, limit int) ([]application.CharterPerson, error) {
+	rows, err := r.q.Query(ctx, `SELECT id::text, display_name, public_code FROM players WHERE residence_city_id = $1::uuid AND status = 'active'
+		ORDER BY display_name, id LIMIT $2`, settlementID, limit)
+	if err != nil {
+		return nil, fmt.Errorf("postgres: listing residents: %w", err)
+	}
+	defer rows.Close()
+	var out []application.CharterPerson
+	for rows.Next() {
+		var p application.CharterPerson
+		if err := rows.Scan(&p.ID, &p.Name, &p.Code); err != nil {
+			return nil, fmt.Errorf("postgres: scanning a resident: %w", err)
+		}
+		out = append(out, p)
+	}
+	return out, rows.Err()
+}
+
+// Brokers lists the brokers, the best name first.
+func (r *LawRepository) Brokers(ctx context.Context, limit int) ([]application.LawBroker, error) {
+	rows, err := r.q.Query(ctx, `SELECT player_id::text, reputation, trades, scams, since FROM law_brokers ORDER BY reputation DESC, since, player_id LIMIT $1`, limit)
+	if err != nil {
+		return nil, fmt.Errorf("postgres: listing brokers: %w", err)
+	}
+	defer rows.Close()
+	var out []application.LawBroker
+	for rows.Next() {
+		var b application.LawBroker
+		if err := rows.Scan(&b.PlayerID, &b.Reputation, &b.Trades, &b.Scams, &b.Since); err != nil {
+			return nil, fmt.Errorf("postgres: scanning a broker: %w", err)
+		}
+		b.Since = b.Since.UTC()
+		out = append(out, b)
+	}
+	return out, rows.Err()
+}
+
 // UpsertBroker makes a player a broker, once.
 func (r *LawRepository) UpsertBroker(ctx context.Context, playerID string, at time.Time) error {
 	return r.exec(ctx, "making a broker", `INSERT INTO law_brokers (player_id, since) VALUES ($1::uuid, $2) ON CONFLICT DO NOTHING`, playerID, utcT(at))

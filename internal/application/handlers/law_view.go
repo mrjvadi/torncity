@@ -143,7 +143,7 @@ func (h *VillageHandler) lawView(ctx context.Context, tx application.Tx, lc *law
 			return village.LawCaseLine{}, err
 		}
 		return village.LawCaseLine{ID: c.ID, No: c.No, Offence: presentation.Named{Code: c.Offence, Name: def.Name}, Accused: lawNamed(ctx, tx, names, c.AccusedID),
-			State: c.State, Source: c.Source, Strength: lc.t.Total(lawEvidenceItems(items), false), Custody: c.CustodyUntil != nil, At: c.CreatedAt}, nil
+			State: c.State, Source: c.Source, Strength: lc.t.Total(lawEvidenceItems(items), false), Custody: c.CustodyUntil != nil, CustodyUntil: c.CustodyUntil, At: c.CreatedAt}, nil
 	}
 
 	// the cases: all of them for those who work the law, the viewer's own for everyone else
@@ -281,7 +281,112 @@ func (h *VillageHandler) lawView(ctx context.Context, tx application.Tx, lc *law
 				Duty: l.Duty, Penalty: l.Penalty, MayCross: l.Status == "declared"})
 		}
 	}
+	if err := h.lawChoices(ctx, tx, lc, &v); err != nil {
+		return v, err
+	}
 	return v, nil
+}
+
+// lawChoices fills the lists a player picks from, so no code is ever typed: his goods, the destinations, his businesses, the brokers and his gang.
+func (h *VillageHandler) lawChoices(ctx context.Context, tx application.Tx, lc *lawCtx, v *village.LawView) error {
+	if v.Open.Customs || v.Board.Known {
+		stacks, pieces, err := tx.Items().Holdings(ctx, lc.p.ID, application.HoldCarried)
+		if err != nil {
+			return err
+		}
+		held := map[string]int64{}
+		for _, st := range stacks {
+			held[st.Item] += st.Qty
+		}
+		for _, pc := range pieces {
+			held[pc.Item]++
+		}
+		for it, q := range held {
+			if q < 1 {
+				continue
+			}
+			v.Goods = append(v.Goods, village.LawGoodLine{Item: presentation.Named{Code: it, Name: snapItemName(lc.snap, it)}, Qty: q})
+		}
+		sort.Slice(v.Goods, func(i, j int) bool { return v.Goods[i].Item.Code < v.Goods[j].Item.Code })
+	}
+	if v.Open.Customs {
+		founded, err := tx.Settlements().Founded(ctx)
+		if err != nil {
+			return err
+		}
+		for _, f := range founded {
+			if f.CityID != lc.s.CityID {
+				v.Destinations = append(v.Destinations, presentation.Named{Code: f.Code, Name: f.Name})
+			}
+		}
+		sort.Slice(v.Destinations, func(i, j int) bool { return v.Destinations[i].Name < v.Destinations[j].Name })
+	}
+	if v.Open.Launder {
+		cos, err := tx.Companies().Of(ctx, lc.p.ID)
+		if err != nil {
+			return err
+		}
+		for _, co := range cos {
+			if co.OwnerID != lc.p.ID || co.CityID != lc.s.CityID || co.Status != application.CompanyActive {
+				continue
+			}
+			if f, err := tx.Law().FrontByCompany(ctx, co.ID); err != nil {
+				return err
+			} else if f != nil {
+				continue
+			}
+			v.Companies = append(v.Companies, presentation.Named{Code: co.Code, Name: co.Name})
+		}
+	}
+	people, err := tx.Law().Residents(ctx, lc.s.CityID, 300)
+	if err != nil {
+		return err
+	}
+	for _, pr := range people {
+		if pr.ID != lc.p.ID {
+			v.People = append(v.People, presentation.Named{Code: pr.Code, Name: pr.Name})
+		}
+	}
+	if v.Open.Black || v.Mays.AuditIntegrity {
+		if err := h.lawHolderLines(ctx, tx, lc, v); err != nil {
+			return err
+		}
+	}
+	if v.Board.Known {
+		bs, err := tx.Law().Brokers(ctx, 30)
+		if err != nil {
+			return err
+		}
+		names := map[string]presentation.Named{}
+		for _, b := range bs {
+			if b.PlayerID == lc.p.ID {
+				continue
+			}
+			v.Board.Brokers = append(v.Board.Brokers, village.LawBrokerLine{Player: lawNamed(ctx, tx, names, b.PlayerID), Reputation: b.Reputation, Cap: lc.t.BrokerCap(b.Reputation)})
+		}
+	}
+	// the gang: its leader knows it; a member sees it only once it has been declared in the open
+	if v.Open.Courts {
+		if m, err := tx.Factions().Membership(ctx, lc.p.ID); err == nil && m != nil {
+			if f, err := tx.Factions().ByID(ctx, m.FactionID); err == nil && f != nil {
+				g, err := tx.Law().Gang(ctx, f.ID)
+				if err != nil {
+					return err
+				}
+				leader := f.LeaderID == lc.p.ID
+				if g != nil && (leader || !g.Hidden) {
+					ln := &village.LawGangLine{Faction: presentation.Named{Code: f.Code, Name: f.Name}, Hidden: g.Hidden, Leader: leader}
+					if leader {
+						ln.Heat = g.Heat
+					}
+					v.Gang = ln
+				} else if g == nil && leader {
+					v.Gang = &village.LawGangLine{Faction: presentation.Named{Code: f.Code, Name: f.Name}, Hidden: true, Leader: true}
+				}
+			}
+		}
+	}
+	return nil
 }
 
 func lawSentenceLine(lc *lawCtx, s application.LawSentence, mayPardon bool, now time.Time) village.LawSentenceLine {
@@ -417,6 +522,56 @@ func (h *VillageHandler) lawBoardView(ctx context.Context, tx application.Tx, lc
 		}
 		v.Board.Escrows = append(v.Board.Escrows, village.LawEscrowLine{ID: e.ID, Status: e.Status, Amount: e.Amount, Fee: e.Fee, Qty: e.Qty,
 			Item: presentation.Named{Code: l.Item, Name: name}, Buyer: e.BuyerID == lc.p.ID, Broker: e.BrokerID == lc.p.ID, Mine: l.SellerID == lc.p.ID, DueAt: e.DueAt})
+	}
+	return nil
+}
+
+// lawHolderLines lists the holders of the offices that decide the rungs of the law, and of the offices that can be audited (every office that holds
+// a power of the police or the courts), each with the office's title.
+func (h *VillageHandler) lawHolderLines(ctx context.Context, tx application.Tx, lc *lawCtx, v *village.LawView) error {
+	st, err := loadCharterState(ctx, tx, lc.s, "head")
+	if err != nil {
+		return err
+	}
+	lawPerms := []charter.Permission{charter.PolicePatrol, charter.PoliceInvestigate, charter.PoliceArrest, charter.CourtWarrant, charter.CourtJudge,
+		charter.CourtAppealHear, charter.ProsecuteCharge}
+	names := map[string]presentation.Named{}
+	for _, o := range st.offices {
+		if o.Closed {
+			continue
+		}
+		var rungs []string
+		isLaw := false
+		for _, g := range o.Grants {
+			for _, p := range lawPerms {
+				isLaw = isLaw || g.Permission == p
+			}
+			for r, p := range bribeRungs {
+				if g.Permission == p {
+					rungs = append(rungs, r)
+				}
+			}
+		}
+		if !isLaw {
+			continue
+		}
+		sort.Strings(rungs)
+		var holders []string
+		if o.Acquisition == charter.AcquireHead {
+			if st.headHeld != "" {
+				holders = append(holders, st.headHeld)
+			}
+		} else {
+			for _, seat := range st.seats[o.ID] {
+				holders = append(holders, seat.HolderID)
+			}
+		}
+		for _, id := range holders {
+			if id == lc.p.ID {
+				continue
+			}
+			v.Holders = append(v.Holders, village.LawHolderLine{Player: lawNamed(ctx, tx, names, id), Office: o.Title, Rungs: rungs})
+		}
 	}
 	return nil
 }

@@ -1021,6 +1021,13 @@ company_type:
 
 # نام قطعه‌ها و مواد، به کد محتوا (configs/content/items.yml).
 component:
+  iron_ore_lean: "سنگ آهن کم‌عیار"
+  iron_ore_rich: "سنگ آهن پرعیار"
+  timber_prop: "چوب‌بست معدن"
+  splint: "مشعل چوب کاج"
+  sleeper: "تراورس"
+  wooden_rail: "ریل چوبی"
+  rail: "ریل"
   hide_wrap: "پوشش چرمی"
   hide_boots: "چکمهٔ چرمی"
   wool_tunic: "پیراهن پشمی"
@@ -1802,7 +1809,7 @@ recipe:
   rope: "طناب"
   bandage: "باند"
   timber_props: "چوب‌بست"
-  splints: "چوب‌کبریت معدن"
+  splints: "مشعل چوب کاج"
   sleepers: "تراورس"
   wooden_rails: "ریل چوبی"
   iron_rails: "ریل آهنی"

@@ -3629,6 +3629,7 @@ export interface LawBoard {
   listings: LawListingLine[] | null
   escrows: LawEscrowLine[] | null
   dirty: number
+  brokers: LawBrokerLine[] | null
 }
 
 export interface LawBribeLine {
@@ -3641,6 +3642,12 @@ export interface LawBribeLine {
   mine: boolean
   may_answer: boolean
   term_end: string | null | null
+}
+
+export interface LawBrokerLine {
+  player: Named
+  reputation: number
+  cap: number
 }
 
 export interface LawCaseDetail {
@@ -3675,6 +3682,7 @@ export interface LawCaseLine {
   source: string
   strength: number
   custody: boolean
+  custody_until: string | null | null
   at: string | null
 }
 
@@ -3702,6 +3710,24 @@ export interface LawEvidenceLine {
 export interface LawFrontLine {
   company: Named
   batches: LawBatchLine[] | null
+}
+
+export interface LawGangLine {
+  faction: Named
+  hidden: boolean
+  heat: number
+  leader: boolean
+}
+
+export interface LawGoodLine {
+  item: Named
+  qty: number
+}
+
+export interface LawHolderLine {
+  player: Named
+  office: string
+  rungs: string[] | null
 }
 
 export interface LawInformantLine {
@@ -3831,6 +3857,12 @@ export interface LawView {
   board: LawBoard
   fronts: LawFrontLine[] | null
   loads: LawLoadLine[] | null
+  goods: LawGoodLine[] | null
+  destinations: Named[] | null
+  companies: Named[] | null
+  people: Named[] | null
+  holders: LawHolderLine[] | null
+  gang: LawGangLine | null
   notice: string
 }
 

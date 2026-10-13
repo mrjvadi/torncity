@@ -322,6 +322,10 @@ type LawRepository interface {
 	AddStanding(ctx context.Context, playerID, introducedBy string, delta int64, at time.Time) error
 	Broker(ctx context.Context, playerID string) (*LawBroker, error)
 	UpsertBroker(ctx context.Context, playerID string, at time.Time) error
+	// Residents lists the active residents of a settlement by name, for the screens that pick a person.
+	Residents(ctx context.Context, settlementID string, limit int) ([]CharterPerson, error)
+	// Brokers are the brokers of the board, the best name first.
+	Brokers(ctx context.Context, limit int) ([]LawBroker, error)
 	BrokerMoved(ctx context.Context, playerID string, reputation, trades, scams int64) error
 	InsertListing(ctx context.Context, l LawListing) (bool, error)
 	// ShrinkListing takes qty off an open listing's stock (a fence's good bought in part).
