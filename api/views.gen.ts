@@ -139,6 +139,7 @@ export interface ApprenticesView {
   lines: ApprenticeLine[] | null
   bounds: ApprenticeBounds | null
   can_join: ApprenticeJoinLine[] | null
+  candidates: Named[] | null
   notice: string
 }
 
@@ -3152,6 +3153,7 @@ export interface IntelReportLine {
 export interface IntelTargetLine {
   target: Named
   kind: string
+  people: Named[] | null
 }
 
 export interface IntelView {

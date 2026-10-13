@@ -122,6 +122,30 @@ func (h *VillageHandler) intelView(ctx context.Context, tx application.Tx, snap 
 	default:
 		v.Counter = "solid"
 	}
+	// who may be engaged: the agent is a player who lives in the target, so a target offers its residents by name (the bureau's holder picks, never types)
+	if v.MayRun && v.BureauBuilt {
+		for i := range v.Targets {
+			if i >= 30 {
+				break
+			}
+			tg, err := h.settlementByCode(ctx, tx, v.Targets[i].Target.Code)
+			if err != nil {
+				return v, err
+			}
+			if tg == nil {
+				continue
+			}
+			people, err := tx.Law().Residents(ctx, tg.CityID, 50)
+			if err != nil {
+				return v, err
+			}
+			for _, pr := range people {
+				if pr.ID != p.ID {
+					v.Targets[i].People = append(v.Targets[i].People, presentation.Named{Code: pr.Code, Name: pr.Name})
+				}
+			}
+		}
+	}
 	if v.MayRun {
 		sponsored, err := tx.Intel().AgentsOfSponsor(ctx, s.CityID, 30)
 		if err != nil {

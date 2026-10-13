@@ -14,6 +14,7 @@
           }
         }
       ],
+      "candidates": null,
       "lines": [
         {
           "can_accept": true,
@@ -133,6 +134,7 @@
     "view": {
       "bounds": null,
       "can_join": null,
+      "candidates": null,
       "lines": null,
       "notice": ""
     }

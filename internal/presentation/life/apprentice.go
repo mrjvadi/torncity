@@ -77,6 +77,8 @@ type ApprenticesView struct {
 	Bounds *ApprenticeBounds
 	// CanJoin lists the crafts the viewer could join at a public workshop of the settlement now (an NPC master teaches to the NPC level).
 	CanJoin []ApprenticeJoinLine
+	// Candidates are the residents a master with a workshop of his own may offer a place (not bound to a master now), to pick from instead of typing a code.
+	Candidates []presentation.Named
 	Notice  string
 }
 

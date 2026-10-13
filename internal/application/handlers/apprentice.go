@@ -814,6 +814,34 @@ func (h *ApprenticeHandler) mine(ctx context.Context, meta envelope.Metadata, no
 				}
 			}
 		}
+		// who a master may offer a place: the residents of the settlement he works in who are not bound to a master now (a name to pick, never a code to type)
+		if p.CityID != nil {
+			priv, err := tx.Citizens().PrivateBuildings(ctx, *p.CityID)
+			if err != nil {
+				return err
+			}
+			own := false
+			for _, pb := range priv {
+				own = own || pb.OwnerID == p.ID
+			}
+			if own {
+				people, err := tx.Law().Residents(ctx, *p.CityID, 100)
+				if err != nil {
+					return err
+				}
+				for _, pr := range people {
+					if pr.ID == p.ID {
+						continue
+					}
+					if cur, err := tx.Apprentices().ActiveOf(ctx, pr.ID); err != nil {
+						return err
+					} else if cur != nil {
+						continue
+					}
+					view.Candidates = append(view.Candidates, presentation.Named{Code: pr.Code, Name: pr.Name})
+				}
+			}
+		}
 		return nil
 	})
 	if resp, err := h.finish(lang, err); resp != nil || err != nil {
