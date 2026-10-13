@@ -380,6 +380,16 @@ func (h *VillageHandler) fillDetail(ctx context.Context, tx application.Tx, lc *
 		for _, t := range ts {
 			v.Templates = append(v.Templates, h.templateLine(lc, t, true))
 		}
+		// the layouts of the neighbours: a share code works for anyone, so what the settlement's own people saved is open to its people
+		others, authors, err := tx.SettlementBuildings().NeighbourTemplates(ctx, lc.s.CityID, lc.p.ID, 50)
+		if err != nil {
+			return err
+		}
+		for i, t := range others {
+			line := h.templateLine(lc, t, false)
+			line.Author = authors[i]
+			v.Shared = append(v.Shared, line)
+		}
 	}
 	return nil
 }

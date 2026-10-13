@@ -328,6 +328,8 @@ type IntelChoiceLine struct {
 type IntelTargetLine struct {
 	Target presentation.Named
 	Kind   string
+	// People are the residents of the target who may be engaged as agents (filled for the holder of the right to run the bureau), to pick from.
+	People []presentation.Named
 }
 
 // IntelCaps are the limits of sabotage from the config, so the web can say them.

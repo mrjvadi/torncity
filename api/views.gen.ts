@@ -139,6 +139,7 @@ export interface ApprenticesView {
   lines: ApprenticeLine[] | null
   bounds: ApprenticeBounds | null
   can_join: ApprenticeJoinLine[] | null
+  candidates: Named[] | null
   notice: string
 }
 
@@ -3152,6 +3153,7 @@ export interface IntelReportLine {
 export interface IntelTargetLine {
   target: Named
   kind: string
+  people: Named[] | null
 }
 
 export interface IntelView {
@@ -4414,6 +4416,7 @@ export interface LotManageView {
   condition_bps: number
   look: LotLook | null
   templates: LotTemplateLine[] | null
+  shared: LotTemplateLine[] | null
   cash: number
   quote: LotQuote | null
   reason: string
@@ -4524,6 +4527,7 @@ export interface LotTemplateLine {
   mine: boolean
   applicable: boolean
   reason: string
+  author: string
 }
 
 export interface LotUpgradeLine {

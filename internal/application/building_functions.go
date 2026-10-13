@@ -183,6 +183,8 @@ type BuildingFunctionRepository interface {
 	// Templates lists a player's saved templates; Template reads one by id or by share code.
 	Templates(ctx context.Context, ownerID string) ([]PlanTemplate, error)
 	TemplateByCode(ctx context.Context, code string) (*PlanTemplate, error)
+	// NeighbourTemplates lists the templates of the other active residents of a settlement, with the author names, newest first.
+	NeighbourTemplates(ctx context.Context, cityID, exceptOwnerID string, limit int) ([]PlanTemplate, []string, error)
 	TemplateByID(ctx context.Context, id string) (*PlanTemplate, error)
 	InsertTemplate(ctx context.Context, t PlanTemplate) error
 	DeleteTemplate(ctx context.Context, id, ownerID string) (bool, error)
