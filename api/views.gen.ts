@@ -4416,7 +4416,6 @@ export interface LotManageView {
   condition_bps: number
   look: LotLook | null
   templates: LotTemplateLine[] | null
-  shared: LotTemplateLine[] | null
   cash: number
   quote: LotQuote | null
   reason: string
@@ -4527,7 +4526,6 @@ export interface LotTemplateLine {
   mine: boolean
   applicable: boolean
   reason: string
-  author: string
 }
 
 export interface LotUpgradeLine {

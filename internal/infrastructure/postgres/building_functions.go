@@ -383,33 +383,6 @@ func (r *SettlementBuildingRepository) template(ctx context.Context, where strin
 	return t, nil
 }
 
-// NeighbourTemplates lists the templates of the other active residents of a settlement and, in step, the names of their authors.
-func (r *SettlementBuildingRepository) NeighbourTemplates(ctx context.Context, cityID, exceptOwnerID string, limit int) ([]application.PlanTemplate, []string, error) {
-	rows, err := r.q.Query(ctx, `SELECT t.id::text, t.owner_id::text, t.name, t.code, t.function_code, t.level, t.storeys, t.modules::text, t.created_at, p.display_name
-		FROM plan_templates t JOIN players p ON p.id = t.owner_id
-		WHERE p.residence_city_id = $1::uuid AND p.status = 'active' AND t.owner_id <> $2::uuid
-		ORDER BY t.created_at DESC, t.id LIMIT $3`, cityID, exceptOwnerID, limit)
-	if err != nil {
-		return nil, nil, fmt.Errorf("postgres: listing neighbours' templates: %w", err)
-	}
-	defer rows.Close()
-	var out []application.PlanTemplate
-	var authors []string
-	for rows.Next() {
-		var t application.PlanTemplate
-		var mods, author string
-		if err := rows.Scan(&t.ID, &t.OwnerID, &t.Name, &t.Code, &t.Function, &t.Level, &t.Storeys, &mods, &t.CreatedAt, &author); err != nil {
-			return nil, nil, fmt.Errorf("postgres: reading a neighbour's template: %w", err)
-		}
-		if err := json.Unmarshal([]byte(mods), &t.Modules); err != nil {
-			return nil, nil, fmt.Errorf("postgres: reading a template's modules: %w", err)
-		}
-		out = append(out, t)
-		authors = append(authors, author)
-	}
-	return out, authors, rows.Err()
-}
-
 // TemplateByCode reads a template by its share code.
 func (r *SettlementBuildingRepository) TemplateByCode(ctx context.Context, code string) (*application.PlanTemplate, error) {
 	return r.template(ctx, `code = $1`, code)

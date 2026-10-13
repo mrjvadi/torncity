@@ -307,8 +307,6 @@ type LotTemplateLine struct {
 	Mine       bool
 	Applicable bool
 	Reason     string
-	// Author names the resident who shared it; empty on my own.
-	Author string
 }
 
 // LotQuote is the price of an act.
@@ -387,8 +385,6 @@ type LotManageView struct {
 	ConditionBPS int
 	Look         *LotLook
 	Templates    []LotTemplateLine
-	// Shared are the layouts of the other residents of the settlement, to pick from instead of typing a share code.
-	Shared []LotTemplateLine
 	Cash         int64
 	// The ask and the done.
 	Quote  *LotQuote
